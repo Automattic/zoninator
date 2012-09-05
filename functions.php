@@ -23,13 +23,11 @@ function z_get_zone( $zone ) {
 
 /**
  * @param $zone int|string ID or Slug of the zone
+ * @param $args array override default zoninator args
  * @return array List of orders post objects
  */
 function z_get_posts_in_zone( $zone, $args = array() ) {
-	// TODO: return only published posts by default
-	// TODO: ability to grab draft as well
-	
-	return z_get_zoninator()->get_zone_posts( $zone );
+	return z_get_zoninator()->get_zone_posts( $zone, $args );
 }
 
 /**
