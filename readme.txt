@@ -55,6 +55,10 @@ Filter the following and change according to your needs:
 
 == Changelog ==
 
+= 0.5 =
+
+* Support for touch events for mobile via jQuery UI Touch Punch (http://touchpunch.furf.com/)
+
 = 0.4 =
 
 * New dropdown that recent posts which can be adding to zones, props metromatic and Metro UK
