@@ -146,7 +146,11 @@ class Zoninator
 				'zoneLockPeriodMax' => $this->zone_max_lock_period,
 			);
 			wp_localize_script( 'zoninator-js', 'zoninatorOptions', $options );
-			
+
+			// For mobile support
+			// http://github.com/furf/jquery-ui-touch-punch
+			wp_enqueue_script( 'jquery-ui-touch-punch', ZONINATOR_URL . 'js/jquery.ui.touch-punch.min.js', array( 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse' ) );
+
 		}
 	}
 	
