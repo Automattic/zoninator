@@ -505,16 +505,16 @@ class Zoninator
 			'post__not_in' => $zone_post_ids,
 		) );
 
-		$latest_query = new WP_Query( $args );
+		$recent_posts = get_posts( $args );
 		?>
 		<div class="zone-search-wrapper">
 			<label for="zone-post-search-latest"><?php _e( 'Add Recent Content', 'zoninator' );?></label><br />
 			<select name="search-posts" id="zone-post-latest">
 				<option value="">Choose latest post</option>
 				<?php			
-				while ( $latest_query->have_posts() ) : $latest_query->the_post();
-					echo sprintf( '<option value="%d">%s</option>', get_the_ID(), get_the_title() );
-				endwhile;
+				foreach ( $recent_posts as $post ) :
+					echo sprintf( '<option value="%d">%s</option>', $post->ID, get_the_title( $post->ID ) );
+				endforeach;
 				wp_reset_postdata();
 				?>
 			</select>
