@@ -276,3 +276,12 @@
 		float: right;
 		text-align: right;
 	}
+
+.zone-advanced-search-filters-wrapper {
+	display: none;
+}	
+
+.zone-advanced-search-filters-heading {
+	float: right;
+	font-weight: bold;
+}
