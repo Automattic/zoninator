@@ -9,10 +9,22 @@ var zoninator = {}
 		zoninator.$zonePostsWrap = $('.zone-posts-wrapper');
 		zoninator.$zonePostSearch = $("#zone-post-search");
 		zoninator.$zonePostLatest = $("#zone-post-latest");
-		zoninator.updatePostOrder();
+		zoninator.$zoneAdvancedCat = $("#zone_advanced_filter_taxonomy");
+		zoninator.$zoneAdvancedDate = $("#zone_advanced_filter_date");
+	
 		
+		zoninator.$zoneAdvancedDate.change(function() {
+			zoninator.updateLatest();
+		});
+
+		zoninator.$zoneAdvancedCat.change(function() {
+			zoninator.updateLatest();
+		});
+
+		zoninator.updatePostOrder();		
+
 		zoninator.initTabManager();
-		
+	
 		// Bind actions to buttons
 		zoninator.initZonePost(zoninator.$zonePostsList.children());
 		
@@ -57,6 +69,8 @@ var zoninator = {}
 			}
 		});
 
+		
+
 		// Initialize autocomplete
 		if(zoninator.$zonePostSearch.length) {
 			zoninator.$zonePostSearch
@@ -71,12 +85,16 @@ var zoninator = {}
 					// Remote source with caching
 					, source: function( request, response ) {
 						var term = request.term;
-						if ( term in zoninator.autocompleteCache ) {
+
+						request.cat = zoninator.getAdvancedCat();
+						request.date = zoninator.getAdvancedDate();
+
+						if ( term in zoninator.autocompleteCache ) { //&& request.cat && request.date ) {
 							response( zoninator.autocompleteCache[ term ] );
 							zoninator.$zonePostSearch.trigger('loading.end');
 							return;
 						}
-						
+					
 						// Append more request vars
 						request.action = zoninator.getAjaxAction('search_posts');
 						request.exclude = zoninator.getZonePostIds();
@@ -127,6 +145,24 @@ var zoninator = {}
 		}
 		
 		// TODO: move / copy posts to zones
+	}
+
+	zoninator.updateLatest = function() {
+	
+		zoninator.$zonePostSearch.trigger('loading.start');
+		zoninator.ajax('update_recent', {
+			zone_id: zoninator.getZoneId(),
+			cat: zoninator.getAdvancedCat(),
+			date: zoninator.getAdvancedDate()
+		}, zoninator.addUpdateLatestSuccessCallback);
+	}
+
+	zoninator.addUpdateLatestSuccessCallback = function(returnData) {
+
+		zoninator.$zonePostSearch.trigger('loading.end');
+		var $list = $(returnData.content);
+		$('#zone-post-latest').html($list);
+
 	}
 
 	zoninator.addPost = function(postId) {
@@ -306,6 +342,14 @@ var zoninator = {}
 	
 	zoninator.updateAjaxNonce = function(action, nonce) {
 		zoninator.getAjaxNonceField(action).val(nonce);
+	}
+
+	zoninator.getAdvancedCat = function() {
+		return $('#zone_advanced_filter_taxonomy').length ? zoninator.$zoneAdvancedCat.val() : 0;
+	}
+
+	zoninator.getAdvancedDate = function() {
+		return $('#zone_advanced_filter_date').length ? zoninator.$zoneAdvancedDate.val() : 0;
 	}
 	
 	zoninator.getAjaxNonce = function(action) {
@@ -530,6 +574,11 @@ var zoninator = {}
 		});
 	}
 
+	$('.zone-toggle-advanced-search').click( function() {
+		$('.zone-advanced-search-filters-wrapper').toggle();
+		$('.zone-toggle-advanced-search').toggle();
+	});
+
 	// TODO: fix this
 	function parseIntOrZero(str) {		
 		var parsed = parseInt( str );
@@ -539,6 +588,7 @@ var zoninator = {}
 
 	$(document).ready(function() {
 		zoninator.init();
+
 	})
 })(jQuery, window);
 

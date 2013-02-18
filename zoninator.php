@@ -115,6 +115,8 @@ class Zoninator
 		add_action( 'wp_ajax_zoninator_remove_post', array( $this, 'ajax_remove_post' ) );
 		add_action( 'wp_ajax_zoninator_search_posts', array( $this, 'ajax_search_posts' ) );
 		add_action( 'wp_ajax_zoninator_update_lock', array( $this, 'ajax_update_lock' ) );
+		add_action( 'wp_ajax_zoninator_update_recent', array( $this, 'ajax_recent_posts' ) );
+
 	}
 	
 	function admin_init() {
@@ -418,7 +420,9 @@ class Zoninator
 					<div class="zone-posts-wrapper <?php echo ! $this->_current_user_can_manage_zones( $zone_id ) || $zone_locked ? 'readonly' : ''; ?>">
 						<?php if( $zone_id ) : ?>
 							<h3><?php _e( 'Zone Content', 'zoninator' ); ?></h3>
-						
+
+							<?php $this->zone_advanced_search_filters(); ?>					
+	
 							<?php $this->zone_admin_recent_posts_dropdown( $zone_id ); ?>
 							
 							<?php $this->zone_admin_search_form(); ?>
@@ -488,6 +492,112 @@ class Zoninator
 		<?php
 	}
 
+	function zone_advanced_search_filters() {
+
+		$current_cat = $this->_get_post_var( 'zone_advanced_filter_taxonomy', '', 'absint' );
+		$current_date = $this->_get_post_var( 'zone_advanced_filter_date', '', 'striptags' );	
+
+		?>
+		<div class="zone-advanced-search-filters-heading">
+			<span class="zone-toggle-advanced-search">Show Advanced Filters</span><span class="zone-toggle-advanced-search" style="display: none;">Hide</span>
+		</div>
+		<div class="zone-advanced-search-filters-wrapper" <?php if ( $current_cat || $current_date ) { echo 'style="display: block"'; } ?>>
+
+			<?php
+
+			// Override dates for dropdown here
+			$date_filters = apply_filters( 'zoninator_advanced_filter_date_period', array( 'all', 'today', 'yesterday') );
+			$category_filter = wp_dropdown_categories( 
+				apply_filters( 'zoninator_advanced_filter_category', array(
+					'show_option_all' =>  'Show all Categories',
+					'selected' => $current_cat,
+					'hierarchical' => 1,
+					'name' => 'zone_advanced_filter_taxonomy',
+					'id' => 'zone_advanced_filter_taxonomy',
+					'depth' => 2 )
+				)
+			);
+	
+			?>
+			<select name="zone_advanced_filter_date" id="zone_advanced_filter_date">
+				<?php
+				// Convert string dates into actual dates
+				foreach( $date_filters as $date ) {
+					$timestamp = strtotime( $date );
+					$output = ( $timestamp ) ? date( 'j-n-Y', $timestamp ) : 0;
+					echo '<option value="' . $output . '"';
+					if ( $output == $current_date ) { echo ' selected="selected" '; }
+					echo '>' . $date . '</option>';
+				}
+				?>
+			</select>
+		</div>
+		<?php
+
+	}
+
+	function ajax_recent_posts() {
+
+		$cat = $this->_get_post_var( 'cat', '', 'absint' );
+		$date = $this->_get_post_var( 'date', '', 'striptags' );
+		$zone_id = $this->_get_post_var( 'zone_id', 0, 'absint' );	
+
+		$limit = $this->posts_per_page;
+		$post_types = $this->get_supported_post_types();
+		$zone_posts = $this->get_zone_posts( $zone_id );
+		$zone_post_ids = wp_list_pluck( $zone_posts, 'ID' );
+	
+		
+		// Verify nonce
+		$this->verify_nonce( $this->zone_ajax_nonce_action );
+		$this->verify_access( '', $zone_id );
+
+		if( is_wp_error( $result ) ) {
+			$status = 0;
+			$content = $result->get_error_message();
+		} else {
+			$args = array(
+				'posts_per_page' => $limit,
+				'order' => 'DESC',
+				'orderby' => 'post_date',
+				'post_type' => $post_types,
+				'ignore_sticky_posts' => true,
+				'post_status' => array( 'publish', 'future' ),
+				'post__not_in' => $zone_post_ids,
+			
+			);
+			if ( $cat > 0 ) {
+				$args['cat'] = $cat;
+			}
+
+			if ( isset( $date ) ) {
+				$filter_date_parts = explode( '-', $date );
+				$args['day'] = $filter_date_parts[0];
+				$args['monthnum'] = $filter_date_parts[1];
+				$args['year'] = $filter_date_parts[2];
+
+			}
+
+			$recent_posts = get_posts( $args );
+			ob_start();
+			foreach ( $recent_posts as $post ) :
+				echo sprintf( '<option value="%d">%s</option>', $post->ID, get_the_title( $post->ID ) );
+			endforeach;
+			$content = ob_get_contents();
+			ob_end_clean();
+			wp_reset_postdata();
+			$status = 1;
+		}
+
+		if ( ! $content ) {
+			$content = '<option value="">No results found</option>';
+		} else {
+			$content = '<option value="">Choose latest from ' . get_the_category_by_ID( $cat ) . '</option>' . $content;
+		}
+
+		$this->ajax_return( $status, $content );
+	}
+
 	function zone_admin_recent_posts_dropdown( $zone_id ) {
 
 		$limit = $this->posts_per_page;
@@ -504,6 +614,8 @@ class Zoninator
 			'post_status' => array( 'publish', 'future' ),
 			'post__not_in' => $zone_post_ids,
 		) );
+
+		
 
 		$recent_posts = get_posts( $args );
 		?>
@@ -660,13 +772,17 @@ class Zoninator
 		$q = $this->_get_request_var( 'term', '', 'stripslashes' );
 		
 		if( ! empty( $q ) ) {
-			
+
+
+			$filter_cat = $this->_get_request_var( 'cat', '', 'absint' );
+			$filter_date = $this->_get_request_var( 'date', '', 'striptags' );	
+
 			$post_types = $this->get_supported_post_types();
 			$limit = $this->_get_request_var( 'limit', $this->posts_per_page );
 			if( $limit <= 0 )
 				$limit = $this->posts_per_page; 
 			$exclude = (array) $this->_get_request_var( 'exclude', array(), 'absint' );
-			
+
 			$args = apply_filters( 'zoninator_search_args', array(
 				's' => $q,
 				'post__not_in' => $exclude,
@@ -677,6 +793,19 @@ class Zoninator
 				'orderby' => 'post_date',
 				'suppress_filters' => true,
 			) );
+
+			if ( $filter_cat ) {
+				$args['cat'] = $filter_cat;
+			}
+
+			if ( isset( $filter_date ) ) {
+
+				$filter_date_parts = explode( '-', $filter_date );
+				$args['day'] = $filter_date_parts[0];
+				$args['monthnum'] = $filter_date_parts[1];
+				$args['year'] = $filter_date_parts[2];
+
+			}
 			
 			$query = new WP_Query( $args );
 			$stripped_posts = array();
