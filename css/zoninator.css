@@ -216,6 +216,8 @@
 		}
 		.zone-post.loading .zone-post-position {
 			background-image: url(images/wpspin_light.gif);
+			background-repeat: no-repeat;
+			background-position: center center;
 			text-indent: -9999px;
 		}
 	.zone-search-wrapper {
