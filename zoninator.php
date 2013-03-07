@@ -570,13 +570,11 @@ class Zoninator
 
 			}
 
+			$content = '';
 			$recent_posts = get_posts( $args );
-			ob_start();
 			foreach ( $recent_posts as $post ) :
-				echo sprintf( '<option value="%d">%s</option>', $post->ID, get_the_title( $post->ID ) );
+				$content = sprintf( '<option value="%d">%s</option>', $post->ID, get_the_title( $post->ID ) );
 			endforeach;
-			$content = ob_get_contents();
-			ob_end_clean();
 			wp_reset_postdata();
 			$status = 1;
 		}
