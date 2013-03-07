@@ -499,7 +499,7 @@ class Zoninator
 
 		?>
 		<div class="zone-advanced-search-filters-heading">
-			<span class="zone-toggle-advanced-search" data-alt-label="<?php esc_attr_e( 'Hide', 'zoninator' ); ?>"><?php _e( 'Show Advanced Filters', 'zoninator' ); ?></span>
+			<span class="zone-toggle-advanced-search" data-alt-label="<?php esc_attr_e( 'Hide', 'zoninator' ); ?>"><?php _e( 'Show Filters', 'zoninator' ); ?></span>
 		</div>
 		<div class="zone-advanced-search-filters-wrapper">
 			<label for="zone_advanced_filter_taxonomy"><?php _e( 'Filter:', 'zoninator' ); ?></label>
