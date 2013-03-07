@@ -1,9 +1,9 @@
 === Zone Manager (Zoninator) ===
-Contributors: batmoo, automattic
+Contributors: batmoo, automattic, 
 Tags: zones, post order, post list, posts, order, zonination, content curation, curation, content management
-Requires at least: 3.4
-Tested up to: 3.4.1
-Stable tag: 0.4
+Requires at least: 3.5
+Tested up to: 3.6
+Stable tag: 0.5
 License: GPLv2
 
 Curation made easy! Create "zones" then add and order your content!
@@ -58,6 +58,9 @@ Filter the following and change according to your needs:
 = 0.5 =
 
 * Support for touch events for mobile via jQuery UI Touch Punch (http://touchpunch.furf.com/)
+* Filter recent posts or search-as-you-type by date (today, yesterday, all) or category for more refined results
+* New actions fired when adding/removing posts from zones
+* Bits of clean-up
 
 = 0.4 =
 
