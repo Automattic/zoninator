@@ -1,5 +1,5 @@
 === Zone Manager (Zoninator) ===
-Contributors: batmoo, automattic, 
+Contributors: batmoo, automattic, pkevan, matthumphreys, wpcomvip, 
 Tags: zones, post order, post list, posts, order, zonination, content curation, curation, content management
 Requires at least: 3.5
 Tested up to: 3.6
@@ -57,8 +57,9 @@ Filter the following and change according to your needs:
 
 = 0.5 =
 
+* WordPress version requirements bumped to 3.5
 * Support for touch events for mobile via jQuery UI Touch Punch (http://touchpunch.furf.com/)
-* Filter recent posts or search-as-you-type by date (today, yesterday, all) or category for more refined results
+* Filter recent posts or search-as-you-type by date (today, yesterday, all) or category for more refined results, props Paul Kevan and the Metro UK team
 * New actions fired when adding/removing posts from zones
 * Bits of clean-up
 
