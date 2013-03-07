@@ -495,7 +495,7 @@ class Zoninator
 	function zone_advanced_search_filters() {
 
 		$current_cat = $this->_get_post_var( 'zone_advanced_filter_taxonomy', '', 'absint' );
-		$current_date = $this->_get_post_var( 'zone_advanced_filter_date', '', 'striptags' );	
+		$current_date = $this->_get_post_var( 'zone_advanced_filter_date', '', 'striptags' );
 
 		?>
 		<div class="zone-advanced-search-filters-heading">
@@ -558,32 +558,37 @@ class Zoninator
 				'post__not_in' => $zone_post_ids,
 			
 			);
-			if ( $cat > 0 ) {
+
+			if ( $cat && get_term_by( 'id', $cat, 'category' ) ) {
 				$args['cat'] = $cat;
 			}
 
-			if ( isset( $date ) ) {
+			if ( preg_match( '/([0-9]{4})-([0-9]{2})-([0-9]{2})/', $date ) ) {
 				$filter_date_parts = explode( '-', $date );
-				$args['day'] = $filter_date_parts[0];
+				$args['year'] = $filter_date_parts[0];
 				$args['monthnum'] = $filter_date_parts[1];
-				$args['year'] = $filter_date_parts[2];
-
+				$args['day'] = $filter_date_parts[2];
 			}
 
 			$content = '';
 			$recent_posts = get_posts( $args );
 			foreach ( $recent_posts as $post ) :
-				$content = sprintf( '<option value="%d">%s</option>', $post->ID, get_the_title( $post->ID ) );
+				$content .= sprintf( '<option value="%d">%s</option>', $post->ID, get_the_title( $post->ID ) );
 			endforeach;
 			wp_reset_postdata();
 			$status = 1;
 		}
 
+		$empty_label = '';
 		if ( ! $content ) {
-			$content = '<option value="">' . __( 'No results found', 'zoninator' ) . '</option>';
+			$empty_label =  __( 'No results found', 'zoninator' );
+		} elseif ( $cat ) {
+			$empty_label = sprintf( __( 'Choose post from %s', 'zoninator' ), get_the_category_by_ID( $cat ) );
 		} else {
-			$content = '<option value="">' . sprintf( __( 'Choose latest from %s', 'zoninator' ), get_the_category_by_ID( $cat ) ) . '</option>' . $content;
+			$empty_label = __( 'Choose a post', 'zoninator' );
 		}
+
+		$content = '<option value="">' . esc_html( $empty_label ) . '</option>' . $content;
 
 		$this->ajax_return( $status, $content );
 	}
@@ -612,7 +617,7 @@ class Zoninator
 		<div class="zone-search-wrapper">
 			<label for="zone-post-search-latest"><?php _e( 'Add Recent Content', 'zoninator' );?></label><br />
 			<select name="search-posts" id="zone-post-latest">
-				<option value=""><?php _e( 'Choose latest post', 'zoninator' ); ?></option>
+				<option value=""><?php _e( 'Choose a post', 'zoninator' ); ?></option>
 				<?php			
 				foreach ( $recent_posts as $post ) :
 					echo sprintf( '<option value="%d">%s</option>', $post->ID, esc_html( get_the_title( $post->ID ) ) );
