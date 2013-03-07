@@ -559,11 +559,11 @@ class Zoninator
 			
 			);
 
-			if ( $cat && get_term_by( 'id', $cat, 'category' ) ) {
+			if ( $this->_validate_category_filter( $cat ) ) {
 				$args['cat'] = $cat;
 			}
 
-			if ( preg_match( '/([0-9]{4})-([0-9]{2})-([0-9]{2})/', $date ) ) {
+			if ( $this->_validate_date_filter( $date ) ) {
 				$filter_date_parts = explode( '-', $date );
 				$args['year'] = $filter_date_parts[0];
 				$args['monthnum'] = $filter_date_parts[1];
@@ -768,7 +768,6 @@ class Zoninator
 		
 		if( ! empty( $q ) ) {
 
-
 			$filter_cat = $this->_get_request_var( 'cat', '', 'absint' );
 			$filter_date = $this->_get_request_var( 'date', '', 'striptags' );	
 
@@ -789,25 +788,23 @@ class Zoninator
 				'suppress_filters' => true,
 			) );
 
-			if ( $filter_cat ) {
+			if ( $this->_validate_category_filter( $filter_cat ) ) {
 				$args['cat'] = $filter_cat;
 			}
 
-			if ( isset( $filter_date ) ) {
-
+			if ( $this->_validate_date_filter( $filter_date ) ) {
 				$filter_date_parts = explode( '-', $filter_date );
-				$args['day'] = $filter_date_parts[0];
+				$args['year'] = $filter_date_parts[0];
 				$args['monthnum'] = $filter_date_parts[1];
-				$args['year'] = $filter_date_parts[2];
-
+				$args['day'] = $filter_date_parts[2];
 			}
-			
+
 			$query = new WP_Query( $args );
 			$stripped_posts = array();
-			
+
 			if ( ! $query->have_posts() )
 				exit;
-			
+
 			foreach( $query->posts as $post ) {
 				$stripped_posts[] = array(
 					'title' => ! empty( $post->post_title ) ? $post->post_title : __( '(no title)', 'zoninator' ),
@@ -1383,7 +1380,15 @@ class Zoninator
 		
 		return $url;
 	}
-	
+
+	function _validate_date_filter( $date ) {
+		return preg_match( '/([0-9]{4})-([0-9]{2})-([0-9]{2})/', $date );
+	}
+
+	function _validate_category_filter( $cat ) {
+		return $cat && get_term_by( 'id', $cat, 'category' );
+	}
+
 	function _get_value_or_default( $var, $object, $default = '', $sanitize_callback = '' ) {
 		if( is_object( $object ) )
 			$value = ! empty( $object->$var ) ? $object->$var : $default;
