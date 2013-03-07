@@ -113,21 +113,24 @@ var zoninator = {}
 					, search: function( e, ui ) {
 						zoninator.$zonePostSearch.trigger('loading.start');
 					}
-				})
-				.data( 'autocomplete' )._renderItem = function( ul, item ) {
-					var content = '<a>'
-						+ '<span class="title">' + item.title + '</span>'
-						+ '<span class="type">' + item.post_type + '</span>'
-						+ '<span class="date">' + item.date + '</span>'
-						+ '<span class="status">' + item.post_status + '</span>'
-						+ '</a>';
-					return $( '<li></li>' )
-						.data( 'item.autocomplete', item )
-						.append( content )
-						.appendTo( ul )
-						;
-				}
-				;
+				});
+
+			// Compat with jQuery 1.8 and 1.9; the latter uses ui- prefix for data attribute
+			var autocomplete = zoninator.$zonePostSearch.data( 'autocomplete' ) || zoninator.$zonePostSearch.data( 'ui-autocomplete' );
+
+			autocomplete._renderItem = function( ul, item ) {
+				var content = '<a>'
+					+ '<span class="title">' + item.title + '</span>'
+					+ '<span class="type">' + item.post_type + '</span>'
+					+ '<span class="date">' + item.date + '</span>'
+					+ '<span class="status">' + item.post_status + '</span>'
+					+ '</a>';
+				return $( '<li></li>' )
+					.data( 'item.autocomplete', item )
+					.append( content )
+					.appendTo( ul )
+					;
+			}
 		}
 		
 		// Initialize lock heartbeat
