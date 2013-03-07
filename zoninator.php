@@ -504,36 +504,28 @@ class Zoninator
 		<div class="zone-advanced-search-filters-wrapper" <?php if ( $current_cat || $current_date ) { echo 'style="display: block"'; } ?>>
 
 			<?php
+			wp_dropdown_categories( apply_filters( 'zoninator_advanced_filter_category', array(
+				'show_option_all' =>  __( 'Show all Categories', 'zoninator' ),
+				'selected' => $current_cat,
+				'name' => 'zone_advanced_filter_taxonomy',
+				'id' => 'zone_advanced_filter_taxonomy',
+				'hide_if_empty' => true,
+			) ) );
 
-			// Override dates for dropdown here
-			$date_filters = apply_filters( 'zoninator_advanced_filter_date_period', array( 'all', 'today', 'yesterday') );
-			$category_filter = wp_dropdown_categories( 
-				apply_filters( 'zoninator_advanced_filter_category', array(
-					'show_option_all' =>  'Show all Categories',
-					'selected' => $current_cat,
-					'hierarchical' => 1,
-					'name' => 'zone_advanced_filter_taxonomy',
-					'id' => 'zone_advanced_filter_taxonomy',
-					'depth' => 2 )
-				)
-			);
-	
+			$date_filters = apply_filters( 'zoninator_advanced_filter_date', array( 'all', 'today', 'yesterday') );
 			?>
 			<select name="zone_advanced_filter_date" id="zone_advanced_filter_date">
 				<?php
 				// Convert string dates into actual dates
-				foreach( $date_filters as $date ) {
+				foreach( $date_filters as $date ) :
 					$timestamp = strtotime( $date );
-					$output = ( $timestamp ) ? date( 'j-n-Y', $timestamp ) : 0;
-					echo '<option value="' . $output . '"';
-					if ( $output == $current_date ) { echo ' selected="selected" '; }
-					echo '>' . $date . '</option>';
-				}
+					$output = ( $timestamp ) ? date( 'Y-m-d', $timestamp ) : 0;
+					echo sprintf( '<option value="%s" %s>%s</option>', esc_attr( $output ), selected( $output, $current_date, false ), esc_html( $date ) );
+				endforeach;
 				?>
 			</select>
 		</div>
 		<?php
-
 	}
 
 	function ajax_recent_posts() {
