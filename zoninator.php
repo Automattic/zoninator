@@ -499,7 +499,7 @@ class Zoninator
 
 		?>
 		<div class="zone-advanced-search-filters-heading">
-			<span class="zone-toggle-advanced-search">Show Advanced Filters</span><span class="zone-toggle-advanced-search" style="display: none;">Hide</span>
+			<span class="zone-toggle-advanced-search"><?php _e( 'Show Advanced Filters', 'zoninator' ); ?></span><span class="zone-toggle-advanced-search" style="display: none;"><?php _e( 'Hide', 'zoninator' ); ?></span>
 		</div>
 		<div class="zone-advanced-search-filters-wrapper" <?php if ( $current_cat || $current_date ) { echo 'style="display: block"'; } ?>>
 
@@ -582,9 +582,9 @@ class Zoninator
 		}
 
 		if ( ! $content ) {
-			$content = '<option value="">No results found</option>';
+			$content = '<option value="">' . __( 'No results found', 'zoninator' ) . '</option>';
 		} else {
-			$content = '<option value="">Choose latest from ' . get_the_category_by_ID( $cat ) . '</option>' . $content;
+			$content = '<option value="">' . sprintf( __( 'Choose latest from %s', 'zoninator' ), get_the_category_by_ID( $cat ) ) . '</option>' . $content;
 		}
 
 		$this->ajax_return( $status, $content );
@@ -614,10 +614,10 @@ class Zoninator
 		<div class="zone-search-wrapper">
 			<label for="zone-post-search-latest"><?php _e( 'Add Recent Content', 'zoninator' );?></label><br />
 			<select name="search-posts" id="zone-post-latest">
-				<option value="">Choose latest post</option>
+				<option value=""><?php _e( 'Choose latest post', 'zoninator' ); ?></option>
 				<?php			
 				foreach ( $recent_posts as $post ) :
-					echo sprintf( '<option value="%d">%s</option>', $post->ID, get_the_title( $post->ID ) );
+					echo sprintf( '<option value="%d">%s</option>', $post->ID, esc_html( get_the_title( $post->ID ) ) );
 				endforeach;
 				wp_reset_postdata();
 				?>
