@@ -285,3 +285,6 @@
 	float: right;
 	font-weight: bold;
 }
+	.zone-toggle-advanced-search {
+		cursor: pointer;
+	}
