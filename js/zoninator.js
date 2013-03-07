@@ -578,8 +578,13 @@ var zoninator = {}
 	}
 
 	$('.zone-toggle-advanced-search').click( function() {
+		var $this = $( this ),
+			currentLabel = $( this ).text(),
+			altLabel = $( this ).data( 'alt-label' );
+
 		$('.zone-advanced-search-filters-wrapper').toggle();
-		$('.zone-toggle-advanced-search').toggle();
+
+		$this.text( altLabel ).data( 'alt-label', currentLabel );
 	});
 
 	// TODO: fix this
