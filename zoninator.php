@@ -501,7 +501,8 @@ class Zoninator
 		<div class="zone-advanced-search-filters-heading">
 			<span class="zone-toggle-advanced-search" data-alt-label="<?php esc_attr_e( 'Hide', 'zoninator' ); ?>"><?php _e( 'Show Advanced Filters', 'zoninator' ); ?></span>
 		</div>
-		<div class="zone-advanced-search-filters-wrapper" <?php if ( $current_cat || $current_date ) { echo 'style="display: block"'; } ?>>
+		<div class="zone-advanced-search-filters-wrapper">
+			<label for="zone_advanced_filter_taxonomy"><?php _e( 'Filter:', 'zoninator' ); ?></label>
 
 			<?php
 			wp_dropdown_categories( apply_filters( 'zoninator_advanced_filter_category', array(
