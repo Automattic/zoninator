@@ -562,8 +562,8 @@ class Zoninator
 		$post_id = $this->_get_post_var( 'post_id', 0, 'absint' );
 		//Filter to limit depending on $zone_id passed (or not passed to filter all)
 		$num_posts = 0;
-		$num_posts = apply_filters( 'zoninator_post_count_limit', $zone_id );
-		
+		$num_posts = apply_filters( 'zoninator_post_count_limit', $num_posts, $zone_id );
+
 		// Verify nonce
 		$this->verify_nonce( $this->zone_ajax_nonce_action );
 		$this->verify_access( '', $zone_id );
