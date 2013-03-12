@@ -53,7 +53,6 @@ var zoninator = {}
 				post_id = $this.val();
 			if ( post_id ) {
 				zoninator.addPost( post_id );
-				$this.find( '[value="' + post_id + '"]' ).remove();
 			}
 		});
 
@@ -136,11 +135,13 @@ var zoninator = {}
 		zoninator.ajax('add_post', {
 			zone_id: zoninator.getZoneId()
 			, post_id: postId
-		}, zoninator.addPostSuccessCallback);
+		}, zoninator.addPostSuccessCallback
+		 , zoninator.addPostErrorCallback );
 		
 	}
 	
 	zoninator.addPostSuccessCallback = function(returnData) {
+		var post_id = zoninator.$zonePostLatest.val();
 		
 		zoninator.$zonePostSearch.trigger('loading.end');
 		
@@ -152,9 +153,25 @@ var zoninator = {}
 			;
 		
 		zoninator.initZonePost($post);
+
+		//Update list only if a post was actually added to the zone
+		zoninator.$zonePostLatest.find( '[value="' + post_id + '"]' ).remove();
 		
 		// Reorder Posts
 		zoninator.updatePostOrder(true);
+	}
+
+	/* Override the callback so specific addPostError related functionality
+	 * can be added. (ie: reset selectedIndex and trigger load.end). A user
+	 * shouldn't be given too many errors if they didn't do anything "technically wrong."
+	 */
+	zoninator.addPostErrorCallback = function(returnData) {
+		if( typeof(returnData.content) === 'undefined' || !returnData.content )
+				returnData.content = zoninatorOptions.errorGeneral;
+		alert(returnData.content);
+
+		zoninator.$zonePostLatest.val( zoninator.$zonePostLatest.prop( 'selectedIndex', 0 ) );
+		zoninator.$zonePostSearch.trigger('loading.end');
 	}
 	
 	zoninator.initZonePost = function($elem) {

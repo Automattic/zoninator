@@ -560,6 +560,8 @@ class Zoninator
 	function ajax_add_post() {
 		$zone_id = $this->_get_post_var( 'zone_id', 0, 'absint' );
 		$post_id = $this->_get_post_var( 'post_id', 0, 'absint' );
+		//Filter to limit depending on $zone_id passed (or not passed to filter all)
+		$num_posts = apply_filters( 'zoninator_post_count_limit', $num_posts = 0, $zone_id );
 		
 		// Verify nonce
 		$this->verify_nonce( $this->zone_ajax_nonce_action );
@@ -568,6 +570,10 @@ class Zoninator
 		// Validate
 		if( ! $zone_id || ! $post_id )
 			$this->ajax_return( 0 );
+
+		//Check number of posts allowed
+		if($num_posts > 0 && $num_posts <= count( $this->get_zone_posts( $zone_id ) ) )
+			$this->ajax_return(0, __( 'Sorry, another item cannot be added to this zone.', 'zoninator' ) );
 		
 		$result = $this->add_zone_posts( $zone_id, $post_id, true );
 		
