@@ -55,6 +55,10 @@ Filter the following and change according to your needs:
 
 == Changelog ==
 
+= 0.6 =
+
+* Run the init hook later so that we can allow custom post types to attach themselves to the plugin http://wordpress.org/support/topic/plugin-zone-manager-zoninator-add-specific-custom-post-types
+
 = 0.5 =
 
 * WordPress version requirements bumped to 3.5

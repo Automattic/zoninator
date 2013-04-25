@@ -56,7 +56,7 @@ class Zoninator
 	var $posts_per_page = 10;
 	
 	function __construct() {
-		add_action( 'init', array( $this, 'init' ) );
+		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
 		
 		add_action( 'widgets_init', array( $this, 'widgets_init' ) );
 		
