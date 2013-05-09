@@ -915,10 +915,12 @@ class Zoninator
 			// Delete the term
 			$delete = wp_delete_term( $zone_id, $this->zone_taxonomy );
 			
-			if( ! $delete )
+			if( ! $delete ) {
 				return new WP_Error( 'delete-zone', __( 'Sorry, we couldn\'t delete the zone.', 'zoninator' ) );
-			else
+			} else {
+				do_action( 'zoninator_delete_zone', $zone_id );
 				return $delete;
+			}
 		}
 		return new WP_Error( 'invalid-zone', __( 'Sorry, that zone doesn\'t exist.', 'zoninator' ) );
 	}
