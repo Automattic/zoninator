@@ -10,89 +10,34 @@
 	#zoninator-wrap .delete {
 		color: #BC0B0B;
 	}
-.zone-col {
-	float: left;
-	width: 48%;
-}
 
 /** Tabs **/
-/** Blatantly stolen from nav-menu.dev.css **/
 .zone-tabs-container {
+	width: 30%;
+	float: left;
 }
-	.zone-tabs-nav-wrapper {
-		width: 92%;
-		position: relative;
-		float: left;
+	.zone-tabs-wrapper .zone-tab {
+		display: block;
+		background: #fff;
+		padding: 
 	}
-	.zone-tab-new {
-		float: right;
-		margin-right: 1%;
-		margin-bottom: -1px;
-	}
-	.zone-tabs-container .nav-tabs-arrow {
-		-webkit-user-select: none;
-		-khtml-user-select: none;
-		-moz-user-select: none;
-		-o-user-select: none;
-		user-select: none;
-	}
-	.zone-tabs-container .nav-tabs-nav {
-		margin: 0 20px;
-	}
-	.zone-tabs-container .nav-tabs-arrow {
-		width: 10px;
-		padding: 0 5px 4px;
-		cursor: pointer;
-		position: absolute;
-		top: 0;
-		line-height: 22px;
-		font-size: 18px;
-		text-shadow: 0 1px 0 #fff;
-	}
-		.zone-tabs-container .nav-tabs-arrow a { color: #C1C1C1; }
-		.zone-tabs-container .nav-tabs-arrow a:hover { color: #D54E21; }
-		.zone-tabs-container .nav-tabs-arrow a:active { color: #464646; }
-		.zone-tabs-container .nav-tabs-arrow-left {
-			left: 0;
-		}
-		.zone-tabs-container .nav-tabs-arrow-right {
-			right: 0;
-			text-align: right;
-		}
-	.zone-tabs-container .nav-tabs-wrapper {
-		width: 100%;
-		height: 28px;
-		margin-bottom: -1px;
-		overflow: hidden;
-	}
-	.zone-tabs-container .nav-tabs {
-		padding-left: 20px;
-		padding-right: 10px;
-	}
-	.js .zone-tabs-container .nav-tabs {
-		float: left;
-		margin-left: 0px;
-		margin-right: -400px;
-	}
-	.zone-tabs-container .nav-tab {
-		margin-bottom: 0;
-		background: #f4f4f4;
-		font-weight: bold;
-		border-color: #dfdfdf;
-	}
-	.zone-tabs-container .nav-tab-active {
-		border-bottom: 1px solid #ececec;
-		background: #ececec;
+	.zone-tabs-wrapper .zone-tab:hover,
+	.zone-tabs-wrapper .zone-tab:active,
+	.zone-tabs-wrapper .zone-tab-active {
+		background: #0074a2;
+		color: #fff;
 	}
 
 /** Edit **/
 #zone-edit-wrapper {
 	padding: 10px;
-	clear: both;
 	overflow: hidden;
 	border: 1px solid #ccc;
 	-moz-border-radius: 4px; -wekbit-border-radius: 4px; -ms-border-radius: 4px; border-radius: 4px;
 	background: url(images/gray-grad.png) repeat-x scroll left top #dfdfdf;
+
+	width: 67%;
+	float: right;
 }
 	#zone-edit-wrapper .form-wrap {
 		margin: 0;
@@ -120,12 +65,16 @@
 		}
 
 /** Zone Posts **/
+.zone-info-col {
+	border-bottom: 1px dotted #333;
+	padding-bottom: 15px;
+	margin-bottom: 15px;
+}
 .zone-posts-col {
 	background: #fff;
 	border: 1px solid #ccc;
 	-moz-border-radius: 4px; -wekbit-border-radius: 4px; -ms-border-radius: 4px; border-radius: 4px;
 	
-	float: right;
 	padding: 10px;
 }
 	.zone-posts-col h3 {

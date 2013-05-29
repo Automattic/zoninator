@@ -235,7 +235,7 @@ class Zoninator
 		
 		$view = $this->_get_value_or_default( 'view', $zoninator_admin_page, 'edit.php' );
 		$view = sprintf( '%s/views/%s', ZONINATOR_PATH, $view );
-		$title = $this->_get_value_or_default( 'title', $zoninator_admin_page, __( 'Zones', 'zoninator' ) );
+		$title = __( 'Zones', 'zoninator' );
 		
 		$zones = $this->get_zones();
 		
@@ -247,6 +247,8 @@ class Zoninator
 		
 		$active_zone_id = $this->_get_request_var( 'zone_id', $default_active_zone, 'absint' );
 		$active_zone = ! empty( $active_zone_id ) ? $this->get_zone( $active_zone_id ) : array();
+		if ( ! empty( $active_zone ) )
+			$title = __( 'Edit Zone', 'zoninator' );
 		
 		$message = $this->_get_message( $this->_get_get_var( 'message', '', 'urldecode' ) );
 		$error = $this->_get_get_var( 'error', '', 'urldecode' );
@@ -254,7 +256,16 @@ class Zoninator
 		?>
 		<div class="wrap zoninator-page">
 			<div id="icon-edit-pages" class="icon32"><br /></div>
-			<h2><?php echo esc_html( $title ); ?></h2>
+			<h2>
+				<?php echo esc_html( $title ); ?>
+				<?php if( $this->_current_user_can_add_zones() ) : ?>
+					<?php if( $active_zone_id ) : ?>
+						<a href="<?php echo $new_link; ?>" class="add-new-h2 zone-button-add-new"><?php _e( 'Add New', 'zoninator' ); ?></a>
+					<?php else : ?>
+						<span class="nav-tab nav-tab-active zone-tab zone-tab-active"><?php _e( 'Add New', 'zoninator' ); ?></span>
+					<?php endif; ?>
+				<?php endif; ?>
+			</h2>
 			
 			<?php if( $message ) : ?>
 				<div id="zone-message" class="updated below-h2">
@@ -268,9 +279,8 @@ class Zoninator
 			<?php endif; ?>
 			
 			<div id="zoninator-wrap">
-				
+	
 				<?php $this->admin_page_zone_tabs( $zones, $active_zone_id ); ?>
-				
 				<?php $this->admin_page_zone_edit( $active_zone ); ?>
 				
 			</div>
@@ -298,17 +308,6 @@ class Zoninator
 					</div>
 				</div>
 			</div>
-			
-			<div class="zone-tab-new">
-				<?php if( $this->_current_user_can_add_zones() ) : ?>
-					<?php if( $active_zone_id ) : ?>
-						<a href="<?php echo $new_link; ?>" class="nav-tab zone-tab"><?php _e( '+', 'zoninator' ); ?></a>
-					<?php else : ?>
-						<span class="nav-tab nav-tab-active zone-tab zone-tab-active"><?php _e( '+', 'zoninator' ); ?></span>
-					<?php endif; ?>
-				<?php endif; ?>
-			</div>
-			<div class="clear"></div>
 		</div>
 		<?php
 	}
