@@ -22,8 +22,6 @@ var zoninator = {}
 		});
 
 		zoninator.updatePostOrder();		
-
-		zoninator.initTabManager();
 	
 		// Bind actions to buttons
 		zoninator.initZonePost(zoninator.$zonePostsList.children());
