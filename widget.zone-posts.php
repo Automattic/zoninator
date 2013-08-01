@@ -6,7 +6,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 
 	function Zoninator_ZonePosts_Widget() {
 		$widget_ops = array( 'classname' => 'widget-zone-posts', 'description' => __( 'Use this widget to display a list of posts from any zone.', 'zoninator' ) );
-		$this->WP_Widget( 'widget-zone-posts', __( 'Zone Posts', 'zoninator' ), $widget_ops );
+		parent::__construct( false, __( 'Zone Posts', 'zoninator' ), $widget_ops );
 		$this->alt_option_name = 'widget_zone_posts';
 		
 		add_action( 'save_post', array( &$this, 'flush_widget_cache' ) );
