@@ -26,6 +26,11 @@ var zoninator = {}
 		// Bind actions to buttons
 		zoninator.initZonePost(zoninator.$zonePostsList.children());
 		
+		// Initialize date-picker
+		$('#zone_advanced_filter_date').datepicker({
+			dateFormat : 'yy-mm-dd'
+		});
+
 		// Initialize sortable
 		if(!zoninator.$zonePostsWrap.hasClass('readonly')) {
 			zoninator.$zonePostsList.sortable({
