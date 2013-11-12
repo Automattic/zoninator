@@ -59,6 +59,8 @@ class Zoninator
 		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
 		
 		add_action( 'widgets_init', array( $this, 'widgets_init' ) );
+
+		add_filter( 'template_redirect', array( $this, 'json_feeds' ) );
 		
 		$this->zone_messages = array(
 			'insert-success' => __( 'The zone was successfully created.', 'zoninator' ),
@@ -1300,6 +1302,105 @@ class Zoninator
 		
 		return $zone;
 	}
+
+	function json_feeds() {
+		global $wp_query;
+
+		// See if one of our endpoints are being requested
+		$path = esc_url( $_SERVER['REQUEST_URI'] );
+
+		// Take GET variables off the URL to avoid problems
+		$path = strtok( $path, '?' );
+		$path = untrailingslashit( $path );
+		$path = ltrim( $path, '/' );
+
+		$urls = array(
+			'zones/\w+(-\w+)?/feed' => 'get_zone_post_feed',
+		);
+
+		$response_method = '';
+
+		// Look to see if we want to handle this URL
+		foreach ( $urls as $regex => $function_handler ) {
+			if ( preg_match( '%^' . $regex . '/?%', $path ) ) {
+				$response_method = $function_handler;
+			}
+		}
+
+		if ( ! $response_method )
+			return false;
+
+		// WP will be on a 404 here
+		$wp_query->is_404 = false;
+		status_header( 200 );
+
+		self::$response_method( $path );
+	}
+
+	function get_zone_post_feed( $path ) {
+
+		// Look for page and set to one if nothing is detected
+		$query_vars = explode( '/', $path );
+
+		$zone_slug = ( isset( $query_vars[1] ) ) ? $query_vars[1] : '';
+
+		$zone_id = $this->get_zone( $zone_slug );
+
+		if ( empty( $zone_id ) ) {
+			$this->send_user_error( __( 'Invalid zone supplied', 'zoninator' ) );
+		}
+
+		$results = $this->get_zone_posts( $zone_id, array( 'fields' => 'ids' ) );
+
+		if ( empty( $results ) ) {
+			$this->send_user_error( __( 'No zone posts found', 'zoninator' ) );
+		}
+
+		$this->json_return( apply_filters( 'zoninator_json_feed_results', $results ), false );
+
+	}
+
+	/**
+	 * Encode some data and echo it (possibly without cached headers)
+	 *
+	 * @param array $data
+	 */
+	private function json_return( $data ) {
+
+		if ( $data == NULL )
+			return false;
+
+		header( 'Content-Type: application/json' );
+		echo json_encode( $data );
+		exit();
+	}
+
+	private static function send_user_error( $message ) {
+		self::status_header_with_message( 406, $message );
+		exit();
+	}
+
+	/**
+	* Modify the header and description in the global array
+	*
+	* @global array $wp_header_to_desc
+	* @param int $status
+	* @param string $message
+	*/
+	private static function status_header_with_message( $status, $message ) {
+		global $wp_header_to_desc;
+
+		$status = absint( $status );
+		$official_message = isset( $wp_header_to_desc[$status] ) ? $wp_header_to_desc[$status] : '';
+		$wp_header_to_desc[$status] = $message;
+
+		status_header( $status );
+
+		$wp_header_to_desc[$status] = $official_message;
+	}
+
+
+	
 	
 	// TODO: Caching needs to be testing properly before being implemented!
 	function get_zone_cache_key( $zone, $args = array() ) {
