@@ -60,8 +60,10 @@ class Zoninator
 		
 		add_action( 'widgets_init', array( $this, 'widgets_init' ) );
 
-		add_filter( 'template_redirect', array( $this, 'json_feeds' ) );
-		
+		add_action( 'init', array( $this, 'add_zone_feed' ) );
+
+		add_action( 'template_redirect', array( $this, 'do_zoninator_feeds' ) );
+
 		$this->zone_messages = array(
 			'insert-success' => __( 'The zone was successfully created.', 'zoninator' ),
 			'update-success' => __( 'The zone was successfully updated.', 'zoninator' ),
@@ -77,7 +79,12 @@ class Zoninator
 		$this->zone_max_lock_period = apply_filters( 'zoninator_zone_max_lock_period', $this->zone_max_lock_period );
 		$this->posts_per_page = apply_filters( 'zoninator_posts_per_page', $this->posts_per_page );
 	}
-	
+
+	function add_zone_feed() {
+		add_rewrite_tag( '%' . $this->zone_taxonomy . '%', '([^&]+)' );
+		add_rewrite_rule( '^zones/([^/]+)/feed/?$', 'index.php?' . $this->zone_taxonomy . '=$matches[1]', 'top' );
+	}
+
 	function init() {
 		
 		do_action( 'zoninator_pre_init' );
@@ -1303,60 +1310,28 @@ class Zoninator
 		return $zone;
 	}
 
-	function json_feeds() {
+	function do_zoninator_feeds() {
+
 		global $wp_query;
 
-		// See if one of our endpoints are being requested
-		$path = esc_url( $_SERVER['REQUEST_URI'] );
-
-		// Take GET variables off the URL to avoid problems
-		$path = strtok( $path, '?' );
-		$path = untrailingslashit( $path );
-		$path = ltrim( $path, '/' );
-
-		$urls = array(
-			'zones/\w+(-\w+)?/feed' => 'get_zone_post_feed',
-		);
-
-		$response_method = '';
-
-		// Look to see if we want to handle this URL
-		foreach ( $urls as $regex => $function_handler ) {
-			if ( preg_match( '%^' . $regex . '/?%', $path ) ) {
-				$response_method = $function_handler;
+		if ( isset( $wp_query->query_vars[$this->zone_taxonomy] ) ) {
+			$zone_slug = $wp_query->query_vars[$this->zone_taxonomy];
+			$zone_id = $this->get_zone( $zone_slug );
+			
+			if ( empty( $zone_id ) ) {
+				$this->send_user_error( __( 'Invalid zone supplied', 'zoninator' ) );
 			}
+
+			$results = $this->get_zone_posts( $zone_id, array( 'fields' => 'ids' ) );
+
+			if ( empty( $results ) ) {
+				$this->send_user_error( __( 'No zone posts found', 'zoninator' ) );
+			}
+
+			$this->json_return( apply_filters( 'zoninator_json_feed_results', $results ), false );
 		}
 
-		if ( ! $response_method )
-			return false;
-
-		// WP will be on a 404 here
-		$wp_query->is_404 = false;
-		status_header( 200 );
-
-		self::$response_method( $path );
-	}
-
-	function get_zone_post_feed( $path ) {
-
-		// Look for page and set to one if nothing is detected
-		$query_vars = explode( '/', $path );
-
-		$zone_slug = ( isset( $query_vars[1] ) ) ? $query_vars[1] : '';
-
-		$zone_id = $this->get_zone( $zone_slug );
-
-		if ( empty( $zone_id ) ) {
-			$this->send_user_error( __( 'Invalid zone supplied', 'zoninator' ) );
-		}
-
-		$results = $this->get_zone_posts( $zone_id, array( 'fields' => 'ids' ) );
-
-		if ( empty( $results ) ) {
-			$this->send_user_error( __( 'No zone posts found', 'zoninator' ) );
-		}
-
-		$this->json_return( apply_filters( 'zoninator_json_feed_results', $results ), false );
+		return;
 
 	}
 
@@ -1400,7 +1375,7 @@ class Zoninator
 	}
 
 
-	
+
 	
 	// TODO: Caching needs to be testing properly before being implemented!
 	function get_zone_cache_key( $zone, $args = array() ) {
