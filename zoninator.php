@@ -258,7 +258,8 @@ class Zoninator
 			<div id="icon-edit-pages" class="icon32"><br /></div>
 			<h2>
 				<?php echo esc_html( $title ); ?>
-				<?php if( $this->_current_user_can_add_zones() ) : ?>
+				<?php if( $this->_current_user_can_add_zones() ) : 
+					$new_link = $this->_get_zone_page_url( array( 'action' => 'new' ) ); ?>
 					<?php if( $active_zone_id ) : ?>
 						<a href="<?php echo $new_link; ?>" class="add-new-h2 zone-button-add-new"><?php _e( 'Add New', 'zoninator' ); ?></a>
 					<?php else : ?>
@@ -544,9 +545,9 @@ class Zoninator
 		$this->verify_nonce( $this->zone_ajax_nonce_action );
 		$this->verify_access( '', $zone_id );
 
-		if( is_wp_error( $result ) ) {
+		if( is_wp_error( $zone_posts ) ) {
 			$status = 0;
-			$content = $result->get_error_message();
+			$content = $zone_posts->get_error_message();
 		} else {
 			$args = array(
 				'posts_per_page' => $limit,
