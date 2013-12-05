@@ -1314,9 +1314,9 @@ class Zoninator
 
 		global $wp_query;
 
-		$query_var = ( get_query_var( $this->zone_taxonomy ) ) ? get_query_var( $this->zone_taxonomy ) : '';
+		$query_var = get_query_var( $this->zone_taxonomy );
 
-		if ( isset( $query_var ) ) {
+		if ( ! empty( $query_var ) ) {
 			$zone_slug = get_query_var( $this->zone_taxonomy );
 			$zone_id = $this->get_zone( $zone_slug );
 			
@@ -1324,13 +1324,13 @@ class Zoninator
 				$this->send_user_error( __( 'Invalid zone supplied', 'zoninator' ) );
 			}
 
-			$results = $this->get_zone_posts( $zone_id, apply_filters( 'zoninator_json_feed_fields', array() ) );
+			$results = $this->get_zone_posts( $zone_id, apply_filters( 'zoninator_json_feed_fields', array(), $zone_slug ) );
 
 			if ( empty( $results ) ) {
 				$this->send_user_error( __( 'No zone posts found', 'zoninator' ) );
 			}
 
-			$this->json_return( apply_filters( 'zoninator_json_feed_results', $results ), false );
+			$this->json_return( apply_filters( 'zoninator_json_feed_results', $results, $zone_slug ), false );
 		}
 
 		return;
