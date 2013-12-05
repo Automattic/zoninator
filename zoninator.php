@@ -82,7 +82,7 @@ class Zoninator
 
 	function add_zone_feed() {
 		add_rewrite_tag( '%' . $this->zone_taxonomy . '%', '([^&]+)' );
-		add_rewrite_rule( '^zones/([^/]+)/feed/?$', 'index.php?' . $this->zone_taxonomy . '=$matches[1]', 'top' );
+		add_rewrite_rule( '^zones/([^/]+)/feed.json/?$', 'index.php?' . $this->zone_taxonomy . '=$matches[1]', 'top' );
 	}
 
 	function init() {
@@ -1314,15 +1314,17 @@ class Zoninator
 
 		global $wp_query;
 
-		if ( isset( $wp_query->query_vars[$this->zone_taxonomy] ) ) {
-			$zone_slug = $wp_query->query_vars[$this->zone_taxonomy];
+		$query_var = ( get_query_var( $this->zone_taxonomy ) ) ? get_query_var( $this->zone_taxonomy ) : '';
+
+		if ( isset( $query_var ) ) {
+			$zone_slug = get_query_var( $this->zone_taxonomy );
 			$zone_id = $this->get_zone( $zone_slug );
 			
 			if ( empty( $zone_id ) ) {
 				$this->send_user_error( __( 'Invalid zone supplied', 'zoninator' ) );
 			}
 
-			$results = $this->get_zone_posts( $zone_id, array( 'fields' => 'ids' ) );
+			$results = $this->get_zone_posts( $zone_id, apply_filters( 'zoninator_json_feed_fields', array() ) );
 
 			if ( empty( $results ) ) {
 				$this->send_user_error( __( 'No zone posts found', 'zoninator' ) );
