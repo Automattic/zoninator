@@ -1330,11 +1330,29 @@ class Zoninator
 				$this->send_user_error( __( 'No zone posts found', 'zoninator' ) );
 			}
 
-			$this->json_return( apply_filters( 'zoninator_json_feed_results', $results, $zone_slug ), false );
+			$filtered_results = $this->filter_zone_feed_fields( $results );
+
+			$this->json_return( apply_filters( 'zoninator_json_feed_results', $filtered_results, $zone_slug ), false );
 		}
 
 		return;
 
+	}
+
+	private function filter_zone_feed_fields( $results ) {
+
+		$whitelisted_fields = array( 'ID', 'post_date', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'guid' );
+
+		$i = 0;
+		foreach ( $results as $result ) {
+			foreach( $whitelisted_fields as $field ) {
+					$filtered_results[$i]->$field = $result->$field;
+			}
+			$i++;
+		}
+
+
+		return $filtered_results;
 	}
 
 	/**
