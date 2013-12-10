@@ -59,7 +59,11 @@ class Zoninator
 		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
 		
 		add_action( 'widgets_init', array( $this, 'widgets_init' ) );
-		
+
+		add_action( 'init', array( $this, 'add_zone_feed' ) );
+
+		add_action( 'template_redirect', array( $this, 'do_zoninator_feeds' ) );
+
 		$this->zone_messages = array(
 			'insert-success' => __( 'The zone was successfully created.', 'zoninator' ),
 			'update-success' => __( 'The zone was successfully updated.', 'zoninator' ),
@@ -75,7 +79,12 @@ class Zoninator
 		$this->zone_max_lock_period = apply_filters( 'zoninator_zone_max_lock_period', $this->zone_max_lock_period );
 		$this->posts_per_page = apply_filters( 'zoninator_posts_per_page', $this->posts_per_page );
 	}
-	
+
+	function add_zone_feed() {
+		add_rewrite_tag( '%' . $this->zone_taxonomy . '%', '([^&]+)' );
+		add_rewrite_rule( '^zones/([^/]+)/feed.json/?$', 'index.php?' . $this->zone_taxonomy . '=$matches[1]', 'top' );
+	}
+
 	function init() {
 		
 		do_action( 'zoninator_pre_init' );
@@ -1301,6 +1310,93 @@ class Zoninator
 		
 		return $zone;
 	}
+
+	function do_zoninator_feeds() {
+
+		global $wp_query;
+
+		$query_var = get_query_var( $this->zone_taxonomy );
+
+		if ( ! empty( $query_var ) ) {
+			$zone_slug = get_query_var( $this->zone_taxonomy );
+			$zone_id = $this->get_zone( $zone_slug );
+			
+			if ( empty( $zone_id ) ) {
+				$this->send_user_error( __( 'Invalid zone supplied', 'zoninator' ) );
+			}
+
+			$results = $this->get_zone_posts( $zone_id, apply_filters( 'zoninator_json_feed_fields', array(), $zone_slug ) );
+
+			if ( empty( $results ) ) {
+				$this->send_user_error( __( 'No zone posts found', 'zoninator' ) );
+			}
+
+			$filtered_results = $this->filter_zone_feed_fields( $results );
+
+			$this->json_return( apply_filters( 'zoninator_json_feed_results', $filtered_results, $zone_slug ), false );
+		}
+
+		return;
+
+	}
+
+	private function filter_zone_feed_fields( $results ) {
+
+		$whitelisted_fields = array( 'ID', 'post_date', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'guid' );
+
+		$i = 0;
+		foreach ( $results as $result ) {
+			foreach( $whitelisted_fields as $field ) {
+					$filtered_results[$i]->$field = $result->$field;
+			}
+			$i++;
+		}
+
+
+		return $filtered_results;
+	}
+
+	/**
+	 * Encode some data and echo it (possibly without cached headers)
+	 *
+	 * @param array $data
+	 */
+	private function json_return( $data ) {
+
+		if ( $data == NULL )
+			return false;
+
+		header( 'Content-Type: application/json' );
+		echo json_encode( $data );
+		exit();
+	}
+
+	private static function send_user_error( $message ) {
+		self::status_header_with_message( 406, $message );
+		exit();
+	}
+
+	/**
+	* Modify the header and description in the global array
+	*
+	* @global array $wp_header_to_desc
+	* @param int $status
+	* @param string $message
+	*/
+	private static function status_header_with_message( $status, $message ) {
+		global $wp_header_to_desc;
+
+		$status = absint( $status );
+		$official_message = isset( $wp_header_to_desc[$status] ) ? $wp_header_to_desc[$status] : '';
+		$wp_header_to_desc[$status] = $message;
+
+		status_header( $status );
+
+		$wp_header_to_desc[$status] = $official_message;
+	}
+
+
+
 	
 	// TODO: Caching needs to be testing properly before being implemented!
 	function get_zone_cache_key( $zone, $args = array() ) {
