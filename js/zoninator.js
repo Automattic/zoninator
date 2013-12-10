@@ -11,8 +11,9 @@ var zoninator = {}
 		zoninator.$zonePostLatest = $("#zone-post-latest");
 		zoninator.$zoneAdvancedCat = $("#zone_advanced_filter_taxonomy");
 		zoninator.$zoneAdvancedDate = $("#zone_advanced_filter_date");
-	
-		
+		zoninator.$zoneSubmit = $("#zone-info input[type='submit']")
+
+
 		zoninator.$zoneAdvancedDate.change(function() {
 			zoninator.updateLatest();
 		});
@@ -39,10 +40,12 @@ var zoninator = {}
 		// Bind loading events
 		zoninator.$zonePostsWrap
 			.bind('loading.start', function() {
+				zoninator.$zoneSubmit.attr("disabled", true);
 				$(this).addClass('loading');
 			})
 			.bind('loading.end', function() {
 				$(this).removeClass('loading');
+				zoninator.$zoneSubmit.attr("disabled", false);
 			});
 		
 		// Validate form
