@@ -144,7 +144,7 @@ class Zoninator
 
 	function admin_enqueue_scripts() {
 		if( $this->is_zoninator_page() ) {
-			wp_enqueue_script( 'zoninator-js', ZONINATOR_URL . 'js/zoninator.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse', 'jquery-ui-position', 'jquery-ui-sortable', 'jquery-ui-autocomplete' ), ZONINATOR_VERSION, true );
+			wp_enqueue_script( 'zoninator-js', ZONINATOR_URL . 'js/zoninator.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse', 'jquery-ui-position', 'jquery-ui-sortable', 'jquery-ui-autocomplete', 'jquery-ui-datepicker' ), ZONINATOR_VERSION, true );
 			
 			$options = array(
 				'baseUrl' => $this->_get_zone_page_url(),
@@ -521,19 +521,8 @@ class Zoninator
 				'id' => 'zone_advanced_filter_taxonomy',
 				'hide_if_empty' => true,
 			) ) );
-
-			$date_filters = apply_filters( 'zoninator_advanced_filter_date', array( 'all', 'today', 'yesterday') );
 			?>
-			<select name="zone_advanced_filter_date" id="zone_advanced_filter_date">
-				<?php
-				// Convert string dates into actual dates
-				foreach( $date_filters as $date ) :
-					$timestamp = strtotime( $date );
-					$output = ( $timestamp ) ? date( 'Y-m-d', $timestamp ) : 0;
-					echo sprintf( '<option value="%s" %s>%s</option>', esc_attr( $output ), selected( $output, $current_date, false ), esc_html( $date ) );
-				endforeach;
-				?>
-			</select>
+			<input type="text" name="zone_advanced_filter_date" id="zone_advanced_filter_date" placeholder="Pick a date">
 		</div>
 		<?php
 	}
