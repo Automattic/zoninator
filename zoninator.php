@@ -109,8 +109,12 @@ class Zoninator
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 		
 		add_action( 'admin_menu', array( $this, 'admin_page_init' ) );
-		
-		do_action( 'zoninator_post_init' ); 
+
+		# Add default advanced search fields
+		add_action( 'zoninator_advanced_search_fields', array( $this, 'zone_advanced_search_cat_filter' ) );
+		add_action( 'zoninator_advanced_search_fields', array( $this, 'zone_advanced_search_date_filter' ), 20 );
+
+		do_action( 'zoninator_post_init' );
 	}
 	
 	function widgets_init() {
@@ -502,39 +506,44 @@ class Zoninator
 	}
 
 	function zone_advanced_search_filters() {
-
-		$current_cat = $this->_get_post_var( 'zone_advanced_filter_taxonomy', '', 'absint' );
-		$current_date = $this->_get_post_var( 'zone_advanced_filter_date', '', 'striptags' );
-
 		?>
 		<div class="zone-advanced-search-filters-heading">
 			<span class="zone-toggle-advanced-search" data-alt-label="<?php esc_attr_e( 'Hide', 'zoninator' ); ?>"><?php _e( 'Show Filters', 'zoninator' ); ?></span>
 		</div>
 		<div class="zone-advanced-search-filters-wrapper">
-			<label for="zone_advanced_filter_taxonomy"><?php _e( 'Filter:', 'zoninator' ); ?></label>
-
-			<?php
-			wp_dropdown_categories( apply_filters( 'zoninator_advanced_filter_category', array(
-				'show_option_all' =>  __( 'Show all Categories', 'zoninator' ),
-				'selected' => $current_cat,
-				'name' => 'zone_advanced_filter_taxonomy',
-				'id' => 'zone_advanced_filter_taxonomy',
-				'hide_if_empty' => true,
-			) ) );
-
-			$date_filters = apply_filters( 'zoninator_advanced_filter_date', array( 'all', 'today', 'yesterday') );
-			?>
-			<select name="zone_advanced_filter_date" id="zone_advanced_filter_date">
-				<?php
-				// Convert string dates into actual dates
-				foreach( $date_filters as $date ) :
-					$timestamp = strtotime( $date );
-					$output = ( $timestamp ) ? date( 'Y-m-d', $timestamp ) : 0;
-					echo sprintf( '<option value="%s" %s>%s</option>', esc_attr( $output ), selected( $output, $current_date, false ), esc_html( $date ) );
-				endforeach;
-				?>
-			</select>
+			<?php do_action( 'zoninator_advanced_search_fields' ); ?>
 		</div>
+		<?php
+	}
+
+	function zone_advanced_search_cat_filter() {
+		$current_cat = $this->_get_post_var( 'zone_advanced_filter_taxonomy', '', 'absint' );
+		?>
+		<label for="zone_advanced_filter_taxonomy"><?php _e( 'Filter:', 'zoninator' ); ?></label>
+		<?php
+		wp_dropdown_categories( apply_filters( 'zoninator_advanced_filter_category', array(
+			'show_option_all' =>  __( 'Show all Categories', 'zoninator' ),
+			'selected' => $current_cat,
+			'name' => 'zone_advanced_filter_taxonomy',
+			'id' => 'zone_advanced_filter_taxonomy',
+			'hide_if_empty' => true,
+		) ) );
+	}
+
+	function zone_advanced_search_date_filter() {
+		$current_date = $this->_get_post_var( 'zone_advanced_filter_date', '', 'striptags' );
+		$date_filters = apply_filters( 'zoninator_advanced_filter_date', array( 'all', 'today', 'yesterday') );
+		?>
+		<select name="zone_advanced_filter_date" id="zone_advanced_filter_date">
+			<?php
+			// Convert string dates into actual dates
+			foreach( $date_filters as $date ) :
+				$timestamp = strtotime( $date );
+				$output = ( $timestamp ) ? date( 'Y-m-d', $timestamp ) : 0;
+				echo sprintf( '<option value="%s" %s>%s</option>', esc_attr( $output ), selected( $output, $current_date, false ), esc_html( $date ) );
+			endforeach;
+			?>
+		</select>
 		<?php
 	}
 
@@ -558,7 +567,7 @@ class Zoninator
 			$status = 0;
 			$content = $zone_posts->get_error_message();
 		} else {
-			$args = array(
+			$args = apply_filters( 'zoninator_recent_posts_args', array(
 				'posts_per_page' => $limit,
 				'order' => 'DESC',
 				'orderby' => 'post_date',
@@ -566,8 +575,7 @@ class Zoninator
 				'ignore_sticky_posts' => true,
 				'post_status' => array( 'publish', 'future' ),
 				'post__not_in' => $zone_post_ids,
-			
-			);
+			) );
 
 			if ( $this->_validate_category_filter( $cat ) ) {
 				$args['cat'] = $cat;
@@ -816,15 +824,15 @@ class Zoninator
 				exit;
 
 			foreach( $query->posts as $post ) {
-				$stripped_posts[] = array(
+				$stripped_posts[] = apply_filters( 'zoninator_search_results_post', array(
 					'title' => ! empty( $post->post_title ) ? $post->post_title : __( '(no title)', 'zoninator' ),
 					'post_id' => $post->ID,
 					'date' => get_the_time( get_option( 'date_format' ), $post ),
 					'post_type' => $post->post_type,
 					'post_status' => $post->post_status,
-				);
+				), $post );
 			}
-			
+
 			echo json_encode( $stripped_posts );
 			exit;
 		}

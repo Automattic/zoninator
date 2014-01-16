@@ -99,7 +99,10 @@ var zoninator = {}
 						// Append more request vars
 						request.action = zoninator.getAjaxAction('search_posts');
 						request.exclude = zoninator.getZonePostIds();
-						
+
+						// Allow developers to hook onto the request
+						zoninator.$zonePostSearch.trigger('search.request', request);
+
 						zoninator.autocompleteAjax = $.getJSON( ajaxurl, request, function( data, status, xhr ) {
 							zoninator.autocompleteCache[ term ] = data;
 							if ( xhr === zoninator.autocompleteAjax ) {
@@ -289,7 +292,10 @@ var zoninator = {}
 			, _wpnonce: zoninator.getAjaxNonce()
 		}
 		data = $.extend({}, data, values);
-		
+
+		// Allow developers to filter the ajax parameters
+		zoninator.$zonePostSearch.trigger( 'zoninator.ajax', [ action, data ] );
+
 		var defaultParams = {
 			url: ajaxurl
 			, data: data
