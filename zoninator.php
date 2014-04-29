@@ -74,10 +74,6 @@ class Zoninator
 		);
 		
 		$this->default_post_types = array( 'post' );
-		
-		$this->zone_lock_period = apply_filters( 'zoninator_zone_lock_period', $this->zone_lock_period );
-		$this->zone_max_lock_period = apply_filters( 'zoninator_zone_max_lock_period', $this->zone_max_lock_period );
-		$this->posts_per_page = apply_filters( 'zoninator_posts_per_page', $this->posts_per_page );
 	}
 
 	function add_zone_feed() {
@@ -86,6 +82,9 @@ class Zoninator
 	}
 
 	function init() {
+		$this->zone_lock_period 	= apply_filters( 'zoninator_zone_lock_period', 		$this->zone_lock_period );
+		$this->zone_max_lock_period = apply_filters( 'zoninator_zone_max_lock_period', 	$this->zone_max_lock_period );
+		$this->posts_per_page 		= apply_filters( 'zoninator_posts_per_page', 		$this->posts_per_page );
 		
 		do_action( 'zoninator_pre_init' );
 		
