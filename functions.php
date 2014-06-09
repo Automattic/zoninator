@@ -32,7 +32,7 @@ function z_get_posts_in_zone( $zone, $args = array() ) {
 
 /**
  * @param $zone int|string ID or Slug of the zone
- * @return array List of orders post objects
+ * @return WP_Query List of orders post objects
  */
 function z_get_zone_query( $zone, $args = array() ) {
 	return z_get_zoninator()->get_zone_query( $zone, $args );
