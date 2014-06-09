@@ -34,8 +34,9 @@
 	border: 1px solid #ccc;
 	-moz-border-radius: 4px; -wekbit-border-radius: 4px; -ms-border-radius: 4px; border-radius: 4px;
 	background: url(images/gray-grad.png) repeat-x scroll left top #dfdfdf;
+	height: 31px;
 
-	width: 67%;
+	width: 5px;
 	float: right;
 }
 	#zone-edit-wrapper .form-wrap {
