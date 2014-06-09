@@ -5,6 +5,8 @@ Description: Curation made easy! Create "zones" then add and order your content!
 Author: Mohammad Jangda, Automattic
 Version: 0.5
 Author URI: http://vip.wordpress.com
+Text Domain: zoninator
+Domain Path: /language/
 
 Copyright 2010-2012 Mohammad Jangda, Automattic
 
@@ -57,6 +59,8 @@ class Zoninator
 	
 	function __construct() {
 		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
+
+		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 		
 		add_action( 'widgets_init', array( $this, 'widgets_init' ) );
 
@@ -114,6 +118,10 @@ class Zoninator
 		add_action( 'zoninator_advanced_search_fields', array( $this, 'zone_advanced_search_date_filter' ), 20 );
 
 		do_action( 'zoninator_post_init' );
+	}
+
+	public function load_textdomain() {
+		load_plugin_textdomain( 'zoninator', false, basename( ZONINATOR_PATH ) . '/language' );
 	}
 	
 	function widgets_init() {
@@ -649,7 +657,7 @@ class Zoninator
 	function zone_admin_search_form() {
 		?>
 		<div class="zone-search-wrapper">
-			<label for="zone-post-search"><?php _e( 'Search for content', '' );?></label>
+			<label for="zone-post-search"><?php _e( 'Search for content', 'zoninator' );?></label>
 			<input type="text" id="zone-post-search" name="search" />
 			<p class="description"><?php _e( 'Enter a term or phrase in the text box above to search for and add content to this zone.', 'zoninator' ); ?></p>
 		</div>
