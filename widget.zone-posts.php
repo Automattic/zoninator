@@ -40,9 +40,11 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		$show_description = $instance['show_description'] ? 1 : 0;
 		if ( ! $zone_id )
 			return;
+		
 		$zone = z_get_zone( $zone_id );
 		if ( ! $zone )
 			return;
+		
 		$posts = z_get_posts_in_zone( $zone_id );
 		if ( empty( $posts ) )
 			return;
