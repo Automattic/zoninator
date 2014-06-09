@@ -67,15 +67,6 @@ class Zoninator
 		add_action( 'init', array( $this, 'add_zone_feed' ) );
 
 		add_action( 'template_redirect', array( $this, 'do_zoninator_feeds' ) );
-
-		$this->zone_messages = array(
-			'insert-success' => __( 'The zone was successfully created.', 'zoninator' ),
-			'update-success' => __( 'The zone was successfully updated.', 'zoninator' ),
-			'delete-success' => __( 'The zone was successfully deleted.', 'zoninator' ),
-			'error-general' => __( 'Sorry, something went wrong! Please try again?', 'zoninator' ),
-			'error-zone-lock' => __( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
-			'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard.', 'zoninator' ),
-		);
 		
 		$this->default_post_types = array( 'post' );
 	}
@@ -86,6 +77,15 @@ class Zoninator
 	}
 
 	function init() {
+		$this->zone_messages = array(
+			'insert-success' => __( 'The zone was successfully created.', 'zoninator' ),
+			'update-success' => __( 'The zone was successfully updated.', 'zoninator' ),
+			'delete-success' => __( 'The zone was successfully deleted.', 'zoninator' ),
+			'error-general' => __( 'Sorry, something went wrong! Please try again?', 'zoninator' ),
+			'error-zone-lock' => __( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
+			'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard.', 'zoninator' ),
+		);
+		
 		$this->zone_lock_period 	= apply_filters( 'zoninator_zone_lock_period', 		$this->zone_lock_period );
 		$this->zone_max_lock_period = apply_filters( 'zoninator_zone_max_lock_period', 	$this->zone_max_lock_period );
 		$this->posts_per_page 		= apply_filters( 'zoninator_posts_per_page', 		$this->posts_per_page );
