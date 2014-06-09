@@ -81,9 +81,7 @@
 		margin: 3px 0;
 	}
 	.zone-posts-wrapper.loading {
-		background-image: url(images/wpspin_light.gif);
-		background-position: right top;
-		background-repeat: no-repeat;
+		background: url(images/wpspin_light.gif) no-repeat right top;
 	}
 	.zone-posts-wrapper.readonly {
 	}
@@ -164,9 +162,7 @@
 			visibility: visible;
 		}
 		.zone-post.loading .zone-post-position {
-			background-image: url(images/wpspin_light.gif);
-			background-repeat: no-repeat;
-			background-position: center center;
+			background: url(images/wpspin_light.gif) no-repeat center center;
 			text-indent: -9999px;
 		}
 	.zone-search-wrapper {
@@ -182,9 +178,7 @@
 
 /** Autocomplete **/
 .ui-autocomplete-input.loading {
-	background-image: url(images/wpspin_light.gif);
-	background-repeat: no-repeat;
-	background-position: right center;
+	background: url(images/wpspin_light.gif) no-repeat right center;
 }
 .ui-autocomplete {
 	min-width: 330px;
