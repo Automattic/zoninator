@@ -1130,7 +1130,7 @@ class Zoninator
 			'orderby' => 'id',
 			'order' => 'ASC',
 			'hide_empty' => 0,
-		) ); 
+		) );
 		
 		$zones = get_terms( $this->zone_taxonomy, $args );
 		
