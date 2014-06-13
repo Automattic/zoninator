@@ -5,6 +5,8 @@ Description: Curation made easy! Create "zones" then add and order your content!
 Author: Mohammad Jangda, Automattic
 Version: 0.5
 Author URI: http://vip.wordpress.com
+Text Domain: zoninator
+Domain Path: /language/
 
 Copyright 2010-2012 Mohammad Jangda, Automattic
 
@@ -57,21 +59,14 @@ class Zoninator
 	
 	function __construct() {
 		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
+
+		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 		
 		add_action( 'widgets_init', array( $this, 'widgets_init' ) );
 
 		add_action( 'init', array( $this, 'add_zone_feed' ) );
 
 		add_action( 'template_redirect', array( $this, 'do_zoninator_feeds' ) );
-
-		$this->zone_messages = array(
-			'insert-success' => __( 'The zone was successfully created.', 'zoninator' ),
-			'update-success' => __( 'The zone was successfully updated.', 'zoninator' ),
-			'delete-success' => __( 'The zone was successfully deleted.', 'zoninator' ),
-			'error-general' => __( 'Sorry, something went wrong! Please try again?', 'zoninator' ),
-			'error-zone-lock' => __( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
-			'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard.', 'zoninator' ),
-		);
 		
 		$this->default_post_types = array( 'post' );
 	}
@@ -82,6 +77,15 @@ class Zoninator
 	}
 
 	function init() {
+		$this->zone_messages = array(
+			'insert-success' => __( 'The zone was successfully created.', 'zoninator' ),
+			'update-success' => __( 'The zone was successfully updated.', 'zoninator' ),
+			'delete-success' => __( 'The zone was successfully deleted.', 'zoninator' ),
+			'error-general' => __( 'Sorry, something went wrong! Please try again?', 'zoninator' ),
+			'error-zone-lock' => __( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
+			'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard.', 'zoninator' ),
+		);
+		
 		$this->zone_lock_period 	= apply_filters( 'zoninator_zone_lock_period', 		$this->zone_lock_period );
 		$this->zone_max_lock_period = apply_filters( 'zoninator_zone_max_lock_period', 	$this->zone_max_lock_period );
 		$this->posts_per_page 		= apply_filters( 'zoninator_posts_per_page', 		$this->posts_per_page );
@@ -114,6 +118,10 @@ class Zoninator
 		add_action( 'zoninator_advanced_search_fields', array( $this, 'zone_advanced_search_date_filter' ), 20 );
 
 		do_action( 'zoninator_post_init' );
+	}
+
+	public function load_textdomain() {
+		load_plugin_textdomain( 'zoninator', false, basename( ZONINATOR_PATH ) . '/language' );
 	}
 	
 	function widgets_init() {
@@ -649,7 +657,7 @@ class Zoninator
 	function zone_admin_search_form() {
 		?>
 		<div class="zone-search-wrapper">
-			<label for="zone-post-search"><?php _e( 'Search for content', '' );?></label>
+			<label for="zone-post-search"><?php _e( 'Search for content', 'zoninator' );?></label>
 			<input type="text" id="zone-post-search" name="search" />
 			<p class="description"><?php _e( 'Enter a term or phrase in the text box above to search for and add content to this zone.', 'zoninator' ); ?></p>
 		</div>
@@ -1122,7 +1130,7 @@ class Zoninator
 			'orderby' => 'id',
 			'order' => 'ASC',
 			'hide_empty' => 0,
-		) ); 
+		) );
 		
 		$zones = get_terms( $this->zone_taxonomy, $args );
 		

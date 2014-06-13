@@ -19,7 +19,6 @@
 	.zone-tabs-wrapper .zone-tab {
 		display: block;
 		background: #fff;
-		padding: 
 	}
 	.zone-tabs-wrapper .zone-tab:hover,
 	.zone-tabs-wrapper .zone-tab:active,
@@ -35,7 +34,7 @@
 	border: 1px solid #ccc;
 	-moz-border-radius: 4px; -wekbit-border-radius: 4px; -ms-border-radius: 4px; border-radius: 4px;
 	background: url(images/gray-grad.png) repeat-x scroll left top #dfdfdf;
-
+	
 	width: 67%;
 	float: right;
 }
@@ -81,9 +80,7 @@
 		margin: 3px 0;
 	}
 	.zone-posts-wrapper.loading {
-		background-image: url(images/wpspin_light.gif);
-		background-position: right top;
-		background-repeat: no-repeat;
+		background: url(images/wpspin_light.gif) no-repeat right top;
 	}
 	.zone-posts-wrapper.readonly {
 	}
@@ -164,9 +161,7 @@
 			visibility: visible;
 		}
 		.zone-post.loading .zone-post-position {
-			background-image: url(images/wpspin_light.gif);
-			background-repeat: no-repeat;
-			background-position: center center;
+			background: url(images/wpspin_light.gif) no-repeat center center;
 			text-indent: -9999px;
 		}
 	.zone-search-wrapper {
@@ -182,9 +177,7 @@
 
 /** Autocomplete **/
 .ui-autocomplete-input.loading {
-	background-image: url(images/wpspin_light.gif);
-	background-repeat: no-repeat;
-	background-position: right center;
+	background: url(images/wpspin_light.gif) no-repeat right center;
 }
 .ui-autocomplete {
 	min-width: 330px;
