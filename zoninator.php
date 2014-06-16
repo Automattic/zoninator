@@ -313,7 +313,7 @@ class Zoninator
 		$new_link = $this->_get_zone_page_url( array( 'action' => 'new' ) );
 		?>
 		<div class="nav-tabs-container zone-tabs-container">
-			<div class="nav-tabs-nav-wrapper zone-tabs-nav-wrapper">
+			<h2 class="nav-tabs-nav-wrapper zone-tabs-nav-wrapper nav-tab-wrapper">
 				<div class="nav-tabs-wrapper zone-tabs-wrapper">
 					<div class="nav-tabs zone-tabs">
 						<?php foreach( $zones as $zone ) : ?>
@@ -328,7 +328,7 @@ class Zoninator
 						<?php endforeach; ?>
 					</div>
 				</div>
-			</div>
+			</h2>
 		</div>
 		<?php
 	}
@@ -370,8 +370,8 @@ class Zoninator
 								</div>
 								
 								<?php if( $zone_id ) : ?>
-								<div class="form-field zone-field">
-									<label for="zone-slug"><?php _e( 'Slug', 'zoninator' ); ?></label>
+								<div class="form-field zone-field zone-slug">
+									<label for="zone-slug"><?php _e( 'Slug', 'zoninator' ); ?>: </label>
 									<span><?php echo esc_attr( $zone_slug ); ?></span>
 									<input type="hidden" id="zone-slug" name="slug" value="<?php echo esc_attr( $zone_slug ); ?>" />
 								</div>
