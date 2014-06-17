@@ -3,15 +3,15 @@ var zoninator = {}
 ;(function($, window, undefined) {
 	
 	zoninator.init = function() {
-		zoninator.autocompleteCache = {}
-		zoninator.autocompleteAjax = {}
+		zoninator.autocompleteCache = {};
+		zoninator.autocompleteAjax = {};
 		zoninator.$zonePostsList = $('.zone-posts-list');
 		zoninator.$zonePostsWrap = $('.zone-posts-wrapper');
 		zoninator.$zonePostSearch = $("#zone-post-search");
 		zoninator.$zonePostLatest = $("#zone-post-latest");
 		zoninator.$zoneAdvancedCat = $("#zone_advanced_filter_taxonomy");
 		zoninator.$zoneAdvancedDate = $("#zone_advanced_filter_date");
-		zoninator.$zoneSubmit = $("#zone-info input[type='submit']")
+		zoninator.$zoneSubmit = $("#zone-info input[type='submit']");
 
 
 		zoninator.$zoneAdvancedDate.change(function() {
@@ -152,7 +152,7 @@ var zoninator = {}
 		}
 		
 		// TODO: move / copy posts to zones
-	}
+	};
 
 	zoninator.updateLatest = function() {
 	
@@ -162,7 +162,7 @@ var zoninator = {}
 			cat: zoninator.getAdvancedCat(),
 			date: zoninator.getAdvancedDate()
 		}, zoninator.addUpdateLatestSuccessCallback);
-	}
+	};
 
 	zoninator.addUpdateLatestSuccessCallback = function(returnData) {
 
@@ -170,7 +170,7 @@ var zoninator = {}
 		var $list = $(returnData.content);
 		$('#zone-post-latest').html($list);
 
-	}
+	};
 
 	zoninator.addPost = function(postId) {
 		
@@ -181,7 +181,7 @@ var zoninator = {}
 			, post_id: postId
 		}, zoninator.addPostSuccessCallback);
 		
-	}
+	};
 	
 	zoninator.addPostSuccessCallback = function(returnData) {
 		
@@ -198,7 +198,7 @@ var zoninator = {}
 		
 		// Reorder Posts
 		zoninator.updatePostOrder(true);
-	}
+	};
 	
 	zoninator.initZonePost = function($elem) {
 		$elem.bind('loading.start', function(e) {
@@ -212,7 +212,7 @@ var zoninator = {}
 			var postId = zoninator.getPostIdFromElem(this);
 			zoninator.removePost(postId);
 		});
-	}
+	};
 
 	zoninator.removePost = function(postId) {
 		zoninator.getPost(postId).trigger('loading.start');
@@ -221,7 +221,7 @@ var zoninator = {}
 			zone_id: zoninator.getZoneId()
 			, post_id: postId
 		}, zoninator.removePostSuccessCallback);	
-	}
+	};
 	
 	zoninator.removePostSuccessCallback = function(returnData, originalData) {
 		var postId = originalData.post_id;
@@ -232,7 +232,7 @@ var zoninator = {}
 				zoninator.updatePostOrder(true);
 			zoninator.$zonePostsWrap.trigger('loading.end');
 		});
-	}
+	};
 
 	zoninator.reorderPosts = function() {
 		// get list of post ids
@@ -245,14 +245,14 @@ var zoninator = {}
 			var data = {
 				zone_id: zoneId
 				, posts: postIds
-			}
+			};
 			
 			zoninator.$zonePostsWrap.trigger('loading.start');
 			
 			// make ajax call to save order
 			zoninator.ajax('reorder_posts', data, zoninator.reorderPostsSuccessCallback);
 		}
-	}
+	};
 	
 	zoninator.reorderPostsSuccessCallback = function(returnData, originalData) {
 		zoninator.$zonePostsWrap.trigger('loading.end');
@@ -260,7 +260,7 @@ var zoninator = {}
 		
 		// The user took some action so reset the lock period
 		zoninator.resetCurrentLockPeriod();
-	}
+	};
 	
 	zoninator.updateLock = function() {
 		zoninator.ajax('update_lock', {
@@ -280,17 +280,17 @@ var zoninator = {}
 			alert(zoninatorOptions.errorZoneLock);
 			location.reload();
 		});
-	}
+	};
 	
 	zoninator.resetCurrentLockPeriod = function() {
 		zoninator.currentLockPeriod = 0;
-	}
+	};
 	
 	zoninator.ajax = function(action, values, successCallback, errorCallback, params) {
 		var data = {
 			action: zoninator.getAjaxAction(action)
 			, _wpnonce: zoninator.getAjaxNonce()
-		}
+		};
 		data = $.extend({}, data, values);
 
 		// Allow developers to filter the ajax parameters
@@ -307,11 +307,11 @@ var zoninator = {}
 			, error: function(returnData) {
 				zoninator.ajaxErrorCallback(returnData, data, successCallback, errorCallback);
 			}
-		}
+		};
 		params = $.extend({}, defaultParams, params);
 		
 		$.ajax(params);
-	}
+	};
 	
 	zoninator.ajaxSuccessCallback = function(returnData, originalData, successCallback, errorCallback) {
 		if(typeof(returnData) === 'undefined' || !returnData.status) {
@@ -329,7 +329,7 @@ var zoninator = {}
 		} else {
 			alert(returnData.content);
 		}
-	}
+	};
 	
 	zoninator.ajaxErrorCallback = function(returnData, originalData, successCallback, errorCallback) {
 		if( typeof(returnData) === 'undefined' || !returnData ) {
@@ -348,43 +348,43 @@ var zoninator = {}
 				returnData.content = zoninatorOptions.errorGeneral;
 			alert(returnData.content);
 		}
-	}
+	};
 	
 	zoninator.updateAjaxNonce = function(action, nonce) {
 		zoninator.getAjaxNonceField(action).val(nonce);
-	}
+	};
 
 	zoninator.getAdvancedCat = function() {
 		return $('#zone_advanced_filter_taxonomy').length ? zoninator.$zoneAdvancedCat.val() : 0;
-	}
+	};
 
 	zoninator.getAdvancedDate = function() {
 		return $('#zone_advanced_filter_date').length ? zoninator.$zoneAdvancedDate.val() : 0;
-	}
+	};
 	
 	zoninator.getAjaxNonce = function(action) {
 		return zoninator.getAjaxNonceField(action).val();
-	}
+	};
 	zoninator.getAjaxNonceField = function(action) {
 		action = action || zoninatorOptions.ajaxNonceAction;
 		return $('#' + action );
-	}
+	};
 	
 	zoninator.getZoneId = function() {
 		return $('#zone_id').length ? $('#zone_id').val() : 0;
-	}
+	};
 	
 	zoninator.getZonePosts = function() {
 		return zoninator.$zonePostsList.children();
-	}
+	};
 	
 	zoninator.getPost = function(postId) {
 		return $('#zone-post-' + postId);
-	}
+	};
 	
 	zoninator.getPostIdFromElem = function(elem) {
 		return $(elem).closest('.zone-post').attr('data-post-id');
-	}
+	};
 	
 	zoninator.getZonePostIds = function() {
 		var ids = []
@@ -393,13 +393,13 @@ var zoninator = {}
 			ids.push(elem.value);
 		});
 		return ids;
-	}
+	};
 	
 	zoninator.getPostOrder = function() {
 		if(!$.isArray(zoninator.currentPostOrder))
 			zoninator.updatePostOrder();
 		return zoninator.currentPostOrder;
-	}
+	};
 	
 	zoninator.updatePostOrder = function(save) {
 		if(save)
@@ -407,20 +407,20 @@ var zoninator = {}
 		
 		zoninator.currentPostOrder = zoninator.getZonePostIds();
 		zoninator.renumberPosts();
-	}
+	};
 	
 	zoninator.renumberPosts = function() {
 		var $numbers = zoninator.$zonePostsList.find('.zone-post-position');
 		$numbers.each(function(i, elem) {
 		    $(elem).text(i + 1);
         });
-	}
+	};
 	
 	zoninator.getAjaxAction = function(action) {
 		return 'zoninator_' + action;
-	}
+	};
 
-	zoninator.emptyFunc = function() {}
+	zoninator.emptyFunc = function() {};
 
 	/**
 	 * compareArrays - Compares two arrays!
@@ -430,16 +430,16 @@ var zoninator = {}
 	 *
 	 * Some mods by Mohammad Jangda
 	 *
-	 * @param Array First Array
-	 * @param Array Second Array
-	 * @param bool Sort the arrays before comparing?
+	 * @param arr1 Array First Array
+	 * @param arr2 Array Second Array
+	 * @param sort bool Sort the arrays before comparing?
 	 *
 	 */
     var compareArrays = function(arr1, arr2, sort) {
         if (arr1.length != arr2.length) return false;
         
-        if(sort) {
-            arr1 = arr1.sort(),
+        if (sort) {
+            arr1 = arr1.sort();
             arr2 = arr2.sort();
         }
         for (var i = 0; arr2[i]; i++) {
@@ -474,4 +474,4 @@ var zoninator = {}
 })(jQuery, window);
 
 if(typeof(console) === 'undefined')
-	console = { log: function(){} }
+	console = { log: function() {} };
