@@ -374,7 +374,7 @@ if( ! class_exists( 'Zoninator' ) ) :
 										<input type="text" id="zone-name" name="name" value="<?php echo esc_attr( $zone_name ); ?>" />
 									</div>
 									
-									<?php if( $zone_id ) : ?>
+									<?php if ( $zone_id ) : ?>
 									<div class="form-field zone-field zone-slug">
 										<label for="zone-slug"><?php _e( 'Slug', 'zoninator' ); ?>: </label>
 										<span><?php echo esc_attr( $zone_slug ); ?></span>
@@ -389,7 +389,7 @@ if( ! class_exists( 'Zoninator' ) ) :
 									
 									<?php do_action( 'zoninator_post_zone_fields', $zone ); ?>
 									
-									<?php if( $zone_id ) : ?>
+									<?php if ( $zone_id ) : ?>
 										<input type="hidden" name="zone_id" id="zone_id" value="<?php echo esc_attr( $zone_id ) ?>" />
 										<?php wp_nonce_field( $this->_get_nonce_key( 'update' ) ); ?>
 									<?php else : ?>
@@ -397,9 +397,9 @@ if( ! class_exists( 'Zoninator' ) ) :
 									<?php endif; ?>
 									
 									<div class="submit-field submitbox">
-										<input type="submit" value="<?php _e('Save', 'zoninator'); ?>" name="submit" class="button-primary" />
+										<input type="submit" value="<?php _e( 'Save', 'zoninator' ); ?>" name="submit" class="button-primary" />
 										
-										<?php if( $zone_id ) : ?>
+										<?php if ( $zone_id ) : ?>
 											<a href="<?php echo $delete_link ?>" class="submitdelete" onclick="return confirm('<?php echo esc_js( 'Are you sure you want to delete this zone?', 'zoninator' ); ?>')"><?php _e('Delete', 'zoninator') ?></a>
 										<?php endif; ?>
 									</div>
@@ -443,7 +443,7 @@ if( ! class_exists( 'Zoninator' ) ) :
 					
 					<div class="col-wrap zone-col zone-posts-col">
 						<div class="zone-posts-wrapper <?php echo ! $this->_current_user_can_manage_zones( $zone_id ) || $zone_locked ? 'readonly' : ''; ?>">
-							<?php if( $zone_id ) : ?>
+							<?php if ( $zone_id ) : ?>
 								<h3><?php _e( 'Zone Content', 'zoninator' ); ?></h3>
 	
 								<?php $this->zone_advanced_search_filters(); ?>					
@@ -453,7 +453,7 @@ if( ! class_exists( 'Zoninator' ) ) :
 								<?php $this->zone_admin_search_form(); ?>
 								
 								<div class="zone-posts-list">
-									<?php foreach( $zone_posts as $post ) : ?>
+									<?php foreach ( $zone_posts as $post ) : ?>
 										<?php $this->admin_page_zone_post( $post, $zone ); ?>
 									<?php endforeach; ?>
 								</div>
@@ -470,16 +470,21 @@ if( ! class_exists( 'Zoninator' ) ) :
 		}
 		
 		function admin_page_zone_post( $post, $zone ) {
-			$columns = apply_filters( 'zoninator_zone_post_columns', array(
-				'position' => array( $this, 'admin_page_zone_post_col_position' ),
-				'info' => array( $this, 'admin_page_zone_post_col_info' )
-			), $post, $zone );
+			$columns = apply_filters(
+				'zoninator_zone_post_columns',
+				array(
+					'position' => array( $this, 'admin_page_zone_post_col_position' ),
+					'info' => array( $this, 'admin_page_zone_post_col_info' ),
+				),
+				$post,
+				$zone
+			);
 			?>
 			<div id="zone-post-<?php echo $post->ID; ?>" class="zone-post" data-post-id="<?php echo $post->ID; ?>">
 				<table>
 					<tr>
-						<?php foreach( $columns as $column_key => $column_callback ) : ?>
-							<?php if( is_callable( $column_callback ) ) : ?>
+						<?php foreach ( $columns as $column_key => $column_callback ) : ?>
+							<?php if ( is_callable( $column_callback ) ) : ?>
 								<td class="zone-post-col zone-post-<?php echo $column_key; ?>">
 									<?php call_user_func( $column_callback, $post, $zone ); ?>
 								</td>
