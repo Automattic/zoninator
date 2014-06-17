@@ -30,6 +30,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 */
 
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
 if( ! class_exists( 'Zoninator' ) ) :
 
 define( 'ZONINATOR_VERSION', '0.5' );
@@ -82,10 +84,10 @@ class Zoninator {
 			'error-zone-lock' => __( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
 			'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard.', 'zoninator' ),
 		);
-		
-		$this->zone_lock_period 	= apply_filters( 'zoninator_zone_lock_period', 		$this->zone_lock_period );
-		$this->zone_max_lock_period = apply_filters( 'zoninator_zone_max_lock_period', 	$this->zone_max_lock_period );
-		$this->posts_per_page 		= apply_filters( 'zoninator_posts_per_page', 		$this->posts_per_page );
+
+		$this->zone_lock_period = apply_filters( 'zoninator_zone_lock_period', $this->zone_lock_period );
+		$this->zone_max_lock_period = apply_filters( 'zoninator_zone_max_lock_period', $this->zone_max_lock_period );
+		$this->posts_per_page = apply_filters( 'zoninator_posts_per_page', $this->posts_per_page );
 		
 		do_action( 'zoninator_pre_init' );
 		
