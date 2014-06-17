@@ -345,3 +345,16 @@
 	font-weight: normal;
 	margin: -1px;
 }
+
+/*RTL*/
+
+.rtl .ui-widget-overlay { left: auto;right: 0; }
+
+.rtl .ui-menu {
+	float: right;
+}
+
+.rtl .ui-menu .ui-menu-item {
+	clear: right;
+	float: right;
+}

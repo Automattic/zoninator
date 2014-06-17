@@ -39,8 +39,7 @@ define( 'ZONINATOR_URL', trailingslashit( plugins_url( '', __FILE__ ) ) );
 require_once( ZONINATOR_PATH . '/functions.php' );
 require_once( ZONINATOR_PATH . '/widget.zone-posts.php');
 
-class Zoninator
-{
+class Zoninator {
 	var $key = 'zoninator';
 	var $zone_taxonomy = 'zoninator_zones';
 	var $zone_term_prefix = 'zone-';
@@ -58,14 +57,12 @@ class Zoninator
 	var $posts_per_page = 10;
 	
 	function __construct() {
-		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
-
-		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
+		// init later after other post types have been registered
+		add_action( 'init', array( $this, 'init' ), 99 );
 		
+		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 		add_action( 'widgets_init', array( $this, 'widgets_init' ) );
-
 		add_action( 'init', array( $this, 'add_zone_feed' ) );
-
 		add_action( 'template_redirect', array( $this, 'do_zoninator_feeds' ) );
 		
 		$this->default_post_types = array( 'post' );
@@ -283,7 +280,7 @@ class Zoninator
 					<?php if( $active_zone_id ) : ?>
 						<a href="<?php echo $new_link; ?>" class="add-new-h2 zone-button-add-new"><?php _e( 'Add New', 'zoninator' ); ?></a>
 					<?php else : ?>
-						<span class="nav-tab nav-tab-active zone-tab zone-tab-active"><?php _e( 'Add New', 'zoninator' ); ?></span>
+						<a href="<?php echo $new_link; ?>" class="add-new-h2 zone-button-add-new"><?php _e( 'Add New', 'zoninator' ); ?></a>
 					<?php endif; ?>
 				<?php endif; ?>
 			</h2>
@@ -346,6 +343,7 @@ class Zoninator
 		$delete_link = $this->_get_zone_page_url( array( 'action' => 'delete', 'zone_id' => $zone_id ) );
 		$delete_link = wp_nonce_url( $delete_link, $this->_get_nonce_key( 'delete' ) );
 		?>
+
 		<div id="zone-edit-wrapper">
 			<?php if( ( $zone_id == 0 && $this->_current_user_can_add_zones() ) || ( $zone_id != 0 && $this->_current_user_can_manage_zones() ) ) : ?>
 				<?php if( $zone_locked ) : ?>
@@ -355,11 +353,11 @@ class Zoninator
 					</div>
 					<input type="hidden" id="zone-locked" name="zone-locked" value="1" />
 				<?php endif; ?>
+
 				<div class="col-wrap zone-col zone-info-col">
 					<div class="form-wrap zone-form zone-info-form">
 						
 						<?php if( $this->_current_user_can_edit_zones( $zone_id ) && ! $zone_locked ) : ?>
-						
 							<form id="zone-info" method="post">
 								
 								<?php do_action( 'zoninator_pre_zone_fields', $zone ); ?>
