@@ -256,35 +256,35 @@ if( ! class_exists( 'Zoninator' ) ) :
 	
 		function admin_page() {
 			global $zoninator_admin_page;
-			
-			$view = $this->_get_value_or_default( 'view', $zoninator_admin_page, 'edit.php' );
-			$view = sprintf( '%s/views/%s', ZONINATOR_PATH, $view );
+
+			$view  = $this->_get_value_or_default( 'view', $zoninator_admin_page, 'edit.php' );
+			$view  = sprintf( '%s/views/%s', ZONINATOR_PATH, $view );
 			$title = __( 'Zones', 'zoninator' );
 			
 			$zones = $this->get_zones();
 			
 			$default_active_zone = 0;
-			if( ! $this->_current_user_can_add_zones() ) {
-				if( ! empty( $zones ) )
+			if ( ! $this->_current_user_can_add_zones() ) {
+				if ( ! empty( $zones ) )
 					$default_active_zone = $zones[0]->term_id;
 			}
-			
+
 			$active_zone_id = $this->_get_request_var( 'zone_id', $default_active_zone, 'absint' );
-			$active_zone = ! empty( $active_zone_id ) ? $this->get_zone( $active_zone_id ) : array();
+			$active_zone    = ! empty( $active_zone_id ) ? $this->get_zone( $active_zone_id ) : array();
 			if ( ! empty( $active_zone ) )
 				$title = __( 'Edit Zone', 'zoninator' );
-			
+
 			$message = $this->_get_message( $this->_get_get_var( 'message', '', 'urldecode' ) );
-			$error = $this->_get_get_var( 'error', '', 'urldecode' );
+			$error   = $this->_get_get_var( 'error', '', 'urldecode' );
 			
 			?>
 			<div class="wrap zoninator-page">
 				<div id="icon-edit-pages" class="icon32"><br /></div>
 				<h2>
 					<?php echo esc_html( $title ); ?>
-					<?php if( $this->_current_user_can_add_zones() ) : 
+					<?php if ( $this->_current_user_can_add_zones() ) : 
 						$new_link = $this->_get_zone_page_url( array( 'action' => 'new' ) ); ?>
-						<?php if( $active_zone_id ) : ?>
+						<?php if ( $active_zone_id ) : ?>
 							<a href="<?php echo $new_link; ?>" class="add-new-h2 zone-button-add-new"><?php _e( 'Add New', 'zoninator' ); ?></a>
 						<?php else : ?>
 							<a href="<?php echo $new_link; ?>" class="add-new-h2 zone-button-add-new"><?php _e( 'Add New', 'zoninator' ); ?></a>
@@ -292,12 +292,12 @@ if( ! class_exists( 'Zoninator' ) ) :
 					<?php endif; ?>
 				</h2>
 				
-				<?php if( $message ) : ?>
+				<?php if ( $message ) : ?>
 					<div id="zone-message" class="updated below-h2">
 						<p><?php echo esc_html( $message ); ?></p>
 					</div>
 				<?php endif; ?>
-				<?php if( $error ) : ?>
+				<?php if ( $error ) : ?>
 					<div id="zone-message" class="error below-h2">
 						<p><?php echo esc_html( $error ); ?></p>
 					</div>
@@ -320,11 +320,11 @@ if( ! class_exists( 'Zoninator' ) ) :
 				<h2 class="nav-tabs-nav-wrapper zone-tabs-nav-wrapper nav-tab-wrapper">
 					<div class="nav-tabs-wrapper zone-tabs-wrapper">
 						<div class="nav-tabs zone-tabs">
-							<?php foreach( $zones as $zone ) : ?>
-								<?php $zone_id = $this->get_zone_id( $zone ); ?>
+							<?php foreach ( $zones as $zone ) : ?>
+								<?php $zone_id   = $this->get_zone_id( $zone ); ?>
 								<?php $zone_link = $this->_get_zone_page_url( array( 'action' => 'edit', 'zone_id' => $zone_id ) ); ?>
 								
-								<?php if( $active_zone_id && $zone_id == $active_zone_id ) : ?>
+								<?php if ( $active_zone_id && $zone_id == $active_zone_id ) : ?>
 									<span class="nav-tab nav-tab-active zone-tab zone-tab-active"><?php echo esc_html( $zone->name ); ?></span>
 								<?php else : ?>
 									<a href="<?php echo esc_url( $zone_link ); ?>" class="nav-tab zone-tab"><?php echo esc_html( $zone->name ); ?></a>
@@ -352,8 +352,8 @@ if( ! class_exists( 'Zoninator' ) ) :
 			?>
 	
 			<div id="zone-edit-wrapper">
-				<?php if( ( $zone_id == 0 && $this->_current_user_can_add_zones() ) || ( $zone_id != 0 && $this->_current_user_can_manage_zones() ) ) : ?>
-					<?php if( $zone_locked ) : ?>
+				<?php if ( ( $zone_id == 0 && $this->_current_user_can_add_zones() ) || ( $zone_id != 0 && $this->_current_user_can_manage_zones() ) ) : ?>
+					<?php if ( $zone_locked ) : ?>
 						<?php $locking_user = get_userdata( $zone_locked ); ?>
 						<div class="updated below-h2">
 							<p><?php echo sprintf( $this->_get_message( 'error-zone-lock' ), sprintf( '<a href="mailto:%s">%s</a>', $locking_user->user_email, $locking_user->display_name ) ); ?></p>
@@ -364,7 +364,7 @@ if( ! class_exists( 'Zoninator' ) ) :
 					<div class="col-wrap zone-col zone-info-col">
 						<div class="form-wrap zone-form zone-info-form">
 							
-							<?php if( $this->_current_user_can_edit_zones( $zone_id ) && ! $zone_locked ) : ?>
+							<?php if ( $this->_current_user_can_edit_zones( $zone_id ) && ! $zone_locked ) : ?>
 								<form id="zone-info" method="post">
 									
 									<?php do_action( 'zoninator_pre_zone_fields', $zone ); ?>
