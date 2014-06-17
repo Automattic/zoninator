@@ -400,7 +400,7 @@ if( ! class_exists( 'Zoninator' ) ) :
 										<input type="submit" value="<?php _e( 'Save', 'zoninator' ); ?>" name="submit" class="button-primary" />
 										
 										<?php if ( $zone_id ) : ?>
-											<a href="<?php echo $delete_link ?>" class="submitdelete" onclick="return confirm('<?php echo esc_js( 'Are you sure you want to delete this zone?', 'zoninator' ); ?>')"><?php _e('Delete', 'zoninator') ?></a>
+											<a href="<?php echo $delete_link ?>" class="submitdelete" onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to delete this zone?', 'zoninator' ) ); ?>')"><?php _e( 'Delete', 'zoninator' ) ?></a>
 										<?php endif; ?>
 									</div>
 									
