@@ -2,6 +2,6 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-__( 'all', 'zoninator' );
-__( 'today', 'zoninator' );
-__( 'yesterday', 'zoninator' );
+__( 'All', 'zoninator' );
+__( 'Today', 'zoninator' );
+__( 'Yesterday', 'zoninator' );
