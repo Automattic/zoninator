@@ -2,9 +2,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Zoninator 1.0.0\n"
 "Report-Msgid-Bugs-To: http://pojo.me/\n"
-"POT-Creation-Date: 2014-06-17 18:57+0200\n"
-"PO-Revision-Date: 2014-06-17 18:58+0200\n"
-"Last-Translator: Yakir Sitbon <kingyes1@gmail.com>\n"
+"POT-Creation-Date: 2014-06-18 16:23+0200\n"
+"PO-Revision-Date: 2014-06-18 16:24+0200\n"
+"Last-Translator: Ariel K <a@arielk.net>\n"
 "Language-Team: Pojo.me Team <team@pojo.me>\n"
 "Language: he_IL\n"
 "MIME-Version: 1.0\n"
@@ -16,7 +16,7 @@ msgstr ""
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.6.5\n"
+"X-Generator: Poedit 1.5.5\n"
 "X-Poedit-SearchPath-0: ..\n"
 
 #: ../widget.zone-posts.php:11
@@ -94,35 +94,59 @@ msgstr "עריכת אזור"
 msgid "Add New"
 msgstr "הוספת חדש"
 
-#: ../zoninator.php:373 ../zoninator.php:416
+#: ../zoninator.php:325
+msgid "Select a zone to edit:"
+msgstr "בחירת אזור לעריכה:"
+
+#: ../zoninator.php:327
+msgid "-- Select --"
+msgstr "--בחירה--"
+
+#: ../zoninator.php:334
+msgid "Select"
+msgstr "בחירה"
+
+#: ../zoninator.php:337
+msgid "or"
+msgstr "או"
+
+#: ../zoninator.php:337 ../zoninator.php:340
+msgid "create a new zone"
+msgstr "יצירת אזור חדש"
+
+#: ../zoninator.php:380 ../zoninator.php:529
+msgid "Edit"
+msgstr "עריכה"
+
+#: ../zoninator.php:385
+msgid "Add New Zone"
+msgstr "הוספת אזור חדש"
+
+#: ../zoninator.php:393 ../zoninator.php:436
 msgid "Name"
 msgstr "שם"
 
-#: ../zoninator.php:379 ../zoninator.php:422
+#: ../zoninator.php:399 ../zoninator.php:442
 msgid "Slug"
 msgstr "מזהה"
 
-#: ../zoninator.php:386 ../zoninator.php:428
+#: ../zoninator.php:406 ../zoninator.php:448
 msgid "Description"
 msgstr "תיאור"
 
-#: ../zoninator.php:400
+#: ../zoninator.php:420
 msgid "Save"
 msgstr "שמירה"
 
-#: ../zoninator.php:403
+#: ../zoninator.php:423
 msgid "Are you sure you want to delete this zone?"
 msgstr "האם אתה בטוח שרצונך למחוק איזור זה?"
 
-#: ../zoninator.php:403
+#: ../zoninator.php:423
 msgid "Delete"
 msgstr "מחיקה"
 
-#: ../zoninator.php:447
-msgid "Zone Content"
-msgstr "תוכן אזור"
-
-#: ../zoninator.php:462
+#: ../zoninator.php:481
 msgid ""
 "To create a zone, enter a name (and any other info) to to left and click "
 "\"Save\". You can then choose content items to add to the zone."
@@ -130,97 +154,128 @@ msgstr ""
 "כדי ליצור אזור, יש להזין שם (ומידע נוסף אם צריך) וללחוץ על  \"שמירה\". לאחר "
 "מכן ניתן לבחור פריטי תוכן ולהוסיף לאזור."
 
-#: ../zoninator.php:503
+#: ../zoninator.php:522
 msgid "Click and drag to change the position of this item."
 msgstr "יש ללחוץ ולגרור כדי לשנות את המיקום של פריט זה."
 
-#: ../zoninator.php:510 ../zoninator.php:512
+#: ../zoninator.php:529 ../zoninator.php:531
 msgid "Opens in new window"
 msgstr "פתיחה בלשונית חדשה"
 
-#: ../zoninator.php:510
-msgid "Edit"
-msgstr "עריכה"
-
-#: ../zoninator.php:511
+#: ../zoninator.php:530
 msgid "Remove this item from the zone"
 msgstr "למחוק פריט זה מהאזור"
 
-#: ../zoninator.php:511
+#: ../zoninator.php:530
 msgid "Remove"
 msgstr "הסרה"
 
-#: ../zoninator.php:512
+#: ../zoninator.php:531
 msgid "View"
 msgstr "תצוגה"
 
-#: ../zoninator.php:528
+#: ../zoninator.php:547
 msgid "Hide"
 msgstr "להסתיר"
 
-#: ../zoninator.php:528
+#: ../zoninator.php:547
 msgid "Show Filters"
 msgstr "להציג סינון"
 
-#: ../zoninator.php:539
+#: ../zoninator.php:558
 msgid "Filter:"
 msgstr "סינון:"
 
-#: ../zoninator.php:542
+#: ../zoninator.php:561
 msgid "Show all Categories"
 msgstr "הצגת כל הקטגוריות"
 
-#: ../zoninator.php:619
+#: ../zoninator.php:638
 msgid "No results found"
 msgstr "לא נמצאו תוצאות"
 
-#: ../zoninator.php:621
+#: ../zoninator.php:640
 #, php-format
 msgid "Choose post from %s"
 msgstr "לבחור פוסט מ %s"
 
-#: ../zoninator.php:623 ../zoninator.php:655
+#: ../zoninator.php:642 ../zoninator.php:674
 msgid "Choose a post"
 msgstr "בחירת פוסט"
 
-#: ../zoninator.php:653
+#: ../zoninator.php:672
 msgid "Add Recent Content"
 msgstr "להוסיף תוכן אחרון"
 
-#: ../zoninator.php:670
+#: ../zoninator.php:689
 msgid "Search for content"
 msgstr "חיפוש בתוכן"
 
-#: ../zoninator.php:672
+#: ../zoninator.php:691
 msgid ""
 "Enter a term or phrase in the text box above to search for and add content "
 "to this zone."
 msgstr "יש להזין מונח או ביטוי בתיבת הטקסט כדי לחפש ולהוסיף תוכן לאזור זה."
 
-#: ../zoninator.php:845
+#: ../zoninator.php:864
 msgid "(no title)"
 msgstr "(ללא כותרת)"
 
-#: ../zoninator.php:891
+#: ../zoninator.php:910
 msgid "Slug is a required field."
 msgstr "מזהה פוסט הינו שדה חובה"
 
-#: ../zoninator.php:936 ../zoninator.php:959
+#: ../zoninator.php:955 ../zoninator.php:978
 msgid "Sorry, that zone doesn't exist."
 msgstr "מצטערים, אזור זה לא קיים."
 
-#: ../zoninator.php:953
+#: ../zoninator.php:972
 msgid "Sorry, we couldn't delete the zone."
 msgstr "מצטערים, לא ניתן למחוק אזור זה."
 
-#: ../zoninator.php:1316
+#: ../zoninator.php:1335
 msgid "Sorry, you're not supposed to do that..."
 msgstr "מצטערים, איך לך הרשאות לעשות זאת..."
 
-#: ../zoninator.php:1350
+#: ../zoninator.php:1369
 msgid "Invalid zone supplied"
 msgstr "הוזן אזור לא תקין"
 
-#: ../zoninator.php:1356
+#: ../zoninator.php:1375
 msgid "No zone posts found"
 msgstr "לא נמצא אזור פוסטים"
+
+#: ../zoninator.php:1569
+msgid "Privately Published"
+msgstr "פרטי"
+
+#: ../zoninator.php:1572
+msgid "Published"
+msgstr "פורסם"
+
+#: ../zoninator.php:1575
+msgid "Scheduled"
+msgstr "מתוזמן"
+
+#: ../zoninator.php:1578
+msgid "Pending Review"
+msgstr "בהמתנה"
+
+#: ../zoninator.php:1582
+msgid "Draft"
+msgstr "טיוטה"
+
+#: ../language/strings.php:5
+msgid "All"
+msgstr "הכל"
+
+#: ../language/strings.php:6
+msgid "Today"
+msgstr "היום"
+
+#: ../language/strings.php:7
+msgid "Yesterday"
+msgstr "אתמול"
+
+#~ msgid "Zone Content"
+#~ msgstr "תוכן אזור"

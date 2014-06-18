@@ -60,6 +60,10 @@ var zoninator = {}
 				$name.closest( '.zone-field' ).removeClass('error'); 
 			}
 		});
+		
+		$( '#zone-btn-zone-edit' ).on( 'click', function( e ) {
+			$( '#zone-info' ).slideToggle( 'fast' );
+		} );
 
 		zoninator.$zonePostLatest.change(function() {
 			var $this = $(this),
@@ -273,7 +277,7 @@ var zoninator = {}
 				setTimeout(zoninator.updateLock, zoninator.heartbeatInterval);
 			} else {
 				alert(zoninatorOptions.errorZoneLockMax);
-				location.href = zoninatorOptions.adminUrl;
+				location.href = zoninatorOptions.baseUrl;
 			}
 		}, function(returnData, originalData) {
 			// Show alert and reload page to update lock
