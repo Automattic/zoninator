@@ -515,7 +515,7 @@ class Zoninator
 	function zone_advanced_search_filters() {
 		?>
 		<div class="zone-advanced-search-filters-heading">
-			<span class="zone-toggle-advanced-search" data-alt-label="<?php esc_attr_e( 'Hide', 'zoninator' ); ?>"><?php _e( 'Show Filters', 'zoninator' ); ?></span>
+			<span class="zone-toggle-advanced-search" data-alt-label="<?php esc_attr_e( 'Hide', 'zoninator' ); ?>"><?php esc_html_e( 'Show Filters', 'zoninator' ); ?></span>
 		</div>
 		<div class="zone-advanced-search-filters-wrapper">
 			<?php do_action( 'zoninator_advanced_search_fields' ); ?>
@@ -526,7 +526,7 @@ class Zoninator
 	function zone_advanced_search_cat_filter() {
 		$current_cat = $this->_get_post_var( 'zone_advanced_filter_taxonomy', '', 'absint' );
 		?>
-		<label for="zone_advanced_filter_taxonomy"><?php _e( 'Filter:', 'zoninator' ); ?></label>
+		<label for="zone_advanced_filter_taxonomy"><?php esc_html_e( 'Filter:', 'zoninator' ); ?></label>
 		<?php
 		wp_dropdown_categories( apply_filters( 'zoninator_advanced_filter_category', array(
 			'show_option_all' =>  __( 'Show all Categories', 'zoninator' ),
@@ -640,9 +640,9 @@ class Zoninator
 		$recent_posts = get_posts( $args );
 		?>
 		<div class="zone-search-wrapper">
-			<label for="zone-post-search-latest"><?php _e( 'Add Recent Content', 'zoninator' );?></label><br />
+			<label for="zone-post-search-latest"><?php esc_html_e( 'Add Recent Content', 'zoninator' );?></label><br />
 			<select name="search-posts" id="zone-post-latest">
-				<option value=""><?php _e( 'Choose a post', 'zoninator' ); ?></option>
+				<option value=""><?php esc_html_e( 'Choose a post', 'zoninator' ); ?></option>
 				<?php			
 				foreach ( $recent_posts as $post ) :
 					echo sprintf( '<option value="%d">%s</option>', $post->ID, esc_html( get_the_title( $post->ID ) ) );
@@ -657,9 +657,9 @@ class Zoninator
 	function zone_admin_search_form() {
 		?>
 		<div class="zone-search-wrapper">
-			<label for="zone-post-search"><?php _e( 'Search for content', 'zoninator' );?></label>
+			<label for="zone-post-search"><?php esc_html_e( 'Search for content', 'zoninator' );?></label>
 			<input type="text" id="zone-post-search" name="search" />
-			<p class="description"><?php _e( 'Enter a term or phrase in the text box above to search for and add content to this zone.', 'zoninator' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Enter a term or phrase in the text box above to search for and add content to this zone.', 'zoninator' ); ?></p>
 		</div>
 		<?php
 	}
