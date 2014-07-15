@@ -281,7 +281,7 @@ class Zoninator
 				<?php if( $this->_current_user_can_add_zones() ) : 
 					$new_link = $this->_get_zone_page_url( array( 'action' => 'new' ) ); ?>
 					<?php if( $active_zone_id ) : ?>
-						<a href="<?php echo $new_link; ?>" class="add-new-h2 zone-button-add-new"><?php esc_html_e( 'Add New', 'zoninator' ); ?></a>
+						<a href="<?php echo esc_url( $new_link ); ?>" class="add-new-h2 zone-button-add-new"><?php esc_html_e( 'Add New', 'zoninator' ); ?></a>
 					<?php else : ?>
 						<span class="nav-tab nav-tab-active zone-tab zone-tab-active"><?php esc_html_e( 'Add New', 'zoninator' ); ?></span>
 					<?php endif; ?>
@@ -351,7 +351,7 @@ class Zoninator
 				<?php if( $zone_locked ) : ?>
 					<?php $locking_user = get_userdata( $zone_locked ); ?>
 					<div class="updated below-h2">
-						<p><?php echo sprintf( $this->_get_message( 'error-zone-lock' ), sprintf( '<a href="mailto:%s">%s</a>', $locking_user->user_email, $locking_user->display_name ) ); ?></p>
+						<p><?php echo sprintf( $this->_get_message( 'error-zone-lock' ), sprintf( '<a href="mailto:%s">%s</a>', esc_attr( $locking_user->user_email ), esc_html( $locking_user->display_name ) ) ); ?></p>
 					</div>
 					<input type="hidden" id="zone-locked" name="zone-locked" value="1" />
 				<?php endif; ?>
