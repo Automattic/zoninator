@@ -281,9 +281,9 @@ class Zoninator
 				<?php if( $this->_current_user_can_add_zones() ) : 
 					$new_link = $this->_get_zone_page_url( array( 'action' => 'new' ) ); ?>
 					<?php if( $active_zone_id ) : ?>
-						<a href="<?php echo $new_link; ?>" class="add-new-h2 zone-button-add-new"><?php _e( 'Add New', 'zoninator' ); ?></a>
+						<a href="<?php echo $new_link; ?>" class="add-new-h2 zone-button-add-new"><?php esc_html_e( 'Add New', 'zoninator' ); ?></a>
 					<?php else : ?>
-						<span class="nav-tab nav-tab-active zone-tab zone-tab-active"><?php _e( 'Add New', 'zoninator' ); ?></span>
+						<span class="nav-tab nav-tab-active zone-tab zone-tab-active"><?php esc_html_e( 'Add New', 'zoninator' ); ?></span>
 					<?php endif; ?>
 				<?php endif; ?>
 			</h2>
@@ -365,20 +365,20 @@ class Zoninator
 								<?php do_action( 'zoninator_pre_zone_fields', $zone ); ?>
 								
 								<div class="form-field zone-field">
-									<label for="zone-name"><?php _e( 'Name', 'zoninator' ); ?></label>
+									<label for="zone-name"><?php esc_html_e( 'Name', 'zoninator' ); ?></label>
 									<input type="text" id="zone-name" name="name" value="<?php echo esc_attr( $zone_name ); ?>" />
 								</div>
 								
 								<?php if( $zone_id ) : ?>
 								<div class="form-field zone-field">
-									<label for="zone-slug"><?php _e( 'Slug', 'zoninator' ); ?></label>
+									<label for="zone-slug"><?php esc_html_e( 'Slug', 'zoninator' ); ?></label>
 									<span><?php echo esc_attr( $zone_slug ); ?></span>
 									<input type="hidden" id="zone-slug" name="slug" value="<?php echo esc_attr( $zone_slug ); ?>" />
 								</div>
 								<?php endif; ?>
 								
 								<div class="form-field zone-field">
-									<label for="zone-description"><?php _e( 'Description', 'zoninator' ); ?></label>
+									<label for="zone-description"><?php esc_html_e( 'Description', 'zoninator' ); ?></label>
 									<textarea id="zone-description" name="description"><?php echo esc_html( $zone_description ); ?></textarea>
 								</div>
 								
@@ -392,10 +392,10 @@ class Zoninator
 								<?php endif; ?>
 								
 								<div class="submit-field submitbox">
-									<input type="submit" value="<?php _e('Save', 'zoninator'); ?>" name="submit" class="button-primary" />
+									<input type="submit" value="<?php esc_attr_e('Save', 'zoninator'); ?>" name="submit" class="button-primary" />
 									
 									<?php if( $zone_id ) : ?>
-										<a href="<?php echo $delete_link ?>" class="submitdelete" onclick="return confirm('<?php echo esc_js( 'Are you sure you want to delete this zone?', 'zoninator' ); ?>')"><?php _e('Delete', 'zoninator') ?></a>
+										<a href="<?php echo $delete_link ?>" class="submitdelete" onclick="return confirm('<?php echo esc_js( 'Are you sure you want to delete this zone?', 'zoninator' ); ?>')"><?php esc_html_e('Delete', 'zoninator') ?></a>
 									<?php endif; ?>
 								</div>
 								
@@ -408,19 +408,19 @@ class Zoninator
 								<?php do_action( 'zoninator_pre_zone_readonly', $zone ); ?>
 								
 								<div class="form-field zone-field">
-									<label for="zone-name"><?php _e( 'Name', 'zoninator' ); ?></label>
+									<label for="zone-name"><?php esc_html_e( 'Name', 'zoninator' ); ?></label>
 									<span><?php echo esc_attr( $zone_name ); ?></span>
 								</div>
 								
 								<!--
 								<div class="form-field zone-field">
-									<label for="zone-slug"><?php _e( 'Slug', 'zoninator' ); ?></label>
+									<label for="zone-slug"><?php esc_html_e( 'Slug', 'zoninator' ); ?></label>
 									<span><?php echo esc_attr( $zone_slug ); ?></span>
 								</div>
 								-->
 								
 								<div class="form-field zone-field">
-									<label for="zone-description"><?php _e( 'Description', 'zoninator' ); ?></label>
+									<label for="zone-description"><?php esc_html_e( 'Description', 'zoninator' ); ?></label>
 									<span><?php echo esc_html( $zone_description ); ?></span>
 								</div>
 								
@@ -439,7 +439,7 @@ class Zoninator
 				<div class="col-wrap zone-col zone-posts-col">
 					<div class="zone-posts-wrapper <?php echo ! $this->_current_user_can_manage_zones( $zone_id ) || $zone_locked ? 'readonly' : ''; ?>">
 						<?php if( $zone_id ) : ?>
-							<h3><?php _e( 'Zone Content', 'zoninator' ); ?></h3>
+							<h3><?php esc_html_e( 'Zone Content', 'zoninator' ); ?></h3>
 
 							<?php $this->zone_advanced_search_filters(); ?>					
 	
@@ -454,7 +454,7 @@ class Zoninator
 							</div>
 							
 						<?php else : ?>
-							<p class="description"><?php _e( 'To create a zone, enter a name (and any other info) to to left and click "Save". You can then choose content items to add to the zone.', 'zoninator' ); ?></p>
+							<p class="description"><?php esc_html_e( 'To create a zone, enter a name (and any other info) to to left and click "Save". You can then choose content items to add to the zone.', 'zoninator' ); ?></p>
 						<?php endif; ?>
 					</div>
 				</div>				
