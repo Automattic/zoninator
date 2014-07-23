@@ -97,7 +97,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 	function flush_widget_cache() {
 		$cache_key = 'widget-zone-posts';
 
-		$block_save_cache_seconds = absint( apply_filters( 'zone_posts_widget_block_save_cache_seconds', 7 ) );
+		$block_save_cache_seconds = absint( apply_filters( 'zone_posts_widget_block_save_cache_seconds', 5 ) );
 		if ( $block_save_cache_seconds > 0 ) {
 			// This key will block updating the cache for n seconds so the following cache delete can propagate
 			wp_cache_set( $cache_key . '-save_blocked', 1, 'widget', $block_save_cache_seconds );
