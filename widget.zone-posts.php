@@ -111,7 +111,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		// checkbox - show description
 		$zones = z_get_zones();
 		if ( empty( $zones ) ) {
-			_e( 'You need to create at least one zone before you use this widget!', 'zoninator' );
+			esc_html_e( 'You need to create at least one zone before you use this widget!', 'zoninator' );
 			return;
 		}
 		
