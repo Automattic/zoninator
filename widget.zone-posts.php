@@ -35,7 +35,6 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		
 		ob_start();
 		
-		extract( $args );
 		$zone_id          = $instance['zone_id'] ? $instance['zone_id'] : 0;
 		$show_description = $instance['show_description'] ? 1 : 0;
 		if ( ! $zone_id )
@@ -50,9 +49,9 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 			return;
 
 		?>
-		<?php echo wp_kses_post( $before_widget ); ?>
+		<?php echo wp_kses_post( $args['before_widget'] ); ?>
 
-		<?php echo wp_kses_post( $before_title ) . esc_html( $zone->name ) . wp_kses_post( $after_title ); ?>
+		<?php echo wp_kses_post( $args['before_title'] ) . esc_html( $zone->name ) . wp_kses_post( $args['after_title'] ); ?>
 
 		<?php if ( ! empty( $zone->description ) && $show_description ) : ?>
 			<p class="description"><?php echo esc_html( $zone->description ); ?></p>
@@ -68,7 +67,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 			<?php endforeach; ?>
 		</ul>
 
-		<?php echo wp_kses_post( $after_widget ); ?>
+		<?php echo wp_kses_post( $args['after_widget'] ); ?>
 		<?php
 		$cache[ $args['widget_id'] ] = ob_get_flush();
 		wp_cache_set( 'widget-zone-posts', $cache, 'widget' );
