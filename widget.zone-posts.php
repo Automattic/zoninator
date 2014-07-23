@@ -24,7 +24,9 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 	}
 
 	function widget( $args, $instance ) {
-		$cache = wp_cache_get( 'widget-zone-posts', 'widget' );
+		$cache_key = 'widget-zone-posts';
+		$cache = wp_cache_get( $cache_key, 'widget' );
+
 		if ( ! is_array( $cache ) )
 			$cache = array();
 		
@@ -70,6 +72,12 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		<?php echo wp_kses_post( $args['after_widget'] ); ?>
 		<?php
 		$cache[ $args['widget_id'] ] = ob_get_flush();
+
+		$save_blocked = wp_cache_get( $cache_key . '-save_blocked', 'widget' );
+		if ( $save_blocked ) {
+			// Save is blocked while the cache flush is in progress.
+			return;
+		}
 		wp_cache_set( 'widget-zone-posts', $cache, 'widget' );
 	}
 
@@ -87,7 +95,15 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 	}
 
 	function flush_widget_cache() {
-		wp_cache_delete( 'widget-zone-posts', 'widget' );
+		$cache_key = 'widget-zone-posts';
+
+		$block_save_cache_seconds = absint( apply_filters( 'zone_posts_widget_block_save_cache_seconds', 7 ) );
+		if ( $block_save_cache_seconds > 0 ) {
+			// This key will block updating the cache for n seconds so the following cache delete can propagate
+			wp_cache_set( $cache_key . '-save_blocked', 1, 'widget', $block_save_cache_seconds );
+		}
+
+		wp_cache_delete( $cache_key, 'widget' );
 	}
 
 	function form( $instance ) {
