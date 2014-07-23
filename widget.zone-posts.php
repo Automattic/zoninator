@@ -120,7 +120,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		?>
 
 		<p>
-			<label for="<?php echo esc_attr( $this->get_field_id( 'zone_id' ) ); ?>"><?php esc_html_e( 'Zone:' ); ?></label>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'zone_id' ) ); ?>"><?php esc_html_e( 'Zone:', 'zoninator' ); ?></label>
 			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'zone_id' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'zone_id' ) ); ?>">
 				<option value="0" <?php selected( $zone_id, 0 ); ?>>
 					<?php esc_html_e( '-- Select a zone --', 'zoninator' ); ?>
