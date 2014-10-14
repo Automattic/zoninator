@@ -598,7 +598,7 @@ class Zoninator
 			$content = '';
 			$recent_posts = get_posts( $args );
 			foreach ( $recent_posts as $post ) :
-				$content .= sprintf( '<option value="%d">%s</option>', $post->ID, get_the_title( $post->ID ) );
+				$content .= sprintf( '<option value="%d">%s</option>', $post->ID, get_the_title( $post->ID ) . ' (' . $post->post_status . ')' );
 			endforeach;
 			wp_reset_postdata();
 			$status = 1;
@@ -645,7 +645,7 @@ class Zoninator
 				<option value=""><?php esc_html_e( 'Choose a post', 'zoninator' ); ?></option>
 				<?php			
 				foreach ( $recent_posts as $post ) :
-					echo sprintf( '<option value="%d">%s</option>', $post->ID, esc_html( get_the_title( $post->ID ) ) );
+					echo sprintf( '<option value="%d">%s</option>', $post->ID, esc_html( get_the_title( $post->ID ) . ' (' . $post->post_status . ')' ) );
 				endforeach;
 				wp_reset_postdata();
 				?>
