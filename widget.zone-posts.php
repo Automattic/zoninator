@@ -17,7 +17,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		add_action( 'switch_theme', array( &$this, 'flush_widget_cache' ) );
 
 		parent::__construct(
-			'zone_posts',
+			false,
 			__( 'Zone Posts', 'zoninator' ),
 			$widget_ops
 		);
