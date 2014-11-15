@@ -15,10 +15,12 @@ var zoninator = {}
 
 
 		zoninator.$zoneAdvancedDate.change(function() {
+			zoninator.autocompleteCache = {};
 			zoninator.updateLatest();
 		});
 
 		zoninator.$zoneAdvancedCat.change(function() {
+			zoninator.autocompleteCache = {};
 			zoninator.updateLatest();
 		});
 
