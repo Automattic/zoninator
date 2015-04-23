@@ -60,13 +60,9 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		<?php endif; ?>
 
 		<ul>
-			<?php foreach ( $posts as $post ) : ?>
-				<li>
-					<a href="<?php echo esc_url( get_permalink( $post->ID ) ); ?>">
-						<?php echo esc_html( get_the_title( $post->ID ) ); ?>
-					</a>
-				</li>
-			<?php endforeach; ?>
+			<?php foreach ( $posts as $post ) {
+                $this->widget_post( $post );
+            };?>
 		</ul>
 
 		<?php echo wp_kses_post( $args['after_widget'] ); ?>
@@ -80,6 +76,18 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		}
 		wp_cache_set( 'widget-zone-posts', $cache, 'widget' );
 	}
+
+    // extendable function to render a single post in a zone post widget
+    function widget_post( $post ) {
+        ?>
+        <li>
+            <img src="<?php echo esc_url( wp_get_attachment_image_src( get_post_thumbnail_id( $post->ID ), 'single-post-thumbnail' )[0] ); ?>">
+            <a href="<?php echo esc_url( get_permalink( $post->ID ) ); ?>">
+                <?php echo esc_html( get_the_title( $post->ID ) ); ?>
+            </a>
+        </li>
+    <?php
+    }
 
 	function update( $new_instance, $old_instance ) {
 		$instance     = $old_instance;
