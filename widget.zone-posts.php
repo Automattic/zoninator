@@ -57,13 +57,15 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 
 		<?php if ( ! empty( $zone->description ) && $show_description ) : ?>
 			<p class="description"><?php echo esc_html( $zone->description ); ?></p>
-		<?php endif; ?>
+		<?php endif;
 
-		<ul>
-			<?php foreach ( $posts as $post ) {
-                $this->widget_post( $post );
-            };?>
-		</ul>
+        if ( has_filter( 'widget_zone_posts_renderer' ) ) {
+            apply_filters('widget_zone_posts_renderer', $posts);
+        }
+        else {
+            $this->widget_posts( $posts );
+        }
+        ?>
 
 		<?php echo wp_kses_post( $args['after_widget'] ); ?>
 		<?php
@@ -77,15 +79,18 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		wp_cache_set( 'widget-zone-posts', $cache, 'widget' );
 	}
 
-    // extendable function to render a single post in a zone post widget
-    function widget_post( $post ) {
+    // filterable function to render posts in a zone post widget
+    function widget_posts( $posts ) {
         ?>
-        <li>
-            <img src="<?php echo esc_url( wp_get_attachment_image_src( get_post_thumbnail_id( $post->ID ), 'single-post-thumbnail' )[0] ); ?>">
-            <a href="<?php echo esc_url( get_permalink( $post->ID ) ); ?>">
-                <?php echo esc_html( get_the_title( $post->ID ) ); ?>
-            </a>
-        </li>
+        <ul>
+            <?php foreach ( $posts as $post ) : ?>
+                <li>
+                    <a href="<?php echo esc_url( get_permalink( $post->ID ) ); ?>">
+                        <?php echo esc_html( get_the_title( $post->ID ) ); ?>
+                    </a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
     <?php
     }
 
