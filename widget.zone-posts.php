@@ -59,10 +59,10 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 			<p class="description"><?php echo esc_html( $zone->description ); ?></p>
 		<?php endif;
 
-        if ( has_filter( 'widget_zone_posts_renderer' ) ) {
-            apply_filters('widget_zone_posts_renderer', $posts);
-        }
-        else {
+        $html = apply_filters( 'widget_zone_posts_override_html', false, $posts );
+        if ( $html !== false ) {
+            echo $html;
+        } else {
             $this->widget_posts( $posts );
         }
         ?>
