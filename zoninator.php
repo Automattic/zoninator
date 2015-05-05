@@ -3,12 +3,12 @@
 Plugin Name: Zone Manager (Zoninator)
 Description: Curation made easy! Create "zones" then add and order your content!
 Author: Mohammad Jangda, Automattic
-Version: 0.5
+Version: 0.6
 Author URI: http://vip.wordpress.com
 Text Domain: zoninator
 Domain Path: /language/
 
-Copyright 2010-2012 Mohammad Jangda, Automattic
+Copyright 2010-2015 Mohammad Jangda, Automattic
 
 This plugin was built by Mohammad Jangda in conjunction with William Davis and the Bangor Daily News.
 
@@ -32,7 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 if( ! class_exists( 'Zoninator' ) ) :
 
-define( 'ZONINATOR_VERSION', '0.5' );
+define( 'ZONINATOR_VERSION', '0.6' );
 define( 'ZONINATOR_PATH', dirname( __FILE__ ) );
 define( 'ZONINATOR_URL', trailingslashit( plugins_url( '', __FILE__ ) ) );
 
