@@ -70,7 +70,7 @@ class Zoninator
 
 		add_action( 'split_shared_term', array( $this, 'split_shared_term' ), 10, 4 );
 		
-		$this->default_post_types = array( 'post' );
+		$this->default_post_types = add_filter( 'zoninator_default_post_types', array( 'post' ) );
 	}
 
 	function add_zone_feed() {
