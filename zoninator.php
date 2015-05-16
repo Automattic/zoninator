@@ -95,6 +95,7 @@ class Zoninator
 		do_action( 'zoninator_pre_init' );
 		
 		// Default post type support
+		$this->default_post_types = apply_filters( 'zoninator_post_types', $this->default_post_types );
 		foreach( $this->default_post_types as $post_type )
 			add_post_type_support( $post_type, $this->zone_taxonomy );
 		
