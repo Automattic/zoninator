@@ -91,11 +91,11 @@ class Zoninator
 		$this->zone_lock_period 	= apply_filters( 'zoninator_zone_lock_period', 		$this->zone_lock_period );
 		$this->zone_max_lock_period = apply_filters( 'zoninator_zone_max_lock_period', 	$this->zone_max_lock_period );
 		$this->posts_per_page 		= apply_filters( 'zoninator_posts_per_page', 		$this->posts_per_page );
+		$this->default_post_types   = apply_filters( 'zoninator_post_types',            $this->default_post_types );
 		
 		do_action( 'zoninator_pre_init' );
 		
 		// Default post type support
-		$this->default_post_types = apply_filters( 'zoninator_post_types', $this->default_post_types );
 		foreach( $this->default_post_types as $post_type )
 			add_post_type_support( $post_type, $this->zone_taxonomy );
 		
