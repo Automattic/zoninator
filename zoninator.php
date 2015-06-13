@@ -107,9 +107,19 @@ class Zoninator
 
 		do_action( 'zoninator_pre_init' );
 
-		
+
+		/**
+		 * Filter the default types before adding them.
+		 *
+		 * Access point to allow modification of post types.
+		 * The intent here is to allow the user to remove an already
+		 * registered post type from the list.
+		 *
+		 * @param array
+		 * @return array
+		 */
 		// Default post type support
-		foreach ( $this->default_post_types as $post_type ) {
+		foreach ( apply_filters( 'zoninator_default_types', $this->default_post_types ) as $post_type ) {
 			//check to see if the post type is registered
 			if ( post_type_exists( $post_type ) ) {
 				add_post_type_support( $post_type, $this->zone_taxonomy );
