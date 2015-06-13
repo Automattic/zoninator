@@ -70,7 +70,7 @@ class Zoninator
 
 		add_action( 'split_shared_term', array( $this, 'split_shared_term' ), 10, 4 );
 		
-		$this->default_post_types = array( 'post' );
+		$this->default_post_types = array( 'post', 'page' );
 	}
 
 	function add_zone_feed() {
@@ -91,12 +91,31 @@ class Zoninator
 		$this->zone_lock_period 	= apply_filters( 'zoninator_zone_lock_period', 		$this->zone_lock_period );
 		$this->zone_max_lock_period = apply_filters( 'zoninator_zone_max_lock_period', 	$this->zone_max_lock_period );
 		$this->posts_per_page 		= apply_filters( 'zoninator_posts_per_page', 		$this->posts_per_page );
-		
+
+		//update the default post types to include any custom post types
+
+		/**
+		 * Filter the options passed to get_post_types
+		 *
+		 * By default we going to look for only public, non-built in post types.
+		 * @param array
+		 * @return array
+		 */
+		$other_post_types = get_post_types( apply_filters( 'zoninator_get_post_type_options',  array( 'public' => true, '_builtin' => false ) ) );
+		$this->default_post_types = array_merge( $this->default_post_types, $other_post_types );
+
+
 		do_action( 'zoninator_pre_init' );
+
 		
 		// Default post type support
-		foreach( $this->default_post_types as $post_type )
-			add_post_type_support( $post_type, $this->zone_taxonomy );
+		foreach ( $this->default_post_types as $post_type ) {
+			//check to see if the post type is registered
+			if ( post_type_exists( $post_type ) ) {
+				add_post_type_support( $post_type, $this->zone_taxonomy );
+			}
+		}
+
 		
 		// Register taxonomy
 		if( ! taxonomy_exists( $this->zone_taxonomy ) ) {
