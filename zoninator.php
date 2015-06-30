@@ -1010,7 +1010,7 @@ class Zoninator
 			return $posts;
 		
 		$query = $this->get_zone_query( $zone, $args );
-		$posts = $query->get_posts();
+		$posts = $query->posts;
 		
 		// Add posts to cache
 		$this->add_zone_posts_to_cache( $posts, $zone, $args );
