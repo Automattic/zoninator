@@ -1103,27 +1103,24 @@ class Zoninator
 	}
 
 	function get_zones_for_post( $post_id ) {
-		// TODO: build this out
 		
-		// get_object_terms
-		// get_terms
+		$post_zones = array();
+		
+		foreach($this->get_zones() as $zone) {
+		
+			foreach($this->get_zone_posts($zone) as $post) {
+				
+				if($this->get_post_id($post) == $post_id) {
+					$post_zones[] = $zone;
+					break;
+					
+				}				
+				
+			}
 
-		// OR
+		}
 		
-		// get all meta_keys that match the prefix
-		// strip the prefix
-		
-		// OR
-		
-		// get all zones and see if there's a matching meta entry
-		// strip the prefix from keys
-		
-		// array_map( 'absint', $zone_ids )
-		// $zones = array();
-		// foreach( $zone_ids as $zone_id ) {
-			// $zones[] = get_zone( $zone_id );
-		//}
-		//return $zones;
+		return $post_zones;
 	}
 
 	function get_zones( $args = array() ) {
