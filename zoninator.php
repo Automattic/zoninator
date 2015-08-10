@@ -813,7 +813,7 @@ class Zoninator
 				'order' => 'DESC',
 				'orderby' => 'post_date',
 				'suppress_filters' => true,
-			) );
+			), $this->_get_request_var( 'zone_id' ) );
 
 			if ( $this->_validate_category_filter( $filter_cat ) ) {
 				$args['cat'] = $filter_cat;
