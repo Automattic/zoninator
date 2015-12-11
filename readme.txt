@@ -2,7 +2,7 @@
 Contributors: batmoo, automattic, wpcomvip, pkevan, matthumphreys, potatomaster, jblz, nickdaugherty, betzster
 Tags: zones, post order, post list, posts, order, zonination, content curation, curation, content management
 Requires at least: 3.5
-Tested up to: 4.2
+Tested up to: 4.4
 Stable tag: 0.6
 License: GPLv2
 
@@ -10,7 +10,7 @@ Curation made easy! Create "zones" then add and order your content!
 
 == Description ==
 
-This plugin is designed to help you curate your content. 
+This plugin is designed to help you curate your content.
 
 Assign and order stories within zones that you create, edit, and delete. Then use the handy API functions to retrieve and display your content in your theme. Or for those who are a bit code-averse, try the handy widget.
 
@@ -55,6 +55,10 @@ Filter the following and change according to your needs:
 
 == Changelog ==
 
+= 0.7 =
+
+* Added compatibility with WordPress 4.4 admin styles
+
 = 0.6 =
 
 * Support for term splitting in 4.2
@@ -87,7 +91,7 @@ Filter the following and change according to your needs:
 * Add new filter to limit editing access on a per-zone level. props hooman and the National Post team
 * Allow editor role (editor_others_posts) to manage zones (plus other capability fixes, props rinat k.)
 
-= 0.2 = 
+= 0.2 =
 
 * Move Zones to a top-level menu so that it's easier to access. And doesn't make much sense hidden under Dashboard.
 * Change the way error and success messages are handled.
@@ -138,7 +142,7 @@ foreach ( $zone_posts as $zone_post ) :
 endforeach;
 `
 
-= Function Reference = 
+= Function Reference =
 
 Get an array of all zones:
 
