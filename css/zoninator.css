@@ -31,6 +31,7 @@
 	.zone-tabs-wrapper .zone-tab-active {
 		background: #0074a2;
 		color: #fff;
+		margin-bottom: -1px;
 	}
 
 /** Edit **/
