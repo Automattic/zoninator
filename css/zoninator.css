@@ -19,6 +19,12 @@
 	.zone-tabs-wrapper .zone-tab {
 		display: block;
 		background: #fff;
+		float: none;
+		font-size: 12px;
+		line-height: 16px;
+		padding: 4px 14px 6px;
+		margin: 0px;
+		font-weight: normal;
 	}
 	.zone-tabs-wrapper .zone-tab:hover,
 	.zone-tabs-wrapper .zone-tab:active,
@@ -34,7 +40,7 @@
 	border: 1px solid #ccc;
 	-moz-border-radius: 4px; -wekbit-border-radius: 4px; -ms-border-radius: 4px; border-radius: 4px;
 	background: url(images/gray-grad.png) repeat-x scroll left top #dfdfdf;
-	
+
 	width: 67%;
 	float: right;
 }
@@ -73,7 +79,7 @@
 	background: #fff;
 	border: 1px solid #ccc;
 	-moz-border-radius: 4px; -wekbit-border-radius: 4px; -ms-border-radius: 4px; border-radius: 4px;
-	
+
 	padding: 10px;
 }
 	.zone-posts-col h3 {
@@ -95,7 +101,7 @@
 			background: none;
 			text-indent: 0;
 		}
-	
+
 .zone-posts-list {
 	margin: 10px 0;
 }
@@ -114,10 +120,10 @@
 		font-weight: bold;
 		color: #444;
 		overflow: hidden;
-		
+
 		border: 1px dotted #eee;
 		-moz-border-radius: 4px; -wekbit-border-radius: 4px; -ms-border-radius: 4px; border-radius: 4px;
-		
+
 		background: #f5f5f5;
 	}
 		.zone-post table {
@@ -142,7 +148,7 @@
 				background: url(images/drag.png) no-repeat center center;
 				width: 32px;
 				height: 32px;
-				
+
 				float: right;
 				visibility: hidden;
 			}
@@ -223,7 +229,7 @@
 
 .zone-advanced-search-filters-wrapper {
 	display: none;
-}	
+}
 
 .zone-advanced-search-filters-heading {
 	float: right;
