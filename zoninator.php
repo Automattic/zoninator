@@ -3,7 +3,7 @@
 Plugin Name: Zone Manager (Zoninator)
 Description: Curation made easy! Create "zones" then add and order your content!
 Author: Mohammad Jangda, Automattic
-Version: 0.7
+Version: 0.6
 Author URI: http://vip.wordpress.com
 Text Domain: zoninator
 Domain Path: /language/
@@ -32,7 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 if( ! class_exists( 'Zoninator' ) ) :
 
-define( 'ZONINATOR_VERSION', '0.7' );
+define( 'ZONINATOR_VERSION', '0.6' );
 define( 'ZONINATOR_PATH', dirname( __FILE__ ) );
 define( 'ZONINATOR_URL', trailingslashit( plugins_url( '', __FILE__ ) ) );
 
@@ -282,7 +282,11 @@ class Zoninator
 				<?php echo esc_html( $title ); ?>
 				<?php if( $this->_current_user_can_add_zones() ) :
 					$new_link = $this->_get_zone_page_url( array( 'action' => 'new' ) ); ?>
-					<a href="<?php echo esc_url( $new_link ); ?>" class="add-new-h2 zone-button-add-new"><?php esc_html_e( 'Add New', 'zoninator' ); ?></a>
+					<?php if( $active_zone_id ) : ?>
+						<a href="<?php echo esc_url( $new_link ); ?>" class="add-new-h2 zone-button-add-new"><?php esc_html_e( 'Add New', 'zoninator' ); ?></a>
+					<?php else : ?>
+						<span class="nav-tab nav-tab-active zone-tab zone-tab-active"><?php esc_html_e( 'Add New', 'zoninator' ); ?></span>
+					<?php endif; ?>
 				<?php endif; ?>
 			</h2>
 
