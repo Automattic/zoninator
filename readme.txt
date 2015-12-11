@@ -3,7 +3,7 @@ Contributors: batmoo, automattic, wpcomvip, pkevan, matthumphreys, potatomaster,
 Tags: zones, post order, post list, posts, order, zonination, content curation, curation, content management
 Requires at least: 3.5
 Tested up to: 4.4
-Stable tag: 0.7
+Stable tag: 0.6
 License: GPLv2
 
 Curation made easy! Create "zones" then add and order your content!
