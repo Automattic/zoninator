@@ -91,6 +91,7 @@ var zoninator = {}
 
 						request.cat = zoninator.getAdvancedCat();
 						request.date = zoninator.getAdvancedDate();
+						request.zone_id = zoninator.getZoneId();
 
 						if ( term in zoninator.autocompleteCache ) { //&& request.cat && request.date ) {
 							response( zoninator.autocompleteCache[ term ] );
