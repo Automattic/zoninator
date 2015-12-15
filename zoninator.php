@@ -56,12 +56,12 @@ class Zoninator
 	);
 	var $zone_messages = null;
 	var $posts_per_page = 10;
-	
+
 	function __construct() {
 		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
 
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
-		
+
 		add_action( 'widgets_init', array( $this, 'widgets_init' ) );
 
 		add_action( 'init', array( $this, 'add_zone_feed' ) );
@@ -87,7 +87,7 @@ class Zoninator
 			'error-zone-lock' => __( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
 			'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard.', 'zoninator' ),
 		);
-		
+
 		$this->zone_lock_period 	= apply_filters( 'zoninator_zone_lock_period', 		$this->zone_lock_period );
 		$this->zone_max_lock_period = apply_filters( 'zoninator_zone_max_lock_period', 	$this->zone_max_lock_period );
 		$this->posts_per_page 		= apply_filters( 'zoninator_posts_per_page', 		$this->posts_per_page );
@@ -126,7 +126,7 @@ class Zoninator
 			}
 		}
 
-		
+
 		// Register taxonomy
 		if( ! taxonomy_exists( $this->zone_taxonomy ) ) {
 			register_taxonomy( $this->zone_taxonomy, $this->get_supported_post_types(), array(
@@ -138,10 +138,10 @@ class Zoninator
 
 			) );
 		}
-		
+
 		add_action( 'admin_init', array( $this, 'admin_controller' ) );
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
-		
+
 		add_action( 'admin_menu', array( $this, 'admin_page_init' ) );
 
 		# Add default advanced search fields
@@ -154,11 +154,11 @@ class Zoninator
 	public function load_textdomain() {
 		load_plugin_textdomain( 'zoninator', false, basename( ZONINATOR_PATH ) . '/language' );
 	}
-	
+
 	function widgets_init() {
 		register_widget( 'Zoninator_ZonePosts_Widget' );
 	}
-	
+
 	// Add necessary AJAX actions
 	function admin_ajax_init( ) {
 		add_action( 'wp_ajax_zoninator_reorder_posts', array( $this, 'ajax_reorder_posts' ) );
@@ -169,11 +169,11 @@ class Zoninator
 		add_action( 'wp_ajax_zoninator_update_recent', array( $this, 'ajax_recent_posts' ) );
 
 	}
-	
+
 	function admin_init() {
-		
+
 		$this->admin_ajax_init();
-		
+
 		// Enqueue Scripts and Styles
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_styles' ) );
@@ -187,7 +187,7 @@ class Zoninator
 	function admin_enqueue_scripts() {
 		if( $this->is_zoninator_page() ) {
 			wp_enqueue_script( 'zoninator-js', ZONINATOR_URL . 'js/zoninator.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse', 'jquery-ui-position', 'jquery-ui-sortable', 'jquery-ui-autocomplete' ), ZONINATOR_VERSION, true );
-			
+
 			$options = array(
 				'baseUrl' => $this->_get_zone_page_url(),
 				'adminUrl' => admin_url(),
@@ -206,7 +206,7 @@ class Zoninator
 
 		}
 	}
-	
+
 	function admin_enqueue_styles() {
 		if( $this->is_zoninator_page() ) {
 			wp_enqueue_style( 'zoninator-jquery-ui', ZONINATOR_URL . 'css/jquery-ui/smoothness/jquery-ui-zoninator.css', false, ZONINATOR_VERSION, 'all' );
@@ -217,9 +217,9 @@ class Zoninator
 	function admin_controller() {
 		if( $this->is_zoninator_page() ) {
 			$action = $this->_get_request_var( 'action' );
-			
+
 			switch( $action ) {
-				
+
 				case 'insert':
 				case 'update':
 					$zone_id = $this->_get_post_var( 'zone_id', 0, 'absint' );
@@ -232,49 +232,49 @@ class Zoninator
 					$details = array(
 						'description' => $this->_get_post_var( 'description', '', 'strip_tags' )
 					);
-					
+
 					// TODO: handle additional properties
 					if( $zone_id ) {
-						$result = $this->update_zone( $zone_id, array( 
+						$result = $this->update_zone( $zone_id, array(
 							'name' => $name,
 							'slug' => $slug,
 							'details' => $details
 						) );
-						
+
 					} else {
 						$result = $this->insert_zone( $slug, $name, $details );
 					}
-					
+
 					if( is_wp_error( $result ) ) {
 						wp_redirect( add_query_arg( 'message', 'error-general' ) );
 						exit;
 					} else {
 						if( ! $zone_id && isset( $result['term_id'] ) )
 							$zone_id = $result['term_id'];
-						
+
 						// Redirect with success message
 						$message = sprintf( '%s-success', $action );
 						wp_redirect( $this->_get_zone_page_url( array( 'action' => 'edit', 'zone_id' => $zone_id, 'message' => $message ) ) );
 						exit;
 					}
 					break;
-				
+
 				case 'delete':
 					$zone_id = $this->_get_request_var( 'zone_id', 0, 'absint' );
 
 					$this->verify_nonce( $action );
 					$this->verify_access( $action, $zone_id );
-					
+
 					if( $zone_id ) {
 						$result = $this->delete_zone( $zone_id );
 					}
-					
+
 					if( is_wp_error( $result ) ) {
 						$redirect_args = array( 'error' => $result->get_error_messages() );
 					} else {
 						$redirect_args = array( 'message' => 'delete-success' );
 					}
-					
+
 					wp_redirect( $this->_get_zone_page_url( $redirect_args ) );
 					exit;
 			}
@@ -283,33 +283,33 @@ class Zoninator
 
 	function admin_page() {
 		global $zoninator_admin_page;
-		
+
 		$view = $this->_get_value_or_default( 'view', $zoninator_admin_page, 'edit.php' );
 		$view = sprintf( '%s/views/%s', ZONINATOR_PATH, $view );
 		$title = __( 'Zones', 'zoninator' );
-		
+
 		$zones = $this->get_zones();
-		
+
 		$default_active_zone = 0;
 		if( ! $this->_current_user_can_add_zones() ) {
 			if( ! empty( $zones ) )
 				$default_active_zone = $zones[0]->term_id;
 		}
-		
+
 		$active_zone_id = $this->_get_request_var( 'zone_id', $default_active_zone, 'absint' );
 		$active_zone = ! empty( $active_zone_id ) ? $this->get_zone( $active_zone_id ) : array();
 		if ( ! empty( $active_zone ) )
 			$title = __( 'Edit Zone', 'zoninator' );
-		
+
 		$message = $this->_get_message( $this->_get_get_var( 'message', '', 'urldecode' ) );
 		$error = $this->_get_get_var( 'error', '', 'urldecode' );
-		
+
 		?>
 		<div class="wrap zoninator-page">
 			<div id="icon-edit-pages" class="icon32"><br /></div>
 			<h2>
 				<?php echo esc_html( $title ); ?>
-				<?php if( $this->_current_user_can_add_zones() ) : 
+				<?php if( $this->_current_user_can_add_zones() ) :
 					$new_link = $this->_get_zone_page_url( array( 'action' => 'new' ) ); ?>
 					<?php if( $active_zone_id ) : ?>
 						<a href="<?php echo esc_url( $new_link ); ?>" class="add-new-h2 zone-button-add-new"><?php esc_html_e( 'Add New', 'zoninator' ); ?></a>
@@ -318,7 +318,7 @@ class Zoninator
 					<?php endif; ?>
 				<?php endif; ?>
 			</h2>
-			
+
 			<?php if( $message ) : ?>
 				<div id="zone-message" class="updated below-h2">
 					<p><?php echo esc_html( $message ); ?></p>
@@ -329,17 +329,17 @@ class Zoninator
 					<p><?php echo esc_html( $error ); ?></p>
 				</div>
 			<?php endif; ?>
-			
+
 			<div id="zoninator-wrap">
-	
+
 				<?php $this->admin_page_zone_tabs( $zones, $active_zone_id ); ?>
 				<?php $this->admin_page_zone_edit( $active_zone ); ?>
-				
+
 			</div>
 		</div>
 		<?php
 	}
-	
+
 	function admin_page_zone_tabs( $zones, $active_zone_id = 0 ) {
 		$new_link = $this->_get_zone_page_url( array( 'action' => 'new' ) );
 		?>
@@ -350,7 +350,7 @@ class Zoninator
 						<?php foreach( $zones as $zone ) : ?>
 							<?php $zone_id = $this->get_zone_id( $zone ); ?>
 							<?php $zone_link = $this->_get_zone_page_url( array( 'action' => 'edit', 'zone_id' => $zone_id ) ); ?>
-							
+
 							<?php if( $active_zone_id && $zone_id == $active_zone_id ) : ?>
 								<span class="nav-tab nav-tab-active zone-tab zone-tab-active"><?php echo esc_html( $zone->name ); ?></span>
 							<?php else : ?>
@@ -363,17 +363,17 @@ class Zoninator
 		</div>
 		<?php
 	}
-	
+
 	function admin_page_zone_edit( $zone = null ) {
 		$zone_id = $this->_get_value_or_default( 'term_id', $zone, 0, 'absint' );
 		$zone_name = $this->_get_value_or_default( 'name', $zone );
 		$zone_slug = $this->_get_value_or_default( 'slug', $zone, '', array( $this, 'get_unformatted_zone_slug' ) );
 		$zone_description = $this->_get_value_or_default( 'description', $zone );
-		
+
 		$zone_posts = $zone_id ? $this->get_zone_posts( $zone ) : array();
-		
+
 		$zone_locked = $this->is_zone_locked( $zone_id );
-		
+
 		$delete_link = $this->_get_zone_page_url( array( 'action' => 'delete', 'zone_id' => $zone_id ) );
 		$delete_link = wp_nonce_url( $delete_link, $this->_get_nonce_key( 'delete' ) );
 		?>
@@ -388,18 +388,18 @@ class Zoninator
 				<?php endif; ?>
 				<div class="col-wrap zone-col zone-info-col">
 					<div class="form-wrap zone-form zone-info-form">
-						
+
 						<?php if( $this->_current_user_can_edit_zones( $zone_id ) && ! $zone_locked ) : ?>
-						
+
 							<form id="zone-info" method="post">
-								
+
 								<?php do_action( 'zoninator_pre_zone_fields', $zone ); ?>
-								
+
 								<div class="form-field zone-field">
 									<label for="zone-name"><?php esc_html_e( 'Name', 'zoninator' ); ?></label>
 									<input type="text" id="zone-name" name="name" value="<?php echo esc_attr( $zone_name ); ?>" />
 								</div>
-								
+
 								<?php if( $zone_id ) : ?>
 								<div class="form-field zone-field">
 									<label for="zone-slug"><?php esc_html_e( 'Slug', 'zoninator' ); ?></label>
@@ -407,94 +407,94 @@ class Zoninator
 									<input type="hidden" id="zone-slug" name="slug" value="<?php echo esc_attr( $zone_slug ); ?>" />
 								</div>
 								<?php endif; ?>
-								
+
 								<div class="form-field zone-field">
 									<label for="zone-description"><?php esc_html_e( 'Description', 'zoninator' ); ?></label>
 									<textarea id="zone-description" name="description"><?php echo esc_html( $zone_description ); ?></textarea>
 								</div>
-								
+
 								<?php do_action( 'zoninator_post_zone_fields', $zone ); ?>
-								
+
 								<?php if( $zone_id ) : ?>
 									<input type="hidden" name="zone_id" id="zone_id" value="<?php echo esc_attr( $zone_id ) ?>" />
 									<?php wp_nonce_field( $this->_get_nonce_key( 'update' ) ); ?>
 								<?php else : ?>
 									<?php wp_nonce_field( $this->_get_nonce_key( 'insert' ) ); ?>
 								<?php endif; ?>
-								
+
 								<div class="submit-field submitbox">
 									<input type="submit" value="<?php esc_attr_e('Save', 'zoninator'); ?>" name="submit" class="button-primary" />
-									
+
 									<?php if( $zone_id ) : ?>
 										<a href="<?php echo $delete_link ?>" class="submitdelete" onclick="return confirm('<?php echo esc_js( 'Are you sure you want to delete this zone?', 'zoninator' ); ?>')"><?php esc_html_e('Delete', 'zoninator') ?></a>
 									<?php endif; ?>
 								</div>
-								
+
 								<input type="hidden" name="action" value="<?php echo $zone_id ? 'update' : 'insert'; ?>">
 								<input type="hidden" name="page" value="<?php echo $this->key; ?>">
-								
+
 							</form>
 						<?php else : ?>
 							<div id="zone-info-readonly" class="readonly">
 								<?php do_action( 'zoninator_pre_zone_readonly', $zone ); ?>
-								
+
 								<div class="form-field zone-field">
 									<label for="zone-name"><?php esc_html_e( 'Name', 'zoninator' ); ?></label>
 									<span><?php echo esc_attr( $zone_name ); ?></span>
 								</div>
-								
+
 								<!--
 								<div class="form-field zone-field">
 									<label for="zone-slug"><?php esc_html_e( 'Slug', 'zoninator' ); ?></label>
 									<span><?php echo esc_attr( $zone_slug ); ?></span>
 								</div>
 								-->
-								
+
 								<div class="form-field zone-field">
 									<label for="zone-description"><?php esc_html_e( 'Description', 'zoninator' ); ?></label>
 									<span><?php echo esc_html( $zone_description ); ?></span>
 								</div>
-								
+
 								<input type="hidden" name="zone_id" id="zone_id" value="<?php echo esc_attr( $zone_id ) ?>" />
-								
+
 								<?php do_action( 'zoninator_post_zone_readonly', $zone ); ?>
 							</div>
 						<?php endif; ?>
-						
+
 						<?php // Ideally, we should seperate nonces for each action. But this will do for simplicity. ?>
 						<?php wp_nonce_field( $this->_get_nonce_key( $this->zone_ajax_nonce_action ), $this->_get_nonce_key( $this->zone_ajax_nonce_action ), false ); ?>
 					</div>
-					
+
 				</div>
-				
+
 				<div class="col-wrap zone-col zone-posts-col">
 					<div class="zone-posts-wrapper <?php echo ! $this->_current_user_can_manage_zones( $zone_id ) || $zone_locked ? 'readonly' : ''; ?>">
 						<?php if( $zone_id ) : ?>
 							<h3><?php esc_html_e( 'Zone Content', 'zoninator' ); ?></h3>
 
-							<?php $this->zone_advanced_search_filters(); ?>					
-	
+							<?php $this->zone_advanced_search_filters(); ?>
+
 							<?php $this->zone_admin_recent_posts_dropdown( $zone_id ); ?>
-							
+
 							<?php $this->zone_admin_search_form(); ?>
-							
+
 							<div class="zone-posts-list">
 								<?php foreach( $zone_posts as $post ) : ?>
 									<?php $this->admin_page_zone_post( $post, $zone ); ?>
 								<?php endforeach; ?>
 							</div>
-							
+
 						<?php else : ?>
 							<p class="description"><?php esc_html_e( 'To create a zone, enter a name (and any other info) to to left and click "Save". You can then choose content items to add to the zone.', 'zoninator' ); ?></p>
 						<?php endif; ?>
 					</div>
-				</div>				
+				</div>
 			<?php endif; ?>
 		</div>
-		
+
 		<?php
 	}
-	
+
 	function admin_page_zone_post( $post, $zone ) {
 		$columns = apply_filters( 'zoninator_zone_post_columns', array(
 			'position' => array( $this, 'admin_page_zone_post_col_position' ),
@@ -517,7 +517,7 @@ class Zoninator
 		</div>
 		<?php
 	}
-	
+
 	function admin_page_zone_post_col_position( $post, $zone ) {
 		$current_position = $this->get_post_order( $post->ID, $zone );
 		?>
@@ -536,7 +536,7 @@ class Zoninator
 		);
 		?>
 		<?php echo sprintf( '%s <span class="zone-post-status">(%s)</span>', esc_html( $post->post_title ), esc_html( $post->post_status ) ); ?>
-		
+
 		<div class="row-actions">
 			<?php echo implode( ' | ', $action_links ); ?>
 		</div>
@@ -589,14 +589,14 @@ class Zoninator
 
 		$cat = $this->_get_post_var( 'cat', '', 'absint' );
 		$date = $this->_get_post_var( 'date', '', 'striptags' );
-		$zone_id = $this->_get_post_var( 'zone_id', 0, 'absint' );	
+		$zone_id = $this->_get_post_var( 'zone_id', 0, 'absint' );
 
 		$limit = $this->posts_per_page;
 		$post_types = $this->get_supported_post_types();
 		$zone_posts = $this->get_zone_posts( $zone_id );
 		$zone_post_ids = wp_list_pluck( $zone_posts, 'ID' );
-	
-		
+
+
 		// Verify nonce
 		$this->verify_nonce( $this->zone_ajax_nonce_action );
 		$this->verify_access( '', $zone_id );
@@ -666,7 +666,7 @@ class Zoninator
 			'post__not_in' => $zone_post_ids,
 		) );
 
-		
+
 
 		$recent_posts = get_posts( $args );
 		?>
@@ -674,7 +674,7 @@ class Zoninator
 			<label for="zone-post-search-latest"><?php esc_html_e( 'Add Recent Content', 'zoninator' );?></label><br />
 			<select name="search-posts" id="zone-post-latest">
 				<option value=""><?php esc_html_e( 'Choose a post', 'zoninator' ); ?></option>
-				<?php			
+				<?php
 				foreach ( $recent_posts as $post ) :
 					echo sprintf( '<option value="%d">%s</option>', $post->ID, esc_html( get_the_title( $post->ID ) . ' (' . $post->post_status . ')' ) );
 				endforeach;
@@ -684,7 +684,7 @@ class Zoninator
 		</div>
 		<?php
 	}
-	
+
 	function zone_admin_search_form() {
 		?>
 		<div class="zone-search-wrapper">
@@ -697,10 +697,10 @@ class Zoninator
 
 	function is_zoninator_page() {
 		global $current_screen;
-		
+
 		if( function_exists( 'get_current_screen' ) )
 			$screen = get_current_screen();
-		
+
 		if( empty( $screen ) ) {
 			return ! empty( $_REQUEST['page'] ) && sanitize_key( $_REQUEST['page'] ) == $this->key;
 		} else {
@@ -711,7 +711,7 @@ class Zoninator
 	function ajax_return( $status, $content = '', $action = '' ) {
 		$action = ! empty( $action ) ? $action : $this->zone_ajax_nonce_action;
 		$nonce = wp_create_nonce( $this->_get_nonce_key( $action ) );
-		
+
 		echo json_encode( array(
 			'status' => $status,
 			'content' => $content,
@@ -719,11 +719,11 @@ class Zoninator
 		) );
 		exit;
 	}
-	
+
 	function ajax_add_post() {
 		$zone_id = $this->_get_post_var( 'zone_id', 0, 'absint' );
 		$post_id = $this->_get_post_var( 'post_id', 0, 'absint' );
-		
+
 		// Verify nonce
 		$this->verify_nonce( $this->zone_ajax_nonce_action );
 		$this->verify_access( '', $zone_id );
@@ -731,27 +731,27 @@ class Zoninator
 		// Validate
 		if( ! $zone_id || ! $post_id )
 			$this->ajax_return( 0 );
-		
+
 		$result = $this->add_zone_posts( $zone_id, $post_id, true );
-		
+
 		if( is_wp_error( $result ) ) {
 			$status = 0;
 			$content = $result->get_error_message();
 		} else {
 			$post = get_post( $post_id );
 			$zone = $this->get_zone( $zone_id );
-			
+
 			ob_start();
 			$this->admin_page_zone_post( $post, $zone );
 			$content = ob_get_contents();
 			ob_end_clean();
-			
+
 			$status = 1;
 		}
-		
+
 		$this->ajax_return( $status, $content );
 	}
-	
+
 	function ajax_remove_post() {
 		$zone_id = $this->_get_post_var( 'zone_id', 0, 'absint' );
 		$post_id = $this->_get_post_var( 'post_id', 0, 'absint' );
@@ -763,9 +763,9 @@ class Zoninator
 		// Validate
 		if( ! $zone_id || ! $post_id )
 			$this->ajax_return( 0 );
-		
+
 		$result = $this->remove_zone_posts( $zone_id, $post_id );
-		
+
 		if( is_wp_error( $result ) ) {
 			$status = 0;
 			$content = $result->get_error_message();
@@ -773,7 +773,7 @@ class Zoninator
 			$status = 1;
 			$content = '';
 		}
-		
+
 		$this->ajax_return( $status, $content );
 	}
 
@@ -788,9 +788,9 @@ class Zoninator
 		// validate
 		if( ! $zone_id || empty( $post_ids ) )
 			$this->ajax_return( 0 );
-		
+
 		$result = $this->add_zone_posts( $zone_id, $post_ids, false );
-		
+
 		if( is_wp_error( $result ) ) {
 			$status = 0;
 			$content = $result->get_error_message();
@@ -798,39 +798,39 @@ class Zoninator
 			$status = 1;
 			$content = '';
 		}
-		
+
 		$this->ajax_return( $status, $content );
 	}
-	
+
 	// TODO: implement in front-end
 	function ajax_move_zone_post( $from_zone, $to_zone, $post_id ) {
 		$from_zone_id = $this->_get_post_var( 'from_zone_id', 0, 'absint' );
 		$to_zone_id = $this->_get_post_var( 'to_zone_id', 0, 'absint' );
-		
+
 		$this->verify_nonce( $this->zone_ajax_nonce_action );
-		
+
 		// TODO: validate both zones exist, post exists
-		
+
 		// Add to new zone
 		$this->add_zone_posts( $to_zone_id, $post_id, true );
-		
+
 		// Remove from old zone
 		$this->remove_zone_posts( $from_zone_id, $post_id );
 	}
-	
+
 	function ajax_search_posts() {
-		
+
 		$q = $this->_get_request_var( 'term', '', 'stripslashes' );
-		
+
 		if( ! empty( $q ) ) {
 
 			$filter_cat = $this->_get_request_var( 'cat', '', 'absint' );
-			$filter_date = $this->_get_request_var( 'date', '', 'striptags' );	
+			$filter_date = $this->_get_request_var( 'date', '', 'striptags' );
 
 			$post_types = $this->get_supported_post_types();
 			$limit = $this->_get_request_var( 'limit', $this->posts_per_page );
 			if( $limit <= 0 )
-				$limit = $this->posts_per_page; 
+				$limit = $this->posts_per_page;
 			$exclude = (array) $this->_get_request_var( 'exclude', array(), 'absint' );
 
 			$args = apply_filters( 'zoninator_search_args', array(
@@ -884,75 +884,75 @@ class Zoninator
 
 		if( ! $zone_id )
 			exit;
-		
+
 		if( ! $this->is_zone_locked( $zone_id ) ) {
 			$this->lock_zone( $zone_id );
 			$this->ajax_return( 1, '' );
 		}
 	}
-	
+
 	function get_supported_post_types() {
 		if( isset( $this->post_types ) )
 			return $this->post_types;
-		
+
 		$this->post_types = array();
-		
+
 		foreach( get_post_types() as $post_type ) {
 			if( post_type_supports( $post_type, $this->zone_taxonomy ) )
 				array_push( $this->post_types, $post_type );
 		}
-		
+
 		return $this->post_types;
 	}
-	
+
 	function insert_zone( $slug, $name = '', $details = array() ) {
-		
+
 		// slug cannot be empty
 		if( empty( $slug ) )
 			return new WP_Error( 'zone-empty-slug', __( 'Slug is a required field.', 'zoninator' ) );
-		
+
 		$slug = $this->get_formatted_zone_slug( $slug );
 		$name = ! empty( $name ) ? $name : $slug;
-		
+
 		$details = wp_parse_args( $details, $this->zone_detail_defaults );
 		$details = maybe_serialize( stripslashes_deep( $details ) );
-		
+
 		$args = array(
 			'slug' => $slug,
 			'description' => $details,
 		);
-		
+
 		// Filterize to allow other inputs
 		$args = apply_filters( 'zoninator_insert_zone', $args );
-		
+
 		return wp_insert_term( $name, $this->zone_taxonomy, $args );
 	}
 
 	function update_zone( $zone, $data = array() ) {
 		$zone_id = $this->get_zone_id( $zone );
-		
+
 		if( $this->zone_exists( $zone_id ) ) {
 			$zone = $this->get_zone( $zone );
-			
+
 			$name = $this->_get_value_or_default( 'name', $data, $zone->name );
 			$slug = $this->_get_value_or_default( 'slug', $data, $zone->slug, array( $this, 'get_formatted_zone_slug' ) );
 			$details = $this->_get_value_or_default( 'details', $data, array() );
-			
+
 			// TODO: Back-fill current zone details
 			//$details = wp_parse_args( $details, $this->zone_detail_defaults );
 			$details = wp_parse_args( $details, $this->zone_detail_defaults );
 			$details = maybe_serialize( stripslashes_deep( $details ) );
-			
+
 			$args = array(
 				'name' => $name,
 				'slug' => $slug,
 				'description' => $details
 			);
-			
+
 			// Filterize to allow other inputs
 			$args = apply_filters( 'zoninator_update_zone', $args, $zone_id, $zone );
-			
-			return wp_update_term( $zone_id, $this->zone_taxonomy, $args );	
+
+			return wp_update_term( $zone_id, $this->zone_taxonomy, $args );
 		}
 		return new WP_Error( 'invalid-zone', __( 'Sorry, that zone doesn\'t exist.', 'zoninator' ) );
 	}
@@ -960,16 +960,16 @@ class Zoninator
 	function delete_zone( $zone ) {
 		$zone_id = $this->get_zone_id( $zone );
 		$meta_key = $this->get_zone_meta_key( $zone );
-		
+
 		$this->_empty_zone_posts_cache( $meta_key );
-		
-		if( $this->zone_exists( $zone_id ) ) {		
+
+		if( $this->zone_exists( $zone_id ) ) {
 			// Delete all post associations for the zone
 			$this->remove_zone_posts( $zone_id );
-			
+
 			// Delete the term
 			$delete = wp_delete_term( $zone_id, $this->zone_taxonomy );
-			
+
 			if( ! $delete ) {
 				return new WP_Error( 'delete-zone', __( 'Sorry, we couldn\'t delete the zone.', 'zoninator' ) );
 			} else {
@@ -983,9 +983,9 @@ class Zoninator
 	function add_zone_posts( $zone, $posts, $append = false ) {
 		$zone = $this->get_zone( $zone );
 		$meta_key = $this->get_zone_meta_key( $zone );
-		
+
 		$this->_empty_zone_posts_cache( $meta_key );
-		
+
 		if( $append ) {
 			// Order should be the highest post order
 			$last_post = $this->get_last_post_in_zone( $zone );
@@ -997,7 +997,7 @@ class Zoninator
 			$order = 0;
 			$this->remove_zone_posts( $zone );
 		}
-		
+
 		foreach( (array) $posts as $post ) {
 			$post_id = $this->get_post_id( $post );
 			if( $post_id ) {
@@ -1011,17 +1011,17 @@ class Zoninator
 
 		do_action( 'zoninator_add_zone_posts', $posts, $zone );
 	}
-	
+
 	function remove_zone_posts( $zone, $posts = null ) {
 		$zone = $this->get_zone( $zone );
 		$meta_key = $this->get_zone_meta_key( $zone );
-		
+
 		$this->_empty_zone_posts_cache( $meta_key );
-		
+
 		// if null, delete all
 		if( ! $posts )
 			$posts = $this->get_zone_posts( $zone );
-		
+
 		foreach( (array) $posts as $post ) {
 			$post_id = $this->get_post_id( $post );
 			if( $post_id )
@@ -1037,19 +1037,19 @@ class Zoninator
 		// Check cache first
 		if( $posts = $this->get_zone_posts_from_cache( $zone, $args ) )
 			return $posts;
-		
+
 		$query = $this->get_zone_query( $zone, $args );
-		$posts = $query->get_posts();
-		
+		$posts = $query->posts;
+
 		// Add posts to cache
 		$this->add_zone_posts_to_cache( $posts, $zone, $args );
-		
+
 		return $posts;
 	}
-	
+
 	function get_zone_query( $zone, $args = array() ) {
 		$meta_key = $this->get_zone_meta_key( $zone );
-		
+
 		$defaults = array(
 			'order' => 'ASC',
 			'posts_per_page' => -1,
@@ -1062,14 +1062,14 @@ class Zoninator
 			$defaults['post_status'] = array( 'publish' );
 
 		if ( is_admin() ) // skip APC in the admin
-			$defaults['suppress_filters'] = true; 
+			$defaults['suppress_filters'] = true;
 
 		$args = wp_parse_args( $args, $defaults );
-		
+
 		// Un-overridable args
 		$args['orderby'] = 'meta_value_num';
 		$args['meta_key'] = $meta_key;
-		
+
 		/* // 3.1-friendly, though missing sort support which is why we're using the old way
 		if( function_exists( 'get_post_format' ) ) {
 			$args['meta_query'] = array(
@@ -1084,69 +1084,69 @@ class Zoninator
 		*/
 		return new WP_Query( $args );
 	}
-	
+
 	function get_last_post_in_zone( $zone ) {
 		return $this->get_single_post_in_zone( $zone, array(
 			'order' => 'DESC',
 		) );
 	}
-	
+
 	function get_first_post_in_zone( $zone ) {
 		return $this->get_single_post_in_zone( $zone );
 	}
-	
+
 	function get_prev_post_in_zone( $zone, $post_id ) {
 		// TODO: test this works
 		$order = $this->get_post_order_in_zone( $zone, $post_id );
-		
+
 		return $this->get_single_post_in_zone( $zone, array(
 			'meta_value' => $order,
 			'meta_compare' => '<='
 		) );
 	}
-	
+
 	function get_next_post_in_zone( $zone, $post_id ) {
 		// TODO: test this works
 		$order = $this->get_post_order_in_zone( $zone, $post_id );
-		
+
 		return $this->get_single_post_in_zone( $zone, array(
 			'meta_value' => $order,
 			'meta_compare' => '>='
 		) );
-		
+
 	}
-	
+
 	function get_single_post_in_zone( $zone, $args = array() ) {
-		
+
 		$args = wp_parse_args( $args, array(
 			'posts_per_page' => 1,
 			'showposts' => 1,
 		) );
-		
+
 		$post = $this->get_zone_posts( $zone, $args );
-		
+
 		if( is_array( $post ) && ! empty( $post ) )
 			return array_pop( $post );
-		
+
 		return false;
 	}
 
 	function get_zones_for_post( $post_id ) {
 		// TODO: build this out
-		
+
 		// get_object_terms
 		// get_terms
 
 		// OR
-		
+
 		// get all meta_keys that match the prefix
 		// strip the prefix
-		
+
 		// OR
-		
+
 		// get all zones and see if there's a matching meta entry
 		// strip the prefix from keys
-		
+
 		// array_map( 'absint', $zone_ids )
 		// $zones = array();
 		// foreach( $zone_ids as $zone_id ) {
@@ -1156,20 +1156,20 @@ class Zoninator
 	}
 
 	function get_zones( $args = array() ) {
-		
+
 		$args = wp_parse_args( $args, array(
 			'orderby' => 'id',
 			'order' => 'ASC',
 			'hide_empty' => 0,
 		) );
-		
+
 		$zones = get_terms( $this->zone_taxonomy, $args );
-		
+
 		// Add extra fields in description as properties
 		foreach( $zones as $zone ) {
 			$zone = $this->_fill_zone_details( $zone );
 		}
-		
+
 		return $zones;
 	}
 
@@ -1184,55 +1184,55 @@ class Zoninator
 		} else {
 			return false;
 		}
-		
+
 		$zone = get_term_by( $field, $zone, $this->zone_taxonomy );
-		
+
 		if( ! $zone )
 			return false;
-		
+
 		return $this->_fill_zone_details( $zone );
 	}
-	
+
 	function lock_zone( $zone, $user_id = 0 ) {
 		$zone_id = $this->get_zone_id( $zone );
-		
+
 		if( ! $zone_id )
 			return false;
-		
+
 		if( ! $user_id ) {
 			$user = wp_get_current_user();
 			$user_id = $user->ID;
 		}
-		
+
 		$lock_key = $this->get_zone_meta_key( $zone );
 		$expiry = $this->zone_lock_period + 1; // Add a one to avoid most race condition issues between lock expiry and ajax call
 		set_transient( $lock_key, $user->ID, $expiry );
-		
+
 		// Possible alternative: set zone lock as property with time and user
 	}
-	
+
 	// Not really needed with transients...
 	function unlock_zone( $zone ) {
 		$zone_id = $this->get_zone_id( $zone );
-		
+
 		if( ! $zone_id )
 			return false;
-		
+
 		$lock_key = $this->get_zone_meta_key( $zone );
-		
+
 		delete_transient( $lock_key );
 	}
-	
+
 	function is_zone_locked( $zone ) {
 		$zone_id = $this->get_zone_id( $zone );
 		if( ! $zone_id )
 			return false;
-		
+
 		$user = wp_get_current_user();
 		$lock_key = $this->get_zone_meta_key( $zone );
-		
+
 		$lock = get_transient( $lock_key );
-		
+
 		// If lock doesn't exist, or check if current user same as lock user
 		if( ! $lock || absint( $lock ) === absint( $user->ID ) )
 			return false;
@@ -1240,49 +1240,49 @@ class Zoninator
 			// return user_id of locking user
 			return absint( $lock );
 	}
-	
+
 	function zone_exists( $zone ) {
 		$zone_id = $this->get_zone_id( $zone );
-		
+
 		if( term_exists( $zone_id, $this->zone_taxonomy ) )
 			return true;
-		
+
 		return false;
 	}
-	
+
 	function get_zone_id( $zone ) {
 		if( is_int( $zone ) )
 			return $zone;
-		
+
 		$zone = $this->get_zone( $zone );
 		if( is_object( $zone ) )
 			$zone = $zone->term_id;
-		
+
 		return (int)$zone;
 	}
-	
+
 	function get_zone_meta_key( $zone ) {
 		$zone_id = $this->get_zone_id( $zone );
 		return $this->zone_meta_prefix . $zone_id;
 	}
-	
+
 	function get_zone_slug( $zone ) {
 		if( is_int( $zone ) )
 			$zone = $this->get_zone( $zone );
-		
+
 		if( is_object( $zone ) )
 			$zone = $zone->slug;
-		
+
 		return $this->get_formatted_zone_slug( $zone );
 	}
-	
+
 	function get_formatted_zone_slug( $slug ) {
 		return $slug; // legacy function -- slugs can no longer be changed
 	}
 	function get_unformatted_zone_slug( $slug ) {
 		return $slug; // legacy function -- slugs can no longer be changed
 	}
-	
+
 	function get_post_id( $post ) {
 		if( is_int( $post ) )
 			return $post;
@@ -1290,31 +1290,31 @@ class Zoninator
 			return absint( $post['ID'] );
 		elseif( is_object( $post ) )
 			return $post->ID;
-		
+
 		return false;
 	}
-	
+
 	function get_post_order( $post, $zone ) {
 		$post_id = $this->get_post_id( $post );
 		$meta_key = $this->get_zone_meta_key( $zone );
-		
+
 		return get_metadata( 'post', $post_id, $meta_key, true );
 	}
-	
+
 	function verify_nonce( $action ) {
 		$action = $this->_get_nonce_key( $action );
 		$nonce = $this->_get_request_var( $action );
-		
+
 		if( empty( $nonce ) )
 			$nonce = $this->_get_request_var( '_wpnonce' );
-		
+
 		if( ! wp_verify_nonce( $nonce, $action ) )
 			$this->_unauthorized_access();
 	}
-	
+
 	function verify_access( $action = '', $zone_id = null ) {
 		// TODO: should check if zone locked
-		
+
 		$verify_function = '';
 		switch( $action ) {
 			case 'insert':
@@ -1328,32 +1328,32 @@ class Zoninator
 				$verify_function = '_current_user_can_manage_zones';
 				break;
 		}
-		
+
 		if( ! call_user_func( array( $this, $verify_function ), $zone_id ) )
 			$this->_unauthorized_access();
 	}
-	
+
 	function _unauthorized_access() {
 		wp_die( __( 'Sorry, you\'re not supposed to do that...', 'zoninator' ) );
 	}
-	
+
 	function _fill_zone_details( $zone ) {
 		if( ! empty( $zone->zoninator_parsed ) && $zone->zoninator_parsed )
 			return $zone;
-		
+
 		$details = array();
-		
+
 		if( ! empty( $zone->description ) )
 			$details = maybe_unserialize( $zone->description );
-			
+
 		$details = wp_parse_args( $details, $this->zone_detail_defaults );
-		
+
 		foreach( $details as $detail_key => $detail_value ) {
 			$zone->$detail_key = $detail_value;
 		}
-		
+
 		$zone->zoninator_parsed = true;
-		
+
 		return $zone;
 	}
 
@@ -1366,7 +1366,7 @@ class Zoninator
 		if ( ! empty( $query_var ) ) {
 			$zone_slug = get_query_var( $this->zone_taxonomy );
 			$zone_id = $this->get_zone( $zone_slug );
-			
+
 			if ( empty( $zone_id ) ) {
 				$this->send_user_error( __( 'Invalid zone supplied', 'zoninator' ) );
 			}
@@ -1443,29 +1443,29 @@ class Zoninator
 
 
 
-	
+
 	// TODO: Caching needs to be testing properly before being implemented!
 	function get_zone_cache_key( $zone, $args = array() ) {
 		return '';
-		
+
 		$meta_key = $this->get_zone_meta_key( $zone );
 		$hash = md5( serialize( $args ) );
 		return $meta_key . $hash;
 	}
-	
+
 	function get_zone_posts_from_cache( $zone, $args = array() ) {
 		return false; // TODO: implement
-		
+
 		$meta_key = $this->get_zone_meta_key( $zone );
 		$cache_key = $this->get_zone_cache_key( $zone, $args );
 		if( $posts = wp_cache_get( $cache_key, $meta_key ) )
 			return $posts;
 		return false;
 	}
-	
+
 	function add_zone_posts_to_cache( $posts, $zone, $args = array() ) {
 		return; // TODO: implement
-		
+
 		$meta_key = $this->get_zone_meta_key( $zone );
 		$cache_key = $this->get_zone_cache_key( $zone, $args );
 		wp_cache_set( $cache_key, $posts, $meta_key );
@@ -1486,59 +1486,59 @@ class Zoninator
 			do_action( 'zoninator_did_split_shared_term', $old_term_id, $new_term_id, $term_taxonomy_id );
 		}
 	}
-	
+
 	function _empty_zone_posts_cache( $meta_key ) {
 		return; // TODO: implement
 	}
-	
+
 	function _get_message( $message_id, $encode = false ) {
 		$message = '';
-		
+
 		if( ! empty( $this->zone_messages[$message_id] ) )
 			$message = $this->zone_messages[$message_id];
-		
+
 		if( $encode )
 			$message = urlencode( $message );
-		
+
 		return $message;
 	}
-	
+
 	function _get_nonce_key( $action ) {
 		return sprintf( '%s-%s', $this->zone_nonce_prefix, $action );
 	}
-	
+
 	function _current_user_can_add_zones() {
 		return current_user_can( $this->_get_add_zones_cap() );
 	}
-	
+
 	function _current_user_can_edit_zones( $zone_id ) {
 		$has_cap = current_user_can( $this->_get_edit_zones_cap() );
 		return apply_filters( 'zoninator_current_user_can_edit_zone', $has_cap, $zone_id );
 	}
-	
+
 	function _current_user_can_manage_zones() {
 		return current_user_can( $this->_get_manage_zones_cap() );
 	}
-	
+
 	function _get_add_zones_cap() {
 		return apply_filters( 'zoninator_add_zone_cap', 'edit_others_posts' );
 	}
-	
+
 	function _get_edit_zones_cap() {
 		return apply_filters( 'zoninator_edit_zone_cap', 'edit_others_posts' );
 	}
-	
+
 	function _get_manage_zones_cap() {
 		return apply_filters( 'zoninator_manage_zone_cap', 'edit_others_posts' );
 	}
-	
+
 	function _get_zone_page_url( $args = array() ) {
 		$url = menu_page_url( $this->key, false );
-		
+
 		foreach( $args as $arg_key => $arg_value ) {
 			$url = add_query_arg( $arg_key, $arg_value, $url );
-		}	
-		
+		}
+
 		return $url;
 	}
 
@@ -1557,21 +1557,21 @@ class Zoninator
 			$value = ! empty( $object[$var] ) ? $object[$var] : $default;
 		else
 			$value = $default;
-		
+
 		if( is_callable( $sanitize_callback ) ) {
 			if( is_array( $value ) )
 				$value = array_map( $sanitize_callback, $value );
 			else
 				$value = call_user_func( $sanitize_callback, $value );
 		}
-		
+
 		return $value;
 	}
-	
+
 	function _get_request_var( $var, $default = '', $sanitize_callback = '' ) {
 		return $this->_get_value_or_default( $var, $_REQUEST, $default, $sanitize_callback );
 	}
-	
+
 	function _get_get_var( $var, $default = '', $sanitize_callback = '' ) {
 		return $this->_get_value_or_default( $var, $_GET, $default, $sanitize_callback );
 	}
