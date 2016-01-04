@@ -1,9 +1,9 @@
 === Zone Manager (Zoninator) ===
 Contributors: batmoo, automattic, wpcomvip, pkevan, matthumphreys, potatomaster, jblz, nickdaugherty, betzster
 Tags: zones, post order, post list, posts, order, zonination, content curation, curation, content management
-Requires at least: 3.5
+Requires at least: 4.4
 Tested up to: 4.4
-Stable tag: 0.6
+Stable tag: 0.7
 License: GPLv2
 
 Curation made easy! Create "zones" then add and order your content!
@@ -54,6 +54,11 @@ Filter the following and change according to your needs:
 1. Create and manage your zones and content through a fairly intuitive and familiar interface
 
 == Changelog ==
+
+= 0.8 =
+
+* WordPress version requirements bumped to 4.4
+* Converted custom admin ajax endpoints to WP-API
 
 = 0.7 =
 
