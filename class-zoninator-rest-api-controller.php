@@ -1,13 +1,13 @@
 <?php
 
 
-class Zoninator_Rest_Api_Controller
-{
-    const REST_NAMESPACE = 'zoninator/v1';
+class Zoninator_Rest_Api_Controller {
 
-    const ZONES = '/zones';
-    const ZONE_ITEM_REGEX = '/zones/(?P<zone_id>[\d]+)';
-    const ZONE_ITEM_POSTS_REGEX = '/zones/(?P<zone_id>[\d]+)/posts';
+    const ZONINATOR_NAMESPACE = 'zoninator';
+    const API_VERSION = 'v1';
+
+    const ZONE_ITEM_URL_REGEX = '/zones/(?P<zone_id>[\d]+)';
+    const ZONE_ITEM_POSTS_URL_REGEX = '/zones/(?P<zone_id>[\d]+)/posts';
     const ZONE_ITEM_POSTS_POST_REGEX = '/zones/(?P<zone_id>[\d]+)/posts/(?P<post_id>\d+)';
 
     const INVALID_ZONE_ID = 'invalid-zone-id';
@@ -37,76 +37,67 @@ class Zoninator_Rest_Api_Controller
         $this->_zone_gateway = $data_service;
         $this->_permissions = $permissions;
         $this->_renderer = $renderer;
-        add_action('rest_api_init', array($this, 'init_restful_resources'));
     }
 
-    function init_restful_resources() {
-        register_rest_route(self::REST_NAMESPACE, self::ZONES, array(
-            'methods' => WP_REST_Server::READABLE,
-            'callback' => array($this, 'get_zones')
+    function register_routes() {
+        $full_namespace = self::ZONINATOR_NAMESPACE . '/' . self::API_VERSION;
+
+        register_rest_route( $full_namespace, self::ZONE_ITEM_POSTS_URL_REGEX, array(
+            array(
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => array( $this, 'get_items' ),
+                'permission_callback' => array( $this, 'get_items_permissions_check' ),
+                'args'                => $this->_get_zone_id_param()
+            ),
+            array(
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => array($this, 'create_item'),
+                'permission_callback' => array( $this, 'create_item_permissions_check' ),
+                'args'                => $this->_get_zone_post_rest_route_params()
+            )
+        ) );
+
+        register_rest_route( $full_namespace, self::ZONE_ITEM_POSTS_POST_REGEX, array(
+            'methods'             => WP_REST_Server::DELETABLE,
+            'callback'            => array($this, 'delete_item'),
+            'permission_callback' => array( $this, 'delete_item_permissions_check' ),
+            'args'                => $this->_get_zone_post_rest_route_params()
         ));
 
-        register_rest_route(self::REST_NAMESPACE, self::ZONE_ITEM_REGEX, array(
-            'methods' => WP_REST_Server::READABLE,
-            'callback' => array($this, 'get_zone'),
-            'args' => $this->_get_zone_rest_route_params()
+        register_rest_route( $full_namespace, self::ZONE_ITEM_POSTS_URL_REGEX . '/order', array(
+            'methods'             => 'PUT',
+            'callback'            => array($this, 'reorder_posts'),
+            'permission_callback' => array( $this, 'update_item_permissions_check' ),
+            'args'                => $this->_get_zone_id_param()
         ));
 
-        register_rest_route(self::REST_NAMESPACE, self::ZONE_ITEM_POSTS_REGEX, array(
-            'methods' => WP_REST_Server::READABLE,
-            'callback' => array($this, 'get_zone_feed'),
-            'args' => $this->_get_zone_rest_route_params()
+        register_rest_route( $full_namespace, self::ZONE_ITEM_URL_REGEX . '/lock', array(
+            'methods'             => 'PUT',
+            'callback'            => array($this, 'zone_update_lock'),
+            'permission_callback' => array( $this, 'update_item_permissions_check' ),
+            'args'                => $this->_get_zone_id_param()
         ));
 
-        register_rest_route(self::REST_NAMESPACE, self::ZONE_ITEM_POSTS_REGEX, array(
-            'methods' => WP_REST_Server::CREATABLE,
-            'callback' => array($this, 'add_post'),
-            'permission_callback' => array($this, 'verify_access'),
-            'args' => $this->_get_zone_post_rest_route_params()
+        register_rest_route( $full_namespace, '/posts/search', array(
+            'methods'  => WP_REST_Server::READABLE,
+            'callback' => array( $this, 'search_posts' ),
+            'args'     => $this->_params_for_search_posts()
         ));
 
-        register_rest_route(self::REST_NAMESPACE, self::ZONE_ITEM_POSTS_POST_REGEX, array(
-            'methods' => WP_REST_Server::DELETABLE,
-            'callback' => array($this, 'remove_post'),
-            'permission_callback' => array($this, 'verify_access'),
-            'args' => $this->_get_zone_post_rest_route_params()
-        ));
-
-        register_rest_route(self::REST_NAMESPACE, self::ZONE_ITEM_POSTS_REGEX . '/order', array(
-            'methods' => 'PUT',
-            'callback' => array($this, 'reorder_posts'),
-            'permission_callback' => array($this, 'verify_access'),
-            'args' => $this->_get_zone_rest_route_params()
-        ));
-
-        register_rest_route(self::REST_NAMESPACE, self::ZONE_ITEM_REGEX . '/lock', array(
-            'methods' => 'PUT',
-            'callback' => array($this, 'zone_update_lock'),
-            'permission_callback' => array($this, 'verify_access'),
-            'args' => $this->_get_zone_rest_route_params()
-        ));
-
-        register_rest_route(self::REST_NAMESPACE, '/posts/search', array(
-            'methods' => WP_REST_Server::READABLE,
-            'callback' => array($this, 'search_posts')
-        ));
-
-        register_rest_route(self::REST_NAMESPACE, '/posts/recent', array(
-            'methods' => WP_REST_Server::READABLE,
-            'callback' => array($this, 'get_recent_posts')
+        register_rest_route( $full_namespace, '/posts/recent', array(
+            'methods'  => WP_REST_Server::READABLE,
+            'callback' => array($this, 'get_recent_posts'),
+            'args'                => $this->_params_for_get_recent_posts()
         ));
     }
 
-    function get_zones() {
-        return $this->_zone_gateway->get_zones();
-    }
-
-    function get_zone(WP_REST_Request $request) {
-        $zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
-        return $this->_zone_gateway->get_zone( $zone_id );
-    }
-
-    function add_post(WP_REST_Request $request) {
+    /**
+     * Create one item from the collection.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|WP_REST_Response
+     */
+    function create_item( $request) {
         $zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
         $post_id = $this->_get_param( $request, 'post_id', 0, 'absint' );
 
@@ -145,32 +136,13 @@ class Zoninator_Rest_Api_Controller
         return $response;
     }
 
-    function verify_access(WP_REST_Request $request) {
-        $zone_id = intval($request->get_param('zone_id'));
-        $action = $request->get_method();
-
-        // TODO: should check if zone locked
-
-        switch ($action) {
-            case WP_REST_Server::CREATABLE:
-                $verify_function = 'insert';
-                break;
-            case WP_REST_Server::EDITABLE:
-            case WP_REST_Server::DELETABLE:
-                $verify_function = 'update';
-                break;
-            default:
-                $verify_function = '';
-                break;
-        }
-
-        if (!$this->_permissions->check($verify_function, $zone_id)) {
-            return $this->_bad_request('rest-permission-denied', __('Sorry, you\'re not supposed to do that...', 'zoninator'));
-        }
-        return true;
-    }
-
-    function remove_post(WP_REST_Request $request) {
+    /**
+     * Delete one item from the collection.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|WP_REST_Response
+     */
+    function delete_item( $request ) {
         $zone_id = intval($request->get_param('zone_id'));
         $post_id = intval($request->get_param('post_id'));
 
@@ -195,7 +167,13 @@ class Zoninator_Rest_Api_Controller
             'status' => $status), $status);
     }
 
-    function reorder_posts($request) {
+    /**
+     * Reorder posts for zone.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|WP_REST_Response
+     */
+    function reorder_posts( $request ) {
         $zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
         $post_ids = (array) $this->_get_param( $request, 'posts', array(), 'absint' );
 
@@ -222,7 +200,13 @@ class Zoninator_Rest_Api_Controller
             'status' => $status), $http_status);
     }
 
-    function zone_update_lock(WP_REST_Request $request)
+    /**
+     * Update the zone's lock
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|WP_REST_Response
+     */
+    function zone_update_lock( $request )
     {
         $zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
 
@@ -242,7 +226,13 @@ class Zoninator_Rest_Api_Controller
             'status' => 0), 400);
     }
 
-    function search_posts(WP_REST_Request $request)
+    /**
+     * Search posts for "term"
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|WP_REST_Response
+     */
+    function search_posts( $request )
     {
         $q = $this->_get_param($request, 'term', '', 'stripslashes');
 
@@ -303,7 +293,13 @@ class Zoninator_Rest_Api_Controller
         return new WP_REST_Response( $stripped_posts, 200 );
     }
 
-    function get_zone_feed( WP_REST_Request $request )
+    /**
+     * Get a collection of items.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|WP_REST_Response
+     */
+    public function get_items( $request )
     {
         $zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
 
@@ -320,7 +316,14 @@ class Zoninator_Rest_Api_Controller
         return new WP_REST_Response( $results, 200 );
     }
 
-    function get_recent_posts(WP_REST_Request $request)
+    /**
+     * Get recent posts, excluding the ones that are already part of the zone provided
+     * Recent posts can be filtered by category and date
+     *
+     * @param WP_REST_Request $request
+     * @return WP_Error|WP_REST_Response
+     */
+    public function get_recent_posts(WP_REST_Request $request)
     {
         $cat = $this->_get_param( $request, 'cat', '', 'absint' );
         $date = $this->_get_param( $request, 'date', '', 'striptags' );
@@ -328,7 +331,7 @@ class Zoninator_Rest_Api_Controller
 
         $limit = $this->_zone_gateway->posts_per_page;
         $post_types = $this->_zone_gateway->get_supported_post_types();
-        $zone_posts = $this->_zone_gateway->get_zone_posts($zone_id);
+        $zone_posts = $this->_zone_gateway->get_zone_posts( $zone_id );
         $zone_post_ids = wp_list_pluck( $zone_posts, 'ID' );
 
         $http_status = 200;
@@ -387,7 +390,82 @@ class Zoninator_Rest_Api_Controller
         return $response;
     }
 
-    function _get_param(WP_REST_Request $object, $var, $default = '', $sanitize_callback = '') {
+    /**
+     * Check if a given request has access to get items.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|bool
+     */
+    public function get_items_permissions_check( $request ) {
+        return true;
+    }
+
+    /**
+     * Check if a given request has access to delete item.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|bool
+     */
+    public function delete_item_permissions_check( $request ) {
+        return $this->verify_access( $request );
+    }
+
+    /**
+     * Check if a given request has access to create item.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|bool
+     */
+    public function create_item_permissions_check( $request ) {
+        return $this->verify_access( $request );
+    }
+
+    /**
+     * Check if a given request has access to update item.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|bool
+     */
+    public function update_item_permissions_check( $request ) {
+        return $this->verify_access( $request );
+    }
+
+    public function verify_access(WP_REST_Request $request) {
+        $zone_id = intval($request->get_param('zone_id'));
+        $action = $request->get_method();
+
+        // TODO: should check if zone locked
+
+        switch ($action) {
+            case WP_REST_Server::CREATABLE:
+                $verify_function = 'insert';
+                break;
+            case WP_REST_Server::EDITABLE:
+            case WP_REST_Server::DELETABLE:
+                $verify_function = 'update';
+                break;
+            default:
+                $verify_function = '';
+                break;
+        }
+
+        if (!$this->_permissions->check($verify_function, $zone_id)) {
+            return $this->_bad_request('rest-permission-denied', __('Sorry, you\'re not supposed to do that...', 'zoninator'));
+        }
+        return true;
+    }
+
+    public function is_numeric( $item ) {
+        // see https://github.com/WP-API/WP-API/issues/1520 on why we do not use is_numeric directly
+        return is_numeric( $item );
+    }
+
+    public function strip_slashes( $item ) {
+        // see https://github.com/WP-API/WP-API/issues/1520 on why we do not use stripslashes directly
+        return stripslashes( $item );
+    }
+
+    private function _get_param(WP_REST_Request $object, $var, $default = '', $sanitize_callback = '') {
         $value = $object->get_param( $var );
         $value = ($value !== null) ? $value : $default;
 
@@ -399,11 +477,6 @@ class Zoninator_Rest_Api_Controller
         return $value;
     }
 
-    function is_numeric($item) {
-        // see https://github.com/WP-API/WP-API/issues/1520 on why we do not use is_numeric directly
-        return is_numeric( $item );
-    }
-
     private function _validate_date_filter($date) {
         return preg_match( '/([0-9]{4})-([0-9]{2})-([0-9]{2})/', $date );
     }
@@ -412,23 +485,88 @@ class Zoninator_Rest_Api_Controller
         return $cat && get_term_by( 'id', $cat, 'category' );
     }
 
-    private function _get_zone_rest_route_params() {
+    private function _get_zone_id_param() {
         return array(
             'zone_id' => array(
-                'validate_callback' => array($this, 'is_numeric')
+                'type'              => 'integer',
+                'validate_callback' => array($this, 'is_numeric'),
+                'sanitize_callback' => 'absint',
+                'required'          => true
             )
         );
     }
 
     private function _get_zone_post_rest_route_params() {
-        $zone_params = $this->_get_zone_rest_route_params();
+        $zone_params = $this->_get_zone_id_param();
         return array_merge(array(
             'post_id' => array(
-                'validate_callback' => array($this, 'is_numeric')
+                'type'              => 'integer',
+                'validate_callback' => array($this, 'is_numeric'),
+                'required'          => true
             )
         ), $zone_params);
     }
 
+    private function _params_for_get_recent_posts()
+    {
+        $zone_params = $this->_get_zone_id_param();
+        return array_merge(array(
+            'cat' => array(
+                'description'       => 'only recent posts from this category id',
+                'type'              => 'integer',
+                'validate_callback' => array( $this, 'is_numeric' ),
+                'sanitize_callback' => 'absint',
+                'default'           => 0,
+                'required'          => false
+            ),
+            'date' => array(
+                'description'       => 'only get posts after this date (format YYYY-mm-dd)',
+                'type'              => 'string',
+                'sanitize_callback' => array( $this, 'strip_slashes' ),
+                'default'           => '',
+                'required'          => false
+            )
+        ), $zone_params);
+    }
+
+    private function _params_for_search_posts()
+    {
+        return array(
+            'term' => array(
+                'description'       => __( 'search term', 'zoninator' ),
+                'type'              => 'string',
+                'sanitize_callback' => array( $this, 'strip_slashes' ),
+                'default'           => '',
+                'required'          => true
+            ),
+            'cat' => array(
+                'description'       => __( 'filter by category', 'zoninator' ),
+                'type'              => 'integer',
+                'validate_callback' => array( $this, 'is_numeric' ),
+                'sanitize_callback' => 'absint',
+                'default'           => 0,
+                'required'          => false
+            ),
+            'date' => array(
+                'description'       => __( 'only get posts after this date (format YYYY-mm-dd)', 'zoninator' ),
+                'type'              => 'string',
+                'sanitize_callback' => array( $this, 'strip_slashes' ),
+                'default'           => '',
+                'required'          => false
+            ),
+            'limit' => array(
+                'description'       => __( 'limit results', 'zoninator' ),
+                'type'              => 'integer',
+                'sanitize_callback' => 'absint',
+                'default'           => $this->_zone_gateway->posts_per_page,
+                'required'          => false
+            ),
+            'exclude' => array(
+                'description'       => __( 'post_ids to exclude', 'zoninator' ),
+                'required'          => false
+            )
+        );
+    }
     private function _bad_request($code, $message) {
         return new WP_Error( $code, $message, array( 'status' => 400 ) );
     }

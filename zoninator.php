@@ -119,6 +119,8 @@ class Zoninator
 		add_action( 'zoninator_advanced_search_fields', array( $this, 'zone_advanced_search_cat_filter' ) );
 		add_action( 'zoninator_advanced_search_fields', array( $this, 'zone_advanced_search_date_filter' ), 20 );
 
+		add_action( 'rest_api_init', array( $this->rest_api_controller, 'register_routes' ) );
+
 		do_action( 'zoninator_post_init' );
 	}
 

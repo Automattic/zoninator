@@ -50,69 +50,69 @@ class Zoninator_Rest_Api_Controller_Test extends WP_UnitTestCase
         $this->_post_id = $this->_insert_a_post();
     }
 
-    function test_add_post_to_zone_return_WP_Error_if_no_zone()
+    function test_create_item_return_WP_Error_if_no_zone()
     {
         $post_id = $this->_insert_a_post();
         $request = $this->_create_request( array( 'post_id' => $this->_post_id, 'zone_id' => 3 ) );
 
         $this->_zone_gateway->method( 'get_zone' )->willReturn(null);
-        $response = $this->_controller->add_post( $request );
+        $response = $this->_controller->create_item( $request );
         $this->assertInstanceOf( 'WP_Error', $response );
         $this->assertEquals( Zoninator_Rest_Api_Controller::INVALID_ZONE_ID, $response->get_error_code() );
     }
 
-    function test_add_post_to_zone_return_WP_Error_if_no_post()
+    function test_create_item_return_WP_Error_if_no_post()
     {
         $request = $this->_create_request( array( 'post_id' => 0, 'zone_id' => 3 ) );
 
-        $response = $this->_controller->add_post( $request );
+        $response = $this->_controller->create_item( $request );
         $this->assertInstanceOf( 'WP_Error', $response );
         $this->assertEquals( Zoninator_Rest_Api_Controller::INVALID_POST_ID,  $response->get_error_code() );
     }
 
-    function test_add_post_to_zone_500_if_add_zone_posts_Fails()
+    function test_create_item_500_if_add_zone_posts_Fails()
     {
         $request = $this->_create_request( array( 'post_id' => $this->_post_id, 'zone_id' => 3 ) );
 
         $this->_zone_gateway->method( 'get_zone' )->willReturn( new stdClass() );
         $this->_zone_gateway->method( 'add_zone_posts' )->willReturn( new WP_Error( 'an-error' ) );
-        $response = $this->_controller->add_post( $request );
+        $response = $this->_controller->create_item( $request );
         $this->assertInstanceOf( 'WP_REST_Response', $response );
         $this->assertEquals( 500, $response->get_status() );
     }
 
-    function test_add_post_to_zone_200_if_add_zone_posts_succeeds()
+    function test_create_item_200_if_add_zone_posts_succeeds()
     {
         $request = $this->_create_request( array( 'post_id' => $this->_post_id, 'zone_id' => 3 ) );
         $this->_zone_gateway->method( 'get_zone' )->willReturn( new stdClass() );
         $this->_zone_gateway->method( 'add_zone_posts' )->willReturn( null );
-        $response = $this->_controller->add_post( $request );
+        $response = $this->_controller->create_item( $request );
         $this->_assert_response_status($response, 200);
     }
 
-    function test_remove_post_from_zone_return_WP_Error_if_no_post_id()
+    function test_delete_item_return_WP_Error_if_no_post_id()
     {
         $request = $this->_create_request( array( 'post_id' => 0 ) );
-        $response = $this->_controller->remove_post( $request );
+        $response = $this->_controller->delete_item( $request );
         $this->assertInstanceOf( 'WP_Error', $response );
         $this->assertEquals( Zoninator_Rest_Api_Controller::ZONE_ID_POST_ID_REQUIRED,  $response->get_error_code() );
     }
 
-    function test_remove_post_from_zone_return_WP_Error_if_no_zone_id()
+    function test_delete_item_return_WP_Error_if_no_zone_id()
     {
         $request = $this->_create_request( array( 'post_id' => $this->_post_id ) );
 
         $this->_zone_gateway->method( 'get_zone' )->willReturn( null );
-        $response = $this->_controller->remove_post( $request );
+        $response = $this->_controller->delete_item( $request );
         $this->assertInstanceOf( 'WP_Error', $response );
         $this->assertEquals( Zoninator_Rest_Api_Controller::ZONE_ID_POST_ID_REQUIRED,  $response->get_error_code() );
     }
 
-    function test_remove_post_from_zone_return_WP_REST_Response_200_if_successful()
+    function test_delete_item_return_WP_REST_Response_200_if_successful()
     {
         $request = $this->_create_request( array( 'post_id' => $this->_post_id, 'zone_id' => 3 ) );
         $this->_zone_gateway->method( 'remove_zone_posts' )->willReturn( null );
-        $response = $this->_controller->remove_post( $request );
+        $response = $this->_controller->delete_item( $request );
         $this->_assert_response_status($response, 200);
     }
 
@@ -153,7 +153,7 @@ class Zoninator_Rest_Api_Controller_Test extends WP_UnitTestCase
         $request = $this->_create_request( array( 'zone_id' => 3 ) );
         $this->_zone_gateway->method( 'get_zone_feed' )->willReturn( new WP_Error( 'en-error' ) );
         $this->_zone_gateway->method( 'get_zone' )->willReturn( array(1) );
-        $response = $this->_controller->get_zone_feed( $request );
+        $response = $this->_controller->get_items( $request );
         $this->assertInstanceOf( 'WP_Error', $response );
     }
 
@@ -162,7 +162,7 @@ class Zoninator_Rest_Api_Controller_Test extends WP_UnitTestCase
         $request = $this->_create_request( array( 'zone_id' => 3 ) );
         $this->_zone_gateway->method( 'get_zone_feed' )->willReturn( array() );
         $this->_zone_gateway->method( 'get_zone' )->willReturn( array(1) );
-        $response = $this->_controller->get_zone_feed( $request );
+        $response = $this->_controller->get_items( $request );
         $this->_assert_response_status($response, 200);
     }
 
@@ -171,7 +171,7 @@ class Zoninator_Rest_Api_Controller_Test extends WP_UnitTestCase
         $request = $this->_create_request( array(  ) );
         $this->_zone_gateway->method( 'get_zone_feed' )->willReturn( array() );
         $this->_zone_gateway->method( 'get_zone' )->willReturn( array() );
-        $response = $this->_controller->get_zone_feed( $request );
+        $response = $this->_controller->get_items( $request );
         $this->assertInstanceOf( 'WP_Error', $response );
     }
 
@@ -179,7 +179,7 @@ class Zoninator_Rest_Api_Controller_Test extends WP_UnitTestCase
     {
         $this->_zone_gateway->method( 'remove_post' )->willReturn( null );
         $request = $this->_create_request( array( 'post_id' => $this->_post_id, 'zone_id' => 3 ) );
-        $response = $this->_controller->remove_post( $request );
+        $response = $this->_controller->delete_item( $request );
         $this->_assert_response_status($response, 200);
     }
 
@@ -187,7 +187,7 @@ class Zoninator_Rest_Api_Controller_Test extends WP_UnitTestCase
     {
         $this->_zone_gateway->method( 'remove_post' )->willReturn( null );
         $request = $this->_create_request( array( 'zone_id' => 3 ) );
-        $response = $this->_controller->remove_post( $request );
+        $response = $this->_controller->delete_item( $request );
         $this->assertInstanceOf( 'WP_Error', $response );
     }
 
@@ -195,7 +195,7 @@ class Zoninator_Rest_Api_Controller_Test extends WP_UnitTestCase
     {
         $this->_zone_gateway->method( 'remove_post' )->willReturn( null );
         $request = $this->_create_request( array( 'post_id' => $this->_post_id ) );
-        $response = $this->_controller->remove_post( $request );
+        $response = $this->_controller->delete_item( $request );
         $this->assertInstanceOf( 'WP_Error', $response );
     }
 
@@ -203,7 +203,7 @@ class Zoninator_Rest_Api_Controller_Test extends WP_UnitTestCase
     {
         $this->_zone_gateway->method( 'remove_zone_posts' )->willReturn( new WP_Error('error') );
         $request = $this->_create_request( array( 'post_id' => $this->_post_id, 'zone_id' => 3 ) );
-        $response = $this->_controller->remove_post( $request );
+        $response = $this->_controller->delete_item( $request );
         $this->_assert_response_status($response, 500);
     }
 
