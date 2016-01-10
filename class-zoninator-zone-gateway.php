@@ -197,7 +197,7 @@ class Zoninator_Zone_Gateway
         return $posts;
     }
 
-    function add_zone_posts( $zone, $posts, $append = false ) {
+    function add_zone_posts($zone, $posts, $append = false ) {
         $zone = $this->get_zone( $zone );
         $meta_key = $this->get_zone_meta_key( $zone );
 
