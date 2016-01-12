@@ -46,36 +46,36 @@ class Zoninator_Rest_Api_Controller {
         register_rest_route( $full_namespace, self::ZONE_ITEM_POSTS_URL_REGEX, array(
             array(
                 'methods'             => WP_REST_Server::READABLE,
-                'callback'            => array( $this, 'get_items' ),
-                'permission_callback' => array( $this, 'get_items_permissions_check' ),
+                'callback'            => array( $this, 'get_zone_posts' ),
+                'permission_callback' => array( $this, 'get_zone_posts_permissions_check' ),
                 'args'                => $this->_get_zone_id_param()
             ),
             array(
                 'methods'             => WP_REST_Server::CREATABLE,
-                'callback'            => array($this, 'create_item'),
-                'permission_callback' => array( $this, 'create_item_permissions_check' ),
+                'callback'            => array($this, 'add_post_to_zone'),
+                'permission_callback' => array( $this, 'add_post_to_zone_permissions_check' ),
                 'args'                => $this->_get_zone_post_rest_route_params()
             )
         ) );
 
         register_rest_route( $full_namespace, self::ZONE_ITEM_POSTS_POST_REGEX, array(
             'methods'             => WP_REST_Server::DELETABLE,
-            'callback'            => array( $this, 'delete_item' ),
-            'permission_callback' => array( $this, 'delete_item_permissions_check' ),
+            'callback'            => array( $this, 'remove_post_from_zone' ),
+            'permission_callback' => array( $this, 'remove_post_from_zone_permissions_check' ),
             'args'                => $this->_get_zone_post_rest_route_params()
         ));
 
         register_rest_route( $full_namespace, self::ZONE_ITEM_POSTS_URL_REGEX . '/order', array(
             'methods'             => 'PUT',
             'callback'            => array( $this, 'reorder_posts' ),
-            'permission_callback' => array( $this, 'update_item_permissions_check' ),
+            'permission_callback' => array( $this, 'update_zone_permissions_check' ),
             'args'                => $this->_get_zone_id_param()
         ));
 
         register_rest_route( $full_namespace, self::ZONE_ITEM_URL_REGEX . '/lock', array(
             'methods'             => 'PUT',
             'callback'            => array($this, 'zone_update_lock'),
-            'permission_callback' => array( $this, 'update_item_permissions_check' ),
+            'permission_callback' => array( $this, 'update_zone_permissions_check' ),
             'args'                => $this->_get_zone_id_param()
         ));
 
@@ -93,12 +93,12 @@ class Zoninator_Rest_Api_Controller {
     }
 
     /**
-     * Create one item from the collection.
+     * Add a post to zone
      *
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|WP_REST_Response
      */
-    function create_item( $request ) {
+    function add_post_to_zone($request ) {
         $zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
         $post_id = $this->_get_param( $request, 'post_id', 0, 'absint' );
 
@@ -143,7 +143,7 @@ class Zoninator_Rest_Api_Controller {
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|WP_REST_Response
      */
-    function delete_item( $request ) {
+    function remove_post_from_zone($request ) {
         $zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
         $post_id = $this->_get_param( $request, 'post_id', 0, 'absint' );
 
@@ -295,12 +295,12 @@ class Zoninator_Rest_Api_Controller {
     }
 
     /**
-     * Get a collection of items.
+     * Get zone posts
      *
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|WP_REST_Response
      */
-    public function get_items( $request )
+    public function get_zone_posts($request )
     {
         $zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
 
@@ -392,44 +392,44 @@ class Zoninator_Rest_Api_Controller {
     }
 
     /**
-     * Check if a given request has access to get items.
+     * Check if a given request has access to get zone posts.
      *
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|bool
      */
-    public function get_items_permissions_check( $request ) {
+    public function get_zone_posts_permissions_check($request ) {
         return true;
     }
 
     /**
-     * Check if a given request has access to delete item.
+     * Check if a given request has access to remove a post from zone.
      *
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|bool
      */
-    public function delete_item_permissions_check( $request ) {
+    public function remove_post_from_zone_permissions_check($request ) {
         $zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
         return $this->_permissions_check( 'update', $zone_id );
     }
 
     /**
-     * Check if a given request has access to create item.
+     * Check if a given request has access to add a post in a zone.
      *
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|bool
      */
-    public function create_item_permissions_check( $request ) {
+    public function add_post_to_zone_permissions_check($request ) {
         $zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
         return $this->_permissions_check( 'insert', $zone_id );
     }
 
     /**
-     * Check if a given request has access to update item.
+     * Check if a given request has access to update a zone.
      *
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|bool
      */
-    public function update_item_permissions_check( $request ) {
+    public function update_zone_permissions_check($request ) {
         $zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
         return $this->_permissions_check( 'update', $zone_id );
     }
