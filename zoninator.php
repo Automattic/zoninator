@@ -639,11 +639,11 @@ class Zoninator
 
 			$message = '<strong>'.sprintf(esc_html__( 'Zoninator %s requires WordPress %s or higher.' , 'zoninator'), ZONINATOR_VERSION, ZONINATOR_MINIMUM_WP_VERSION ).'</strong> '.sprintf(__('Please <a href="%1$s">upgrade WordPress</a> to a current version, or <a href="%2$s">downgrade to version 0.6 of the Zoninator plugin</a>.', 'zoninator'), 'https://codex.wordpress.org/Upgrading_WordPress', 'https://wordpress.org/plugins/zoninator/download');
 
-			self::bail_on_activation( $message, true );
+			self::bail_on_activation( $message );
 		}
 	}
 
-	private static function bail_on_activation( $message, $deactivate = true ) {
+	private static function bail_on_activation( $message ) {
 ?>
 <!doctype html>
 <html>
@@ -666,21 +666,9 @@ p {
 </body>
 </html>
 <?php
-		if ( $deactivate ) {
-			$plugins = get_option( 'active_plugins' );
-			$_zoninator = plugin_basename( ZONINATOR_PLUGIN_DIR . 'zoninator.php' );
-			$update  = false;
-			foreach ( $plugins as $i => $plugin ) {
-				if ( $plugin === $_zoninator ) {
-					$plugins[$i] = false;
-					$update = true;
-				}
-			}
+		$plugin_name = plugin_basename( ZONINATOR_PLUGIN_DIR . 'zoninator.php' );
+		deactivate_plugins( $plugin_name );
 
-			if ( $update ) {
-				update_option( 'active_plugins', array_filter( $plugins ) );
-			}
-		}
 		exit;
 	}
 
