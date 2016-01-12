@@ -5,23 +5,15 @@ class Zoninator_Permissions
 {
     public function check( $action = '', $zone_id = null ) {
         // TODO: should check if zone locked
-        switch( $action ) {
-            case 'insert':
-                $verify_function = 'current_user_can_add_zones';
-                break;
-            case 'update':
-            case 'delete':
-                $verify_function = 'current_user_can_edit_zones';
-                break;
-            default:
-                $verify_function = 'current_user_can_manage_zones';
-                break;
+        if ( 'insert' == $action ) {
+            return $this->current_user_can_add_zones();
         }
 
-        if( ! call_user_func( array( $this, $verify_function ), $zone_id ) ) {
-            return false;
+        if ( 'update' == $action || 'delete' == $action ) {
+            return $this->current_user_can_edit_zones( $zone_id );
         }
-        return true;
+
+        return $this->current_user_can_manage_zones();
     }
 
     public function current_user_can_add_zones() {
