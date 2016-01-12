@@ -738,7 +738,7 @@ p {
 		return $url;
 	}
 
-	private function _get_value_or_default( $var, $object, $default = '', $sanitize_callback = '' ) {
+	public function _get_value_or_default( $var, $object, $default = '', $sanitize_callback = '' ) {
 		if( is_object( $object ) )
 			$value = ! empty( $object->$var ) ? $object->$var : $default;
 		elseif( is_array( $object ) )
@@ -756,15 +756,15 @@ p {
 		return $value;
 	}
 
-	private function _get_request_var( $var, $default = '', $sanitize_callback = '' ) {
+	public function _get_request_var( $var, $default = '', $sanitize_callback = '' ) {
 		return $this->_get_value_or_default( $var, $_REQUEST, $default, $sanitize_callback );
 	}
 
-	private function _get_get_var( $var, $default = '', $sanitize_callback = '' ) {
+	public function _get_get_var( $var, $default = '', $sanitize_callback = '' ) {
 		return $this->_get_value_or_default( $var, $_GET, $default, $sanitize_callback );
 	}
 
-	private function _get_post_var( $var, $default = '', $sanitize_callback = '' ) {
+	public function _get_post_var( $var, $default = '', $sanitize_callback = '' ) {
 		return $this->_get_value_or_default( $var, $_POST, $default, $sanitize_callback );
 	}
 }
