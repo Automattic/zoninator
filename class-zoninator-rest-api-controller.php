@@ -408,7 +408,8 @@ class Zoninator_Rest_Api_Controller {
      * @return WP_Error|bool
      */
     public function delete_item_permissions_check( $request ) {
-        return $this->verify_access( $request );
+        $zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
+        return $this->_permissions_check( 'update', $zone_id );
     }
 
     /**
@@ -418,7 +419,8 @@ class Zoninator_Rest_Api_Controller {
      * @return WP_Error|bool
      */
     public function create_item_permissions_check( $request ) {
-        return $this->verify_access( $request );
+        $zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
+        return $this->_permissions_check( 'insert', $zone_id );
     }
 
     /**
@@ -428,32 +430,8 @@ class Zoninator_Rest_Api_Controller {
      * @return WP_Error|bool
      */
     public function update_item_permissions_check( $request ) {
-        return $this->verify_access( $request );
-    }
-
-    public function verify_access(WP_REST_Request $request) {
-        $zone_id = intval($request->get_param('zone_id'));
-        $action = $request->get_method();
-
-        // TODO: should check if zone locked
-
-        switch ($action) {
-            case WP_REST_Server::CREATABLE:
-                $verify_function = 'insert';
-                break;
-            case WP_REST_Server::EDITABLE:
-            case WP_REST_Server::DELETABLE:
-                $verify_function = 'update';
-                break;
-            default:
-                $verify_function = '';
-                break;
-        }
-
-        if ( !$this->_permissions->check( $verify_function, $zone_id ) ) {
-            return $this->_bad_request( self::PERMISSION_DENIED, __('Sorry, you\'re not supposed to do that...', self::ZONINATOR_NAMESPACE ) );
-        }
-        return true;
+        $zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
+        return $this->_permissions_check( 'update', $zone_id );
     }
 
     public function is_numeric( $item ) {
@@ -571,5 +549,17 @@ class Zoninator_Rest_Api_Controller {
 
     private function _bad_request($code, $message) {
         return new WP_Error( $code, $message, array( 'status' => 400 ) );
+    }
+
+    /**
+     * @param $zone_id
+     * @return bool|WP_Error
+     */
+    private function _permissions_check($action, $zone_id = null )
+    {
+        if (!$this->_permissions->check( $action, $zone_id ) ) {
+            return $this->_bad_request(self::PERMISSION_DENIED, __('Sorry, you\'re not supposed to do that...', self::ZONINATOR_NAMESPACE));
+        }
+        return true;
     }
 }
