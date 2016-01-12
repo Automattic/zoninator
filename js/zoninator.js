@@ -160,7 +160,7 @@ var zoninator = {}
 
 		zoninator.$zonePostSearch.trigger('loading.start');
 		zoninator.ajax('/posts/recent',
-			'GET', {
+			'GET', 'update_recent', {
 				zone_id: zoninator.getZoneId(),
 				cat: zoninator.getAdvancedCat(),
 				date: zoninator.getAdvancedDate()
@@ -181,16 +181,16 @@ var zoninator = {}
 		zoninator.$zonePostSearch.trigger('loading.start');
 
 		zoninator.ajax('/zones/' + zoninator.getZoneId() + '/posts',
-			'POST', {post_id: postId}, zoninator.addPostSuccessCallback);
+			'POST', 'add_post', {post_id: postId}, zoninator.addPostSuccessCallback);
 
 	};
 
-	zoninator.ajax = function (endpoint, method, data, successCallback, errorCallback) {
+	zoninator.ajax = function (endpoint, method, action, data, successCallback, errorCallback) {
 		if (!data) {
 			data = {};
 		}
 
-		zoninator.$zonePostSearch.trigger( 'zoninator.ajax', [ endpoint, method, data ] );
+		zoninator.$zonePostSearch.trigger( 'zoninator.ajax', [ action, data ] );
 
 		return $.ajax( {
 			url: zoninatorOptions.restApiUrl + endpoint,
@@ -242,7 +242,7 @@ var zoninator = {}
 	zoninator.removePost = function(postId) {
 		zoninator.getPost(postId).trigger('loading.start');
 		zoninator.ajax('/zones/' + zoninator.getZoneId() + '/posts/' + postId,
-			'DELETE', {}, zoninator.removePostSuccessCallback);
+			'DELETE', 'remove_post', {}, zoninator.removePostSuccessCallback);
 	};
 
 	zoninator.removePostSuccessCallback = function(returnData) {
@@ -273,7 +273,7 @@ var zoninator = {}
 
 			// make ajax call to save order
 			zoninator.ajax('/zones/' + zoninator.getZoneId() + '/posts/order',
-				'PUT', data, zoninator.reorderPostsSuccessCallback);
+				'PUT', 'reorder_posts', data, zoninator.reorderPostsSuccessCallback);
 		}
 	};
 
@@ -286,7 +286,8 @@ var zoninator = {}
 	};
 
 	zoninator.updateLock = function() {
-		zoninator.ajax('/zones/' + zoninator.getZoneId() + '/lock', 'PUT', {}, function(returnData, originalData) {
+		var resource = '/zones/' + zoninator.getZoneId() + '/lock';
+		zoninator.ajax(resource, 'PUT', 'update_lock', {}, function(returnData, originalData) {
 			zoninator.currentLockPeriod += zoninator.heartbeatInterval;
 
 			// We want to set a max to avoid people leaving their tabs open and then running away for long periods
