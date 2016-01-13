@@ -155,8 +155,8 @@ class Zoninator
 
 	function admin_enqueue_scripts() {
 		if( $this->is_zoninator_page() ) {
+			wp_enqueue_script( 'underscore-js', ZONINATOR_URL . 'js/underscore-min.js', array(), '', true );
 			wp_enqueue_script( 'zoninator-js', ZONINATOR_URL . 'js/zoninator.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse', 'jquery-ui-position', 'jquery-ui-sortable', 'jquery-ui-autocomplete' ), ZONINATOR_VERSION, true );
-
 			$options = array(
 				'baseUrl' => $this->_get_zone_page_url(),
 				'restApiUrl' => $this->_get_rest_api_base_url(),
@@ -311,6 +311,8 @@ class Zoninator
 			</div>
 		</div>
 		<?php
+
+		$this->admin_page_zone_post_js_template();
 	}
 
 	function admin_page_zone_tabs( $zones, $active_zone_id = 0 ) {
@@ -334,6 +336,41 @@ class Zoninator
 				</div>
 			</div>
 		</div>
+		<?php
+	}
+
+	public function admin_page_zone_post_js_template() {
+		?>
+		<script type="text/template" id="zoninator-zone-post-tpl">
+			<div id="zone-post-<%= post_id %>" class="zone-post" data-post-id="<%= post_id %>">
+				<table>
+					<tr>
+						<% if ( position ) { %>
+						<td class="zone-post-col zone-post-<%= position.key %>">
+                            <span title="<%= position.current_position %>">
+			                    <%= position.current_position %>
+		                    </span>
+						</td>
+						<% } %>
+						<% if ( info ) { %>
+						<td class="zone-post-col zone-post-<%= info.key %>">
+							<%= info.post.post_title %> <span class="zone-post-status">(<%= info.post.post_status %>)</span>
+
+							<div class="row-actions">
+								<% for (var i = 0; i < info.action_link_data.length; i++) { %>
+								<a href="<%= info.action_link_data[i].anchor %>" class="<%= info.action_link_data[i].action %>" title="<%= info.action_link_data[i].title %>"><%= info.action_link_data[i].text %></a>
+								<% if (i < info.action_link_data.length - 1) { %>
+								|
+								<% } %>
+								<% } %>
+							</div>
+						</td>
+						<% } %>
+					</tr>
+				</table>
+				<input type="hidden" name="zone-post-id" value="<%= post_id %>"/>
+			</div>
+		</script>
 		<?php
 	}
 

@@ -1,7 +1,8 @@
-var zoninator = {}
+var zoninator = {};
 
 ;(function($, window, undefined) {
-	var zoninatorOptions = window.zoninatorOptions || {};
+	var zoninatorOptions = window.zoninatorOptions || {},
+		zonePostTemplate = _.template($('#zoninator-zone-post-tpl').html());
 
 	zoninator.init = function() {
 		zoninator.autocompleteCache = {};
@@ -213,7 +214,11 @@ var zoninator = {}
 		zoninator.$zonePostSearch.trigger('loading.end');
 
 		// Add Post to List
-		var $post = $(returnData.content);
+		var $post = $(zonePostTemplate({
+			post_id: returnData.content.post_id,
+			info: returnData.content.info,
+			position: returnData.content.position
+		}));
 		$post.hide()
 			.appendTo(zoninator.$zonePostsList)
 			.fadeIn()

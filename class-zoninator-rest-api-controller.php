@@ -120,10 +120,7 @@ class Zoninator_Rest_Api_Controller {
             $status = 500;
             $content = $result->get_error_message();
         } else {
-            ob_start();
-            $this->_renderer->admin_page_zone_post( $post, $zone );
-            $content = ob_get_contents();
-            ob_end_clean();
+            $content = $this->_zone_gateway->get_admin_zone_post( $post, $zone );
             $status = 200;
         }
 
