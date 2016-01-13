@@ -423,6 +423,44 @@ class Zoninator_Zone_Gateway
 //        wp_cache_set( $cache_key, $posts, $meta_key );
     }
 
+    public function get_admin_zone_post($post, $zone) {
+        return apply_filters('zoninator_zone_post_columns', array(
+            'post_id' => $post->ID,
+            'position' => array(
+                'current_position' => esc_html( $this->get_post_order( $post->ID, $zone ) ),
+                'change_position_message' => esc_attr__( 'Click and drag to change the position of this item.', Zoninator_Constants::TEXT_DOMAIN ),
+                'key' => 'position'
+            ),
+            'info' => array(
+                'key' => 'info',
+                'post' => array(
+                    'post_title'  => esc_html( $post->post_title ),
+                    'post_status' => esc_html( $post->post_status )
+                ),
+                'action_link_data' => array(
+                    array(
+                        'action' => 'edit',
+                        'anchor'     => get_edit_post_link( $post->ID ),
+                        'title' => __( 'Opens in new window', Zoninator_Constants::TEXT_DOMAIN ),
+                        'text'  => __( 'Edit', Zoninator_Constants::TEXT_DOMAIN )
+                    ),
+                    array(
+                        'action' => 'delete',
+                        'anchor'     => '#',
+                        'title' => __( 'Opens in new window', Zoninator_Constants::TEXT_DOMAIN ),
+                        'text'  => __( 'Remove', Zoninator_Constants::TEXT_DOMAIN )
+                    ),
+                    array(
+                        'action' => 'view',
+                        'anchor'     => get_permalink( $post->ID ),
+                        'title' => __( 'Opens in new window', Zoninator_Constants::TEXT_DOMAIN ),
+                        'text'  => __( 'View', 'zoninator' )
+                    )
+                )
+            )
+        ), $post, $zone);
+    }
+
     function get_supported_post_types() {
         if( isset( $this->post_types ) )
             return $this->post_types;
