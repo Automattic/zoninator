@@ -14,50 +14,39 @@ class Zoninator_View_Renderer
 
     public function admin_page_zone_post($post, $zone)
     {
-        $columns = apply_filters('zoninator_zone_post_columns', array(
-            'position' => array($this, 'admin_page_zone_post_col_position'),
-            'info' => array($this, 'admin_page_zone_post_col_info')
-        ), $post, $zone);
+        $columns = $this->_zone_gateway->get_admin_zone_post( $post, $zone);
+
         ?>
-        <div id="zone-post-<?php echo $post->ID; ?>" class="zone-post" data-post-id="<?php echo $post->ID; ?>">
+        <div id="zone-post-<?php echo $columns['post_id']; ?>" class="zone-post" data-post-id="<?php echo $columns['post_id']; ?>">
             <table>
                 <tr>
-                    <?php foreach ($columns as $column_key => $column_callback) : ?>
-                        <?php if (is_callable($column_callback)) : ?>
-                            <td class="zone-post-col zone-post-<?php echo $column_key; ?>">
-                                <?php call_user_func($column_callback, $post, $zone); ?>
-                            </td>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
+                    <?php if ( array_key_exists( 'position', $columns ) ) : ?>
+                        <td class="zone-post-col zone-post-<?php echo $columns['position']['key']; ?>">
+                            <span title="<?php echo $columns['position']['current_position']; ?>">
+			                    <?php echo $columns['position']['current_position']; ?>
+		                    </span>
+                        </td>
+                    <?php endif; ?>
+                    <?php if ( array_key_exists( 'info', $columns ) ) : ?>
+                        <td class="zone-post-col zone-post-<?php echo $columns['info']['key']; ?>">
+                            <?php
+                            $info = $columns['info'];
+                            $action_links = array_map(function ($data) {
+                                return sprintf( '<a href="%s" class="%s" title="%s">%s</a>', $data['anchor'], $data['action'], $data['title'], $data['text']);
+                            }, $info['action_link_data']);
+
+                            ?>
+
+                            <?php echo sprintf( '%s <span class="zone-post-status">(%s)</span>', $info['post']['post_title'], $info['post']['post_status'] ); ?>
+
+                            <div class="row-actions">
+                                <?php echo implode( ' | ', $action_links ); ?>
+                            </div>
+                        </td>
+                    <?php endif; ?>
                 </tr>
             </table>
-            <input type="hidden" name="zone-post-id" value="<?php echo $post->ID; ?>"/>
-        </div>
-        <?php
-    }
-
-    function admin_page_zone_post_col_position( $post, $zone ) {
-        $current_position = $this->_zone_gateway->get_post_order( $post->ID, $zone );
-        ?>
-        <span title="<?php esc_attr_e( 'Click and drag to change the position of this item.', 'zoninator' ); ?>">
-			<?php echo esc_html( $current_position ); ?>
-		</span>
-        <?php
-    }
-
-    function admin_page_zone_post_col_info( $post, $zone ) {
-        $action_links = array(
-            sprintf( '<a href="%s" class="edit" target="_blank" title="%s">%s</a>', get_edit_post_link( $post->ID ), __( 'Opens in new window', 'zoninator' ), __( 'Edit', 'zoninator' ) ),
-            sprintf( '<a href="#" class="delete" title="%s">%s</a>', __( 'Remove this item from the zone', 'zoninator' ), __( 'Remove', 'zoninator' ) ),
-            sprintf( '<a href="%s" class="view" target="_blank" title="%s">%s</a>', get_permalink( $post->ID ), __( 'Opens in new window', 'zoninator' ), __( 'View', 'zoninator' ) ),
-            // Move To
-            // Copy To
-        );
-        ?>
-        <?php echo sprintf( '%s <span class="zone-post-status">(%s)</span>', esc_html( $post->post_title ), esc_html( $post->post_status ) ); ?>
-
-        <div class="row-actions">
-            <?php echo implode( ' | ', $action_links ); ?>
+            <input type="hidden" name="zone-post-id" value="<?php echo $columns['post_id']; ?>"/>
         </div>
         <?php
     }
