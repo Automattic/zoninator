@@ -8,11 +8,6 @@ class Zoninator_Rest_Api_Controller_Test extends WP_UnitTestCase
     private $_zone_gateway = null;
 
     /**
-     * @var Zoninator_View_Renderer
-     */
-    private $_renderer = null;
-
-    /**
      * @var Zoninator_Permissions
      */
     private $_permissions = null;
@@ -35,18 +30,11 @@ class Zoninator_Rest_Api_Controller_Test extends WP_UnitTestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->_renderer = $this->getMockBuilder( 'Zoninator_View_Renderer' )
-            ->disableOriginalConstructor()
-            ->getMock();
-
         $this->_permissions = $this->getMockBuilder( 'Zoninator_Permissions' )
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->_renderer->method('admin_page_zone_post')
-            ->willReturn('<p>Some content</p>');
-
-        $this->_controller = new Zoninator_Rest_Api_Controller( $this->_zone_gateway, $this->_permissions, $this->_renderer );
+        $this->_controller = new Zoninator_Rest_Api_Controller( $this->_zone_gateway, $this->_permissions );
         $this->_post_id = $this->_insert_a_post();
     }
 

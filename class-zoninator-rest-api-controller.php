@@ -29,15 +29,9 @@ class Zoninator_Rest_Api_Controller {
      */
     private $_permissions = null;
 
-    /**
-     * @var Zoninator_View_Renderer
-     */
-    private $_renderer = null;
-
-    function __construct( $data_service, $permissions, $renderer ) {
+    function __construct( $data_service, $permissions ) {
         $this->_zone_gateway = $data_service;
         $this->_permissions = $permissions;
-        $this->_renderer = $renderer;
     }
 
     function register_routes() {
