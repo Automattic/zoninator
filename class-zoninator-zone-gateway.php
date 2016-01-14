@@ -427,7 +427,7 @@ class Zoninator_Zone_Gateway
         return apply_filters('zoninator_zone_post_columns', array(
             'post_id' => $post->ID,
             'position' => array(
-                'current_position' => esc_html( $this->get_post_order( $post->ID, $zone ) ),
+                'current_position' => intval( $this->get_post_order( $post->ID, $zone ) ),
                 'change_position_message' => esc_attr__( 'Click and drag to change the position of this item.', Zoninator_Constants::TEXT_DOMAIN ),
                 'key' => 'position'
             ),
@@ -459,6 +459,18 @@ class Zoninator_Zone_Gateway
                 )
             )
         ), $post, $zone);
+    }
+
+    public function get_admin_zone_posts( $zone_or_id ) {
+        $zone = $this->get_zone( $zone_or_id );
+        $posts = $this->get_zone_posts( $zone );
+        $admin_zone_posts = array();
+
+        foreach ( $posts as $post ) {
+            $admin_zone_posts[] = $this->get_admin_zone_post( $post, $zone );
+        }
+
+        return $admin_zone_posts;
     }
 
     function get_supported_post_types() {

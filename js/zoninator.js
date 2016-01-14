@@ -25,6 +25,20 @@ var zoninator = {};
 			zoninator.updateLatest();
 		});
 
+		if (zoninatorOptions.adminZonePosts) {
+			zoninator.$zonePostsList.html('');
+			_(zoninatorOptions.adminZonePosts)
+				.chain()
+				.sortBy(function (post) {
+					return post.position.current_position;
+				})
+				.each(function (adminZonePost) {
+					var $post = zoninator.renderPost(adminZonePost);
+					$post.appendTo(zoninator.$zonePostsList);
+				}).value();
+
+		}
+
 		zoninator.updatePostOrder();
 
 		// Bind actions to buttons
@@ -209,16 +223,20 @@ var zoninator = {};
 		} );
 	};
 
+	zoninator.renderPost = function (content) {
+		return $(zonePostTemplate({
+			post_id: content.post_id,
+			info: content.info,
+			position: content.position
+		}));
+	};
+
 	zoninator.addPostSuccessCallback = function(returnData) {
 
 		zoninator.$zonePostSearch.trigger('loading.end');
 
 		// Add Post to List
-		var $post = $(zonePostTemplate({
-			post_id: returnData.content.post_id,
-			info: returnData.content.info,
-			position: returnData.content.position
-		}));
+		var $post = zoninator.renderPost(returnData.content);
 		$post.hide()
 			.appendTo(zoninator.$zonePostsList)
 			.fadeIn()
