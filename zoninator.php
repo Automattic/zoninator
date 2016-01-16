@@ -156,7 +156,6 @@ class Zoninator
 			wp_enqueue_script( 'underscore-js', ZONINATOR_URL . 'js/underscore-min.js', array(), '', true );
 			wp_enqueue_script( 'zoninator-js', ZONINATOR_URL . 'js/zoninator.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse', 'jquery-ui-position', 'jquery-ui-sortable', 'jquery-ui-autocomplete' ), ZONINATOR_VERSION, true );
 			$options = array(
-				'baseUrl' => $this->_get_zone_page_url(),
 				'restApiUrl' => $this->_get_rest_api_base_url(),
 				'restApiNonce' => wp_create_nonce( 'wp_rest' ),
 				'adminUrl' => admin_url(),
@@ -383,10 +382,8 @@ class Zoninator
 
 							<div class="row-actions">
 								<% for (var i = 0; i < info.action_link_data.length; i++) { %>
-								<a href="<%= info.action_link_data[i].anchor %>" class="<%= info.action_link_data[i].action %>" title="<%= info.action_link_data[i].title %>"><%= info.action_link_data[i].text %></a>
-								<% if (i < info.action_link_data.length - 1) { %>
-								|
-								<% } %>
+								<a href="<%= info.action_link_data[i].anchor %>" class="<%= info.action_link_data[i].action %>"<% if (info.action_link_data[i].target) { %> target="<%= info.action_link_data[i].target %>"<% } %>title="<%= info.action_link_data[i].title %>"><%= info.action_link_data[i].text %></a>
+								<% if (i < info.action_link_data.length - 1) { %>|<% } %>
 								<% } %>
 							</div>
 						</td>

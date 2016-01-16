@@ -442,19 +442,21 @@ class Zoninator_Zone_Gateway
                         'action' => 'edit',
                         'anchor'     => get_edit_post_link( $post->ID ),
                         'title' => __( 'Opens in new window', Zoninator_Constants::TEXT_DOMAIN ),
-                        'text'  => __( 'Edit', Zoninator_Constants::TEXT_DOMAIN )
+                        'text'  => __( 'Edit', Zoninator_Constants::TEXT_DOMAIN ),
+                        'target' => "_blank"
                     ),
                     array(
                         'action' => 'delete',
                         'anchor'     => '#',
-                        'title' => __( 'Opens in new window', Zoninator_Constants::TEXT_DOMAIN ),
+                        'title' => '',
                         'text'  => __( 'Remove', Zoninator_Constants::TEXT_DOMAIN )
                     ),
                     array(
                         'action' => 'view',
                         'anchor'     => get_permalink( $post->ID ),
                         'title' => __( 'Opens in new window', Zoninator_Constants::TEXT_DOMAIN ),
-                        'text'  => __( 'View', 'zoninator' )
+                        'text'  => __( 'View', 'zoninator' ),
+                        'target' => "_blank"
                     )
                 )
             )
