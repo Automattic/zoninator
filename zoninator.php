@@ -38,6 +38,7 @@ define( 'ZONINATOR_URL', trailingslashit( plugins_url( '', __FILE__ ) ) );
 
 require_once( ZONINATOR_PATH . '/functions.php' );
 require_once( ZONINATOR_PATH . '/widget.zone-posts.php');
+require_once( ZONINATOR_PATH . '/class-zoninator-rest-api-controller.php' );
 
 class Zoninator
 {
@@ -57,7 +58,14 @@ class Zoninator
 	var $zone_messages = null;
 	var $posts_per_page = 10;
 
+    /**
+	 * @var null|Zoninator_Rest_Api_Controller
+	 */
+	public $rest_api_controller = null;
+
 	function __construct() {
+        $this->rest_api_controller = new Zoninator_Rest_Api_Controller( $this );
+
 		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
 
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
@@ -118,6 +126,8 @@ class Zoninator
 		# Add default advanced search fields
 		add_action( 'zoninator_advanced_search_fields', array( $this, 'zone_advanced_search_cat_filter' ) );
 		add_action( 'zoninator_advanced_search_fields', array( $this, 'zone_advanced_search_date_filter' ), 20 );
+
+        add_action( 'rest_api_init', array( $this->rest_api_controller, 'register_routes' ) );
 
 		do_action( 'zoninator_post_init' );
 	}
@@ -1164,6 +1174,24 @@ class Zoninator
 		return $this->_fill_zone_details( $zone );
 	}
 
+    function get_zone_feed( $zone_slug_or_id ) {
+        $zone_id = $this->get_zone( $zone_slug_or_id );
+
+        if ( empty( $zone_id ) ) {
+            return new WP_Error( 'invalid-zone-supplied', __( 'Invalid zone supplied', 'zoninator' ) );
+        }
+
+        $results = $this->get_zone_posts( $zone_id, apply_filters( 'zoninator_json_feed_fields', array(), $zone_slug_or_id ) );
+
+        if ( empty( $results ) ) {
+            return new WP_Error( 'no-zone-posts-found',  __( 'No zone posts found', 'zoninator' ) );
+        }
+
+        $filtered_results = $this->filter_zone_feed_fields( $results );
+
+        return apply_filters( 'zoninator_json_feed_results', $filtered_results, $zone_slug_or_id );
+    }
+
 	function lock_zone( $zone, $user_id = 0 ) {
 		$zone_id = $this->get_zone_id( $zone );
 
@@ -1285,22 +1313,7 @@ class Zoninator
 
 	function verify_access( $action = '', $zone_id = null ) {
 		// TODO: should check if zone locked
-
-		$verify_function = '';
-		switch( $action ) {
-			case 'insert':
-				$verify_function = '_current_user_can_add_zones';
-				break;
-			case 'update':
-			case 'delete':
-				$verify_function = '_current_user_can_edit_zones';
-				break;
-			default:
-				$verify_function = '_current_user_can_manage_zones';
-				break;
-		}
-
-		if( ! call_user_func( array( $this, $verify_function ), $zone_id ) )
+		if ( ! $this->check( $action, $zone_id ) )
 			$this->_unauthorized_access();
 	}
 
@@ -1328,7 +1341,7 @@ class Zoninator
 		return $zone;
 	}
 
-	function do_zoninator_feeds() {
+    function do_zoninator_feeds() {
 
 		global $wp_query;
 
@@ -1336,21 +1349,14 @@ class Zoninator
 
 		if ( ! empty( $query_var ) ) {
 			$zone_slug = get_query_var( $this->zone_taxonomy );
-			$zone_id = $this->get_zone( $zone_slug );
 
-			if ( empty( $zone_id ) ) {
-				$this->send_user_error( __( 'Invalid zone supplied', 'zoninator' ) );
+			$results = $this->get_zone_feed( $zone_slug );
+
+			if ( is_wp_error( $results ) ) {
+				$this->send_user_error( $results->get_error_message() );
 			}
 
-			$results = $this->get_zone_posts( $zone_id, apply_filters( 'zoninator_json_feed_fields', array(), $zone_slug ) );
-
-			if ( empty( $results ) ) {
-				$this->send_user_error( __( 'No zone posts found', 'zoninator' ) );
-			}
-
-			$filtered_results = $this->filter_zone_feed_fields( $results );
-
-			$this->json_return( apply_filters( 'zoninator_json_feed_results', $filtered_results, $zone_slug ), false );
+			$this->json_return( $results );
 		}
 
 		return;
@@ -1477,6 +1483,19 @@ class Zoninator
 	function _get_nonce_key( $action ) {
 		return sprintf( '%s-%s', $this->zone_nonce_prefix, $action );
 	}
+
+    public function check( $action = '', $zone_id = null ) {
+        // TODO: should check if zone locked
+        if ( 'insert' == $action ) {
+            return $this->_current_user_can_add_zones();
+        }
+
+        if ( 'update' == $action || 'delete' == $action ) {
+            return $this->_current_user_can_edit_zones( $zone_id );
+        }
+
+        return $this->_current_user_can_manage_zones();
+    }
 
 	function _current_user_can_add_zones() {
 		return current_user_can( $this->_get_add_zones_cap() );
