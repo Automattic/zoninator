@@ -3,9 +3,6 @@
 
 class Zoninator_Rest_Api_Controller {
 
-    const ZONINATOR_NAMESPACE = 'zoninator';
-    const API_VERSION = '1';
-
     const ZONE_ITEM_URL_REGEX = '/zones/(?P<zone_id>[\d]+)';
     const ZONE_ITEM_POSTS_URL_REGEX = '/zones/(?P<zone_id>[\d]+)/posts';
     const ZONE_ITEM_POSTS_POST_REGEX = '/zones/(?P<zone_id>[\d]+)/posts/(?P<post_id>\d+)';
@@ -29,7 +26,7 @@ class Zoninator_Rest_Api_Controller {
     }
 
     function register_routes() {
-        $full_namespace = self::ZONINATOR_NAMESPACE . '/v' . self::API_VERSION;
+        $full_namespace = ZONINATOR_REST_API_NAMESPACE;
 
         register_rest_route( $full_namespace, self::ZONE_ITEM_POSTS_URL_REGEX, array(
             array(
@@ -93,13 +90,13 @@ class Zoninator_Rest_Api_Controller {
         $post = get_post( $post_id );
 
         if ( ! $post ) {
-            return $this->_bad_request(self::INVALID_POST_ID, __( 'invalid post id', self::ZONINATOR_NAMESPACE ));
+            return $this->_bad_request(self::INVALID_POST_ID, __( 'invalid post id', ZONINATOR_TEXTDOMAIN ));
         }
 
         $zone = $this->_zoninator->get_zone( $zone_id );
 
         if ( ! $zone ) {
-            return $this->_bad_request(self::INVALID_ZONE_ID, __( 'invalid zone id', self::ZONINATOR_NAMESPACE ));
+            return $this->_bad_request(self::INVALID_ZONE_ID, __( 'invalid zone id', ZONINATOR_TEXTDOMAIN ));
         }
 
         $result = $this->_zoninator->add_zone_posts( $zone_id, $post, true );
@@ -133,7 +130,7 @@ class Zoninator_Rest_Api_Controller {
         $post_id = $this->_get_param( $request, 'post_id', 0, 'absint' );
 
         if (!$zone_id || !$post_id ) {
-            return $this->_bad_request( self::ZONE_ID_POST_ID_REQUIRED, __( 'post id and zone id required', self::ZONINATOR_NAMESPACE ) );
+            return $this->_bad_request( self::ZONE_ID_POST_ID_REQUIRED, __( 'post id and zone id required', ZONINATOR_TEXTDOMAIN ) );
         }
 
         $result = $this->_zoninator->remove_zone_posts( $zone_id, $post_id );
@@ -164,7 +161,7 @@ class Zoninator_Rest_Api_Controller {
         $post_ids = (array) $this->_get_param( $request, 'posts', array(), 'absint' );
 
         if ( ! $zone_id || empty( $post_ids ) ) {
-            return $this->_bad_request( self::ZONE_ID_POST_IDS_REQUIRED, __('post ids and zone id required', self::ZONINATOR_NAMESPACE) );
+            return $this->_bad_request( self::ZONE_ID_POST_IDS_REQUIRED, __('post ids and zone id required', ZONINATOR_TEXTDOMAIN) );
         }
 
         $result = $this->_zoninator->add_zone_posts( $zone_id, $post_ids, false );
@@ -197,7 +194,7 @@ class Zoninator_Rest_Api_Controller {
         $zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
 
         if (!$zone_id) {
-            return $this->_bad_request(self::ZONE_ID_REQUIRED, __('zone id required', self::ZONINATOR_NAMESPACE));
+            return $this->_bad_request(self::ZONE_ID_REQUIRED, __('zone id required', ZONINATOR_TEXTDOMAIN));
         }
 
         if (!$this->_zoninator->is_zone_locked($zone_id)) {
@@ -223,7 +220,7 @@ class Zoninator_Rest_Api_Controller {
         $q = $this->_get_param($request, 'term', '', 'stripslashes');
 
         if (empty($q)) {
-            return $this->_bad_request(self::TERM_REQUIRED, __('parameter term is required', self::ZONINATOR_NAMESPACE));
+            return $this->_bad_request(self::TERM_REQUIRED, __('parameter term is required', ZONINATOR_TEXTDOMAIN));
         }
 
         $filter_cat = $this->_get_param( $request, 'cat', '', 'absint' );
@@ -267,7 +264,7 @@ class Zoninator_Rest_Api_Controller {
         if ( $query->have_posts() ) {
             foreach ( $query->posts as $post ) {
                 $stripped_posts[] = apply_filters( 'zoninator_search_results_post', array(
-                    'title' => !empty( $post->post_title ) ? $post->post_title : __( '(no title)', 'zoninator' ),
+                    'title' => !empty( $post->post_title ) ? $post->post_title : __( '(no title)', ZONINATOR_TEXTDOMAIN ),
                     'post_id' => $post->ID,
                     'date' => get_the_time( get_option( 'date_format' ), $post ),
                     'post_type' => $post->post_type,
@@ -290,7 +287,7 @@ class Zoninator_Rest_Api_Controller {
         $zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
 
         if ( empty( $zone_id ) ) {
-            return $this->_bad_request( self::ZONE_ID_REQUIRED, __( 'zone_id is required', self::ZONINATOR_NAMESPACE ) );
+            return $this->_bad_request( self::ZONE_ID_REQUIRED, __( 'zone_id is required', ZONINATOR_TEXTDOMAIN ) );
         }
 
         $results = $this->_zoninator->get_zone_feed( $zone_id );
@@ -359,11 +356,11 @@ class Zoninator_Rest_Api_Controller {
         }
 
         if ( ! $content ) {
-            $empty_label = __( 'No results found', self::ZONINATOR_NAMESPACE );
+            $empty_label = __( 'No results found', ZONINATOR_TEXTDOMAIN );
         } elseif ( $cat ) {
             $empty_label = sprintf(__('Choose post from %s', 'zoninator'), get_the_category_by_ID($cat));
         } else {
-            $empty_label = __( 'Choose a post', self::ZONINATOR_NAMESPACE );
+            $empty_label = __( 'Choose a post', ZONINATOR_TEXTDOMAIN );
         }
 
         $content = '<option value="">' . esc_html($empty_label) . '</option>' . $content;
@@ -468,7 +465,7 @@ class Zoninator_Rest_Api_Controller {
         $zone_params = $this->_get_zone_id_param();
         return array_merge(array(
             'cat' => array(
-                'description'       => __( 'only recent posts from this category id', self::ZONINATOR_NAMESPACE ),
+                'description'       => __( 'only recent posts from this category id', ZONINATOR_TEXTDOMAIN ),
                 'type'              => 'integer',
                 'validate_callback' => array( $this, 'is_numeric' ),
                 'sanitize_callback' => 'absint',
@@ -476,7 +473,7 @@ class Zoninator_Rest_Api_Controller {
                 'required'          => false
             ),
             'date' => array(
-                'description'       => __( 'only get posts after this date (format YYYY-mm-dd)', self::ZONINATOR_NAMESPACE ),
+                'description'       => __( 'only get posts after this date (format YYYY-mm-dd)', ZONINATOR_TEXTDOMAIN ),
                 'type'              => 'string',
                 'sanitize_callback' => array( $this, 'strip_slashes' ),
                 'default'           => '',
@@ -489,14 +486,14 @@ class Zoninator_Rest_Api_Controller {
     {
         return array(
             'term' => array(
-                'description'       => __( 'search term', self::ZONINATOR_NAMESPACE ),
+                'description'       => __( 'search term', ZONINATOR_TEXTDOMAIN ),
                 'type'              => 'string',
                 'sanitize_callback' => array( $this, 'strip_slashes' ),
                 'default'           => '',
                 'required'          => true
             ),
             'cat' => array(
-                'description'       => __( 'filter by category', self::ZONINATOR_NAMESPACE ),
+                'description'       => __( 'filter by category', ZONINATOR_TEXTDOMAIN ),
                 'type'              => 'integer',
                 'validate_callback' => array( $this, 'is_numeric' ),
                 'sanitize_callback' => 'absint',
@@ -504,21 +501,21 @@ class Zoninator_Rest_Api_Controller {
                 'required'          => false
             ),
             'date' => array(
-                'description'       => __( 'only get posts after this date (format YYYY-mm-dd)', self::ZONINATOR_NAMESPACE ),
+                'description'       => __( 'only get posts after this date (format YYYY-mm-dd)', ZONINATOR_TEXTDOMAIN ),
                 'type'              => 'string',
                 'sanitize_callback' => array( $this, 'strip_slashes' ),
                 'default'           => '',
                 'required'          => false
             ),
             'limit' => array(
-                'description'       => __( 'limit results', self::ZONINATOR_NAMESPACE ),
+                'description'       => __( 'limit results', ZONINATOR_TEXTDOMAIN ),
                 'type'              => 'integer',
                 'sanitize_callback' => 'absint',
                 'default'           => $this->_zoninator->posts_per_page,
                 'required'          => false
             ),
             'exclude' => array(
-                'description'       => __( 'post_ids to exclude', self::ZONINATOR_NAMESPACE ),
+                'description'       => __( 'post_ids to exclude', ZONINATOR_TEXTDOMAIN ),
                 'required'          => false
             )
         );
@@ -535,7 +532,7 @@ class Zoninator_Rest_Api_Controller {
     private function _permissions_check($action, $zone_id = null )
     {
         if (!$this->_zoninator->check( $action, $zone_id ) ) {
-            return $this->_bad_request(self::PERMISSION_DENIED, __('Sorry, you\'re not supposed to do that...', self::ZONINATOR_NAMESPACE));
+            return $this->_bad_request(self::PERMISSION_DENIED, __('Sorry, you\'re not supposed to do that...', ZONINATOR_TEXTDOMAIN));
         }
         return true;
     }
