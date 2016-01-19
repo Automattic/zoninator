@@ -146,7 +146,6 @@ class Zoninator
 	function admin_ajax_init( ) {
 		add_action( 'wp_ajax_zoninator_reorder_posts', array( $this, 'ajax_reorder_posts' ) );
 		add_action( 'wp_ajax_zoninator_add_post', array( $this, 'ajax_add_post' ) );
-		add_action( 'wp_ajax_zoninator_remove_post', array( $this, 'ajax_remove_post' ) );
 	}
 
 	function admin_init() {
@@ -665,31 +664,6 @@ class Zoninator
 			ob_end_clean();
 
 			$status = 1;
-		}
-
-		$this->ajax_return( $status, $content );
-	}
-
-	function ajax_remove_post() {
-		$zone_id = $this->_get_post_var( 'zone_id', 0, 'absint' );
-		$post_id = $this->_get_post_var( 'post_id', 0, 'absint' );
-
-		// Verify nonce
-		$this->verify_nonce( $this->zone_ajax_nonce_action );
-		$this->verify_access( '', $zone_id );
-
-		// Validate
-		if( ! $zone_id || ! $post_id )
-			$this->ajax_return( 0 );
-
-		$result = $this->remove_zone_posts( $zone_id, $post_id );
-
-		if( is_wp_error( $result ) ) {
-			$status = 0;
-			$content = $result->get_error_message();
-		} else {
-			$status = 1;
-			$content = '';
 		}
 
 		$this->ajax_return( $status, $content );

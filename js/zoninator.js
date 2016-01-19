@@ -221,19 +221,18 @@ var zoninator = {}
 	zoninator.removePost = function(postId) {
 		zoninator.getPost(postId).trigger('loading.start');
 
-		zoninator.ajax('remove_post', {
-			zone_id: zoninator.getZoneId()
-			, post_id: postId
-		}, zoninator.removePostSuccessCallback);
+        zoninator.restAjax('/zones/' + zoninator.getZoneId() + '/posts/' + postId,
+			'DELETE', 'remove_post', {}, zoninator.removePostSuccessCallback);
 	}
 
-	zoninator.removePostSuccessCallback = function(returnData, originalData) {
-		var postId = originalData.post_id;
+	zoninator.removePostSuccessCallback = function(returnData) {
+		var postId = returnData.post_id;
 
 		zoninator.getPost(postId).fadeOut('slow', function() {
 			$(this).remove();
-			if ( zoninator.getZonePostIds().length )
-				zoninator.updatePostOrder(true);
+			if ( zoninator.getZonePostIds().length ) {
+                zoninator.updatePostOrder(true);
+            }
 			zoninator.$zonePostsWrap.trigger('loading.end');
 		});
 	}
