@@ -147,7 +147,6 @@ class Zoninator
 		add_action( 'wp_ajax_zoninator_reorder_posts', array( $this, 'ajax_reorder_posts' ) );
 		add_action( 'wp_ajax_zoninator_add_post', array( $this, 'ajax_add_post' ) );
 		add_action( 'wp_ajax_zoninator_remove_post', array( $this, 'ajax_remove_post' ) );
-		add_action( 'wp_ajax_zoninator_search_posts', array( $this, 'ajax_search_posts' ) );
 	}
 
 	function admin_init() {
@@ -735,64 +734,6 @@ class Zoninator
 
 		// Remove from old zone
 		$this->remove_zone_posts( $from_zone_id, $post_id );
-	}
-
-	function ajax_search_posts() {
-
-		$q = $this->_get_request_var( 'term', '', 'stripslashes' );
-
-		if( ! empty( $q ) ) {
-
-			$filter_cat = $this->_get_request_var( 'cat', '', 'absint' );
-			$filter_date = $this->_get_request_var( 'date', '', 'striptags' );
-
-			$post_types = $this->get_supported_post_types();
-			$limit = $this->_get_request_var( 'limit', $this->posts_per_page );
-			if( $limit <= 0 )
-				$limit = $this->posts_per_page;
-			$exclude = (array) $this->_get_request_var( 'exclude', array(), 'absint' );
-
-			$args = apply_filters( 'zoninator_search_args', array(
-				's' => $q,
-				'post__not_in' => $exclude,
-				'posts_per_page' => $limit,
-				'post_type' => $post_types,
-				'post_status' => array( 'publish', 'future' ),
-				'order' => 'DESC',
-				'orderby' => 'post_date',
-				'suppress_filters' => true,
-			) );
-
-			if ( $this->_validate_category_filter( $filter_cat ) ) {
-				$args['cat'] = $filter_cat;
-			}
-
-			if ( $this->_validate_date_filter( $filter_date ) ) {
-				$filter_date_parts = explode( '-', $filter_date );
-				$args['year'] = $filter_date_parts[0];
-				$args['monthnum'] = $filter_date_parts[1];
-				$args['day'] = $filter_date_parts[2];
-			}
-
-			$query = new WP_Query( $args );
-			$stripped_posts = array();
-
-			if ( ! $query->have_posts() )
-				exit;
-
-			foreach( $query->posts as $post ) {
-				$stripped_posts[] = apply_filters( 'zoninator_search_results_post', array(
-					'title' => ! empty( $post->post_title ) ? $post->post_title : __( '(no title)', 'zoninator' ),
-					'post_id' => $post->ID,
-					'date' => get_the_time( get_option( 'date_format' ), $post ),
-					'post_type' => $post->post_type,
-					'post_status' => $post->post_status,
-				), $post );
-			}
-
-			echo json_encode( $stripped_posts );
-			exit;
-		}
 	}
 
 	function get_supported_post_types() {

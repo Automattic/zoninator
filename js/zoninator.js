@@ -106,7 +106,7 @@ var zoninator = {}
 						// Allow developers to hook onto the request
 						zoninator.$zonePostSearch.trigger('search.request', request);
 
-						zoninator.autocompleteAjax = $.getJSON( ajaxurl, request, function( data, status, xhr ) {
+						zoninator.autocompleteAjax = $.getJSON( zoninatorOptions.restApiUrl + '/posts/search', request, function( data, status, xhr ) {
 							zoninator.autocompleteCache[ term ] = data;
 							if ( xhr === zoninator.autocompleteAjax ) {
 								response( data );
