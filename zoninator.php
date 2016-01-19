@@ -35,6 +35,8 @@ if( ! class_exists( 'Zoninator' ) ) :
 define( 'ZONINATOR_VERSION', '0.6' );
 define( 'ZONINATOR_PATH', dirname( __FILE__ ) );
 define( 'ZONINATOR_URL', trailingslashit( plugins_url( '', __FILE__ ) ) );
+define( 'ZONINATOR_TEXTDOMAIN', 'zoninator' );
+define( 'ZONINATOR_REST_API_NAMESPACE', 'zoninator/v1' );
 
 require_once( ZONINATOR_PATH . '/functions.php' );
 require_once( ZONINATOR_PATH . '/widget.zone-posts.php');
@@ -170,6 +172,8 @@ class Zoninator
 			wp_enqueue_script( 'zoninator-js', ZONINATOR_URL . 'js/zoninator.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse', 'jquery-ui-position', 'jquery-ui-sortable', 'jquery-ui-autocomplete' ), ZONINATOR_VERSION, true );
 
 			$options = array(
+                'restApiUrl' => $this->_get_rest_api_base_url(),
+				'restApiNonce' => wp_create_nonce( 'wp_rest' ),
 				'baseUrl' => $this->_get_zone_page_url(),
 				'adminUrl' => admin_url(),
 				'ajaxNonceAction' => $this->_get_nonce_key( $this->zone_ajax_nonce_action ),
@@ -179,6 +183,7 @@ class Zoninator
 				'zoneLockPeriod' => $this->zone_lock_period,
 				'zoneLockPeriodMax' => $this->zone_max_lock_period,
 			);
+
 			wp_localize_script( 'zoninator-js', 'zoninatorOptions', $options );
 
 			// For mobile support
@@ -1567,6 +1572,11 @@ class Zoninator
 	}
 	function _get_post_var( $var, $default = '', $sanitize_callback = '' ) {
 		return $this->_get_value_or_default( $var, $_POST, $default, $sanitize_callback );
+	}
+
+    private function _get_rest_api_base_url() {
+        $blog_id = ( is_multisite() ) ? get_current_blog_id() : null;
+		return get_rest_url( $blog_id, ZONINATOR_REST_API_NAMESPACE );
 	}
 }
 

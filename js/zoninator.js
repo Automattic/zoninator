@@ -1,7 +1,7 @@
 var zoninator = {}
 
 ;(function($, window, undefined) {
-	
+
 	zoninator.init = function() {
 		zoninator.autocompleteCache = {}
 		zoninator.autocompleteAjax = {}
@@ -24,11 +24,11 @@ var zoninator = {}
 			zoninator.updateLatest();
 		});
 
-		zoninator.updatePostOrder();		
-	
+		zoninator.updatePostOrder();
+
 		// Bind actions to buttons
 		zoninator.initZonePost(zoninator.$zonePostsList.children());
-		
+
 		// Initialize sortable
 		if(!zoninator.$zonePostsWrap.hasClass('readonly')) {
 			zoninator.$zonePostsList.sortable({
@@ -38,7 +38,7 @@ var zoninator = {}
 				//, handle: '.zone-post-handle'
 			});
 		}
-		
+
 		// Bind loading events
 		zoninator.$zonePostsWrap
 			.bind('loading.start', function() {
@@ -49,17 +49,17 @@ var zoninator = {}
 				$(this).removeClass('loading');
 				zoninator.$zoneSubmit.attr("disabled", false);
 			});
-		
+
 		// Validate form
 		// TODO: This is really simplistic validation; beef it up a bit.
 		$('#zone-info').submit(function(e) {
 			var $form = $(this);
 			var $name = $form.find('input[name="name"]');
 			if( !$name.val().trim() ) {
-				$name.closest( '.zone-field' ).addClass('error'); 
+				$name.closest( '.zone-field' ).addClass('error');
 				return false;
 			} else {
-				$name.closest( '.zone-field' ).removeClass('error'); 
+				$name.closest( '.zone-field' ).removeClass('error');
 			}
 		});
 
@@ -72,7 +72,7 @@ var zoninator = {}
 			}
 		});
 
-		
+
 
 		// Initialize autocomplete
 		if(zoninator.$zonePostSearch.length) {
@@ -98,7 +98,7 @@ var zoninator = {}
 							zoninator.$zonePostSearch.trigger('loading.end');
 							return;
 						}
-					
+
 						// Append more request vars
 						request.action = zoninator.getAjaxAction('search_posts');
 						request.exclude = zoninator.getZonePostIds();
@@ -139,7 +139,7 @@ var zoninator = {}
 					;
 			}
 		}
-		
+
 		// Initialize lock heartbeat
 		if( zoninator.getZoneId() && ! $('#zone-locked').length ) {
 			zoninator.currentLockPeriod = 0;
@@ -149,16 +149,16 @@ var zoninator = {}
 			if( zoninator.heartbeatInterval > 0 && zoninator.maxLockPeriod != -1) {
 				zoninator.heartbeatInterval = zoninator.heartbeatInterval * 1000;
 				zoninator.maxLockPeriod = zoninator.maxLockPeriod * 1000;
-				
+
 				zoninator.updateLock();
 			}
 		}
-		
+
 		// TODO: move / copy posts to zones
 	}
 
 	zoninator.updateLatest = function() {
-	
+
 		zoninator.$zonePostSearch.trigger('loading.start');
 		zoninator.ajax('update_recent', {
 			zone_id: zoninator.getZoneId(),
@@ -176,40 +176,40 @@ var zoninator = {}
 	}
 
 	zoninator.addPost = function(postId) {
-		
+
 		zoninator.$zonePostSearch.trigger('loading.start');
-		
+
 		zoninator.ajax('add_post', {
 			zone_id: zoninator.getZoneId()
 			, post_id: postId
 		}, zoninator.addPostSuccessCallback);
-		
+
 	}
-	
+
 	zoninator.addPostSuccessCallback = function(returnData) {
-		
+
 		zoninator.$zonePostSearch.trigger('loading.end');
-		
+
 		// Add Post to List
 		var $post = $(returnData.content);
 		$post.hide()
 			.appendTo(zoninator.$zonePostsList)
 			.fadeIn()
 			;
-		
+
 		zoninator.initZonePost($post);
-		
+
 		// Reorder Posts
 		zoninator.updatePostOrder(true);
 	}
-	
+
 	zoninator.initZonePost = function($elem) {
 		$elem.bind('loading.start', function(e) {
 			$(this).addClass('loading');
 		}).bind('loading.end', function(e) {
 			$(this).removeClass('loading');
 		});
-		
+
 		$elem.find('.delete').bind('click', function(e) {
 			e.preventDefault();
 			var postId = zoninator.getPostIdFromElem(this);
@@ -219,16 +219,16 @@ var zoninator = {}
 
 	zoninator.removePost = function(postId) {
 		zoninator.getPost(postId).trigger('loading.start');
-		
+
 		zoninator.ajax('remove_post', {
 			zone_id: zoninator.getZoneId()
 			, post_id: postId
-		}, zoninator.removePostSuccessCallback);	
+		}, zoninator.removePostSuccessCallback);
 	}
-	
+
 	zoninator.removePostSuccessCallback = function(returnData, originalData) {
 		var postId = originalData.post_id;
-		
+
 		zoninator.getPost(postId).fadeOut('slow', function() {
 			$(this).remove();
 			if ( zoninator.getZonePostIds().length )
@@ -242,35 +242,34 @@ var zoninator = {}
 		var zoneId = zoninator.getZoneId()
 			, postIds = zoninator.getZonePostIds()
 			;
-		
+
 		// Reorder only if changed
 		if(!compareArrays(postIds, zoninator.getPostOrder())) {
 			var data = {
 				zone_id: zoneId
 				, posts: postIds
 			}
-			
+
 			zoninator.$zonePostsWrap.trigger('loading.start');
-			
+
 			// make ajax call to save order
 			zoninator.ajax('reorder_posts', data, zoninator.reorderPostsSuccessCallback);
 		}
 	}
-	
+
 	zoninator.reorderPostsSuccessCallback = function(returnData, originalData) {
 		zoninator.$zonePostsWrap.trigger('loading.end');
 		zoninator.updatePostOrder(false);
-		
+
 		// The user took some action so reset the lock period
 		zoninator.resetCurrentLockPeriod();
 	}
-	
+
 	zoninator.updateLock = function() {
-		zoninator.ajax('update_lock', {
-			zone_id: zoninator.getZoneId()
-		}, function(returnData, originalData) { 
+        var resource = '/zones/' + zoninator.getZoneId() + '/lock';
+		zoninator.restAjax(resource, 'PUT', 'update_lock', {}, function(returnData, originalData) {
 			zoninator.currentLockPeriod += zoninator.heartbeatInterval;
-			
+
 			// We want to set a max to avoid people leaving their tabs open and then running away for long periods
 			if( zoninator.currentLockPeriod < zoninator.maxLockPeriod ) {
 				setTimeout(zoninator.updateLock, zoninator.heartbeatInterval);
@@ -284,11 +283,11 @@ var zoninator = {}
 			location.reload();
 		});
 	}
-	
+
 	zoninator.resetCurrentLockPeriod = function() {
 		zoninator.currentLockPeriod = 0;
 	}
-	
+
 	zoninator.ajax = function(action, values, successCallback, errorCallback, params) {
 		var data = {
 			action: zoninator.getAjaxAction(action)
@@ -312,28 +311,51 @@ var zoninator = {}
 			}
 		}
 		params = $.extend({}, defaultParams, params);
-		
+
 		$.ajax(params);
 	}
-	
+
+    zoninator.restAjax = function (endpoint, method, action, data, successCallback, errorCallback) {
+		if (!data) {
+			data = {};
+		}
+
+		zoninator.$zonePostSearch.trigger( 'zoninator.ajax', [ action, data ] );
+
+		return $.ajax( {
+			url: zoninatorOptions.restApiUrl + endpoint,
+			method: method,
+			beforeSend: function ( xhr ) {
+				xhr.setRequestHeader( 'X-WP-Nonce', zoninatorOptions.restApiNonce );
+			},
+			success: function(returnData) {
+				zoninator.ajaxSuccessCallback(returnData, data, successCallback, errorCallback);
+			},
+			error: function(returnData) {
+				zoninator.ajaxErrorCallback(returnData, data, successCallback, errorCallback);
+			},
+			data:data
+		} );
+	};
+
 	zoninator.ajaxSuccessCallback = function(returnData, originalData, successCallback, errorCallback) {
 		if(typeof(returnData) === 'undefined' || !returnData.status) {
 			// If we didn't get a valid return, it's probably an error
 			return zoninator.ajaxErrorCallback(returnData, originalData, successCallback, errorCallback);
 		}
-		
+
 		//console.log('ajaxSuccessCallback', returnData, originalData);
-		
+
 		if(returnData.nonce)
 			zoninator.updateAjaxNonce(returnData.nonce);
-		
+
 		if(typeof(successCallback) === 'function') {
-			return successCallback(returnData, originalData); 
+			return successCallback(returnData, originalData);
 		} else {
 			alert(returnData.content);
 		}
 	}
-	
+
 	zoninator.ajaxErrorCallback = function(returnData, originalData, successCallback, errorCallback) {
 		if( typeof(returnData) === 'undefined' || !returnData ) {
 			returnData = {
@@ -341,18 +363,18 @@ var zoninator = {}
 				, content: zoninatorOptions.errorGeneral
 			}
 		}
-		
+
 		//console.log('ajaxErrorCallback', returnData, originalData);
-		
+
 		if(typeof(errorCallback) === 'function') {
-			return errorCallback(returnData, originalData); 
+			return errorCallback(returnData, originalData);
 		} else {
 			if( typeof(returnData.content) === 'undefined' || !returnData.content )
 				returnData.content = zoninatorOptions.errorGeneral;
 			alert(returnData.content);
 		}
 	}
-	
+
 	zoninator.updateAjaxNonce = function(action, nonce) {
 		zoninator.getAjaxNonceField(action).val(nonce);
 	}
@@ -364,7 +386,7 @@ var zoninator = {}
 	zoninator.getAdvancedDate = function() {
 		return $('#zone_advanced_filter_date').length ? zoninator.$zoneAdvancedDate.val() : 0;
 	}
-	
+
 	zoninator.getAjaxNonce = function(action) {
 		return zoninator.getAjaxNonceField(action).val();
 	}
@@ -372,23 +394,23 @@ var zoninator = {}
 		action = action || zoninatorOptions.ajaxNonceAction;
 		return $('#' + action );
 	}
-	
+
 	zoninator.getZoneId = function() {
 		return $('#zone_id').length ? $('#zone_id').val() : 0;
 	}
-	
+
 	zoninator.getZonePosts = function() {
 		return zoninator.$zonePostsList.children();
 	}
-	
+
 	zoninator.getPost = function(postId) {
 		return $('#zone-post-' + postId);
 	}
-	
+
 	zoninator.getPostIdFromElem = function(elem) {
 		return $(elem).closest('.zone-post').attr('data-post-id');
 	}
-	
+
 	zoninator.getZonePostIds = function() {
 		var ids = []
 			, $posts = zoninator.getZonePosts();
@@ -397,28 +419,28 @@ var zoninator = {}
 		});
 		return ids;
 	}
-	
+
 	zoninator.getPostOrder = function() {
 		if(!$.isArray(zoninator.currentPostOrder))
 			zoninator.updatePostOrder();
 		return zoninator.currentPostOrder;
 	}
-	
+
 	zoninator.updatePostOrder = function(save) {
 		if(save)
 			zoninator.reorderPosts();
-		
+
 		zoninator.currentPostOrder = zoninator.getZonePostIds();
 		zoninator.renumberPosts();
 	}
-	
+
 	zoninator.renumberPosts = function() {
 		var $numbers = zoninator.$zonePostsList.find('.zone-post-position');
 		$numbers.each(function(i, elem) {
 		    $(elem).text(i + 1);
         });
 	}
-	
+
 	zoninator.getAjaxAction = function(action) {
 		return 'zoninator_' + action;
 	}
@@ -440,13 +462,13 @@ var zoninator = {}
 	 */
     var compareArrays = function(arr1, arr2, sort) {
         if (arr1.length != arr2.length) return false;
-        
+
         if(sort) {
             arr1 = arr1.sort(),
             arr2 = arr2.sort();
         }
         for (var i = 0; arr2[i]; i++) {
-            if (arr1[i] !== arr2[i]) { 
+            if (arr1[i] !== arr2[i]) {
                 return false;
             }
         }
@@ -464,7 +486,7 @@ var zoninator = {}
 	});
 
 	// TODO: fix this
-	function parseIntOrZero(str) {		
+	function parseIntOrZero(str) {
 		var parsed = parseInt( str );
 		if( isNaN(parsed) || !parsed ) parsed = 0;
 		return parsed;
