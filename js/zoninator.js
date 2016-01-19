@@ -253,7 +253,8 @@ var zoninator = {}
 			zoninator.$zonePostsWrap.trigger('loading.start');
 
 			// make ajax call to save order
-			zoninator.ajax('reorder_posts', data, zoninator.reorderPostsSuccessCallback);
+            zoninator.restAjax('/zones/' + zoninator.getZoneId() + '/posts/order',
+				'PUT', 'reorder_posts', data, zoninator.reorderPostsSuccessCallback);
 		}
 	}
 
