@@ -159,12 +159,13 @@ var zoninator = {}
 
 	zoninator.updateLatest = function() {
 
-		zoninator.$zonePostSearch.trigger('loading.start');
-		zoninator.ajax('update_recent', {
-			zone_id: zoninator.getZoneId(),
-			cat: zoninator.getAdvancedCat(),
-			date: zoninator.getAdvancedDate()
-		}, zoninator.addUpdateLatestSuccessCallback);
+        zoninator.$zonePostSearch.trigger('loading.start');
+		zoninator.restAjax('/posts/recent',
+			'GET', 'update_recent', {
+				zone_id: zoninator.getZoneId(),
+				cat: zoninator.getAdvancedCat(),
+				date: zoninator.getAdvancedDate()
+			}, zoninator.addUpdateLatestSuccessCallback);
 	}
 
 	zoninator.addUpdateLatestSuccessCallback = function(returnData) {

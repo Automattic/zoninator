@@ -148,9 +148,6 @@ class Zoninator
 		add_action( 'wp_ajax_zoninator_add_post', array( $this, 'ajax_add_post' ) );
 		add_action( 'wp_ajax_zoninator_remove_post', array( $this, 'ajax_remove_post' ) );
 		add_action( 'wp_ajax_zoninator_search_posts', array( $this, 'ajax_search_posts' ) );
-		add_action( 'wp_ajax_zoninator_update_lock', array( $this, 'ajax_update_lock' ) );
-		add_action( 'wp_ajax_zoninator_update_recent', array( $this, 'ajax_recent_posts' ) );
-
 	}
 
 	function admin_init() {
@@ -571,70 +568,6 @@ class Zoninator
 		<?php
 	}
 
-	function ajax_recent_posts() {
-
-		$cat = $this->_get_post_var( 'cat', '', 'absint' );
-		$date = $this->_get_post_var( 'date', '', 'striptags' );
-		$zone_id = $this->_get_post_var( 'zone_id', 0, 'absint' );
-
-		$limit = $this->posts_per_page;
-		$post_types = $this->get_supported_post_types();
-		$zone_posts = $this->get_zone_posts( $zone_id );
-		$zone_post_ids = wp_list_pluck( $zone_posts, 'ID' );
-
-
-		// Verify nonce
-		$this->verify_nonce( $this->zone_ajax_nonce_action );
-		$this->verify_access( '', $zone_id );
-
-		if( is_wp_error( $zone_posts ) ) {
-			$status = 0;
-			$content = $zone_posts->get_error_message();
-		} else {
-			$args = apply_filters( 'zoninator_recent_posts_args', array(
-				'posts_per_page' => $limit,
-				'order' => 'DESC',
-				'orderby' => 'post_date',
-				'post_type' => $post_types,
-				'ignore_sticky_posts' => true,
-				'post_status' => array( 'publish', 'future' ),
-				'post__not_in' => $zone_post_ids,
-			) );
-
-			if ( $this->_validate_category_filter( $cat ) ) {
-				$args['cat'] = $cat;
-			}
-
-			if ( $this->_validate_date_filter( $date ) ) {
-				$filter_date_parts = explode( '-', $date );
-				$args['year'] = $filter_date_parts[0];
-				$args['monthnum'] = $filter_date_parts[1];
-				$args['day'] = $filter_date_parts[2];
-			}
-
-			$content = '';
-			$recent_posts = get_posts( $args );
-			foreach ( $recent_posts as $post ) :
-				$content .= sprintf( '<option value="%d">%s</option>', $post->ID, get_the_title( $post->ID ) . ' (' . $post->post_status . ')' );
-			endforeach;
-			wp_reset_postdata();
-			$status = 1;
-		}
-
-		$empty_label = '';
-		if ( ! $content ) {
-			$empty_label =  __( 'No results found', 'zoninator' );
-		} elseif ( $cat ) {
-			$empty_label = sprintf( __( 'Choose post from %s', 'zoninator' ), get_the_category_by_ID( $cat ) );
-		} else {
-			$empty_label = __( 'Choose a post', 'zoninator' );
-		}
-
-		$content = '<option value="">' . esc_html( $empty_label ) . '</option>' . $content;
-
-		$this->ajax_return( $status, $content );
-	}
-
 	function zone_admin_recent_posts_dropdown( $zone_id ) {
 
 		$limit = $this->posts_per_page;
@@ -859,21 +792,6 @@ class Zoninator
 
 			echo json_encode( $stripped_posts );
 			exit;
-		}
-	}
-
-	function ajax_update_lock() {
-		$zone_id = $this->_get_post_var( 'zone_id', 0, 'absint' );
-
-		$this->verify_nonce( $this->zone_ajax_nonce_action );
-		$this->verify_access( '', $zone_id );
-
-		if( ! $zone_id )
-			exit;
-
-		if( ! $this->is_zone_locked( $zone_id ) ) {
-			$this->lock_zone( $zone_id );
-			$this->ajax_return( 1, '' );
 		}
 	}
 
