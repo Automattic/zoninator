@@ -1,6 +1,8 @@
 var zoninator = {}
 
 ;(function($, window, undefined) {
+    var zoninatorOptions = window.zoninatorOptions || {},
+		zonePostTemplate = _.template($('#zoninator-zone-post-tpl').html());
 
 	zoninator.init = function() {
 		zoninator.autocompleteCache = {}
@@ -23,6 +25,20 @@ var zoninator = {}
 			zoninator.autocompleteCache = {};
 			zoninator.updateLatest();
 		});
+
+        if (zoninatorOptions.adminZonePosts) {
+			zoninator.$zonePostsList.html('');
+			_(zoninatorOptions.adminZonePosts)
+				.chain()
+				.sortBy(function (post) {
+					return post.position.current_position;
+				})
+				.each(function (adminZonePost) {
+					var $post = zoninator.renderPost(adminZonePost);
+					$post.appendTo(zoninator.$zonePostsList);
+				}).value();
+
+		}
 
 		zoninator.updatePostOrder();
 
@@ -180,10 +196,8 @@ var zoninator = {}
 
 		zoninator.$zonePostSearch.trigger('loading.start');
 
-		zoninator.ajax('add_post', {
-			zone_id: zoninator.getZoneId()
-			, post_id: postId
-		}, zoninator.addPostSuccessCallback);
+        zoninator.restAjax('/zones/' + zoninator.getZoneId() + '/posts',
+			'POST', 'add_post', {post_id: postId}, zoninator.addPostSuccessCallback);
 
 	}
 
@@ -192,7 +206,7 @@ var zoninator = {}
 		zoninator.$zonePostSearch.trigger('loading.end');
 
 		// Add Post to List
-		var $post = $(returnData.content);
+		var $post = zoninator.renderPost(returnData.content);
 		$post.hide()
 			.appendTo(zoninator.$zonePostsList)
 			.fadeIn()
@@ -315,6 +329,14 @@ var zoninator = {}
 
 		$.ajax(params);
 	}
+
+    zoninator.renderPost = function (content) {
+        return $(zonePostTemplate({
+            post_id: content.post_id,
+            info: content.info,
+            position: content.position
+        }));
+    };
 
     zoninator.restAjax = function (endpoint, method, action, data, successCallback, errorCallback) {
 		if (!data) {
