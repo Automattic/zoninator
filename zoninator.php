@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 if( ! class_exists( 'Zoninator' ) ) :
 
 define( 'ZONINATOR_VERSION', '0.6' );
+define( 'ZONINATOR_MINIMUM_WP_VERSION', '4.4' );
 define( 'ZONINATOR_PATH', dirname( __FILE__ ) );
 define( 'ZONINATOR_URL', trailingslashit( plugins_url( '', __FILE__ ) ) );
 define( 'ZONINATOR_TEXTDOMAIN', 'zoninator' );
@@ -1388,7 +1389,55 @@ class Zoninator
         $blog_id = ( is_multisite() ) ? get_current_blog_id() : null;
 		return get_rest_url( $blog_id, ZONINATOR_REST_API_NAMESPACE );
 	}
+
+	/**
+	 * Attached to activate_{ plugin_basename( __FILES__ ) } by register_activation_hook()
+	 * @static
+	 */
+	public static function plugin_activation() {
+		if ( version_compare( $GLOBALS['wp_version'], ZONINATOR_MINIMUM_WP_VERSION, '<' ) ) {
+			load_plugin_textdomain( ZONINATOR_TEXTDOMAIN );
+
+			$message = '<strong>' .
+				sprintf( esc_html__( 'Zoninator %s requires WordPress %s or higher.' , ZONINATOR_TEXTDOMAIN ), ZONINATOR_VERSION, ZONINATOR_MINIMUM_WP_VERSION ) .
+				'</strong> ' .
+				sprintf( __('Please <a href="%1$s">upgrade WordPress</a> to a current version, or <a href="%2$s">downgrade to version 0.6 of the Zoninator plugin</a>.', ZONINATOR_TEXTDOMAIN ), 'https://codex.wordpress.org/Upgrading_WordPress', 'https://wordpress.org/plugins/zoninator/download' );
+
+			self::bail_on_activation( $message );
+		}
+	}
+
+	private static function bail_on_activation( $message ) {
+?>
+<!doctype html>
+<html>
+<head>
+<meta charset="<?php bloginfo( 'charset' ); ?>">
+<style>
+* {
+	text-align: center;
+	margin: 0;
+	padding: 0;
+	font-family: "Lucida Grande",Verdana,Arial,"Bitstream Vera Sans",sans-serif;
 }
+p {
+	margin-top: 1em;
+	font-size: 18px;
+}
+</style>
+<body>
+<p><?php echo esc_html( $message ); ?></p>
+</body>
+</html>
+<?php
+		$plugin_name = plugin_basename( ZONINATOR_PLUGIN_DIR . 'zoninator.php' );
+		deactivate_plugins( $plugin_name );
+
+		exit;
+	}
+}
+
+register_activation_hook( __FILE__, array( 'Zoninator', 'plugin_activation' ) );
 
 global $zoninator;
 $zoninator = new Zoninator;
