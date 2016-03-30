@@ -1,9 +1,9 @@
 === Zone Manager (Zoninator) ===
 Contributors: batmoo, automattic, wpcomvip, pkevan, matthumphreys, potatomaster, jblz, nickdaugherty, betzster
 Tags: zones, post order, post list, posts, order, zonination, content curation, curation, content management
-Requires at least: 3.5
+Requires at least: 4.4
 Tested up to: 4.4
-Stable tag: 0.6
+Stable tag: 0.7
 License: GPLv2
 
 Curation made easy! Create "zones" then add and order your content!
@@ -58,6 +58,8 @@ Filter the following and change according to your needs:
 = 0.7 =
 
 * Added compatibility with WordPress 4.4 admin styles
+* WordPress version requirements bumped to 4.4
+* Converted custom admin ajax endpoints to WP-API
 
 = 0.6 =
 
@@ -106,6 +108,11 @@ Filter the following and change according to your needs:
 * Initial Release!
 
 == Upgrade Notice ==
+
+= 0.7 =
+
+* This version is compatible with WordPress 4.4 or higher, as it makes use of the WP-API infrastructure introduced in 4.4.
+* If you where using the custom admin ajax endpoints, those have been deprecated in favor of new RESTful endpoints. Please refer to the REST API documentation.
 
 = 0.3 =
 
@@ -162,3 +169,19 @@ Get a WP_Query object for a given zone. Accepts either ID or slug.
 
 
 More functions listed in `functions.php`
+
+
+= REST API Endpoints =
+
+A zone's post feed can be accessed by an `HTTP GET` request like so.
+
+* `GET /zoninator/v1/zones/:zone_id/posts` (get zone feed)
+
+The following endpoints are used in the admin area, and require extended permissions to access
+
+* `POST /zoninator/v1/zones/:zone_id/posts` (add post to zone)
+* `GET /zoninator/v1/posts/search?term=:term` (search term)
+* `DELETE /zoninator/v1/zones/:zone_id/posts/:post_id` (remove post from zone)
+* `PUT /zoninator/v1/zones/:zone_id/posts/order` (reorder posts)
+* `PUT /zoninator/v1/zones/:zone_id/lock` (lock zone)
+* `GET /zoninator/v1/zones/:zone_id/posts/recent` (recent posts for select box)
