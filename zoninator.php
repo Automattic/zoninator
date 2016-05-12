@@ -259,7 +259,7 @@ class Zoninator
 		$view = sprintf( '%s/views/%s', ZONINATOR_PATH, $view );
 		$title = __( 'Zones', 'zoninator' );
 
-		$zones = $this->get_zones();
+		$zones = $this->get_zones( apply_filters( 'zoninator_admin_page_get_zones_args', array() ) );
 
 		$default_active_zone = 0;
 		if( ! $this->_current_user_can_add_zones() ) {
@@ -1128,11 +1128,11 @@ class Zoninator
 
 	function get_zones( $args = array() ) {
 
-		$args = apply_filters( 'zoninator_terms_query_args', wp_parse_args( $args, array(
+		$args = wp_parse_args( $args, array(
 			'orderby' => 'id',
 			'order' => 'ASC',
 			'hide_empty' => 0,
-		) ) );
+		) );
 
 		$zones = get_terms( $this->zone_taxonomy, $args );
 
