@@ -1128,11 +1128,11 @@ class Zoninator
 
 	function get_zones( $args = array() ) {
 
-		$args = wp_parse_args( $args, array(
+		$args = apply_filters( 'zoninator_terms_query_args', wp_parse_args( $args, array(
 			'orderby' => 'id',
 			'order' => 'ASC',
 			'hide_empty' => 0,
-		) );
+		) ) );
 
 		$zones = get_terms( $this->zone_taxonomy, $args );
 
