@@ -32,12 +32,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 if( ! class_exists( 'Zoninator' ) ) :
 
-define( 'ZONINATOR_VERSION', '0.6' );
+define( 'ZONINATOR_VERSION', '0.7' );
+define( 'ZONINATOR_MINIMUM_WP_VERSION', '4.4' );
 define( 'ZONINATOR_PATH', dirname( __FILE__ ) );
 define( 'ZONINATOR_URL', trailingslashit( plugins_url( '', __FILE__ ) ) );
+define( 'ZONINATOR_TEXTDOMAIN', 'zoninator' );
+define( 'ZONINATOR_REST_API_NAMESPACE', 'zoninator/v1' );
 
 require_once( ZONINATOR_PATH . '/functions.php' );
 require_once( ZONINATOR_PATH . '/widget.zone-posts.php');
+require_once( ZONINATOR_PATH . '/class-zoninator-rest-api-controller.php' );
 
 class Zoninator
 {
@@ -57,7 +61,14 @@ class Zoninator
 	var $zone_messages = null;
 	var $posts_per_page = 10;
 
+    /**
+	 * @var null|Zoninator_Rest_Api_Controller
+	 */
+	public $rest_api_controller = null;
+
 	function __construct() {
+        $this->rest_api_controller = new Zoninator_Rest_Api_Controller( $this );
+
 		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
 
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
@@ -119,6 +130,8 @@ class Zoninator
 		add_action( 'zoninator_advanced_search_fields', array( $this, 'zone_advanced_search_cat_filter' ) );
 		add_action( 'zoninator_advanced_search_fields', array( $this, 'zone_advanced_search_date_filter' ), 20 );
 
+        add_action( 'rest_api_init', array( $this->rest_api_controller, 'register_routes' ) );
+
 		do_action( 'zoninator_post_init' );
 	}
 
@@ -130,20 +143,7 @@ class Zoninator
 		register_widget( 'Zoninator_ZonePosts_Widget' );
 	}
 
-	// Add necessary AJAX actions
-	function admin_ajax_init( ) {
-		add_action( 'wp_ajax_zoninator_reorder_posts', array( $this, 'ajax_reorder_posts' ) );
-		add_action( 'wp_ajax_zoninator_add_post', array( $this, 'ajax_add_post' ) );
-		add_action( 'wp_ajax_zoninator_remove_post', array( $this, 'ajax_remove_post' ) );
-		add_action( 'wp_ajax_zoninator_search_posts', array( $this, 'ajax_search_posts' ) );
-		add_action( 'wp_ajax_zoninator_update_lock', array( $this, 'ajax_update_lock' ) );
-		add_action( 'wp_ajax_zoninator_update_recent', array( $this, 'ajax_recent_posts' ) );
-
-	}
-
 	function admin_init() {
-
-		$this->admin_ajax_init();
 
 		// Enqueue Scripts and Styles
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
@@ -157,9 +157,12 @@ class Zoninator
 
 	function admin_enqueue_scripts() {
 		if( $this->is_zoninator_page() ) {
+            wp_enqueue_script( 'underscore-js', ZONINATOR_URL . 'js/underscore-min.js', array(), '', true );
 			wp_enqueue_script( 'zoninator-js', ZONINATOR_URL . 'js/zoninator.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse', 'jquery-ui-position', 'jquery-ui-sortable', 'jquery-ui-autocomplete' ), ZONINATOR_VERSION, true );
 
 			$options = array(
+                'restApiUrl' => $this->_get_rest_api_base_url(),
+				'restApiNonce' => wp_create_nonce( 'wp_rest' ),
 				'baseUrl' => $this->_get_zone_page_url(),
 				'adminUrl' => admin_url(),
 				'ajaxNonceAction' => $this->_get_nonce_key( $this->zone_ajax_nonce_action ),
@@ -169,6 +172,12 @@ class Zoninator
 				'zoneLockPeriod' => $this->zone_lock_period,
 				'zoneLockPeriodMax' => $this->zone_max_lock_period,
 			);
+
+            $active_zone_id = $this->_get_request_var( 'zone_id', 0, 'absint' );
+			if ( $active_zone_id != 0 ) {
+				$options['adminZonePosts'] = $this->get_admin_zone_posts( $active_zone_id );
+			}
+
 			wp_localize_script( 'zoninator-js', 'zoninatorOptions', $options );
 
 			// For mobile support
@@ -309,7 +318,42 @@ class Zoninator
 			</div>
 		</div>
 		<?php
+
+        $this->_admin_page_zone_post_js_template();
 	}
+
+    private function _admin_page_zone_post_js_template() {
+        ?>
+        <script type="text/template" id="zoninator-zone-post-tpl">
+            <div id="zone-post-<%= post_id %>" class="zone-post" data-post-id="<%= post_id %>">
+                <table>
+                    <tr>
+                        <% if ( position ) { %>
+                        <td class="zone-post-col zone-post-<%= position.key %>">
+                            <span title="<%= position.current_position %>">
+                                <%= position.current_position %>
+                            </span>
+                        </td>
+                        <% } %>
+                        <% if ( info ) { %>
+                        <td class="zone-post-col zone-post-<%= info.key %>">
+                            <%= info.post.post_title %> <span class="zone-post-status">(<%= info.post.post_status %>)</span>
+
+                            <div class="row-actions">
+                                <% for (var i = 0; i < info.action_link_data.length; i++) { %>
+                                <a href="<%= info.action_link_data[i].anchor %>" class="<%= info.action_link_data[i].action %>"<% if (info.action_link_data[i].target) { %> target="<%= info.action_link_data[i].target %>"<% } %>title="<%= info.action_link_data[i].title %>"><%= info.action_link_data[i].text %></a>
+                                <% if (i < info.action_link_data.length - 1) { %>|<% } %>
+                                <% } %>
+                            </div>
+                        </td>
+                        <% } %>
+                    </tr>
+                </table>
+                <input type="hidden" name="zone-post-id" value="<%= post_id %>"/>
+            </div>
+        </script>
+        <?php
+    }
 
 	function admin_page_zone_tabs( $zones, $active_zone_id = 0 ) {
 		$new_link = $this->_get_zone_page_url( array( 'action' => 'new' ) );
@@ -450,9 +494,6 @@ class Zoninator
 							<?php $this->zone_admin_search_form(); ?>
 
 							<div class="zone-posts-list">
-								<?php foreach( $zone_posts as $post ) : ?>
-									<?php $this->admin_page_zone_post( $post, $zone ); ?>
-								<?php endforeach; ?>
 							</div>
 
 						<?php else : ?>
@@ -463,54 +504,6 @@ class Zoninator
 			<?php endif; ?>
 		</div>
 
-		<?php
-	}
-
-	function admin_page_zone_post( $post, $zone ) {
-		$columns = apply_filters( 'zoninator_zone_post_columns', array(
-			'position' => array( $this, 'admin_page_zone_post_col_position' ),
-			'info' => array( $this, 'admin_page_zone_post_col_info' )
-		), $post, $zone );
-		?>
-		<div id="zone-post-<?php echo $post->ID; ?>" class="zone-post" data-post-id="<?php echo $post->ID; ?>">
-			<table>
-				<tr>
-					<?php foreach( $columns as $column_key => $column_callback ) : ?>
-						<?php if( is_callable( $column_callback ) ) : ?>
-							<td class="zone-post-col zone-post-<?php echo $column_key; ?>">
-								<?php call_user_func( $column_callback, $post, $zone ); ?>
-							</td>
-						<?php endif; ?>
-					<?php endforeach; ?>
-				</tr>
-			</table>
-			<input type="hidden" name="zone-post-id" value="<?php echo $post->ID; ?>" />
-		</div>
-		<?php
-	}
-
-	function admin_page_zone_post_col_position( $post, $zone ) {
-		$current_position = $this->get_post_order( $post->ID, $zone );
-		?>
-		<span title="<?php esc_attr_e( 'Click and drag to change the position of this item.', 'zoninator' ); ?>">
-			<?php echo esc_html( $current_position ); ?>
-		</span>
-		<?php
-	}
-	function admin_page_zone_post_col_info( $post, $zone ) {
-		$action_links = array(
-			sprintf( '<a href="%s" class="edit" target="_blank" title="%s">%s</a>', get_edit_post_link( $post->ID ), __( 'Opens in new window', 'zoninator' ), __( 'Edit', 'zoninator' ) ),
-			sprintf( '<a href="#" class="delete" title="%s">%s</a>', __( 'Remove this item from the zone', 'zoninator' ), __( 'Remove', 'zoninator' ) ),
-			sprintf( '<a href="%s" class="view" target="_blank" title="%s">%s</a>', get_permalink( $post->ID ), __( 'Opens in new window', 'zoninator' ), __( 'View', 'zoninator' ) ),
-			// Move To
-			// Copy To
-		);
-		?>
-		<?php echo sprintf( '%s <span class="zone-post-status">(%s)</span>', esc_html( $post->post_title ), esc_html( $post->post_status ) ); ?>
-
-		<div class="row-actions">
-			<?php echo implode( ' | ', $action_links ); ?>
-		</div>
 		<?php
 	}
 
@@ -554,70 +547,6 @@ class Zoninator
 			?>
 		</select>
 		<?php
-	}
-
-	function ajax_recent_posts() {
-
-		$cat = $this->_get_post_var( 'cat', '', 'absint' );
-		$date = $this->_get_post_var( 'date', '', 'striptags' );
-		$zone_id = $this->_get_post_var( 'zone_id', 0, 'absint' );
-
-		$limit = $this->posts_per_page;
-		$post_types = $this->get_supported_post_types();
-		$zone_posts = $this->get_zone_posts( $zone_id );
-		$zone_post_ids = wp_list_pluck( $zone_posts, 'ID' );
-
-
-		// Verify nonce
-		$this->verify_nonce( $this->zone_ajax_nonce_action );
-		$this->verify_access( '', $zone_id );
-
-		if( is_wp_error( $zone_posts ) ) {
-			$status = 0;
-			$content = $zone_posts->get_error_message();
-		} else {
-			$args = apply_filters( 'zoninator_recent_posts_args', array(
-				'posts_per_page' => $limit,
-				'order' => 'DESC',
-				'orderby' => 'post_date',
-				'post_type' => $post_types,
-				'ignore_sticky_posts' => true,
-				'post_status' => array( 'publish', 'future' ),
-				'post__not_in' => $zone_post_ids,
-			) );
-
-			if ( $this->_validate_category_filter( $cat ) ) {
-				$args['cat'] = $cat;
-			}
-
-			if ( $this->_validate_date_filter( $date ) ) {
-				$filter_date_parts = explode( '-', $date );
-				$args['year'] = $filter_date_parts[0];
-				$args['monthnum'] = $filter_date_parts[1];
-				$args['day'] = $filter_date_parts[2];
-			}
-
-			$content = '';
-			$recent_posts = get_posts( $args );
-			foreach ( $recent_posts as $post ) :
-				$content .= sprintf( '<option value="%d">%s</option>', $post->ID, get_the_title( $post->ID ) . ' (' . $post->post_status . ')' );
-			endforeach;
-			wp_reset_postdata();
-			$status = 1;
-		}
-
-		$empty_label = '';
-		if ( ! $content ) {
-			$empty_label =  __( 'No results found', 'zoninator' );
-		} elseif ( $cat ) {
-			$empty_label = sprintf( __( 'Choose post from %s', 'zoninator' ), get_the_category_by_ID( $cat ) );
-		} else {
-			$empty_label = __( 'Choose a post', 'zoninator' );
-		}
-
-		$content = '<option value="">' . esc_html( $empty_label ) . '</option>' . $content;
-
-		$this->ajax_return( $status, $content );
 	}
 
 	function zone_admin_recent_posts_dropdown( $zone_id ) {
@@ -691,88 +620,6 @@ class Zoninator
 		exit;
 	}
 
-	function ajax_add_post() {
-		$zone_id = $this->_get_post_var( 'zone_id', 0, 'absint' );
-		$post_id = $this->_get_post_var( 'post_id', 0, 'absint' );
-
-		// Verify nonce
-		$this->verify_nonce( $this->zone_ajax_nonce_action );
-		$this->verify_access( '', $zone_id );
-
-		// Validate
-		if( ! $zone_id || ! $post_id )
-			$this->ajax_return( 0 );
-
-		$result = $this->add_zone_posts( $zone_id, $post_id, true );
-
-		if( is_wp_error( $result ) ) {
-			$status = 0;
-			$content = $result->get_error_message();
-		} else {
-			$post = get_post( $post_id );
-			$zone = $this->get_zone( $zone_id );
-
-			ob_start();
-			$this->admin_page_zone_post( $post, $zone );
-			$content = ob_get_contents();
-			ob_end_clean();
-
-			$status = 1;
-		}
-
-		$this->ajax_return( $status, $content );
-	}
-
-	function ajax_remove_post() {
-		$zone_id = $this->_get_post_var( 'zone_id', 0, 'absint' );
-		$post_id = $this->_get_post_var( 'post_id', 0, 'absint' );
-
-		// Verify nonce
-		$this->verify_nonce( $this->zone_ajax_nonce_action );
-		$this->verify_access( '', $zone_id );
-
-		// Validate
-		if( ! $zone_id || ! $post_id )
-			$this->ajax_return( 0 );
-
-		$result = $this->remove_zone_posts( $zone_id, $post_id );
-
-		if( is_wp_error( $result ) ) {
-			$status = 0;
-			$content = $result->get_error_message();
-		} else {
-			$status = 1;
-			$content = '';
-		}
-
-		$this->ajax_return( $status, $content );
-	}
-
-	function ajax_reorder_posts() {
-		$zone_id = $this->_get_post_var( 'zone_id', 0, 'absint' );
-		$post_ids = (array) $this->_get_post_var( 'posts', array(), 'absint' );
-
-		// Verify nonce
-		$this->verify_nonce( $this->zone_ajax_nonce_action );
-		$this->verify_access( '', $zone_id );
-
-		// validate
-		if( ! $zone_id || empty( $post_ids ) )
-			$this->ajax_return( 0 );
-
-		$result = $this->add_zone_posts( $zone_id, $post_ids, false );
-
-		if( is_wp_error( $result ) ) {
-			$status = 0;
-			$content = $result->get_error_message();
-		} else {
-			$status = 1;
-			$content = '';
-		}
-
-		$this->ajax_return( $status, $content );
-	}
-
 	// TODO: implement in front-end
 	function ajax_move_zone_post( $from_zone, $to_zone, $post_id ) {
 		$from_zone_id = $this->_get_post_var( 'from_zone_id', 0, 'absint' );
@@ -787,79 +634,6 @@ class Zoninator
 
 		// Remove from old zone
 		$this->remove_zone_posts( $from_zone_id, $post_id );
-	}
-
-	function ajax_search_posts() {
-
-		$q = $this->_get_request_var( 'term', '', 'stripslashes' );
-
-		if( ! empty( $q ) ) {
-
-			$filter_cat = $this->_get_request_var( 'cat', '', 'absint' );
-			$filter_date = $this->_get_request_var( 'date', '', 'striptags' );
-
-			$post_types = $this->get_supported_post_types();
-			$limit = $this->_get_request_var( 'limit', $this->posts_per_page );
-			if( $limit <= 0 )
-				$limit = $this->posts_per_page;
-			$exclude = (array) $this->_get_request_var( 'exclude', array(), 'absint' );
-
-			$args = apply_filters( 'zoninator_search_args', array(
-				's' => $q,
-				'post__not_in' => $exclude,
-				'posts_per_page' => $limit,
-				'post_type' => $post_types,
-				'post_status' => array( 'publish', 'future' ),
-				'order' => 'DESC',
-				'orderby' => 'post_date',
-				'suppress_filters' => true,
-			) );
-
-			if ( $this->_validate_category_filter( $filter_cat ) ) {
-				$args['cat'] = $filter_cat;
-			}
-
-			if ( $this->_validate_date_filter( $filter_date ) ) {
-				$filter_date_parts = explode( '-', $filter_date );
-				$args['year'] = $filter_date_parts[0];
-				$args['monthnum'] = $filter_date_parts[1];
-				$args['day'] = $filter_date_parts[2];
-			}
-
-			$query = new WP_Query( $args );
-			$stripped_posts = array();
-
-			if ( ! $query->have_posts() )
-				exit;
-
-			foreach( $query->posts as $post ) {
-				$stripped_posts[] = apply_filters( 'zoninator_search_results_post', array(
-					'title' => ! empty( $post->post_title ) ? $post->post_title : __( '(no title)', 'zoninator' ),
-					'post_id' => $post->ID,
-					'date' => get_the_time( get_option( 'date_format' ), $post ),
-					'post_type' => $post->post_type,
-					'post_status' => $post->post_status,
-				), $post );
-			}
-
-			echo json_encode( $stripped_posts );
-			exit;
-		}
-	}
-
-	function ajax_update_lock() {
-		$zone_id = $this->_get_post_var( 'zone_id', 0, 'absint' );
-
-		$this->verify_nonce( $this->zone_ajax_nonce_action );
-		$this->verify_access( '', $zone_id );
-
-		if( ! $zone_id )
-			exit;
-
-		if( ! $this->is_zone_locked( $zone_id ) ) {
-			$this->lock_zone( $zone_id );
-			$this->ajax_return( 1, '' );
-		}
 	}
 
 	function get_supported_post_types() {
@@ -1018,6 +792,58 @@ class Zoninator
 		return $posts;
 	}
 
+    public function get_admin_zone_post($post, $zone) {
+        return apply_filters('zoninator_zone_post_columns', array(
+            'post_id' => $post->ID,
+            'position' => array(
+                'current_position' => intval( $this->get_post_order( $post->ID, $zone ) ),
+                'change_position_message' => esc_attr__( 'Click and drag to change the position of this item.', ZONINATOR_TEXTDOMAIN ),
+                'key' => 'position'
+            ),
+            'info' => array(
+                'key' => 'info',
+                'post' => array(
+                    'post_title'  => esc_html( $post->post_title ),
+                    'post_status' => esc_html( $post->post_status )
+                ),
+                'action_link_data' => array(
+                    array(
+                        'action' => 'edit',
+                        'anchor'     => get_edit_post_link( $post->ID ),
+                        'title' => __( 'Opens in new window', ZONINATOR_TEXTDOMAIN ),
+                        'text'  => __( 'Edit', ZONINATOR_TEXTDOMAIN ),
+                        'target' => "_blank"
+                    ),
+                    array(
+                        'action' => 'delete',
+                        'anchor'     => '#',
+                        'title' => '',
+                        'text'  => __( 'Remove', ZONINATOR_TEXTDOMAIN )
+                    ),
+                    array(
+                        'action' => 'view',
+                        'anchor'     => get_permalink( $post->ID ),
+                        'title' => __( 'Opens in new window', ZONINATOR_TEXTDOMAIN ),
+                        'text'  => __( 'View', 'zoninator' ),
+                        'target' => "_blank"
+                    )
+                )
+            )
+        ), $post, $zone);
+    }
+
+    public function get_admin_zone_posts( $zone_or_id ) {
+        $zone = $this->get_zone( $zone_or_id );
+        $posts = $this->get_zone_posts( $zone );
+        $admin_zone_posts = array();
+
+        foreach ( $posts as $post ) {
+            $admin_zone_posts[] = $this->get_admin_zone_post( $post, $zone );
+        }
+
+        return $admin_zone_posts;
+    }
+
 	function get_zone_query( $zone, $args = array() ) {
 		$meta_key = $this->get_zone_meta_key( $zone );
 
@@ -1168,6 +994,24 @@ class Zoninator
 		return $this->_fill_zone_details( $zone );
 	}
 
+    function get_zone_feed( $zone_slug_or_id ) {
+        $zone_id = $this->get_zone( $zone_slug_or_id );
+
+        if ( empty( $zone_id ) ) {
+            return new WP_Error( 'invalid-zone-supplied', __( 'Invalid zone supplied', 'zoninator' ) );
+        }
+
+        $results = $this->get_zone_posts( $zone_id, apply_filters( 'zoninator_json_feed_fields', array(), $zone_slug_or_id ) );
+
+        if ( empty( $results ) ) {
+            return new WP_Error( 'no-zone-posts-found',  __( 'No zone posts found', 'zoninator' ) );
+        }
+
+        $filtered_results = $this->filter_zone_feed_fields( $results );
+
+        return apply_filters( 'zoninator_json_feed_results', $filtered_results, $zone_slug_or_id );
+    }
+
 	function lock_zone( $zone, $user_id = 0 ) {
 		$zone_id = $this->get_zone_id( $zone );
 
@@ -1289,22 +1133,7 @@ class Zoninator
 
 	function verify_access( $action = '', $zone_id = null ) {
 		// TODO: should check if zone locked
-
-		$verify_function = '';
-		switch( $action ) {
-			case 'insert':
-				$verify_function = '_current_user_can_add_zones';
-				break;
-			case 'update':
-			case 'delete':
-				$verify_function = '_current_user_can_edit_zones';
-				break;
-			default:
-				$verify_function = '_current_user_can_manage_zones';
-				break;
-		}
-
-		if( ! call_user_func( array( $this, $verify_function ), $zone_id ) )
+		if ( ! $this->check( $action, $zone_id ) )
 			$this->_unauthorized_access();
 	}
 
@@ -1332,7 +1161,7 @@ class Zoninator
 		return $zone;
 	}
 
-	function do_zoninator_feeds() {
+    function do_zoninator_feeds() {
 
 		global $wp_query;
 
@@ -1340,21 +1169,14 @@ class Zoninator
 
 		if ( ! empty( $query_var ) ) {
 			$zone_slug = get_query_var( $this->zone_taxonomy );
-			$zone_id = $this->get_zone( $zone_slug );
 
-			if ( empty( $zone_id ) ) {
-				$this->send_user_error( __( 'Invalid zone supplied', 'zoninator' ) );
+			$results = $this->get_zone_feed( $zone_slug );
+
+			if ( is_wp_error( $results ) ) {
+				$this->send_user_error( $results->get_error_message() );
 			}
 
-			$results = $this->get_zone_posts( $zone_id, apply_filters( 'zoninator_json_feed_fields', array(), $zone_slug ) );
-
-			if ( empty( $results ) ) {
-				$this->send_user_error( __( 'No zone posts found', 'zoninator' ) );
-			}
-
-			$filtered_results = $this->filter_zone_feed_fields( $results );
-
-			$this->json_return( apply_filters( 'zoninator_json_feed_results', $filtered_results, $zone_slug ), false );
+			$this->json_return( $results );
 		}
 
 		return;
@@ -1482,6 +1304,19 @@ class Zoninator
 		return sprintf( '%s-%s', $this->zone_nonce_prefix, $action );
 	}
 
+    public function check( $action = '', $zone_id = null ) {
+        // TODO: should check if zone locked
+        if ( 'insert' == $action ) {
+            return $this->_current_user_can_add_zones();
+        }
+
+        if ( 'update' == $action || 'delete' == $action ) {
+            return $this->_current_user_can_edit_zones( $zone_id );
+        }
+
+        return $this->_current_user_can_manage_zones();
+    }
+
 	function _current_user_can_add_zones() {
 		return current_user_can( $this->_get_add_zones_cap() );
 	}
@@ -1553,7 +1388,60 @@ class Zoninator
 	function _get_post_var( $var, $default = '', $sanitize_callback = '' ) {
 		return $this->_get_value_or_default( $var, $_POST, $default, $sanitize_callback );
 	}
+
+    private function _get_rest_api_base_url() {
+        $blog_id = ( is_multisite() ) ? get_current_blog_id() : null;
+		return get_rest_url( $blog_id, ZONINATOR_REST_API_NAMESPACE );
+	}
+
+	/**
+	 * Attached to activate_{ plugin_basename( __FILES__ ) } by register_activation_hook()
+	 * @static
+	 */
+	public static function plugin_activation() {
+		if ( version_compare( $GLOBALS['wp_version'], ZONINATOR_MINIMUM_WP_VERSION, '<' ) ) {
+			load_plugin_textdomain( ZONINATOR_TEXTDOMAIN );
+
+			$message = '<strong>' .
+				sprintf( esc_html__( 'Zoninator %s requires WordPress %s or higher.' , ZONINATOR_TEXTDOMAIN ), ZONINATOR_VERSION, ZONINATOR_MINIMUM_WP_VERSION ) .
+				'</strong> ' .
+				sprintf( __('Please <a href="%1$s">upgrade WordPress</a> to a current version, or <a href="%2$s">downgrade to version 0.6 of the Zoninator plugin</a>.', ZONINATOR_TEXTDOMAIN ), 'https://codex.wordpress.org/Upgrading_WordPress', 'https://wordpress.org/plugins/zoninator/download' );
+
+			self::bail_on_activation( $message );
+		}
+	}
+
+	private static function bail_on_activation( $message ) {
+?>
+<!doctype html>
+<html>
+<head>
+<meta charset="<?php bloginfo( 'charset' ); ?>">
+<style>
+* {
+	text-align: center;
+	margin: 0;
+	padding: 0;
+	font-family: "Lucida Grande",Verdana,Arial,"Bitstream Vera Sans",sans-serif;
 }
+p {
+	margin-top: 1em;
+	font-size: 18px;
+}
+</style>
+<body>
+<p><?php echo esc_html( $message ); ?></p>
+</body>
+</html>
+<?php
+		$plugin_name = plugin_basename( ZONINATOR_PLUGIN_DIR . 'zoninator.php' );
+		deactivate_plugins( $plugin_name );
+
+		exit;
+	}
+}
+
+register_activation_hook( __FILE__, array( 'Zoninator', 'plugin_activation' ) );
 
 global $zoninator;
 $zoninator = new Zoninator;
