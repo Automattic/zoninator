@@ -584,7 +584,7 @@ class Zoninator
 				'ignore_sticky_posts' => true,
 				'post_status' => array( 'publish', 'future' ),
 				'post__not_in' => $zone_post_ids,
-			) );
+			), $this->_get_request_var( 'zone_id' ) );
 
 			if ( $this->_validate_category_filter( $cat ) ) {
 				$args['cat'] = $cat;
@@ -813,7 +813,7 @@ class Zoninator
 				'order' => 'DESC',
 				'orderby' => 'post_date',
 				'suppress_filters' => true,
-			) );
+			), $this->_get_request_var( 'zone_id' ) );
 
 			if ( $this->_validate_category_filter( $filter_cat ) ) {
 				$args['cat'] = $filter_cat;
