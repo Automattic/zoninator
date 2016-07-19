@@ -648,7 +648,7 @@ class Zoninator
 			<select name="search-posts" id="zone-post-latest">
 				<option value=""><?php esc_html_e( 'Choose a post', 'zoninator' ); ?></option>
 				<?php
-				while( $recent_posts->have_posts() ) :
+				while ( $recent_posts->have_posts() ) :
 
 					$recent_posts->the_post();
 					$post_id = get_the_id();
