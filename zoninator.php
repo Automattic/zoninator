@@ -577,12 +577,14 @@ class Zoninator
 			$content = $zone_posts->get_error_message();
 		} else {
 			$args = apply_filters( 'zoninator_recent_posts_args', array(
-				'posts_per_page' => $limit + count( $zone_post_ids ),
+				'posts_per_page' => $limit,
 				'order' => 'DESC',
 				'orderby' => 'post_date',
 				'post_type' => $post_types,
 				'ignore_sticky_posts' => true,
 				'post_status' => array( 'publish', 'future' ),
+				'post__not_in' => $zone_post_ids,
+				'supress_filters' => true,
 			) );
 
 			if ( $this->_validate_category_filter( $cat ) ) {
@@ -597,16 +599,10 @@ class Zoninator
 			}
 
 			$content = '';
-			$recent_posts = new WP_Query( $args );
-			while ( $recent_posts->have_posts ) :
-				$recent_posts->the_post();
-				$post_id = get_the_id();
-				$post_status = get_post_status( $post_id );
-				if ( ! in_array( $post_id, $zone_post_ids ) ) :
-					$content .= sprintf( '<option value="%d">%s</option>', $post_id, get_the_title( $post_id ) . ' (' . $post_status . ')' );
-				endif;
-			endwhile;
-			wp_reset_query();
+			$recent_posts = get_posts( $args );
+			foreach ( $recent_posts as $post ) :
+				$content .= sprintf( '<option value="%d">%s</option>', $post->ID, get_the_title( $post->ID ) . ' (' . $post->post_status . ')' );
+			endforeach;
 			wp_reset_postdata();
 			$status = 1;
 		}
@@ -633,34 +629,28 @@ class Zoninator
 		$zone_post_ids = wp_list_pluck( $zone_posts, 'ID' );
 
 		$args = apply_filters( 'zoninator_recent_posts_args', array(
-			'posts_per_page' => $limit + count( $zone_post_ids ),
+			'posts_per_page' => $limit,
 			'order' => 'DESC',
 			'orderby' => 'post_date',
 			'post_type' => $post_types,
 			'ignore_sticky_posts' => true,
 			'post_status' => array( 'publish', 'future' ),
+			'post__not_in' => $zone_post_ids,
+			'supress_filters' => true,
 		) );
 
-		$recent_posts = new WP_Query( $args );
+
+
+		$recent_posts = get_posts( $args );
 		?>
 		<div class="zone-search-wrapper">
 			<label for="zone-post-search-latest"><?php esc_html_e( 'Add Recent Content', 'zoninator' );?></label><br />
 			<select name="search-posts" id="zone-post-latest">
 				<option value=""><?php esc_html_e( 'Choose a post', 'zoninator' ); ?></option>
 				<?php
-				while ( $recent_posts->have_posts() ) :
-
-					$recent_posts->the_post();
-					$post_id = get_the_id();
-					$post_status = get_post_status( $post_id );
-
-					if ( ! in_array( $post_id, $zone_post_ids ) ) :
-						echo sprintf( '<option value="%d">%s</option>', $post_id, esc_html( get_the_title( $post_id ) . ' (' . $post_status . ')' ) );
-					endif;
-
-				endwhile;
-
-				wp_reset_query();
+				foreach ( $recent_posts as $post ) :
+					echo sprintf( '<option value="%d">%s</option>', $post->ID, esc_html( get_the_title( $post->ID ) . ' (' . $post->post_status . ')' ) );
+				endforeach;
 				wp_reset_postdata();
 				?>
 			</select>
@@ -818,7 +808,8 @@ class Zoninator
 
 			$args = apply_filters( 'zoninator_search_args', array(
 				's' => $q,
-				'posts_per_page' => $limit + count( $exclude ),
+				'post__not_in' => $exclude,
+				'posts_per_page' => $limit,
 				'post_type' => $post_types,
 				'post_status' => array( 'publish', 'future' ),
 				'order' => 'DESC',
@@ -844,15 +835,13 @@ class Zoninator
 				exit;
 
 			foreach( $query->posts as $post ) {
-				if ( ! in_array( $post, $exclude ) ) {
-					$stripped_posts[] = apply_filters( 'zoninator_search_results_post', array(
-						'title'       => ! empty( $post->post_title ) ? $post->post_title : __( '(no title)', 'zoninator' ),
-						'post_id'     => $post->ID,
-						'date'        => get_the_time( get_option( 'date_format' ), $post ),
-						'post_type'   => $post->post_type,
-						'post_status' => $post->post_status,
-					), $post );
-				}
+				$stripped_posts[] = apply_filters( 'zoninator_search_results_post', array(
+					'title' => ! empty( $post->post_title ) ? $post->post_title : __( '(no title)', 'zoninator' ),
+					'post_id' => $post->ID,
+					'date' => get_the_time( get_option( 'date_format' ), $post ),
+					'post_type' => $post->post_type,
+					'post_status' => $post->post_status,
+				), $post );
 			}
 
 			echo json_encode( $stripped_posts );
