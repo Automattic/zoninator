@@ -584,7 +584,7 @@ class Zoninator
 				'ignore_sticky_posts' => true,
 				'post_status' => array( 'publish', 'future' ),
 				'post__not_in' => $zone_post_ids,
-				'supress_filters' => false,
+				'suppress_filters' => false,
 			) );
 
 			if ( $this->_validate_category_filter( $cat ) ) {
@@ -636,7 +636,7 @@ class Zoninator
 			'ignore_sticky_posts' => true,
 			'post_status' => array( 'publish', 'future' ),
 			'post__not_in' => $zone_post_ids,
-			'supress_filters' => false,
+			'suppress_filters' => false,
 		) );
 
 
