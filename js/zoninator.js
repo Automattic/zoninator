@@ -1,6 +1,5 @@
-var zoninator = {}
+var zoninator = {};
 
-	;
 (function($, window, undefined) {
 
 	zoninator.init = function() {
@@ -398,6 +397,7 @@ var zoninator = {}
 	zoninator.getAjaxNonce = function(action) {
 		return zoninator.getAjaxNonceField(action).val();
 	}
+
 	zoninator.getAjaxNonceField = function(action) {
 		action = action || zoninatorOptions.ajaxNonceAction;
 		return $('#' + action);
@@ -523,8 +523,8 @@ var zoninator = {}
 
 	$(document).ready(function() {
 		zoninator.init();
+	});
 
-	})
 })(jQuery, window);
 
 if (typeof(console) === 'undefined')
