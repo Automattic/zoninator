@@ -225,7 +225,26 @@
 
 .zone-posts-save-input {
 	padding: 7px 0;
+	overflow: hidden;
 }
+
+#zone-posts-save {
+	float: left;
+}
+
+.zone-posts-save-info {
+	float: left;
+	margin: 0 0 0 10px;
+	padding: 0 10px;
+	line-height: 30px;
+	color: #666;
+}
+
+.notice-error { color: #a94442; background-color: #f2dede; }
+
+.notice-success { color: #3c763d; background-color: #dff0d8; }
+
+.notice-info { color: #0f1d79; background-color: #d9edf7; }
 
 #zone-post-search {
 	width: 99%;

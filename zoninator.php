@@ -450,7 +450,8 @@ class Zoninator
 							<?php $this->zone_admin_search_form(); ?>
 
 							<div class="zone-posts-save-input">
-								<input type="button" value="Save zone posts" name="save-zone-posts" id="save-zone-posts" class="button-primary" />
+								<input type="button" value="Save zone posts" name="zone-posts-save" id="zone-posts-save" class="button-primary" />
+								<p id="zone-posts-save-info" class="zone-posts-save-info"></p>
 							</div>
 
 							<div class="zone-posts-list">

@@ -1,6 +1,7 @@
 var zoninator = {}
 
-;(function($, window, undefined) {
+	;
+(function($, window, undefined) {
 
 	zoninator.init = function() {
 		zoninator.autocompleteCache = {};
@@ -12,7 +13,8 @@ var zoninator = {}
 		zoninator.$zoneAdvancedCat = $('#zone_advanced_filter_taxonomy');
 		zoninator.$zoneAdvancedDate = $('#zone_advanced_filter_date');
 		zoninator.$zoneSubmit = $('#zone-info input[type="submit"]');
-		zoninator.$zonePostsSave = $('#save-zone-posts');
+		zoninator.$zonePostsSave = $('#zone-posts-save');
+		zoninator.$zonePostsSaveInfo = $('#zone-posts-save-info');
 
 		zoninator.$zoneAdvancedDate.change(function() {
 			zoninator.autocompleteCache = {};
@@ -31,10 +33,10 @@ var zoninator = {}
 		zoninator.initZonePost(zoninator.$zonePostsList.children());
 
 		// Initialize sortable - call reorderPosts method when the user drops a post element
-		if(!zoninator.$zonePostsWrap.hasClass('readonly')) {
+		if (!zoninator.$zonePostsWrap.hasClass('readonly')) {
 			zoninator.$zonePostsList.sortable({
-				stop: zoninator.reorderPosts
-				, placeholder: 'ui-state-highlight'
+				stop                  : zoninator.reorderPosts
+				, placeholder         : 'ui-state-highlight'
 				, forcePlaceholderSize: true
 				//, handle: '.zone-post-handle'
 			});
@@ -56,11 +58,11 @@ var zoninator = {}
 		$('#zone-info').submit(function(e) {
 			var $form = $(this);
 			var $name = $form.find('input[name="name"]');
-			if( !$name.val().trim() ) {
-				$name.closest( '.zone-field' ).addClass('error');
+			if (!$name.val().trim()) {
+				$name.closest('.zone-field').addClass('error');
 				return false;
 			} else {
-				$name.closest( '.zone-field' ).removeClass('error');
+				$name.closest('.zone-field').removeClass('error');
 			}
 		});
 
@@ -70,16 +72,15 @@ var zoninator = {}
 		zoninator.$zonePostLatest.change(function() {
 			var $this = $(this),
 				post_id = $this.val();
-			if ( post_id ) {
-				zoninator.addPost( post_id );
-				$this.find( '[value="' + post_id + '"]' ).remove();
+			if (post_id) {
+				zoninator.addPost(post_id);
+				$this.find('[value="' + post_id + '"]').remove();
 			}
 		});
 
 
-
 		// Initialize autocomplete
-		if(zoninator.$zonePostSearch.length) {
+		if (zoninator.$zonePostSearch.length) {
 			zoninator.$zonePostSearch
 				.bind('loading.start', function(e) {
 					$(this).addClass('loading');
@@ -90,15 +91,15 @@ var zoninator = {}
 				.autocomplete({
 					minLength: 3
 					// Remote source with caching
-					, source: function( request, response ) {
+					, source : function(request, response) {
 						var term = request.term;
 
 						request.cat = zoninator.getAdvancedCat();
 						request.date = zoninator.getAdvancedDate();
 						request.zone_id = zoninator.getZoneId();
 
-						if ( term in zoninator.autocompleteCache ) { //&& request.cat && request.date ) {
-							response( zoninator.autocompleteCache[ term ] );
+						if (term in zoninator.autocompleteCache) { //&& request.cat && request.date ) {
+							response(zoninator.autocompleteCache[term]);
 							zoninator.$zonePostSearch.trigger('loading.end');
 							return;
 						}
@@ -110,47 +111,47 @@ var zoninator = {}
 						// Allow developers to hook onto the request
 						zoninator.$zonePostSearch.trigger('search.request', request);
 
-						zoninator.autocompleteAjax = $.getJSON( ajaxurl, request, function( data, status, xhr ) {
-							zoninator.autocompleteCache[ term ] = data;
-							if ( xhr === zoninator.autocompleteAjax ) {
-								response( data );
+						zoninator.autocompleteAjax = $.getJSON(ajaxurl, request, function(data, status, xhr) {
+							zoninator.autocompleteCache[term] = data;
+							if (xhr === zoninator.autocompleteAjax) {
+								response(data);
 							}
 							zoninator.$zonePostSearch.trigger('loading.end');
 						});
 					}
-					, select: function( e, ui ) {
+					, select : function(e, ui) {
 						zoninator.addPost(ui.item.post_id);
 					}
-					, search: function( e, ui ) {
+					, search : function(e, ui) {
 						zoninator.$zonePostSearch.trigger('loading.start');
 					}
 				});
 
 			// Compat with jQuery 1.8 and 1.9; the latter uses ui- prefix for data attribute
-			var autocomplete = zoninator.$zonePostSearch.data( 'autocomplete' ) || zoninator.$zonePostSearch.data( 'ui-autocomplete' );
+			var autocomplete = zoninator.$zonePostSearch.data('autocomplete') || zoninator.$zonePostSearch.data('ui-autocomplete');
 
-			autocomplete._renderItem = function( ul, item ) {
+			autocomplete._renderItem = function(ul, item) {
 				var content = '<a>'
 					+ '<span class="title">' + item.title + '</span>'
 					+ '<span class="type">' + item.post_type + '</span>'
 					+ '<span class="date">' + item.date + '</span>'
 					+ '<span class="status">' + item.post_status + '</span>'
 					+ '</a>';
-				return $( '<li></li>' )
-					.data( 'item.autocomplete', item )
-					.append( content )
-					.appendTo( ul )
+				return $('<li></li>')
+					.data('item.autocomplete', item)
+					.append(content)
+					.appendTo(ul)
 					;
 			}
 		}
 
 		// Initialize lock heartbeat
-		if( zoninator.getZoneId() && ! $('#zone-locked').length ) {
+		if (zoninator.getZoneId() && !$('#zone-locked').length) {
 			zoninator.currentLockPeriod = 0;
-			zoninator.heartbeatInterval = parseInt( zoninatorOptions.zoneLockPeriod );
-			zoninator.maxLockPeriod = parseInt( zoninatorOptions.zoneLockPeriodMax );
+			zoninator.heartbeatInterval = parseInt(zoninatorOptions.zoneLockPeriod);
+			zoninator.maxLockPeriod = parseInt(zoninatorOptions.zoneLockPeriodMax);
 
-			if( zoninator.heartbeatInterval > 0 && zoninator.maxLockPeriod != -1) {
+			if (zoninator.heartbeatInterval > 0 && zoninator.maxLockPeriod != -1) {
 				zoninator.heartbeatInterval = zoninator.heartbeatInterval * 1000;
 				zoninator.maxLockPeriod = zoninator.maxLockPeriod * 1000;
 
@@ -166,8 +167,8 @@ var zoninator = {}
 		zoninator.$zonePostSearch.trigger('loading.start');
 		zoninator.ajax('update_recent', {
 			zone_id: zoninator.getZoneId(),
-			cat: zoninator.getAdvancedCat(),
-			date: zoninator.getAdvancedDate()
+			cat    : zoninator.getAdvancedCat(),
+			date   : zoninator.getAdvancedDate()
 		}, zoninator.addUpdateLatestSuccessCallback);
 	}
 
@@ -184,7 +185,7 @@ var zoninator = {}
 		zoninator.$zonePostSearch.trigger('loading.start');
 
 		zoninator.ajax('add_post', {
-			zone_id: zoninator.getZoneId()
+			zone_id  : zoninator.getZoneId()
 			, post_id: postId
 		}, zoninator.addPostSuccessCallback);
 
@@ -199,7 +200,7 @@ var zoninator = {}
 		$post.hide()
 			.appendTo(zoninator.$zonePostsList)
 			.fadeIn()
-			;
+		;
 
 		zoninator.initZonePost($post);
 
@@ -225,7 +226,7 @@ var zoninator = {}
 		zoninator.getPost(postId).trigger('loading.start');
 
 		zoninator.ajax('remove_post', {
-			zone_id: zoninator.getZoneId()
+			zone_id  : zoninator.getZoneId()
 			, post_id: postId
 		}, zoninator.removePostSuccessCallback);
 	}
@@ -235,7 +236,7 @@ var zoninator = {}
 
 		zoninator.getPost(postId).fadeOut('slow', function() {
 			$(this).remove();
-			if ( zoninator.getZonePostIds().length )
+			if (zoninator.getZonePostIds().length)
 				zoninator.updatePostOrder(true);
 			zoninator.$zonePostsWrap.trigger('loading.end');
 		});
@@ -248,7 +249,7 @@ var zoninator = {}
 			;
 
 		// Reorder only if DOM list has changed compared to internal list
-		if(!compareArrays(postIds, zoninator.getPostOrder())) {
+		if (!compareArrays(postIds, zoninator.getPostOrder())) {
 			var data = {
 				zone_id: zoneId
 				, posts: postIds
@@ -276,7 +277,7 @@ var zoninator = {}
 			zoninator.currentLockPeriod += zoninator.heartbeatInterval;
 
 			// We want to set a max to avoid people leaving their tabs open and then running away for long periods
-			if( zoninator.currentLockPeriod < zoninator.maxLockPeriod ) {
+			if (zoninator.currentLockPeriod < zoninator.maxLockPeriod) {
 				setTimeout(zoninator.updateLock, zoninator.heartbeatInterval);
 			} else {
 				alert(zoninatorOptions.errorZoneLockMax);
@@ -295,43 +296,61 @@ var zoninator = {}
 
 	zoninator.ajax = function(action, values, successCallback, errorCallback, params) {
 		var data = {
-			action: zoninator.getAjaxAction(action)
+			action    : zoninator.getAjaxAction(action)
 			, _wpnonce: zoninator.getAjaxNonce()
 		}
 		data = $.extend({}, data, values);
 
 		// Allow developers to filter the ajax parameters
-		zoninator.$zonePostSearch.trigger( 'zoninator.ajax', [ action, data ] );
+		zoninator.$zonePostSearch.trigger('zoninator.ajax', [action, data]);
 
 		var defaultParams = {
-			url: ajaxurl
-			, data: data
+			url       : ajaxurl
+			, data    : data
 			, dataType: 'json'
-			, type: 'POST'
-			, success: function(returnData) {
+			, type    : 'POST'
+			, success : function(returnData) {
 				zoninator.ajaxSuccessCallback(returnData, data, successCallback, errorCallback);
 			}
-			, error: function(returnData) {
+			, error   : function(returnData) {
 				zoninator.ajaxErrorCallback(returnData, data, successCallback, errorCallback);
 			}
 		}
 		params = $.extend({}, defaultParams, params);
 
+		if (action === 'reorder_posts') {
+			zoninator.$zonePostsSaveInfo
+				.removeClass('notice-error')
+				.addClass('notice-info')
+				.text('Saving...')
+		}
+
 		$.ajax(params);
 	}
 
 	zoninator.ajaxSuccessCallback = function(returnData, originalData, successCallback, errorCallback) {
-		if(typeof(returnData) === 'undefined' || !returnData.status) {
+		if (typeof(returnData) === 'undefined' || !returnData.status) {
 			// If we didn't get a valid return, it's probably an error
 			return zoninator.ajaxErrorCallback(returnData, originalData, successCallback, errorCallback);
 		}
 
 		//console.log('ajaxSuccessCallback', returnData, originalData);
 
-		if(returnData.nonce)
+		if (originalData.action === 'zoninator_reorder_posts') {
+			zoninator.$zonePostsSaveInfo
+				.removeClass('notice-error')
+				.addClass('notice-info')
+				.text('Saved at ' + new Date().toLocaleTimeString());
+		}
+
+		setTimeout(function() {
+			zoninator.$zonePostsSaveInfo.removeClass('notice-info');
+		}, 1000);
+
+		if (returnData.nonce)
 			zoninator.updateAjaxNonce(returnData.nonce);
 
-		if(typeof(successCallback) === 'function') {
+		if (typeof(successCallback) === 'function') {
 			return successCallback(returnData, originalData);
 		} else {
 			alert(returnData.content);
@@ -339,19 +358,26 @@ var zoninator = {}
 	}
 
 	zoninator.ajaxErrorCallback = function(returnData, originalData, successCallback, errorCallback) {
-		if( typeof(returnData) === 'undefined' || !returnData ) {
+		if (typeof(returnData) === 'undefined' || !returnData) {
 			returnData = {
-				status: 0
+				status   : 0
 				, content: zoninatorOptions.errorGeneral
 			}
 		}
 
 		//console.log('ajaxErrorCallback', returnData, originalData);
 
-		if(typeof(errorCallback) === 'function') {
+		if (originalData.action === 'zoninator_reorder_posts') {
+			zoninator.$zonePostsSaveInfo
+				.removeClass('notice-info')
+				.addClass('notice-error')
+				.text('Error saving posts. Please try again.');
+		}
+
+		if (typeof(errorCallback) === 'function') {
 			return errorCallback(returnData, originalData);
 		} else {
-			if( typeof(returnData.content) === 'undefined' || !returnData.content )
+			if (typeof(returnData.content) === 'undefined' || !returnData.content)
 				returnData.content = zoninatorOptions.errorGeneral;
 			alert(returnData.content);
 		}
@@ -374,7 +400,7 @@ var zoninator = {}
 	}
 	zoninator.getAjaxNonceField = function(action) {
 		action = action || zoninatorOptions.ajaxNonceAction;
-		return $('#' + action );
+		return $('#' + action);
 	}
 
 	zoninator.getZoneId = function() {
@@ -406,14 +432,14 @@ var zoninator = {}
 
 	// Get the post list we stored internally
 	zoninator.getPostOrder = function() {
-		if(!$.isArray(zoninator.currentPostOrder))
+		if (!$.isArray(zoninator.currentPostOrder))
 			zoninator.updatePostOrder();
 		return zoninator.currentPostOrder;
 	}
 
 	// Update the internal list based on the list in the DOM
 	zoninator.updatePostOrder = function(save) {
-		if(save)
+		if (save)
 			zoninator.reorderPosts();
 
 		zoninator.currentPostOrder = zoninator.getZonePostIds();
@@ -424,15 +450,16 @@ var zoninator = {}
 	zoninator.renumberPosts = function() {
 		var $numbers = zoninator.$zonePostsList.find('.zone-post-position');
 		$numbers.each(function(i, elem) {
-		    $(elem).text(i + 1);
-        });
+			$(elem).text(i + 1);
+		});
 	}
 
 	zoninator.getAjaxAction = function(action) {
 		return 'zoninator_' + action;
 	}
 
-	zoninator.emptyFunc = function() {}
+	zoninator.emptyFunc = function() {
+	}
 
 	zoninator.forceSavePosts = function() {
 		// Grab post list from DOM
@@ -462,35 +489,35 @@ var zoninator = {}
 	 * @param bool Sort the arrays before comparing?
 	 *
 	 */
-    var compareArrays = function(arr1, arr2, sort) {
-        if (arr1.length != arr2.length) return false;
+	var compareArrays = function(arr1, arr2, sort) {
+		if (arr1.length != arr2.length) return false;
 
-        if(sort) {
-            arr1 = arr1.sort(),
-            arr2 = arr2.sort();
-        }
-        for (var i = 0; arr2[i]; i++) {
-            if (arr1[i] !== arr2[i]) {
-                return false;
-            }
-        }
-        return true;
-    };
+		if (sort) {
+			arr1 = arr1.sort(),
+				arr2 = arr2.sort();
+		}
+		for (var i = 0; arr2[i]; i++) {
+			if (arr1[i] !== arr2[i]) {
+				return false;
+			}
+		}
+		return true;
+	};
 
-		$('.zone-toggle-advanced-search').click( function() {
-		var $this = $( this ),
-			currentLabel = $( this ).text(),
-			altLabel = $( this ).data( 'alt-label' );
+	$('.zone-toggle-advanced-search').click(function() {
+		var $this = $(this),
+			currentLabel = $(this).text(),
+			altLabel = $(this).data('alt-label');
 
 		$('.zone-advanced-search-filters-wrapper').toggle();
 
-		$this.text( altLabel ).data( 'alt-label', currentLabel );
+		$this.text(altLabel).data('alt-label', currentLabel);
 	});
 
 	// TODO: fix this
 	function parseIntOrZero(str) {
-		var parsed = parseInt( str );
-		if( isNaN(parsed) || !parsed ) parsed = 0;
+		var parsed = parseInt(str);
+		if (isNaN(parsed) || !parsed) parsed = 0;
 		return parsed;
 	}
 
@@ -500,5 +527,8 @@ var zoninator = {}
 	})
 })(jQuery, window);
 
-if(typeof(console) === 'undefined')
-	console = { log: function(){} }
+if (typeof(console) === 'undefined')
+	console = {
+		log: function() {
+		}
+	}
