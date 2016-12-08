@@ -3,15 +3,15 @@ var zoninator = {}
 ;(function($, window, undefined) {
 
 	zoninator.init = function() {
-		zoninator.autocompleteCache = {}
-		zoninator.autocompleteAjax = {}
+		zoninator.autocompleteCache = {};
+		zoninator.autocompleteAjax = {};
 		zoninator.$zonePostsList = $('.zone-posts-list');
 		zoninator.$zonePostsWrap = $('.zone-posts-wrapper');
-		zoninator.$zonePostSearch = $("#zone-post-search");
-		zoninator.$zonePostLatest = $("#zone-post-latest");
-		zoninator.$zoneAdvancedCat = $("#zone_advanced_filter_taxonomy");
-		zoninator.$zoneAdvancedDate = $("#zone_advanced_filter_date");
-		zoninator.$zoneSubmit = $("#zone-info input[type='submit']")
+		zoninator.$zonePostSearch = $('#zone-post-search');
+		zoninator.$zonePostLatest = $('#zone-post-latest');
+		zoninator.$zoneAdvancedCat = $('#zone_advanced_filter_taxonomy');
+		zoninator.$zoneAdvancedDate = $('#zone_advanced_filter_date');
+		zoninator.$zoneSubmit = $('#zone-info input[type="submit"]');
 		zoninator.$zonePostsSave = $('#save-zone-posts');
 
 		zoninator.$zoneAdvancedDate.change(function() {
@@ -24,12 +24,13 @@ var zoninator = {}
 			zoninator.updateLatest();
 		});
 
+		// Update the currentPostOrder property which keeps track of the list order internally
 		zoninator.updatePostOrder();
 
 		// Bind actions to buttons
 		zoninator.initZonePost(zoninator.$zonePostsList.children());
 
-		// Initialize sortable
+		// Initialize sortable - call reorderPosts method when the user drops a post element
 		if(!zoninator.$zonePostsWrap.hasClass('readonly')) {
 			zoninator.$zonePostsList.sortable({
 				stop: zoninator.reorderPosts
@@ -65,6 +66,7 @@ var zoninator = {}
 
 		zoninator.$zonePostsSave.on('click', zoninator.forceSavePosts);
 
+		// On selecting a post from the latest posts list, add it to the zone
 		zoninator.$zonePostLatest.change(function() {
 			var $this = $(this),
 				post_id = $this.val();
@@ -240,12 +242,12 @@ var zoninator = {}
 	}
 
 	zoninator.reorderPosts = function() {
-		// get list of post ids
+		// Get list of post ids from the DOM
 		var zoneId = zoninator.getZoneId()
 			, postIds = zoninator.getZonePostIds()
 			;
 
-		// Reorder only if changed
+		// Reorder only if DOM list has changed compared to internal list
 		if(!compareArrays(postIds, zoninator.getPostOrder())) {
 			var data = {
 				zone_id: zoneId
@@ -379,6 +381,7 @@ var zoninator = {}
 		return $('#zone_id').length ? $('#zone_id').val() : 0;
 	}
 
+	// Get the list of posts from the DOM
 	zoninator.getZonePosts = function() {
 		return zoninator.$zonePostsList.children();
 	}
@@ -391,6 +394,7 @@ var zoninator = {}
 		return $(elem).closest('.zone-post').attr('data-post-id');
 	}
 
+	// Get the IDs of post elements in the DOM list
 	zoninator.getZonePostIds = function() {
 		var ids = []
 			, $posts = zoninator.getZonePosts();
@@ -400,12 +404,14 @@ var zoninator = {}
 		return ids;
 	}
 
+	// Get the post list we stored internally
 	zoninator.getPostOrder = function() {
 		if(!$.isArray(zoninator.currentPostOrder))
 			zoninator.updatePostOrder();
 		return zoninator.currentPostOrder;
 	}
 
+	// Update the internal list based on the list in the DOM
 	zoninator.updatePostOrder = function(save) {
 		if(save)
 			zoninator.reorderPosts();
@@ -414,6 +420,7 @@ var zoninator = {}
 		zoninator.renumberPosts();
 	}
 
+	// Change the numbers in the UI to match the order of posts in the list
 	zoninator.renumberPosts = function() {
 		var $numbers = zoninator.$zonePostsList.find('.zone-post-position');
 		$numbers.each(function(i, elem) {
