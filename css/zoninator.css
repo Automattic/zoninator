@@ -230,13 +230,14 @@
 
 #zone-posts-save {
 	float: left;
+	width: 125px;
 }
 
 .zone-posts-save-info {
 	float: left;
 	margin: 0 0 0 10px;
 	padding: 0 10px;
-	line-height: 30px;
+	line-height: 28px;
 	color: #666;
 }
 

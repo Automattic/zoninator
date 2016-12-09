@@ -318,10 +318,11 @@ var zoninator = {};
 		params = $.extend({}, defaultParams, params);
 
 		if (action === 'reorder_posts') {
-			zoninator.$zonePostsSaveInfo
-				.removeClass('notice-error')
-				.addClass('notice-info')
-				.text('Saving...')
+			zoninator.$zonePostsSave
+				.prop({
+					value: 'Saving...',
+					disabled: 'disabled'
+				});
 		}
 
 		$.ajax(params);
@@ -336,15 +337,21 @@ var zoninator = {};
 		//console.log('ajaxSuccessCallback', returnData, originalData);
 
 		if (originalData.action === 'zoninator_reorder_posts') {
+			zoninator.$zonePostsSave
+				.prop({
+					value: 'Save zone posts',
+					disabled: false
+				});
 			zoninator.$zonePostsSaveInfo
 				.removeClass('notice-error')
 				.addClass('notice-info')
 				.text('Saved at ' + new Date().toLocaleTimeString());
+			setTimeout( function() {
+				zoninator.$zonePostsSaveInfo
+					.removeClass('notice-error notice-info')
+					.text('');
+			}, 2000);
 		}
-
-		setTimeout(function() {
-			zoninator.$zonePostsSaveInfo.removeClass('notice-info');
-		}, 1000);
 
 		if (returnData.nonce)
 			zoninator.updateAjaxNonce(returnData.nonce);
