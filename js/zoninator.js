@@ -320,7 +320,7 @@ var zoninator = {};
 		if (action === 'reorder_posts') {
 			zoninator.$zonePostsSave
 				.prop({
-					value: 'Saving...',
+					value   : 'Saving...',
 					disabled: 'disabled'
 				});
 		}
@@ -337,20 +337,22 @@ var zoninator = {};
 		//console.log('ajaxSuccessCallback', returnData, originalData);
 
 		if (originalData.action === 'zoninator_reorder_posts') {
-			zoninator.$zonePostsSave
-				.prop({
-					value: 'Save zone posts',
-					disabled: false
-				});
-			zoninator.$zonePostsSaveInfo
-				.removeClass('notice-error')
-				.addClass('notice-info')
-				.text('Saved at ' + new Date().toLocaleTimeString());
-			setTimeout( function() {
+			setTimeout(function() {
+				zoninator.$zonePostsSave
+					.prop({
+						value   : 'Save zone posts',
+						disabled: false
+					});
 				zoninator.$zonePostsSaveInfo
-					.removeClass('notice-error notice-info')
-					.text('');
-			}, 2000);
+					.removeClass('notice-error')
+					.addClass('notice-info')
+					.text('Saved at ' + new Date().toLocaleTimeString());
+				setTimeout(function() {
+					zoninator.$zonePostsSaveInfo
+						.removeClass('notice-error notice-info')
+						.text('');
+				}, 2000);
+			}, 250);
 		}
 
 		if (returnData.nonce)
