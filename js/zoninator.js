@@ -350,7 +350,6 @@ var zoninator = {};
 				setTimeout(function() {
 					zoninator.$zonePostsSaveInfo
 						.removeClass('notice-error notice-info')
-						.text('');
 				}, 2000);
 			}, 250);
 		}
