@@ -821,6 +821,7 @@ class Zoninator
 				'order' => 'DESC',
 				'orderby' => 'post_date',
 				'suppress_filters' => true,
+				'no_found_rows' => true,
 			) );
 
 			if ( $this->_validate_category_filter( $filter_cat ) ) {
