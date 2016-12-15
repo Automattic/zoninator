@@ -540,7 +540,7 @@ class Zoninator
 	}
 
 	function zone_advanced_search_date_filter() {
-		$current_date = $this->_get_post_var( 'zone_advanced_filter_date', '', 'striptags' );
+		$current_date = $this->_get_post_var( 'zone_advanced_filter_date', apply_filters( 'zoninator_advanced_filter_date_default', '' ), 'striptags' );
 		$date_filters = apply_filters( 'zoninator_advanced_filter_date', array( 'all', 'today', 'yesterday') );
 		?>
 		<select name="zone_advanced_filter_date" id="zone_advanced_filter_date">
