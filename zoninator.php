@@ -547,9 +547,15 @@ class Zoninator
 			<?php
 			// Convert string dates into actual dates
 			foreach( $date_filters as $date ) :
-				$timestamp = strtotime( $date );
-				$output = ( $timestamp ) ? date( 'Y-m-d', $timestamp ) : 0;
-				echo sprintf( '<option value="%s" %s>%s</option>', esc_attr( $output ), selected( $output, $current_date, false ), esc_html( $date ) );
+				if ( true === is_array( $date ) ) {
+					$output = array_key_exists( 'value', $date ) ? $date['value'] : 0;
+					$label = array_key_exists( 'label', $date ) ? $date['label'] : $output;
+				} else {
+					$timestamp = strtotime( $date );
+					$output = ( $timestamp ) ? date( 'Y-m-d', $timestamp ) : 0;
+					$label = $date;
+				}
+				echo sprintf( '<option value="%s" %s>%s</option>', esc_attr( $output ), selected( $output, $current_date, false ), esc_html( $label ) );
 			endforeach;
 			?>
 		</select>
