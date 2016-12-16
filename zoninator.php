@@ -540,16 +540,22 @@ class Zoninator
 	}
 
 	function zone_advanced_search_date_filter() {
-		$current_date = $this->_get_post_var( 'zone_advanced_filter_date', '', 'striptags' );
+		$current_date = $this->_get_post_var( 'zone_advanced_filter_date', apply_filters( 'zoninator_advanced_filter_date_default', '' ), 'striptags' );
 		$date_filters = apply_filters( 'zoninator_advanced_filter_date', array( 'all', 'today', 'yesterday') );
 		?>
 		<select name="zone_advanced_filter_date" id="zone_advanced_filter_date">
 			<?php
 			// Convert string dates into actual dates
 			foreach( $date_filters as $date ) :
-				$timestamp = strtotime( $date );
-				$output = ( $timestamp ) ? date( 'Y-m-d', $timestamp ) : 0;
-				echo sprintf( '<option value="%s" %s>%s</option>', esc_attr( $output ), selected( $output, $current_date, false ), esc_html( $date ) );
+				if ( true === is_array( $date ) ) {
+					$output = array_key_exists( 'value', $date ) ? $date['value'] : 0;
+					$label = array_key_exists( 'label', $date ) ? $date['label'] : $output;
+				} else {
+					$timestamp = strtotime( $date );
+					$output = ( $timestamp ) ? date( 'Y-m-d', $timestamp ) : 0;
+					$label = $date;
+				}
+				echo sprintf( '<option value="%s" %s>%s</option>', esc_attr( $output ), selected( $output, $current_date, false ), esc_html( $label ) );
 			endforeach;
 			?>
 		</select>
@@ -815,6 +821,7 @@ class Zoninator
 				'order' => 'DESC',
 				'orderby' => 'post_date',
 				'suppress_filters' => true,
+				'no_found_rows' => true,
 			) );
 
 			if ( $this->_validate_category_filter( $filter_cat ) ) {
