@@ -394,7 +394,7 @@ class Zoninator
 								<?php endif; ?>
 
 								<div class="submit-field submitbox">
-									<input type="submit" value="<?php esc_attr_e('Save', 'zoninator'); ?>" name="submit" class="button-primary" />
+									<input type="submit" value="<?php esc_attr_e('Save zone info', 'zoninator'); ?>" name="submit" class="button" />
 
 									<?php if( $zone_id ) : ?>
 										<a href="<?php echo $delete_link ?>" class="submitdelete" onclick="return confirm('<?php echo esc_js( 'Are you sure you want to delete this zone?', 'zoninator' ); ?>')"><?php esc_html_e('Delete', 'zoninator') ?></a>
@@ -448,6 +448,11 @@ class Zoninator
 							<?php $this->zone_admin_recent_posts_dropdown( $zone_id ); ?>
 
 							<?php $this->zone_admin_search_form(); ?>
+
+							<div class="zone-posts-save-input">
+								<input type="button" value="Save zone posts" name="zone-posts-save" id="zone-posts-save" class="button-primary" />
+								<p id="zone-posts-save-info" class="zone-posts-save-info"></p>
+							</div>
 
 							<div class="zone-posts-list">
 								<?php foreach( $zone_posts as $post ) : ?>
