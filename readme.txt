@@ -3,7 +3,7 @@ Contributors: batmoo, automattic, wpcomvip, pkevan, matthumphreys, potatomaster,
 Tags: zones, post order, post list, posts, order, zonination, content curation, curation, content management
 Requires at least: 3.5
 Tested up to: 4.4
-Stable tag: 0.6
+Stable tag: 0.7
 License: GPLv2
 
 Curation made easy! Create "zones" then add and order your content!
@@ -58,6 +58,9 @@ Filter the following and change according to your needs:
 = 0.7 =
 
 * Added compatibility with WordPress 4.4 admin styles
+* Add the ability to save zone content to fix race conditions / problems with the autosave https://github.com/Automattic/zoninator/pull/51
+* Add ability to filter the dates to search https://github.com/Automattic/zoninator/pull/52
+* General performance improvements
 
 = 0.6 =
 
