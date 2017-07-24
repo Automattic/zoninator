@@ -448,6 +448,8 @@ class Zoninator
 							<?php $this->zone_admin_recent_posts_dropdown( $zone_id ); ?>
 
 							<?php $this->zone_admin_search_form(); ?>
+							
+							<?php do_action( 'zoninator_admin_search_form_content' ); ?>
 
 							<div class="zone-posts-save-input">
 								<input type="button" value="Save zone posts" name="zone-posts-save" id="zone-posts-save" class="button-primary" />
