@@ -448,6 +448,16 @@ class Zoninator
 							<?php $this->zone_admin_recent_posts_dropdown( $zone_id ); ?>
 
 							<?php $this->zone_admin_search_form(); ?>
+							
+							<?php
+							/**
+							 * Add Extra search field in Zone Content.
+							 *
+							 * @param int $zone_id Zone ID.
+							 * @param WP_Term $zone Zone Object.
+							 */
+							do_action( 'zoninator_admin_search_form_content', $zone_id, $zone );
+							?>
 
 							<div class="zone-posts-save-input">
 								<input type="button" value="Save zone posts" name="zone-posts-save" id="zone-posts-save" class="button-primary" />
