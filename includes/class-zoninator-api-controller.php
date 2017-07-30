@@ -60,6 +60,9 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 			self::ZONE_ID_POST_ID_REQUIRED => __( 'post id and zone id required', 'zoninator' ),
 		);
 
+		$this->add_route( 'zones' )
+			->add_action( $this->action( 'index', 'get_zones' ) );
+
 		$this->add_route( 'zones/(?P<zone_id>[\d]+)' )
 			->add_action( $this->action( 'index', 'get_zone_posts' )
 				->permissions( 'get_zone_posts_permissions_check' )
@@ -98,6 +101,22 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		$this->add_route( 'posts/recent' )
 			->add_action( $this->action( 'index', 'get_recent_posts' )
 				->args( '_params_for_get_recent_posts' ) );
+	}
+
+	/**
+	 * Get the list of all zones
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Response
+	 */
+	function get_zones( $request ) {
+		$results = $this->instance->get_zones();
+
+		if ( is_wp_error( $results ) ) {
+			return $this->_bad_request( self::ZONE_FEED_ERROR, $results->get_error_message() );
+		}
+
+		return new WP_REST_Response( $results, 200 );
 	}
 
 	/**
