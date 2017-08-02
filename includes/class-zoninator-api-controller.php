@@ -1,6 +1,6 @@
 <?php
 /**
- * @packae Zoninator/Rest
+ * @package Zoninator/Rest
  */
 
 
