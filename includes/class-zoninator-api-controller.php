@@ -3,7 +3,6 @@
  * @package Zoninator/Rest
  */
 
-
 /**
  * Class Zoninator_Api_Controller
  */
@@ -22,6 +21,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	const PERMISSION_DENIED = 'permission-denied';
 	const ZONE_NOT_FOUND = 'zone-not-found';
 	const POST_NOT_FOUND = 'post-not-found';
+	const INVALID_ZONE_SETTINGS = 'invalid-zone-settings';
 	/**
 	 * Instance
 	 *
@@ -50,9 +50,6 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 * Set up this controller
 	 */
 	function setup() {
-//		$this->add_route( 'zones' )
-//			->add_action( $this->action( 'index', 'get_zones' ) )
-//			->add_action( $this->action( 'create', 'create_zone' ) );
 		$this->translations = array(
 			self::ZONE_NOT_FOUND           => __( 'Zone not found', 'zoninator' ),
 			self::INVALID_POST_ID          => __( 'Invalid post id', 'zoninator' ),
@@ -61,7 +58,15 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		);
 
 		$this->add_route( 'zones' )
-			->add_action( $this->action( 'index', 'get_zones' ) );
+			->add_action(
+				$this->action( 'index', 'get_zones' )
+					->permissions( 'get_zones_permissions_check' )
+			)
+			->add_action(
+				$this->action( 'create', 'create_zone' )
+					->permissions( 'add_zone_permissions_check' )
+					->args( '_params_for_create_zone' )
+			);
 
 		$this->add_route( 'zones/(?P<zone_id>[\d]+)' )
 			->add_action( $this->action( 'index', 'get_zone_posts' )
@@ -113,10 +118,34 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		$results = $this->instance->get_zones();
 
 		if ( is_wp_error( $results ) ) {
-			return $this->_bad_request( self::ZONE_FEED_ERROR, $results->get_error_message() );
+			return $this->_bad_request( array(
+				'message' => $results->get_error_message()
+			) );
 		}
 
 		return new WP_REST_Response( $results, 200 );
+	}
+
+	/**
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Response
+	 */
+	function create_zone( $request ) {
+		$name = $this->_get_param( $request, 'name', '' );
+		$slug = $this->_get_param( $request, 'slug', '' );
+		$description = $this->_get_param( $request, 'description', '', 'strip_tags' );
+
+		$result = $this->instance->insert_zone( $slug, $name, array( 'description' => $description ) );
+
+		if ( is_wp_error( $result ) ) {
+			return $this->bad_request( array(
+				'message' => $result->get_error_message() 
+			) );
+		}
+
+		$zone = $this->instance->get_zone( $result[ 'term_id' ] );
+
+		return $this->created( $zone );
 	}
 
 	/**
@@ -446,6 +475,26 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	}
 
 	/**
+	 * Check if a given request has access to the zones index.
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|bool
+	 */
+	public function get_zones_permissions_check( $request ) {
+		return true;
+	}
+
+	/**
+	 * Check if a given request has access to add new zones.
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|bool
+	 */
+	public function add_zone_permissions_check( $request ) {
+		return $this->_permissions_check( 'insert' );
+	}
+
+	/**
 	 * Check if a given request has access to get zone posts.
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
@@ -498,6 +547,11 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		return stripslashes( $item );
 	}
 
+	public function strip_tags( $item ) {
+		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use stripslashes directly
+		return strip_tags( $item );
+	}
+
 	/**
 	 * @param WP_REST_Request $object
 	 * @param $var
@@ -515,6 +569,28 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		}
 
 		return $value;
+	}
+
+	public function _params_for_create_zone() {
+		return array(
+			'name' => array(
+				'type' => 'string',
+				'sanitize_callback' => array( $this, 'strip_slashes' ),
+				'default' => '',
+				'required' => false
+			),
+			'slug' => array(
+				'type' => 'string',
+				'sanitize_callback' => array( $this, 'strip_slashes' ),
+				'required' => true,
+			),
+			'description' => array(
+				'type' => 'string',
+				'sanitize_callback' => array( $this, 'strip_tags' ),
+				'default' => '',
+				'required' => false,
+			)
+		);
 	}
 
 	public function _get_zone_id_param() {
