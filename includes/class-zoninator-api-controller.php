@@ -523,7 +523,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 */
 	public function add_post_to_zone_permissions_check( $request ) {
 		$zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
-		return $this->_permissions_check( 'insert', $zone_id );
+		return $this->_permissions_check( 'update', $zone_id );
 	}
 
 	/**
