@@ -123,7 +123,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 			) );
 		}
 
-		return new WP_REST_Response( $results, 200 );
+		return $this->ok( $results );
 	}
 
 	/**
@@ -135,7 +135,9 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		$slug = $this->_get_param( $request, 'slug', '' );
 		$description = $this->_get_param( $request, 'description', '', 'strip_tags' );
 
-		$result = $this->instance->insert_zone( $slug, $name, array( 'description' => $description ) );
+		$result = $this->instance->insert_zone( $slug, $name, array(
+			'description' => $description,
+		) );
 
 		if ( is_wp_error( $result ) ) {
 			return $this->bad_request( array(
@@ -548,7 +550,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	}
 
 	public function strip_tags( $item ) {
-		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use stripslashes directly
+		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use strip_tags directly
 		return strip_tags( $item );
 	}
 
