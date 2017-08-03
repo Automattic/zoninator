@@ -49,7 +49,6 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 		return $this->login_as( $this->admin_id );
 	}
 
-
 	/**
 	 * Login as
 	 *
@@ -190,6 +189,33 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 		do_action( 'rest_api_init' );
 		$this->environment = Zoninator()->rest_api->bootstrap->environment();
 	}
+
+	/**
+	 * T test_create_zone_responds_with_created_when_method_post
+	 *
+	 * @throws Exception E.
+	 */
+	function test_create_zone_responds_with_created_when_method_post() {
+		$this->login_as_admin();
+		$response = $this->post( '/zoninator/v1/zones', array(
+			'slug' => 'test-zone',
+		) );
+		$this->assertResponseStatus( $response, 201 );
+	}
+
+	/**
+	 * T test_create_zone_fail_if_invalid_data
+	 *
+	 * @throws Exception E.
+	 */
+	function test_create_zone_fail_if_invalid_data() {
+		$this->login_as_admin();
+		$response = $this->post( '/zoninator/v1/zones', array(
+			'name' => 'Test zone',
+			'description' => 'No slug provided.'
+		) );
+		$this->assertResponseStatus( $response, 400 );
+	}	
 
 	/**
 	 * T test_add_post_to_zone_responds_with_created_when_method_post
