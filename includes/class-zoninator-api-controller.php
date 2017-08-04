@@ -123,7 +123,9 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 			) );
 		}
 
-		return $this->ok( $results );
+		$zones = array_map( array( $this, '_filter_zone_properties' ), $results );
+
+		return $this->ok( $zones );
 	}
 
 	/**
@@ -678,6 +680,17 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 //				'required'          => false
 //			)
 //		);
+	}
+
+	public function _filter_zone_properties( $zone ) {
+		$data = $zone->to_array();
+
+		return array(
+			'term_id'		=> $data[ 'term_id' ],
+			'slug'			=> $data[ 'slug' ],
+			'name'			=> $data[ 'name' ],
+			'description'	=> $data[ 'description' ],
+		);
 	}
 
 	private function _bad_request($code, $message) {
