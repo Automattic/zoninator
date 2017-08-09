@@ -134,7 +134,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 */
 	function create_zone( $request ) {
 		$name = $this->_get_param( $request, 'name', '' );
-		$slug = $this->_get_param( $request, 'slug', '' );
+		$slug = $this->_get_param( $request, 'slug', $name );
 		$description = $this->_get_param( $request, 'description', '', 'strip_tags' );
 
 		$result = $this->instance->insert_zone( $slug, $name, array(
@@ -149,7 +149,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 
 		$zone = $this->instance->get_zone( $result[ 'term_id' ] );
 
-		return $this->created( $zone );
+		return $this->created( $this->_filter_zone_properties( $zone ) );
 	}
 
 	/**
@@ -586,7 +586,8 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 			'slug' => array(
 				'type' => 'string',
 				'sanitize_callback' => array( $this, 'strip_slashes' ),
-				'required' => true,
+				'default' => '',
+				'required' => false,
 			),
 			'description' => array(
 				'type' => 'string',
