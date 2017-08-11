@@ -287,7 +287,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 			'post_id' => $post->ID,
 		) );
 		$this->assertResponseStatus( $response, 201 );
-		$response = $this->get( '/zoninator/v1/zones/' . $zone_id );
+		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
 		$this->assertResponseStatus( $response, 200 );
 	}
 
@@ -317,7 +317,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 			'slug' => 'zone-2',
 		) );
 
-		$response = $this->get( '/zoninator/v1/zones/' . $zone_id );
+		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
 		$this->assertResponseStatus( $response, 400 );
 	}
 
@@ -354,14 +354,14 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 			$this->assertResponseStatus( $response, 201 );
 		}
 
-		$response = $this->get( '/zoninator/v1/zones/' . $zone_id );
+		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
 		$this->assertResponseStatus( $response, 200 );
 		$data = $response->get_data();
 		$this->assertSame( count( $posts ), count( $data ) );
 		$first_post = $data[0];
 		$response = $this->delete( '/zoninator/v1/zones/' . $zone_id . '/posts/' . $first_post->ID );
 		$this->assertResponseStatus( $response, 200 );
-		$response = $this->get( '/zoninator/v1/zones/' . $zone_id );
+		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
 		$this->assertResponseStatus( $response, 200 );
 		$data = $response->get_data();
 		$this->assertSame( count( $posts ) - 1, count( $data ) );
@@ -385,7 +385,8 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 			$this->assertResponseStatus( $response, 201 );
 		}
 
-		$response = $this->get( '/zoninator/v1/zones/' . $zone_id );
+		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
+		$this->assertResponseStatus( $response, 200 );
 		$data = $response->get_data();
 		$ids = wp_list_pluck( $data, 'ID' );
 		shuffle( $ids );
@@ -410,7 +411,8 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 			$this->assertResponseStatus( $response, 201 );
 		}
 
-		$response = $this->get( '/zoninator/v1/zones/' . $zone_id );
+		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
+		$this->assertResponseStatus( $response, 200 );
 		$data = $response->get_data();
 		$ids = wp_list_pluck( $data, 'ID' );
 		shuffle( $ids );
@@ -421,7 +423,8 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 		$response = $this->put( '/zoninator/v1/zones/' . $zone_id . '/posts/order', $request_data );
 		$this->assertResponseStatus( $response, 200 );
 
-		$response = $this->get( '/zoninator/v1/zones/' . $zone_id );
+		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
+		$this->assertResponseStatus( $response, 200 );
 		$data = $response->get_data();
 		$reordered_ids = wp_list_pluck( $data, 'ID' );
 
@@ -503,32 +506,6 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 			throw new Exception( 'Error' );
 		}
 		return $insert;
-    }
-
-    /**
-     * @param array $params
-     * @return WP_REST_Request
-     */
-    private function _create_request(array $params = array())
-    {
-        $request = new WP_REST_Request(
-            WP_REST_Server::CREATABLE,
-            ''
-        );
-
-        foreach ($params as $key => $value) {
-            $request->set_param( $key, $value );
-        }
-        return $request;
-    }
-
-    /**
-     * @param $response
-     * @param int $status
-     */
-    private function _assert_response_status($response, $status = 200) {
-        $this->assertInstanceOf('WP_REST_Response', $response);
-        $this->assertEquals($status, $response->get_status());
     }
 
 	private function create_a_zone( $slug, $title ) {
