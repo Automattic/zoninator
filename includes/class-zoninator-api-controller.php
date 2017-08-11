@@ -68,13 +68,11 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 					->args( '_params_for_create_zone' )
 			);
 
-		$this->add_route( 'zones/(?P<zone_id>[\d]+)' )
+		$this->add_route( 'zones/(?P<zone_id>[\d]+)/posts' )
 			->add_action( $this->action( 'index', 'get_zone_posts' )
 				->permissions( 'get_zone_posts_permissions_check' )
 				->args( '_get_zone_id_param' )
-			);
-
-		$this->add_route( 'zones/(?P<zone_id>[\d]+)/posts' )
+			)
 			->add_action( $this->action( 'create', 'add_post_to_zone' )
 				->permissions( 'add_post_to_zone_permissions_check' )
 				->args( '_get_zone_post_rest_route_params' )
@@ -118,8 +116,8 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		$results = $this->instance->get_zones();
 
 		if ( is_wp_error( $results ) ) {
-			return $this->_bad_request( array(
-				'message' => $results->get_error_message()
+			return $this->bad_request( array(
+				'message' => $results->get_error_message(),
 			) );
 		}
 
@@ -129,6 +127,8 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	}
 
 	/**
+	 * Create a Zone
+	 *
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
@@ -143,7 +143,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 
 		if ( is_wp_error( $result ) ) {
 			return $this->bad_request( array(
-				'message' => $result->get_error_message() 
+				'message' => $result->get_error_message(),
 			) );
 		}
 
