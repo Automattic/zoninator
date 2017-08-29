@@ -565,7 +565,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 */
 	private function _get_param( $object, $var, $default = '', $sanitize_callback = '' ) {
 		$value = $object->get_param( $var );
-		$value = ( $value !== null ) ? $value : $default;
+		$value = empty( $value ) ? $default : $value;
 
 
 		if ( is_callable( $sanitize_callback ) ) {
