@@ -188,7 +188,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 			) );
 		}
 
-		return $this->ok();
+		return $this->ok( array( 'success' => true ) );
 	}
 
 	/**
@@ -214,7 +214,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 			) );
 		}
 
-		return $this->ok();
+		return $this->ok( array( 'success' => true ) );
 	}
 
 	/**
@@ -267,7 +267,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 			return $this->respond( $result, 500 );
 		}
 
-		return $this->ok();
+		return $this->ok( array( 'success' => true ) );
 	}
 
 	/**
