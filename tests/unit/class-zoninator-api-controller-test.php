@@ -218,6 +218,56 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T test_update_zone_responds_with_success_when_method_put
+	 *
+	 * @throws Exception E.
+	 */
+	function test_update_zone_responds_with_success_when_method_put() {
+		$this->login_as_admin();
+		$zone_id = $this->create_a_zone( 'test-update-zone', 'Test Zone' );
+		$response = $this->put( '/zoninator/v1/zones/' . $zone_id, array(
+			'name' => 'Other test zone',
+		) );
+		$this->assertResponseStatus( $response, 200 );
+	}
+
+	/**
+	 * T test_update_zone_responds_with_not_found_if_zone_not_exist
+	 *
+	 * @throws Exception E.
+	 */
+	function test_update_zone_responds_with_not_found_if_zone_not_exist() {
+		$this->login_as_admin();
+		$response = $this->put( '/zoninator/v1/zones/666666', array(
+			'name' => 'Other test zone',
+		) );
+		$this->assertResponseStatus( $response, 404 );
+	}
+
+	/**
+	 * T test_delete_zone_responds_with_success_when_method_delete
+	 *
+	 * @throws Exception E.
+	 */
+	function test_delete_zone_responds_with_success_when_method_delete() {
+		$this->login_as_admin();
+		$zone_id = $this->create_a_zone( 'test-update-zone', 'Test Zone' );
+		$response = $this->delete( '/zoninator/v1/zones/' . $zone_id );
+		$this->assertResponseStatus( $response, 200 );
+	}
+
+	/**
+	 * T test_delete_zone_responds_with_not_found_if_zone_not_exist
+	 *
+	 * @throws Exception E.
+	 */
+	function test_delete_zone_responds_with_not_found_if_zone_not_exist() {
+		$this->login_as_admin();
+		$response = $this->delete( '/zoninator/v1/zones/666666' );
+		$this->assertResponseStatus( $response, 404 );				
+	}
+
+	/**
 	 * T test_update_zone_posts_responds_with_ok_when_method_put
 	 *
 	 * @throws Exception E.
