@@ -68,6 +68,17 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 					->args( '_params_for_create_zone' )
 			);
 
+		$this->add_route( 'zones/(?P<zone_id>[\d]+)' )
+			->add_action(
+				$this->action( 'update', 'update_zone' )
+					->permissions( 'update_zone_permissions_check' )
+					->args( '_params_for_update_zone' )
+			)
+			->add_action(
+				$this->action( 'delete', 'delete_zone' )
+					->permissions( 'update_zone_permissions_check' )
+			);
+
 		$this->add_route( 'zones/(?P<zone_id>[\d]+)/posts' )
 			->add_action( $this->action( 'index', 'get_zone_posts' )
 				->permissions( 'get_zone_posts_permissions_check' )
@@ -136,6 +147,74 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		$zone = $this->instance->get_zone( $result[ 'term_id' ] );
 
 		return $this->created( $zone );
+	}
+
+	/**
+	 * Update zone details
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Response
+	 */
+	function update_zone( $request ) {
+		$zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
+		$name = $this->_get_param( $request, 'name', '' );
+		$slug = $this->_get_param( $request, 'slug', '' );
+		$description = $this->_get_param( $request, 'description', '', 'strip_tags' );
+
+		$zone = $this->instance->get_zone( $zone_id );
+		$update_params = array();
+
+		if ( ! $zone ) {
+			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
+		}
+
+		if ( $name ) {
+			$update_params[ 'name' ] = $name;
+		}
+
+		if ( $slug ) {
+			$update_params[ 'slug' ] = $slug;
+		}
+
+		if ( $description ) {
+			$update_params[ 'details' ] = array( 'description' => $description );
+		}
+
+		$result = $this->instance->update_zone( $zone, $update_params );
+
+		if ( is_wp_error( $result ) ) {
+			return $this->bad_request( array(
+				'message' => $result->get_error_message(),
+			) );
+		}
+
+		return $this->ok();
+	}
+
+	/**
+	 * Delete a zone
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Response
+	 */
+	function delete_zone( $request ) {
+		$zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
+
+		$zone = $this->instance->get_zone( $zone_id );
+
+		if ( ! $zone ) {
+			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
+		}
+
+		$result = $this->instance->delete_zone( $zone );
+
+		if ( is_wp_error( $result ) ) {
+			return $this->bad_request( array(
+				'message' => $result->get_error_message(),
+			) );
+		}
+
+		return $this->ok();
 	}
 
 	/**
@@ -465,6 +544,26 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 				'type' => 'string',
 				'sanitize_callback' => array( $this, 'strip_tags' ),
 				'default' => '',
+				'required' => false,
+			)
+		);
+	}
+
+	public function _params_for_update_zone() {
+		return array(
+			'name' => array(
+				'type' => 'string',
+				'sanitize_callback' => array( $this, 'strip_slashes' ),
+				'required' => false
+			),
+			'slug' => array(
+				'type' => 'string',
+				'sanitize_callback' => array( $this, 'strip_slashes' ),
+				'required' => false,
+			),
+			'description' => array(
+				'type' => 'string',
+				'sanitize_callback' => array( $this, 'strip_tags' ),
 				'required' => false,
 			)
 		);
