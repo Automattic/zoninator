@@ -1656,11 +1656,6 @@ class Zoninator
 		}
 
 		$results = $this->get_zone_posts( $zone_id, apply_filters( 'zoninator_json_feed_fields', array(), $zone_slug_or_id ) );
-
-		if ( empty( $results ) ) {
-			return new WP_Error( 'no-zone-posts-found',  __( 'No zone posts found', 'zoninator' ) );
-		}
-
 		$filtered_results = $this->filter_zone_feed_fields( $results );
 
 		return apply_filters( 'zoninator_json_feed_results', $filtered_results, $zone_slug_or_id );
