@@ -215,58 +215,111 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 			'description' => 'No slug provided.'
 		) );
 		$this->assertResponseStatus( $response, 400 );
-	}	
-
-	/**
-	 * T test_add_post_to_zone_responds_with_created_when_method_post
-	 *
-	 * @throws Exception E.
-	 */
-	function test_add_post_to_zone_responds_with_created_when_method_post() {
-		$this->login_as_admin();
-		$post_id = $this->_insert_a_post();
-		$zone_id = $this->create_a_zone( 'the-zone-add-post-1', 'The Zone Add Post one' );
-		$response = $this->post( '/zoninator/v1/zones/' . $zone_id . '/posts', array(
-			'post_id' => $post_id,
-		) );
-		$this->assertResponseStatus( $response, 201 );
 	}
 
 	/**
-	 * T test_add_post_to_zone_responds_with_created_when_method_put
+	 * T test_update_zone_responds_with_success_when_method_put
 	 *
 	 * @throws Exception E.
 	 */
-	function test_add_post_to_zone_responds_with_success_when_method_put() {
+	function test_update_zone_responds_with_success_when_method_put() {
 		$this->login_as_admin();
-		$post_id = $this->_insert_a_post();
-		$zone_id = $this->create_a_zone( 'the-zone-add-post-1', 'The Zone Add Post one' );
-		$response = $this->put( '/zoninator/v1/zones/' . $zone_id . '/posts', array(
-			'post_id' => $post_id,
+		$zone_id = $this->create_a_zone( 'test-update-zone', 'Test Zone' );
+		$response = $this->put( '/zoninator/v1/zones/' . $zone_id, array(
+			'name' => 'Other test zone',
 		) );
 		$this->assertResponseStatus( $response, 200 );
 	}
 
 	/**
-	 * T test_add_post_to_zone_respond_not_found_if_zone_not_exists
+	 * T test_update_zone_responds_with_not_found_if_zone_not_exist
 	 *
 	 * @throws Exception E.
 	 */
-	function test_add_post_to_zone_respond_not_found_if_zone_not_exists() {
-		$post_id = $this->_insert_a_post();
-		$response = $this->put( '/zoninator/v1/zones/666666/posts', array(
-			'post_id' => $post_id,
+	function test_update_zone_responds_with_not_found_if_zone_not_exist() {
+		$this->login_as_admin();
+		$response = $this->put( '/zoninator/v1/zones/666666', array(
+			'name' => 'Other test zone',
 		) );
 		$this->assertResponseStatus( $response, 404 );
 	}
 
 	/**
-	 * Test test_add_post_to_zone_fail_if_invalid_post
+	 * T test_delete_zone_responds_with_success_when_method_delete
+	 *
+	 * @throws Exception E.
 	 */
-	function test_add_post_to_zone_fail_if_invalid_post() {
-		$zone_id = $this->add_a_zone( 'zone-test_add_post_to_zone_fail_if_invalid_post' );
-		$response = $this->post( '/zoninator/v1/zones/' . $zone_id . '/posts', array(
-			'post_id' => 666666,
+	function test_delete_zone_responds_with_success_when_method_delete() {
+		$this->login_as_admin();
+		$zone_id = $this->create_a_zone( 'test-update-zone', 'Test Zone' );
+		$response = $this->delete( '/zoninator/v1/zones/' . $zone_id );
+		$this->assertResponseStatus( $response, 200 );
+	}
+
+	/**
+	 * T test_delete_zone_responds_with_not_found_if_zone_not_exist
+	 *
+	 * @throws Exception E.
+	 */
+	function test_delete_zone_responds_with_not_found_if_zone_not_exist() {
+		$this->login_as_admin();
+		$response = $this->delete( '/zoninator/v1/zones/666666' );
+		$this->assertResponseStatus( $response, 404 );				
+	}
+
+	/**
+	 * T test_update_zone_posts_responds_with_ok_when_method_put
+	 *
+	 * @throws Exception E.
+	 */
+	function test_update_zone_posts_responds_with_success_when_method_put() {
+		$this->login_as_admin();
+		$post_id = $this->_insert_a_post();
+		$zone_id = $this->create_a_zone( 'test-zone', 'Test Zone' );
+		$response = $this->put( '/zoninator/v1/zones/' . $zone_id . '/posts', array(
+			'post_ids' => array( $post_id ),
+		) );
+		$this->assertResponseStatus( $response, 200 );
+	}
+
+	/**
+	 * T test_update_zone_posts_responds_with_not_found_if_zone_not_exist
+	 *
+	 * @throws Exception E.
+	 */
+	function test_update_zone_posts_responds_with_not_found_if_zone_not_exist() {
+		$this->login_as_admin();
+		$post_id = $this->_insert_a_post();
+		$response = $this->put( '/zoninator/v1/zones/666666/posts', array(
+			'post_ids' => array( $post_id ),
+		) );
+		$this->assertResponseStatus( $response, 404 );
+	}
+
+	/**
+	 * T test_update_zone_posts_fails_if_invalid_data_format
+	 *
+	 * @throws Exception E.
+	 */
+	function test_update_zone_posts_fails_if_invalid_data() {
+		$this->login_as_admin();
+		$post_id = $this->_insert_a_post();
+		$zone_id = $this->create_a_zone( 'test-zone', 'Test Zone' );
+		$response = $this->put( '/zoninator/v1/zones/' . $zone_id . '/posts', array() );
+		$this->assertResponseStatus( $response, 400 );
+	}
+
+	/**
+	 * T test_update_zone_posts_fails_if_invalid_post_id
+	 *
+	 * @throws Exception E.
+	 */
+	function test_update_zone_posts_fails_if_invalid_post_id() {
+		$this->login_as_admin();
+		$post_id = $this->_insert_a_post();
+		$zone_id = $this->create_a_zone( 'test-zone', 'Test Zone' );
+		$response = $this->put( '/zoninator/v1/zones/' . $zone_id . '/posts', array(
+			'post_ids' => array( 123456789 ),
 		) );
 		$this->assertResponseStatus( $response, 400 );
 	}
@@ -283,10 +336,25 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 		$posts = $query->query( array() );
 		$post = $posts[0];
 		$zone_id = $this->add_a_zone();
-		$response = $this->post( '/zoninator/v1/zones/' . $zone_id . '/posts', array(
-			'post_id' => $post->ID,
+		$response = $this->put( '/zoninator/v1/zones/' . $zone_id . '/posts', array(
+			'post_ids' => array( $post->ID ),
 		) );
-		$this->assertResponseStatus( $response, 201 );
+		$this->assertResponseStatus( $response, 200 );
+		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
+		$this->assertResponseStatus( $response, 200 );
+	}
+
+	/**
+	 * Test test_get_zone_posts_success_when_no_posts_in_zone
+	 */
+	function test_get_zone_posts_success_when_no_posts_in_zone() {
+		$term_factory = new WP_UnitTest_Factory_For_Term( null, Zoninator()->zone_taxonomy );
+		$zone_id = $term_factory->create_object( array(
+			'name' => 'The Zone Add Post one',
+			'description' => 'Zone 2',
+			'slug' => 'zone-2',
+		) );
+
 		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
 		$this->assertResponseStatus( $response, 200 );
 	}
@@ -306,138 +374,6 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 		$this->assertResponseStatus( $response, 404 );
 	}
 
-	/**
-	 * Test test_get_zone_posts_fail_when_no_posts_in_zone
-	 */
-	function test_get_zone_posts_fail_when_no_posts_in_zone() {
-		$term_factory = new WP_UnitTest_Factory_For_Term( null, Zoninator()->zone_taxonomy );
-		$zone_id = $term_factory->create_object( array(
-			'name' => 'The Zone Add Post one',
-			'description' => 'Zone 2',
-			'slug' => 'zone-2',
-		) );
-
-		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
-		$this->assertResponseStatus( $response, 400 );
-	}
-
-	/**
-	 * Test test_remove_post_from_zone_bad_request_if_invalid_post_id
-	 */
-	function test_remove_post_from_zone_bad_request_if_invalid_post_id() {
-		$zone_id = $this->add_a_zone( 'zone-test_remove_post_from_zone_bad_request_if_invalid_post_id' );
-		$response = $this->delete( '/zoninator/v1/zones/' . $zone_id . '/posts/0' );
-		$this->assertResponseStatus( $response, 400 );
-	}
-
-	/**
-	 * Test test_remove_post_from_zone_not_found_if_no_zone_id
-	 */
-	function test_remove_post_from_zone_not_found_if_no_zone_id() {
-		$response = $this->delete( '/zoninator/v1/zones/121212/posts/' );
-		$this->assertResponseStatus( $response, 404 );
-	}
-
-	/**
-	 * Test test_remove_post_from_zone_succeed_if_successful
-	 */
-    function test_remove_post_from_zone_succeed_if_successful() {
-		$this->login_as_admin();
-		$zone_id = $this->add_a_zone( 'zone-test_remove_post_from_zone_succeed_if_successful' );
-		self::factory()->post->create_many( 5 );
-		$query = new WP_Query();
-		$posts = $query->query( array() );
-		foreach ( $posts as $post ) {
-			$response = $this->post( '/zoninator/v1/zones/' . $zone_id . '/posts', array(
-				'post_id' => $post->ID,
-			) );
-			$this->assertResponseStatus( $response, 201 );
-		}
-
-		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
-		$this->assertResponseStatus( $response, 200 );
-		$data = $response->get_data();
-		$this->assertSame( count( $posts ), count( $data ) );
-		$first_post = $data[0];
-		$response = $this->delete( '/zoninator/v1/zones/' . $zone_id . '/posts/' . $first_post->ID );
-		$this->assertResponseStatus( $response, 200 );
-		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
-		$this->assertResponseStatus( $response, 200 );
-		$data = $response->get_data();
-		$this->assertSame( count( $posts ) - 1, count( $data ) );
-		$ids = wp_list_pluck( $data, 'ID' );
-		$this->assertTrue( ! in_array( $first_post->ID, $ids, true ) );
-    }
-
-	/**
-	 * Test test_reorder_posts_on_zone_return_WP_Error_if_post_ids_not_present
-	 */
-    function test_reorder_posts_on_zone_return_WP_Error_if_post_ids_not_present() {
-		$this->login_as_admin();
-		$zone_id = $this->add_a_zone( 'zone-test_reorder_posts_on_zone_return_WP_Error_if_post_ids_not_present' );
-		self::factory()->post->create_many( 5 );
-		$query = new WP_Query();
-		$posts = $query->query( array() );
-		foreach ( $posts as $post ) {
-			$response = $this->post( '/zoninator/v1/zones/' . $zone_id . '/posts', array(
-				'post_id' => $post->ID,
-			) );
-			$this->assertResponseStatus( $response, 201 );
-		}
-
-		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
-		$this->assertResponseStatus( $response, 200 );
-		$data = $response->get_data();
-		$ids = wp_list_pluck( $data, 'ID' );
-		shuffle( $ids );
-		$request_data = array();
-		$response = $this->put( '/zoninator/v1/zones/' . $zone_id . '/posts/order', $request_data );
-		$this->assertResponseStatus( $response, 400 );
-    }
-
-	/**
-	 * Test test_reorder_posts_on_zone_success
-	 */
-	function test_reorder_posts_on_zone_success() {
-		$this->login_as_admin();
-		$zone_id = $this->add_a_zone( 'zone-test_reorder_posts_on_zone_success' );
-		self::factory()->post->create_many( 5 );
-		$query = new WP_Query();
-		$posts = $query->query( array() );
-		foreach ( $posts as $post ) {
-			$response = $this->post( '/zoninator/v1/zones/' . $zone_id . '/posts', array(
-				'post_id' => $post->ID,
-			) );
-			$this->assertResponseStatus( $response, 201 );
-		}
-
-		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
-		$this->assertResponseStatus( $response, 200 );
-		$data = $response->get_data();
-		$ids = wp_list_pluck( $data, 'ID' );
-		shuffle( $ids );
-		$request_data = array(
-			'posts' => $ids,
-		);
-
-		$response = $this->put( '/zoninator/v1/zones/' . $zone_id . '/posts/order', $request_data );
-		$this->assertResponseStatus( $response, 200 );
-
-		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
-		$this->assertResponseStatus( $response, 200 );
-		$data = $response->get_data();
-		$reordered_ids = wp_list_pluck( $data, 'ID' );
-
-		$this->assertEquals( $ids, $reordered_ids );
-	}
-
-	/**
-	 * Test test_reorder_posts_on_zone_return_WP_Error_if_zone_id_not_present
-	 */
-	function test_reorder_posts_on_zone_return_WP_Error_if_zone_id_not_present() {
-		$response = $this->put( '/zoninator/v1/zones/123123/posts/order', array() );
-		$this->assertResponseStatus( $response, 404 );
-	}
 //
 //    function test_zone_update_lock_200()
 //    {
