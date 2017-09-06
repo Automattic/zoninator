@@ -314,7 +314,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	 *
 	 * @throws Exception E.
 	 */
-	function test_update_zone_posts_fails_if_invalid_data() {
+	function test_update_zone_posts_fails_if_invalid_post_id() {
 		$this->login_as_admin();
 		$post_id = $this->_insert_a_post();
 		$zone_id = $this->create_a_zone( 'test-zone', 'Test Zone' );
@@ -336,10 +336,25 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 		$posts = $query->query( array() );
 		$post = $posts[0];
 		$zone_id = $this->add_a_zone();
-		$response = $this->post( '/zoninator/v1/zones/' . $zone_id . '/posts', array(
-			'post_id' => $post->ID,
+		$response = $this->put( '/zoninator/v1/zones/' . $zone_id . '/posts', array(
+			'post_ids' => array( $post->ID ),
 		) );
-		$this->assertResponseStatus( $response, 201 );
+		$this->assertResponseStatus( $response, 200 );
+		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
+		$this->assertResponseStatus( $response, 200 );
+	}
+
+	/**
+	 * Test test_get_zone_posts_success_when_no_posts_in_zone
+	 */
+	function test_get_zone_posts_success_when_no_posts_in_zone() {
+		$term_factory = new WP_UnitTest_Factory_For_Term( null, Zoninator()->zone_taxonomy );
+		$zone_id = $term_factory->create_object( array(
+			'name' => 'The Zone Add Post one',
+			'description' => 'Zone 2',
+			'slug' => 'zone-2',
+		) );
+
 		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
 		$this->assertResponseStatus( $response, 200 );
 	}
@@ -357,21 +372,6 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 
 		$response = $this->get( '/zoninator/v1/zones/' . ( $zone_id + 3 ) );
 		$this->assertResponseStatus( $response, 404 );
-	}
-
-	/**
-	 * Test test_get_zone_posts_fail_when_no_posts_in_zone
-	 */
-	function test_get_zone_posts_fail_when_no_posts_in_zone() {
-		$term_factory = new WP_UnitTest_Factory_For_Term( null, Zoninator()->zone_taxonomy );
-		$zone_id = $term_factory->create_object( array(
-			'name' => 'The Zone Add Post one',
-			'description' => 'Zone 2',
-			'slug' => 'zone-2',
-		) );
-
-		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
-		$this->assertResponseStatus( $response, 400 );
 	}
 
 //
