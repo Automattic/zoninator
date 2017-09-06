@@ -587,7 +587,8 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 			'post_ids' => array(
 				'type'              => 'array',
 				'validate_callback' => array( $this, 'is_numeric_array' ),
-				'required'          => true
+				'required'          => true,
+				'items'				=> array( 'type' => 'integer' ),
 			),
 		), $zone_params );
 	}
