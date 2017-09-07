@@ -211,7 +211,6 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	function test_create_zone_fail_if_invalid_data() {
 		$this->login_as_admin();
 		$response = $this->post( '/zoninator/v1/zones', array(
-			'name' => 'Test zone',
 			'description' => 'No slug provided.'
 		) );
 		$this->assertResponseStatus( $response, 400 );
@@ -372,59 +371,6 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 
 		$response = $this->get( '/zoninator/v1/zones/' . ( $zone_id + 3 ) );
 		$this->assertResponseStatus( $response, 404 );
-	}
-
-//
-//    function test_zone_update_lock_200()
-//    {
-//        $this->_zoninator->method( 'is_zone_locked' )->willReturn( false );
-//        $request = $this->_create_request( array( 'zone_id' => 3 ) );
-//        $response = $this->_controller->zone_update_lock( $request );
-//        $this->_assert_response_status($response, 200);
-//    }
-//
-//    function test_zone_update_lock_400_if_zone_already_locked()
-//    {
-//        $this->_zoninator->method( 'is_zone_locked' )->willReturn( true );
-//        $request = $this->_create_request( array( 'zone_id' => 3 ) );
-//        $response = $this->_controller->zone_update_lock( $request );
-//        $this->_assert_response_status($response, 400);
-//    }
-//
-//    function test_zone_update_error_if_no_zone_id()
-//    {
-//        $this->_zoninator->method( 'is_zone_locked' )->willReturn( false );
-//        $request = $this->_create_request( array( ) );
-//        $response = $this->_controller->zone_update_lock( $request );
-//        $this->assertInstanceOf( 'WP_Error', $response );
-//    }
-//
-	/**
-	 * Test test_search_posts_error_if_empty_term
-	 */
-    function test_search_posts_return_results() {
-		self::factory()->post->create_many( 5 );
-		$query = new WP_Query();
-		$posts = $query->query( array() );
-		$first = $posts[0];
-        $data = array( 'term' => $first->post_title );
-		$response = $this->get( '/zoninator/v1/posts/search', $data );
-		$this->assertResponseStatus( $response, 200 );
-		$data = $response->get_data();
-		$first_result = $data[0];
-		$this->assertEquals( $first->ID, $first_result['post_id'] );
-    }
-
-	/**
-	 * Test test_search_posts_error_if_empty_term
-	 */
-	function test_search_posts_error_if_empty_term() {
-		self::factory()->post->create_many( 5 );
-		$query = new WP_Query();
-		$posts = $query->query( array() );
-		$data = array( 'term' => '' );
-		$response = $this->get( '/zoninator/v1/posts/search', $data );
-		$this->assertResponseStatus( $response, 400 );
 	}
 
     /**
