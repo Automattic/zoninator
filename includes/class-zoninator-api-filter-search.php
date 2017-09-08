@@ -12,16 +12,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Class WP_Job_Manager_Filters_Status
  */
-class Zoninator_Api_Filter_Search extends Zoninator_REST_Model_Declaration {
+class Zoninator_Api_Filter_Search extends Zoninator_REST_Model {
 
 	/**
 	 * Declare our fields
 	 *
-	 * @param  Zoninator_REST_Environment $env Def.
 	 * @return array
 	 * @throws Zoninator_REST_Exception Exc.
 	 */
-	public function declare_fields( $env ) {
+	public function declare_fields() {
+		$env = $this->get_environment();
 		return array(
 			$env->field( 'term', __( 'search term', 'zoninator' ) )
 				->with_type( $env->type( 'string' ) )
@@ -51,8 +51,8 @@ class Zoninator_Api_Filter_Search extends Zoninator_REST_Model_Declaration {
 	 * @param mixed $item The item.
 	 * @return bool
 	 */
-	public function is_numeric( $model, $item ) {
-		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use is_numeric directly
+	public function is_numeric( $item ) {
+		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use is_numeric directly.
 		return is_numeric( $item );
 	}
 
@@ -62,17 +62,17 @@ class Zoninator_Api_Filter_Search extends Zoninator_REST_Model_Declaration {
 	 * @param mixed $item Item.
 	 * @return string
 	 */
-	public function strip_slashes( $model, $item ) {
-		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use stripslashes directly
+	public function strip_slashes( $item ) {
+		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use stripslashes directly.
 		return stripslashes( $item );
 	}
 
-	public function strip_tags( $model, $item ) {
+	public function strip_tags( $item ) {
 		return strip_tags( $item );
 	}
 
 	function date_before_set( $model, $item ) {
-		return $this->strip_tags( $model, $this->strip_slashes( $model, $item ) );
+		return $this->strip_tags( $this->strip_slashes( $item ) );
 	}
 }
 

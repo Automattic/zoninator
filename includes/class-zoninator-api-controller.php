@@ -301,7 +301,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	}
 
 	public function is_numeric( $item ) {
-		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use is_numeric directly
+		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use is_numeric directly.
 		return is_numeric( $item );
 	}
 
@@ -310,12 +310,12 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	}
 
 	public function strip_slashes( $item ) {
-		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use stripslashes directly
+		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use stripslashes directly.
 		return stripslashes( $item );
 	}
 
 	public function strip_tags( $item ) {
-		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use strip_tags directly
+		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use strip_tags directly.
 		return strip_tags( $item );
 	}
 
