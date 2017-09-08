@@ -4,11 +4,11 @@ class Zoninator_Api_Schema_Converter {
 	/**
 	 * As Schema
 	 *
-	 * @param Zoninator_REST_Model_Definition $model_definition Def.
+	 * @param Zoninator_REST_Model $model_definition Def.
 	 * @return mixed
 	 */
 	public function as_schema( $model_definition ) {
-		$fields = $model_definition->get_field_declarations();
+		$fields = $model_definition->get_fields();
 		$properties = array();
 		$required = array();
 		foreach ( $fields as $field_declaration ) {
@@ -39,11 +39,11 @@ class Zoninator_Api_Schema_Converter {
 	/**
 	 * As Schema
 	 *
-	 * @param Zoninator_REST_Model_Definition $model_definition Def.
+	 * @param Zoninator_REST_Model $model_definition Def.
 	 * @return array
 	 */
 	public function as_args( $model_definition ) {
-		$fields = $model_definition->get_field_declarations();
+		$fields = $model_definition->get_fields();
 		$result = array();
 		foreach ( $fields as $field_declaration ) {
 			$type_schema = $field_declaration->get_type()->schema();
