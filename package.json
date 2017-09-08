@@ -1,0 +1,16 @@
+{
+  "name": "zoninator",
+  "title": "Zoninator",
+  "description": " Curation made easy! Create \"zones\" then add and order your content!",
+  "version": "0.6.0",
+  "homepage": "http://vip.wordpress.com",
+  "license": "GPL-2.0+",
+  "repository": "automattic/wp-job-manager",
+  "devDependencies": {
+    "mixtape": "git+https://github.com/Automattic/mixtape.git#3a8440"
+  },
+  "engines": {
+    "node": ">=7.0.0",
+    "npm": ">=3.10.0"
+  }
+}
