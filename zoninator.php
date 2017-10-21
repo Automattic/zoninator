@@ -1379,10 +1379,14 @@ class Zoninator
 
 		$whitelisted_fields = array( 'ID', 'post_date', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'guid' );
 
+		$filtered_results = array();
 		$i = 0;
 		foreach ( $results as $result ) {
 			foreach( $whitelisted_fields as $field ) {
-					$filtered_results[$i]->$field = $result->$field;
+				if ( ! isset ( $filtered_results[$i] ) ) {
+					$filtered_results[$i] = new stdClass;
+				}
+				$filtered_results[$i]->$field = $result->$field;
 			}
 			$i++;
 		}
