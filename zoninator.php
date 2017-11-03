@@ -609,8 +609,13 @@ class Zoninator
 				$args['day'] = $filter_date_parts[2];
 			}
 
+			/** This filter is documented in zoninator.php */
+			$recent_posts = apply_filters( 'zoninator_recent_posts', array(), $args, $zone_id );
+			if ( true === empty( $recent_posts ) || false === is_array( $recent_posts ) ) {
+				$recent_posts = get_posts( $args );
+			}
+
 			$content = '';
-			$recent_posts = get_posts( $args );
 			foreach ( $recent_posts as $post ) :
 				$content .= sprintf( '<option value="%d">%s</option>', $post->ID, get_the_title( $post->ID ) . ' (' . $post->post_status . ')' );
 			endforeach;
@@ -650,9 +655,22 @@ class Zoninator
 			'suppress_filters' => false,
 		) );
 
+		/**
+		 * Filters the value of recent posts array before it is retrieved.
+		 *
+		 * Passing a non-empty array to the filter will short-circuit retrieving
+		 * the recent posts via get_posts, using the passed array of posts instead.
+		 *
+		 * @param array $recent_posts        Array of WP_Posts objects to use. Default empty
+		 *                                   array to retrieve the posts via get_pots.
+		 * @param array $args                Array of get_posts parameters.
+		 * @param int|string|object $zone_id Zone ID being processed.
+		 */
+		$recent_posts = apply_filters( 'zoninator_recent_posts', array(), $args, $zone_id );
+		if ( true === empty( $recent_posts ) || false === is_array( $recent_posts ) ) {
+			$recent_posts = get_posts( $recent_posts );
+		}
 
-
-		$recent_posts = get_posts( $args );
 		?>
 		<div class="zone-search-wrapper">
 			<label for="zone-post-search-latest"><?php esc_html_e( 'Add Recent Content', 'zoninator' );?></label><br />
