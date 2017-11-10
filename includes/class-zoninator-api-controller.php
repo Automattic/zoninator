@@ -121,7 +121,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	function create_zone( $request ) {
 		$name = $this->_get_param( $request, 'name', '' );
 		$slug = $this->_get_param( $request, 'slug', $name );
-		$description = $this->_get_param( $request, 'description', '', 'strip_tags' );
+		$description = $this->_get_param( $request, 'description', '' );
 
 		$result = $this->instance->insert_zone( $slug, $name, array(
 			'description' => $description,
@@ -309,14 +309,8 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		return count( $items ) === count( array_filter( $items, 'is_numeric') );
 	}
 
-	public function strip_slashes( $item ) {
-		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use stripslashes directly.
-		return stripslashes( $item );
-	}
-
-	public function strip_tags( $item ) {
-		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use strip_tags directly.
-		return strip_tags( $item );
+	public function sanitize_string( $item ) {
+		return htmlentities( stripslashes( $item ) );
 	}
 
 	/**
@@ -342,19 +336,19 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		return array(
 			'name' => array(
 				'type' => 'string',
-				'sanitize_callback' => array( $this, 'strip_slashes' ),
+				'sanitize_callback' => array( $this, 'sanitize_string' ),
 				'default' => '',
 				'required' => false
 			),
 			'slug' => array(
 				'type' => 'string',
-				'sanitize_callback' => array( $this, 'strip_slashes' ),
+				'sanitize_callback' => array( $this, 'sanitize_string' ),
 				'default' => '',
 				'required' => false,
 			),
 			'description' => array(
 				'type' => 'string',
-				'sanitize_callback' => array( $this, 'strip_tags' ),
+				'sanitize_callback' => array( $this, 'sanitize_string' ),
 				'default' => '',
 				'required' => false,
 			)
@@ -365,17 +359,17 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		return array(
 			'name' => array(
 				'type' => 'string',
-				'sanitize_callback' => array( $this, 'strip_slashes' ),
+				'sanitize_callback' => array( $this, 'sanitize_string' ),
 				'required' => false
 			),
 			'slug' => array(
 				'type' => 'string',
-				'sanitize_callback' => array( $this, 'strip_slashes' ),
+				'sanitize_callback' => array( $this, 'sanitize_string' ),
 				'required' => false,
 			),
 			'description' => array(
 				'type' => 'string',
-				'sanitize_callback' => array( $this, 'strip_tags' ),
+				'sanitize_callback' => array( $this, 'sanitize_string' ),
 				'required' => false,
 			)
 		);
