@@ -214,10 +214,10 @@ class Zoninator
 					$this->verify_nonce( $action );
 					$this->verify_access( $action, $zone_id );
 
-					$name = $this->_get_post_var( 'name' );
+					$name = $this->_get_post_var( 'name', '', array( $this, '_sanitize_value' ) );
 					$slug = $this->_get_post_var( 'slug', sanitize_title( $name ) );
 					$details = array(
-						'description' => $this->_get_post_var( 'description', '', 'strip_tags' )
+						'description' => $this->_get_post_var( 'description', '', array( $this, '_sanitize_value' ) )
 					);
 
 					// TODO: handle additional properties
@@ -1557,6 +1557,10 @@ class Zoninator
 
 	function _validate_category_filter( $cat ) {
 		return $cat && get_term_by( 'id', $cat, 'category' );
+	}
+
+	function _sanitize_value( $var ) {
+		return htmlentities( stripslashes( $var ) );
 	}
 
 	function _get_value_or_default( $var, $object, $default = '', $sanitize_callback = '' ) {
