@@ -217,6 +217,24 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T test_create_zone_with_special_chars
+	 *
+	 * @throws Exception E
+	 */
+	function test_create_zone_with_special_chars() {
+		$this->login_as_admin();
+		$response = $this->post( '/zoninator/v1/zones', array(
+			'name' => '&<>!@#(',
+			'slug' => 'test-zone',
+			'description' => '&<>!@#('
+		) );
+		$data = $response->get_data();
+		$this->assertResponseStatus( $response, 201 );
+		$this->assertEquals( $data['name'], '&amp;&lt;&gt;!@#(' );
+		$this->assertEquals( $data['description'], '&amp;&lt;&gt;!@#(' );
+	}
+
+	/**
 	 * T test_update_zone_responds_with_success_when_method_put
 	 *
 	 * @throws Exception E.
