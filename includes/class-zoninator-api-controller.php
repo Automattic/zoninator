@@ -90,6 +90,13 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 					->permissions( 'update_zone_permissions_check' )
 					->args( '_get_zone_post_rest_route_params' )
 			);
+
+		$this->add_route( 'zones/(?P<zone_id>[\d]+)/lock' )
+			->add_action(
+				$this->action( 'update', 'zone_update_lock' )
+					->permissions( 'update_zone_permissions_check' )
+					->args( '_get_zone_id_param' )
+			);
 	}
 
 	/**
@@ -257,6 +264,38 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		}
 
 		return $this->ok( array( 'success' => true ) );
+	}
+
+	/**
+	 * Update the zone's lock
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Response
+	 */
+	function zone_update_lock( $request ) {
+		$zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
+		if ( ! $zone_id ) {
+			return $this->_bad_request(self::ZONE_ID_REQUIRED, __('zone id required', 'zoninator'));
+		}
+
+		$zone = $this->instance->get_zone( $zone_id );
+		if ( ! $zone ) {
+			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
+		}
+
+		$zone_locked = $this->instance->is_zone_locked( $zone );
+		if ( $zone_locked ) {
+			$locking_user = get_userdata( $zone_locked );
+			return new WP_REST_Response( array(
+				'zone_id' => $this->instance->get_zone_id( $zone ),
+				'locking_user' => $locking_user->display_name,
+			), 400);
+		}
+
+		$this->instance->lock_zone( $zone_id );
+		return new WP_REST_Response( array(
+			'zone_id' => $this->instance->get_zone_id( $zone ),
+		), 200);
 	}
 
 	/**
