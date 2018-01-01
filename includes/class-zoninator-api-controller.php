@@ -288,14 +288,16 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 			$locking_user = get_userdata( $zone_locked );
 			return new WP_REST_Response( array(
 				'zone_id' => $this->instance->get_zone_id( $zone ),
-				'locking_user' => $locking_user->display_name,
+				'blocked' => true,
 			), 400);
 		}
 
 		$this->instance->lock_zone( $zone_id );
 		return new WP_REST_Response( array(
 			'zone_id' => $this->instance->get_zone_id( $zone ),
-		), 200);
+			'timeout' => $this->instance->zone_lock_period,
+			'max_lock_period' => $this->instance->zone_max_lock_period,
+		), 200 );
 	}
 
 	/**
