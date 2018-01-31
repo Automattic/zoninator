@@ -55,6 +55,11 @@ Filter the following and change according to your needs:
 
 == Changelog ==
 
+= 0.8 =
+
+* Added a REST API for retrieving and managing zones
+* Support for special characters in zone names and descriptions
+
 = 0.7 =
 
 * Added compatibility with WordPress 4.4 admin styles
