@@ -205,5 +205,4 @@ dkms.conf
 # </genignore linux>
 
 tmp
-lib
 vendor
