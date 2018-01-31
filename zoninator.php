@@ -56,6 +56,10 @@ class Zoninator
 	);
 	var $zone_messages = null;
 	var $posts_per_page = 10;
+	/**
+	 * @var Zoninator_Api
+	 */
+	public $rest_api = null;
 
 	function __construct() {
 		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
@@ -70,7 +74,19 @@ class Zoninator
 
 		add_action( 'split_shared_term', array( $this, 'split_shared_term' ), 10, 4 );
 
+		$this->maybe_add_rest_api();
+
 		$this->default_post_types = array( 'post' );
+	}
+
+	public function maybe_add_rest_api() {
+		global $wp_version;
+		if ( version_compare( $wp_version, '4.7', '<' ) ) {
+			return false;
+		}
+
+		include_once 'includes/class-zoninator-api.php';
+		$this->rest_api = new Zoninator_Api( $this );
 	}
 
 	function add_zone_feed() {
@@ -198,10 +214,10 @@ class Zoninator
 					$this->verify_nonce( $action );
 					$this->verify_access( $action, $zone_id );
 
-					$name = $this->_get_post_var( 'name' );
+					$name = $this->_get_post_var( 'name', '', array( $this, '_sanitize_value' ) );
 					$slug = $this->_get_post_var( 'slug', sanitize_title( $name ) );
 					$details = array(
-						'description' => $this->_get_post_var( 'description', '', 'strip_tags' )
+						'description' => $this->_get_post_var( 'description', '', array( $this, '_sanitize_value' ) )
 					);
 
 					// TODO: handle additional properties
@@ -965,6 +981,12 @@ class Zoninator
 		return new WP_Error( 'invalid-zone', __( 'Sorry, that zone doesn\'t exist.', 'zoninator' ) );
 	}
 
+	/**
+	 * @param $zone
+	 * @param $posts
+	 * @param bool $append
+	 * @return bool|WP_Error
+	 */
 	function add_zone_posts( $zone, $posts, $append = false ) {
 		$zone = $this->get_zone( $zone );
 		$meta_key = $this->get_zone_meta_key( $zone );
@@ -995,8 +1017,15 @@ class Zoninator
 		clean_term_cache( $this->get_zone_id( $zone ), $this->zone_taxonomy ); // flush cache for our zone term and related APC caches
 
 		do_action( 'zoninator_add_zone_posts', $posts, $zone );
+
+		return true;
 	}
 
+	/**
+	 * @param $zone
+	 * @param null $posts
+	 * @return bool|WP_Error
+	 */
 	function remove_zone_posts( $zone, $posts = null ) {
 		$zone = $this->get_zone( $zone );
 		$meta_key = $this->get_zone_meta_key( $zone );
@@ -1347,41 +1376,32 @@ class Zoninator
 	}
 
 	function do_zoninator_feeds() {
-
-		global $wp_query;
-
 		$query_var = get_query_var( $this->zone_taxonomy );
 
 		if ( ! empty( $query_var ) ) {
 			$zone_slug = get_query_var( $this->zone_taxonomy );
-			$zone_id = $this->get_zone( $zone_slug );
-
-			if ( empty( $zone_id ) ) {
-				$this->send_user_error( __( 'Invalid zone supplied', 'zoninator' ) );
+			$results = $this->get_zone_feed( $zone_slug );
+			if ( is_wp_error( $results ) ) {
+				$this->send_user_error( $results->get_error_message() );
 			}
-
-			$results = $this->get_zone_posts( $zone_id, apply_filters( 'zoninator_json_feed_fields', array(), $zone_slug ) );
-
-			if ( empty( $results ) ) {
-				$this->send_user_error( __( 'No zone posts found', 'zoninator' ) );
-			}
-
-			$filtered_results = $this->filter_zone_feed_fields( $results );
-
-			$this->json_return( apply_filters( 'zoninator_json_feed_results', $filtered_results, $zone_slug ), false );
+			$this->json_return( $results, false );
 		}
 
 		return;
 
 	}
 
-	private function filter_zone_feed_fields( $results ) {
 
+	private function filter_zone_feed_fields( $results ) {
+		$filtered_results = array();
 		$whitelisted_fields = array( 'ID', 'post_date', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'guid' );
 
 		$filtered_results = array();
 		$i = 0;
 		foreach ( $results as $result ) {
+			if ( ! isset( $filtered_results[ $i ] ) ) {
+				$filtered_results[$i] = new stdClass();
+			}
 			foreach( $whitelisted_fields as $field ) {
 				if ( ! isset ( $filtered_results[$i] ) ) {
 					$filtered_results[$i] = new stdClass;
@@ -1543,6 +1563,10 @@ class Zoninator
 		return $cat && get_term_by( 'id', $cat, 'category' );
 	}
 
+	function _sanitize_value( $var ) {
+		return htmlentities( stripslashes( $var ) );
+	}
+
 	function _get_value_or_default( $var, $object, $default = '', $sanitize_callback = '' ) {
 		if( is_object( $object ) )
 			$value = ! empty( $object->$var ) ? $object->$var : $default;
@@ -1571,9 +1595,98 @@ class Zoninator
 	function _get_post_var( $var, $default = '', $sanitize_callback = '' ) {
 		return $this->_get_value_or_default( $var, $_POST, $default, $sanitize_callback );
 	}
+
+	public function get_admin_zone_post($post, $zone) {
+		return apply_filters('zoninator_zone_post_columns', array(
+			'post_id' => $post->ID,
+			'position' => array(
+				'current_position' => intval( $this->get_post_order( $post->ID, $zone ) ),
+				'change_position_message' => esc_attr__( 'Click and drag to change the position of this item.', 'zoninator' ),
+				'key' => 'position'
+			),
+			'info' => array(
+				'key' => 'info',
+				'post' => array(
+					'post_title'  => esc_html( $post->post_title ),
+					'post_status' => esc_html( $post->post_status )
+				),
+				'action_link_data' => array(
+					array(
+						'action' => 'edit',
+						'anchor'     => get_edit_post_link( $post->ID ),
+						'title' => __( 'Opens in new window', 'zoninator' ),
+						'text'  => __( 'Edit', 'zoninator' ),
+						'target' => "_blank"
+					),
+					array(
+						'action' => 'delete',
+						'anchor'     => '#',
+						'title' => '',
+						'text'  => __( 'Remove', 'zoninator' )
+					),
+					array(
+						'action' => 'view',
+						'anchor'     => get_permalink( $post->ID ),
+						'title' => __( 'Opens in new window', 'zoninator' ),
+						'text'  => __( 'View', 'zoninator' ),
+						'target' => "_blank"
+					)
+				)
+			)
+		), $post, $zone);
+	}
+
+	public function get_admin_zone_posts( $zone_or_id ) {
+		$zone = $this->get_zone( $zone_or_id );
+		$posts = $this->get_zone_posts( $zone );
+		$admin_zone_posts = array();
+
+		foreach ( $posts as $post ) {
+			$admin_zone_posts[] = $this->get_admin_zone_post( $post, $zone );
+		}
+
+		return $admin_zone_posts;
+	}
+
+	/**
+	 * @param $zone_slug_or_id
+	 * @return array|WP_Error
+	 */
+	function get_zone_feed( $zone_slug_or_id ) {
+		$zone_id = $this->get_zone( $zone_slug_or_id );
+
+		if ( empty( $zone_id ) ) {
+			return new WP_Error( 'invalid-zone-supplied', __( 'Invalid zone supplied', 'zoninator' ) );
+		}
+
+		$results = $this->get_zone_posts( $zone_id, apply_filters( 'zoninator_json_feed_fields', array(), $zone_slug_or_id ) );
+		$filtered_results = $this->filter_zone_feed_fields( $results );
+
+		return apply_filters( 'zoninator_json_feed_results', $filtered_results, $zone_slug_or_id );
+	}
+
+	public function check( $action = '', $zone_id = null ) {
+		// TODO: should check if zone locked
+		if ( 'insert' == $action ) {
+			return $this->_current_user_can_add_zones();
+		}
+
+		if ( 'update' == $action || 'delete' == $action ) {
+			return $this->_current_user_can_edit_zones( $zone_id );
+		}
+
+		return $this->_current_user_can_manage_zones();
+	}
 }
 
-global $zoninator;
-$zoninator = new Zoninator;
+function Zoninator() {
+	global $zoninator;
+	if ( ! isset( $zoninator ) || null === $zoninator ) {
+		$zoninator = new Zoninator;
+	}
+	return $zoninator;
+}
+
+Zoninator();
 
 endif;
