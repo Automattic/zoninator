@@ -916,7 +916,6 @@ class Zoninator
 		$name = ! empty( $name ) ? $name : $slug;
 
 		$details = wp_parse_args( $details, $this->zone_detail_defaults );
-		$details = maybe_serialize( stripslashes_deep( $details ) );
 
 		$args = array(
 			'slug' => $slug,
@@ -925,6 +924,9 @@ class Zoninator
 
 		// Filterize to allow other inputs
 		$args = apply_filters( 'zoninator_insert_zone', $args );
+
+		// Serialize the description.
+		$args['description'] = maybe_serialize( stripslashes_deep( $args['description'] ) );
 
 		return wp_insert_term( $name, $this->zone_taxonomy, $args );
 	}
@@ -940,9 +942,7 @@ class Zoninator
 			$details = $this->_get_value_or_default( 'details', $data, array() );
 
 			// TODO: Back-fill current zone details
-			//$details = wp_parse_args( $details, $this->zone_detail_defaults );
 			$details = wp_parse_args( $details, $this->zone_detail_defaults );
-			$details = maybe_serialize( stripslashes_deep( $details ) );
 
 			$args = array(
 				'name' => $name,
@@ -952,6 +952,9 @@ class Zoninator
 
 			// Filterize to allow other inputs
 			$args = apply_filters( 'zoninator_update_zone', $args, $zone_id, $zone );
+
+			// Serialize the description.
+			$args['description'] = maybe_serialize( stripslashes_deep( $args['description'] ) );
 
 			return wp_update_term( $zone_id, $this->zone_taxonomy, $args );
 		}
