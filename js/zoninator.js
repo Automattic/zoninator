@@ -89,6 +89,8 @@ var zoninator = {};
 				})
 				.autocomplete({
 					minLength: 3
+					// the default timeout (300ms) doesn't allow much time between keystrokes, increasing it to avoid request floodingnga 
+					, delay: 600
 					// Remote source with caching
 					, source : function(request, response) {
 						var term = request.term;
