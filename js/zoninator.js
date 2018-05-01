@@ -38,6 +38,12 @@ var zoninator = {};
 				, placeholder         : 'ui-state-highlight'
 				, forcePlaceholderSize: true
 				//, handle: '.zone-post-handle'
+				// This helper function addresses #41 (Drag and Drop on Mobile Issue) and corrects the placement of the cloned sortable item on Chrome/Safari iOS
+				, helper              : function(event, ui) {
+					var clone = $(ui).clone();
+					clone.css('position','absolute');
+					return clone.get(0);
+				}
 			});
 		}
 
