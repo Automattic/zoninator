@@ -906,6 +906,40 @@ class Zoninator
 		return $this->post_types;
 	}
 
+	/**
+	 * Registers a post type to be available for zones
+	 *
+	 * @param string|array $post_types A post type string or array of post type strings to register.
+	 * @return bool
+	 */
+	function register_zone_post_type( $post_types = '' ) {
+
+		$did_register_post_types = false;
+
+		if ( ! is_array( $post_types) ) {
+			$post_types = array( $post_types );
+		}
+
+		foreach( $post_types as $post_type ) {
+			
+			if ( '' === $post_type || ! post_type_exists( $post_type ) ) {
+				continue;
+			}
+
+			add_post_type_support( $post_type, $this->zone_taxonomy );
+			register_taxonomy_for_object_type( $this->zone_taxonomy, $post_type );
+
+			// Clear Zoninator supported post types cache
+			unset( $this->post_types );
+
+			$did_register_post_types = true;
+
+		}
+
+		return $did_register_post_types;
+
+	}
+
 	function insert_zone( $slug, $name = '', $details = array() ) {
 
 		// slug cannot be empty
