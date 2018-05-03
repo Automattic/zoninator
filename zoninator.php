@@ -48,7 +48,7 @@ class Zoninator
 	var $zone_nonce_prefix = 'zone-nonce';
 	var $zone_ajax_nonce_action = 'ajax-action';
 	var $zone_lock_period = 30; // number of seconds a lock is valid for
-	var $zone_max_lock_period = 60; // max number of seconds for all locks in a session
+	var $zone_max_lock_period = 600; // max number of seconds for all locks in a session
 	var $post_types = null;
 	var $zone_detail_defaults = array(
 		'description' => ''
@@ -102,6 +102,8 @@ class Zoninator
 			'error-general' => __( 'Sorry, something went wrong! Please try again?', 'zoninator' ),
 			'error-zone-lock' => __( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
 			'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Zones page.', 'zoninator' ),
+			// Translators: %s below refers to the zone title
+			'error-zone-lock-redirect' => __( 'Sorry, you had reached the maximum idle limit while editing zone "%s" and were redirected to the Zones page.', 'zoninator' ),
 		);
 
 		$this->zone_lock_period 	= apply_filters( 'zoninator_zone_lock_period', 		$this->zone_lock_period );
@@ -130,6 +132,8 @@ class Zoninator
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 
 		add_action( 'admin_menu', array( $this, 'admin_page_init' ) );
+
+		add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 
 		# Add default advanced search fields
 		add_action( 'zoninator_advanced_search_fields', array( $this, 'zone_advanced_search_cat_filter' ) );
@@ -169,6 +173,27 @@ class Zoninator
 	function admin_page_init() {
 		// Set up page
 		add_menu_page( __( 'Zoninator', 'zoninator' ), __( 'Zones', 'zoninator' ), $this->_get_manage_zones_cap(), $this->key, array( $this, 'admin_page' ), '', 11 );
+	}
+
+	/**
+	 * Loads any admin notices on the top level zones screen.
+	 */
+	public function admin_notices() {
+
+		$screen = get_current_screen();
+
+		if ( 'toplevel_page_zoninator' === $screen->base ) {
+
+			if ( isset( $_GET['zone_lock'] ) ) {
+				$zone = $this->get_zone( intval( $_GET['zone_lock'] ) );
+			?>
+				<div class="notice notice-warning is-dismissible">
+					<p><?php echo sprintf( $this->_get_message('error-zone-lock-redirect'), esc_html( $zone->name ) ); ?></p>
+				</div>
+
+			<?php
+			}
+		}
 	}
 
 	function admin_enqueue_scripts() {
