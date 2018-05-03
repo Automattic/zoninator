@@ -280,7 +280,7 @@ var zoninator = {};
 				setTimeout(zoninator.updateLock, zoninator.heartbeatInterval);
 			} else {
 				alert(zoninatorOptions.errorZoneLockMax);
-				location.href = zoninatorOptions.adminUrl;
+				location.href = zoninatorOptions.baseUrl + '&zone_lock=' + zoninator.getZoneId();
 			}
 		}, function(returnData, originalData) {
 			// Show alert and reload page to update lock

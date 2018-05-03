@@ -48,7 +48,7 @@ class Zoninator
 	var $zone_nonce_prefix = 'zone-nonce';
 	var $zone_ajax_nonce_action = 'ajax-action';
 	var $zone_lock_period = 30; // number of seconds a lock is valid for
-	var $zone_max_lock_period = 600; // max number of seconds for all locks in a session
+	var $zone_max_lock_period = 60; // max number of seconds for all locks in a session
 	var $post_types = null;
 	var $zone_detail_defaults = array(
 		'description' => ''
