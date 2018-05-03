@@ -910,7 +910,7 @@ class Zoninator
 	 * Registers a post type to be available for zones
 	 *
 	 * @param string|array $post_types A post type string or array of post type strings to register.
-	 * @return bool
+	 * @return bool True if any post types were added, false if not.
 	 */
 	function register_zone_post_type( $post_types = '' ) {
 
