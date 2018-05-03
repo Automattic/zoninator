@@ -916,12 +916,12 @@ class Zoninator
 
 		$did_register_post_types = false;
 
-		if ( ! is_array( $post_types) ) {
+		if ( ! is_array( $post_types ) ) {
 			$post_types = array( $post_types );
 		}
 
-		foreach( $post_types as $post_type ) {
-			
+		foreach ( $post_types as $post_type ) {
+
 			if ( ! post_type_exists( $post_type ) ) {
 				continue;
 			}
