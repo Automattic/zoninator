@@ -922,7 +922,7 @@ class Zoninator
 
 		foreach( $post_types as $post_type ) {
 			
-			if ( '' === $post_type || ! post_type_exists( $post_type ) ) {
+			if ( ! post_type_exists( $post_type ) ) {
 				continue;
 			}
 
