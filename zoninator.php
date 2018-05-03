@@ -101,7 +101,7 @@ class Zoninator
 			'delete-success' => __( 'The zone was successfully deleted.', 'zoninator' ),
 			'error-general' => __( 'Sorry, something went wrong! Please try again?', 'zoninator' ),
 			'error-zone-lock' => __( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
-			'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard.', 'zoninator' ),
+			'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Zones page.', 'zoninator' ),
 		);
 
 		$this->zone_lock_period 	= apply_filters( 'zoninator_zone_lock_period', 		$this->zone_lock_period );
