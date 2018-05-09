@@ -186,12 +186,16 @@ class Zoninator
 
 			if ( isset( $_GET['zone_lock'] ) ) {
 				$zone = $this->get_zone( intval( $_GET['zone_lock'] ) );
-			?>
+
+				// Make sure we actually have a good $zone before showing a notice
+				if ( false !== $zone ) {
+				?>
 				<div class="notice notice-warning is-dismissible">
 					<p><?php echo sprintf( $this->_get_message('error-zone-lock-redirect'), esc_html( $zone->name ) ); ?></p>
 				</div>
 
-			<?php
+				<?php
+				}
 			}
 		}
 	}
