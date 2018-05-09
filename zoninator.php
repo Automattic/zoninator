@@ -191,7 +191,7 @@ class Zoninator
 				if ( false !== $zone ) {
 				?>
 				<div class="notice notice-warning is-dismissible">
-					<p><?php echo sprintf( $this->_get_message('error-zone-lock-redirect'), esc_html( $zone->name ) ); ?></p>
+					<p><?php echo sprintf( $this->_get_message( 'error-zone-lock-redirect' ), esc_html( $zone->name ) ); ?></p>
 				</div>
 
 				<?php
