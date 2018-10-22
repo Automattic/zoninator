@@ -164,6 +164,100 @@ class Zoninator
 		// Enqueue Scripts and Styles
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_styles' ) );
+		$post_types_allowed = $this->get_supported_post_types();
+		add_meta_box( 'post_zoninator', __( 'Zoninator', 'zoninator' ), array( $this, 'admin_post_box' ), $post_types_allowed, 'side' );
+		add_action( 'save_post', array( $this, 'admin_post_save' ) );
+	}
+
+	/**
+	* Adds a metabox to the post edit screen allowing users to assign the posts to Zones directly
+	* Metabox added to all post types returned from get_supported_post_types
+	*
+	* @return null
+	*/
+	function admin_post_box() {
+		global $post;
+		$zones = $this->get_zones( apply_filters( 'zoninator_admin_page_get_zones_args', array() ) );
+		echo '<ul>';
+		$zones_for_post = $this->get_zone_ids_for_post( $post->ID );
+		foreach ( $zones as $zone ) {
+			$zone_id = $this->get_zone_id( $zone );
+			$found   = in_array( $zone_id, $zones_for_post );
+			echo '<li>';
+			if ( true === $this->_current_user_can_manage_zones() ) {
+				echo '<input type="checkbox" name="zoninator_ids[]" value="' . intval( $zone_id ) . '" ' . checked( $found, true, false ) . ' />';
+				echo esc_html( $zone->name );
+			} elseif ( true === $found ) {
+				echo esc_html( $zone->name );
+			}
+			echo '</li>';
+		}
+		echo '</ul>';
+		echo '<p>' . esc_html__( 'Note: Only published posts can be added to Zone.', 'zoninator' ) . '</p>';
+	}
+
+	/**
+	* Saves the Zone assignments on post save for published and future posts only
+	* Removes post from Zones when its status is changed to unpublished
+	*
+	* @return null
+	*/
+	function admin_post_save() {
+		global $post;
+		$post_id   = intval( $post->ID );
+		$post_type = $post->post_type;
+		if ( false === $this->_current_user_can_manage_zones() ) {
+			return $post_id;
+		}
+		if ( 0 === $post_id ) {
+			return $post_id;
+		}
+		if ( wp_is_post_revision( $post_id ) ) {
+			return $post_id;
+		}
+		if ( wp_is_post_autosave( $post_id ) ) {
+			return $post_id;
+		}
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return $post_id;
+		}
+		if ( ! check_admin_referer( 'update-post_' . $post_id, '_wpnonce' ) ) {
+			return $post_id;
+		}
+		$post_types_allowed = $this->get_supported_post_types();
+		if ( false === in_array( 'testposttype', array( 'testposttype' ) ) ) {
+			return $post_id;
+		}
+		$post_statuses_allowed = array( 'future', 'publish' );
+		$post_status           = sanitize_text_field( wp_unslash( $_POST['post_status'] ) ); // not in $post even though it has been saved
+		if ( false === in_array( $post_status, $post_statuses_allowed ) ) {
+			// remove from all Zones if not published
+			$zones_input = array();
+		} else {
+			$zones_input = isset( $_POST['zoninator_ids'] ) ? (array) $_POST['zoninator_ids'] : array();
+			foreach ( $zones_input as $key => $val ) {
+				$zones_on[] = intval( $val );
+			}
+		}
+		$zones_for_post = $this->get_zone_ids_for_post( $post_id );
+		// get list of all zones
+		$zones_all = $this->get_zones( apply_filters( 'zoninator_admin_page_get_zones_args', array() ) );
+		foreach ( $zones_all as $zone ) {
+			$zone_id = $zone->term_id;
+			if ( true === in_array( $zone_id, $zones_on ) ) {
+				// zone has been selected
+				if ( false === in_array( $zone_id, $zones_for_post ) ) {
+					// post was not in zone already
+					$this->add_zone_posts( $zone, array( $post ), true );
+				}
+			} else {
+				// zone has been unselected
+				if ( true === in_array( $zone_id, $zones_for_post ) ) {
+					// post was in zone already
+					$this->remove_zone_posts( $zone, array( $post ) );
+				}
+			}
+		}
 	}
 
 	function admin_page_init() {
@@ -1177,6 +1271,26 @@ class Zoninator
 			return array_pop( $post );
 
 		return false;
+	}
+
+	/**
+	* Retrieve a list of Zone IDs assigned to a single post
+	* @param int $post_id The ID for a single post
+	*
+	* @return array A list of integer Zone ID values
+	*/
+	function get_zone_ids_for_post( $post_id ) {
+		$post_id_list = array();
+		$post_meta = get_post_meta( intval( $post_id ), '', false );
+		if ( is_array( $post_meta ) ) {
+			$slug_length = 17;
+			foreach ( $post_meta as $key => $val ) {
+				if ( '_zoninator_order_' === substr( $key, 0, $slug_length ) ) {
+					$post_id_list[] = intval( substr( $key, $slug_length, 1000 ) );
+				}
+			}
+		}
+		return $post_id_list;
 	}
 
 	function get_zones_for_post( $post_id ) {
