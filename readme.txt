@@ -2,7 +2,7 @@
 Contributors: batmoo, automattic, wpcomvip, pkevan, matthumphreys, potatomaster, jblz, nickdaugherty, betzster
 Tags: zones, post order, post list, posts, order, zonination, content curation, curation, content management
 Requires at least: 3.5
-Tested up to: 4.8
+Tested up to: 5.0
 Stable tag: 0.8
 License: GPLv2
 
