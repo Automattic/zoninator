@@ -41,7 +41,7 @@ You can use a filter:
 
 `add_filter( 'zoninator_zone_max_lock_period', 'z_disable_zoninator_locks' );`
 
-= How do I change the the locking feature settings? =
+= How do I change the locking feature settings? =
 
 Filter the following and change according to your needs:
 
