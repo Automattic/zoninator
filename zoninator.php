@@ -1428,7 +1428,10 @@ class Zoninator
 
 	private function filter_zone_feed_fields( $results ) {
 		$filtered_results = array();
-		$whitelisted_fields = array( 'ID', 'post_date', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'guid' );
+		$whitelisted_fields = apply_filters(
+			'zoninator_zone_feed_fields',
+			array( 'ID', 'post_date', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'guid' )
+		);
 
 		$filtered_results = array();
 		$i = 0;
