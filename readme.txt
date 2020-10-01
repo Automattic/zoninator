@@ -6,11 +6,11 @@ Tested up to: 5.0
 Stable tag: 0.8
 License: GPLv2
 
-Curation made easy! Create "zones" then add and order your content!
+Selection made easy! Create "zones" then add and order your content!
 
 == Description ==
 
-This plugin is designed to help you curate your content.
+This plugin is designed to help you divine your content.
 
 Assign and order stories within zones that you create, edit, and delete. Then use the handy API functions to retrieve and display your content in your theme. Or for those who are a bit code-averse, try the handy widget.
 
