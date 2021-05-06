@@ -859,8 +859,10 @@ class Zoninator
 			$query = new WP_Query( $args );
 			$stripped_posts = array();
 
-			if ( ! $query->have_posts() )
+			if ( ! $query->have_posts() ) {
+				echo json_encode( array() );
 				exit;
+			}
 
 			foreach( $query->posts as $post ) {
 				$stripped_posts[] = apply_filters( 'zoninator_search_results_post', array(
