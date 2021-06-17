@@ -22,7 +22,6 @@ jobs:
       WP_VERSION: ${{ matrix.wordpress }}
 
     strategy:
-      fail-fast: false
       matrix:
         wordpress: ["5.5", "5.6", "5.7"]
         php: ["5.6", "7.0", "7.1", "7.2", "7.3", "7.4"]
@@ -36,39 +35,51 @@ jobs:
         exclude:
           - php: "8.0"
             wordpress: "5.5"
+      fail-fast: false
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up PHP ${{ matrix.php }}
+      - name: Setup PHP ${{ matrix.php }}
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          # https://make.wordpress.org/hosting/handbook/handbook/server-environment/#php-extensions
-          extensions: curl, dom, exif, fileinfo, hash, json, mbstring, mysqli, openssl, pcre, imagick, xml, zip
+          extensions: ${{ matrix.extensions }}
+          ini-values: ${{ matrix.ini-values }}
+          coverage: ${{ matrix.coverage }}
+
+      - name: Setup problem matchers for PHP
+        run: echo "::add-matcher::${{ runner.tool_cache }}/php.json"
+
+      # Setup PCOV since we're using PHPUnit < 8 which has it integrated. Requires PHP 7.1.
+      # Ignore platform reqs to make it install on PHP 8.
+      # https://github.com/krakjoe/pcov-clobber
+      - name: Setup PCOV
+        if: ${{ matrix.php == 8.0 }}
+        run: |
+          composer require pcov/clobber --ignore-platform-reqs
+          vendor/bin/pcov clobber
+
+      - name: Setup Problem Matchers for PHPUnit
+        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: Install Composer dependencies
         uses: ramsey/composer-install@v1
         with:
           composer-options: "${{ matrix.composer-options }}"
 
-      - name: Setup Problem Matchers for PHPUnit
-        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+      - name: Start MySQL Service
+        run: sudo systemctl start mysql.service
 
-      - name: Show PHP and PHPUnit version info
-        run: |
-          php --version
-          ./vendor/bin/phpunit --version
-
-      - name: Start MySQL service
-        run: sudo /etc/init.d/mysql start
-
-      - name: Install WordPress environment
-        run: composer prepare-ci ${{ matrix.wordpress }}
+      - name: Prepare environment for integration tests
+        run: composer prepare-ci
 
       - name: Run integration tests (single site)
+        if: ${{ matrix.php != 8.0 }}
         run: composer test
-
+      - name: Run integration tests (single site with code coverage)
+        if: ${{ matrix.php == 8.0 }}
+        run: composer coverage-ci
       - name: Run integration tests (multisite)
         run: composer test-ms

@@ -28,6 +28,12 @@
 		"cbf": [
 			"@php ./vendor/bin/phpcbf"
 		],
+		"coverage": [
+			"@php ./vendor/bin/phpunit --coverage-html ./build/coverage-html"
+		],
+		"coverage-ci": [
+			"@php ./vendor/bin/phpunit"
+		],
 		"cs": [
 			"@php ./vendor/bin/phpcs"
 		],
