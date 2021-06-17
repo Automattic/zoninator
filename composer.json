@@ -43,7 +43,7 @@
 		"lint-ci": [
 			"@php ./vendor/php-parallel-lint/php-parallel-lint/parallel-lint . -e php --exclude vendor --exclude .git --checkstyle"
 		],
-		"prepare": [
+		"prepare-ci": [
 			"bash bin/install-wp-tests.sh wordpress_test root root localhost"
 		],
 		"test": [
