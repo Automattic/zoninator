@@ -1,6 +1,14 @@
-name: Run PHPUnit and PHPCS
+name: Run PHPUnit
 
-on: [push]
+on:
+  # Run on all pushes and on all pull requests.
+  # Prevent the "push" build from running when there are only irrelevant changes.
+  push:
+    paths-ignore:
+      - "**.md"
+  pull_request:
+  # Allow manually triggering the workflow.
+  workflow_dispatch:
 
 jobs:
   test:
@@ -9,7 +17,6 @@ jobs:
     # https://www.php.net/manual/en/mysqli.requirements.php
     # TODO: change to ubuntu-latest when we no longer support PHP < 7.4
     runs-on: ubuntu-18.04
-    continue-on-error: ${{ matrix.allowed_failure }}
 
     env:
       WP_VERSION: ${{ matrix.wordpress }}
@@ -17,10 +24,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ["5.6", "7.0", "7.1", "7.2", "7.3", "7.4", "8.0"]
         wordpress: ["5.5", "5.6", "5.7"]
-        allowed_failure: [false]
-        # https://make.wordpress.org/core/2020/11/23/wordpress-and-php-8-0/
+        php: ["5.6", "7.0", "7.1", "7.2", "7.3", "7.4"]
+        include:
+          - php: "8.0"
+            # Ignore platform requirements, so that PHPUnit 7.5 can be installed on PHP 8.0 (and above).
+            composer-options: "--ignore-platform-reqs"
+            extensions: pcov
+            ini-values: pcov.directory=., "pcov.exclude=\"~(vendor|tests)~\""
+            coverage: pcov
         exclude:
           - php: "8.0"
             wordpress: "5.5"
@@ -33,19 +45,13 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          coverage: pcov
           # https://make.wordpress.org/hosting/handbook/handbook/server-environment/#php-extensions
           extensions: curl, dom, exif, fileinfo, hash, json, mbstring, mysqli, openssl, pcre, imagick, xml, zip
 
-      - name: Install Composer dependencies (PHP < 8.0 )
-        if: ${{ matrix.php < 8.0 }}
-        uses: ramsey/composer-install@v1
-
-      - name: Install Composer dependencies (PHP >= 8.0)
-        if: ${{ matrix.php >= 8.0 }}
+      - name: Install Composer dependencies
         uses: ramsey/composer-install@v1
         with:
-          composer-options: --ignore-platform-reqs
+          composer-options: "${{ matrix.composer-options }}"
 
       - name: Setup Problem Matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
@@ -59,13 +65,10 @@ jobs:
         run: sudo /etc/init.d/mysql start
 
       - name: Install WordPress environment
-        run: composer prepare ${{ matrix.wordpress }}
+        run: composer prepare-ci ${{ matrix.wordpress }}
 
       - name: Run integration tests (single site)
-        run: composer integration
+        run: composer test
 
       - name: Run integration tests (multisite)
-        run: composer integration-ms
-
-      - name: Run PHPCS
-        run: composer cs
+        run: composer test-ms

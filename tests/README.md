@@ -2,6 +2,6 @@
 
 ```bash
 composer install
-composer prepare
-composer integration
+composer prepare-ci
+composer test
 ```

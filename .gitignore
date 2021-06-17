@@ -205,7 +205,5 @@ dkms.conf
 # </genignore linux>
 
 tmp
-.DS_Store
-.vscode/
 composer.lock
-vendor/
+/vendor
