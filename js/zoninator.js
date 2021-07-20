@@ -203,7 +203,8 @@ var zoninator = {};
 		// Add Post to List
 		var $post = $(returnData.content);
 		$post.hide()
-			.appendTo(zoninator.$zonePostsList)
+			//.appendTo(zoninator.$zonePostsList)
+			.prependTo(zoninator.$zonePostsList)
 			.fadeIn()
 		;
 
