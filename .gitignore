@@ -205,4 +205,5 @@ dkms.conf
 # </genignore linux>
 
 tmp
-vendor
+composer.lock
+/vendor

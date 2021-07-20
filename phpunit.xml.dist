@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <phpunit
     bootstrap="tests/bootstrap.php"
     backupGlobals="false"
@@ -7,7 +6,6 @@
     convertNoticesToExceptions="true"
     convertWarningsToExceptions="true"
     verbose="true"
-    syntaxCheck="true"
 >
 <php>
     <server name='HTTP_HOST' value='http://localhost' />
@@ -16,24 +14,11 @@
     <server name="REMOTE_ADDR" value="127.1.2.3"/>
 </php>
 <testsuites>
-    <testsuite>
+    <testsuite name="WP_Tests">
         <directory suffix="-test.php">./tests/</directory>
         <exclude>./tests/unit-testing-classes</exclude>
         <exclude>./tests/bin</exclude>
     </testsuite>
 </testsuites>
-<filter>
-    <blacklist>
-        <directory suffix=".php">./apigen/</directory>
-        <directory suffix=".php">./tests/</directory>
-        <directory suffix=".php">./tests/unit-testing-classes</directory>
-        <directory suffix=".php">./tmp/</directory>
-    </blacklist>
-</filter>
-<filter>
-    <whitelist processUncoveredFilesFromWhitelist="true">
-        <directory suffix=".php">./src</directory>
-    </whitelist>
-</filter>
 </phpunit>
 
