@@ -1,5 +1,10 @@
-<?php
+<?php //phpcs:disable WordPress.NamingConventions.PrefixAllGlobals
 
+/**
+ * Get Zoninator instance
+ *
+ * @return Zoninator
+ */
 function z_get_zoninator() {
 	global $zoninator;
 	return $zoninator;
@@ -7,6 +12,7 @@ function z_get_zoninator() {
 
 /**
  * Get a list of all zones
+ *
  * @return array List of all zones
  */
 function z_get_zones() {
@@ -14,7 +20,9 @@ function z_get_zones() {
 }
 
 /**
- * @param $zone int|string ID or Slug of the zone
+ * Get Zone
+ *
+ * @param int|string $zone  ID or Slug of the zone.
  * @return array Zone object
  */
 function z_get_zone( $zone ) {
@@ -22,8 +30,10 @@ function z_get_zone( $zone ) {
 }
 
 /**
- * @param $zone int|string ID or Slug of the zone
- * @param $args array override default zoninator args
+ * Get posts in Zone
+ *
+ * @param int|string $zone  ID or Slug of the zone.
+ * @param array      $args  override default zoninator args.
  * @return array List of orders post objects
  */
 function z_get_posts_in_zone( $zone, $args = array() ) {
@@ -31,7 +41,10 @@ function z_get_posts_in_zone( $zone, $args = array() ) {
 }
 
 /**
- * @param $zone int|string ID or Slug of the zone
+ * Get Zone query
+ *
+ * @param int|string $zone  ID or Slug of the zone.
+ * @param array      $args  override default zoninator args.
  * @return WP_Query List of orders post objects
  */
 function z_get_zone_query( $zone, $args = array() ) {
@@ -39,8 +52,10 @@ function z_get_zone_query( $zone, $args = array() ) {
 }
 
 /**
- * @param $zone int|string ID or Slug of the zone
- * @param $post_id int ID of the post (or, null if in The Loop)
+ * Get next post in a zone.
+ *
+ * @param int|string $zone    ID or Slug of the zone.
+ * @param int        $post_id ID of the post (or null if in The Loop).
  * @return array|false Returns next post relative to post_id for the given zone
  */
 function z_get_next_post_in_zone( $zone, $post_id = 0 ) {
@@ -49,9 +64,11 @@ function z_get_next_post_in_zone( $zone, $post_id = 0 ) {
 }
 
 /**
- * @param $zone int|string ID or Slug of the zone
- * @param $post_id int ID of the post (or, null if in The Loop)
- * @return array|false Returns previous post relative to post_id for the given zone 
+ * Get previous post in a zone.
+ *
+ * @param int|string $zone    ID or Slug of the zone.
+ * @param int        $post_id ID of the post (or, null if in The Loop).
+ * @return array|false Returns previous post relative to post_id for the given zone
  */
 function z_get_prev_post_in_zone( $zone, $post_id = 0 ) {
 	$post_id = z_get_loop_post_id_or_default( $post_id );
@@ -59,7 +76,9 @@ function z_get_prev_post_in_zone( $zone, $post_id = 0 ) {
 }
 
 /**
- * @param $post_id int ID of the post (or, null if in The Loop)
+ * Get zones of a given post.
+ *
+ * @param int $post_id ID of the post (or, null if in The Loop).
  * @return array List of of zones that the given post is in
  */
 function z_get_post_zones( $post_id = 0 ) {
@@ -67,10 +86,18 @@ function z_get_post_zones( $post_id = 0 ) {
 	return z_get_zoninator()->get_zones_for_post( $post_id );
 }
 
+/**
+ * Get loop post ID or default post ID.
+ *
+ * @param int $post_id post id.
+ * @return int|mixed
+ */
 function z_get_loop_post_id_or_default( $post_id = 0 ) {
-	if( ! $post_id ) {
+	if ( ! $post_id ) {
 		global $post;
-		if( $post && isset( $post->ID ) ) $post_id = $post->ID;
+		if ( $post && isset( $post->ID ) ) {
+			$post_id = $post->ID;
+		}
 	}
 	return $post_id;
 }

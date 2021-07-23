@@ -40,9 +40,9 @@ class Zoninator_REST_Model_Settings extends Zoninator_REST_Model {
 	/**
 	 * On Field Setup
 	 *
-	 * @param string                       $field_name Name.
+	 * @param string                                   $field_name Name.
 	 * @param Zoninator_REST_Field_Declaration_Builder $field_builder Builder.
-	 * @param array                        $field_data Data.
+	 * @param array                                    $field_data Data.
 	 * @param Zoninator_REST_Environment               $env Env.
 	 * @return void
 	 */
@@ -55,16 +55,16 @@ class Zoninator_REST_Model_Settings extends Zoninator_REST_Model {
 	 * @return array
 	 */
 	public function declare_fields() {
-		$env = $this->get_environment();
+		$env                = $this->get_environment();
 		$settings_per_group = $this->get_settings();
-		$fields = array();
+		$fields             = array();
 
 		foreach ( $settings_per_group as $group_name => $group_data ) {
 			$group_fields = $group_data[1];
 
 			foreach ( $group_fields as $field_data ) {
 				$field_builder = $this->field_declaration_builder_from_data( $env, $field_data );
-				$fields[] = $field_builder;
+				$fields[]      = $field_builder;
 			}
 		}
 		return $fields;
@@ -113,18 +113,18 @@ class Zoninator_REST_Model_Settings extends Zoninator_REST_Model {
 	 * Build declarations from array
 	 *
 	 * @param Zoninator_REST_Environment $env Environment.
-	 * @param array          $field_data Data.
+	 * @param array                      $field_data Data.
 	 * @return Zoninator_REST_Field_Declaration_Builder
 	 */
 	private function field_declaration_builder_from_data( $env, $field_data ) {
-		$field_name = $field_data['name'];
+		$field_name    = $field_data['name'];
 		$field_builder = $env->field( $field_name );
 		$default_value = isset( $field_data['std'] ) ? $field_data['std'] : $this->default_for_attribute( $field_data, 'std' );
-		$label = isset( $field_data['label'] ) ? $field_data['label'] : $field_name;
-		$description = isset( $field_data['desc'] ) ? $field_data['desc'] : $label;
-		$setting_type = isset( $field_data['type'] ) ? $field_data['type'] : null;
-		$choices = isset( $field_data['options'] ) ? array_keys( $field_data['options'] ) : null;
-		$field_type = 'string';
+		$label         = isset( $field_data['label'] ) ? $field_data['label'] : $field_name;
+		$description   = isset( $field_data['desc'] ) ? $field_data['desc'] : $label;
+		$setting_type  = isset( $field_data['type'] ) ? $field_data['type'] : null;
+		$choices       = isset( $field_data['options'] ) ? array_keys( $field_data['options'] ) : null;
+		$field_type    = 'string';
 
 		if ( 'checkbox' === $setting_type ) {
 			$field_type = 'boolean';
@@ -135,7 +135,6 @@ class Zoninator_REST_Model_Settings extends Zoninator_REST_Model {
 			$field_builder
 				->with_serializer( array( $this, 'bool_to_bit' ) )
 				->with_deserializer( array( $this, 'bit_to_bool' ) );
-
 		} elseif ( 'select' === $setting_type ) {
 			$field_type = 'string';
 		} else {

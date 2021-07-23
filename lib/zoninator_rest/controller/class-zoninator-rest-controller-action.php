@@ -19,12 +19,12 @@ class Zoninator_REST_Controller_Action {
 	 * @var array
 	 */
 	private $actions_to_http_methods = array(
-		'index' => WP_REST_Server::READABLE,
-		'show' => WP_REST_Server::READABLE,
-		'create'  => WP_REST_Server::CREATABLE,
+		'index'  => WP_REST_Server::READABLE,
+		'show'   => WP_REST_Server::READABLE,
+		'create' => WP_REST_Server::CREATABLE,
 		'update' => WP_REST_Server::EDITABLE,
 		'delete' => WP_REST_Server::DELETABLE,
-		'any' => WP_REST_Server::ALLMETHODS,
+		'any'    => WP_REST_Server::ALLMETHODS,
 	);
 
 	/**
@@ -59,16 +59,17 @@ class Zoninator_REST_Controller_Action {
 	 * Zoninator_REST_Controller_Action constructor.
 	 *
 	 * @param Zoninator_REST_Controller $controller Controller.
-	 * @param string        $action_name The action Name.
+	 * @param string                    $action_name The action Name.
+	 * @throws Zoninator_REST_Exception Exception.
 	 */
 	public function __construct( $controller, $action_name ) {
 		$is_known_action = in_array( $action_name, array_keys( $this->actions_to_http_methods ), true );
 		Zoninator_REST_Expect::that( $is_known_action, 'Unknown method: ' . $action_name );
 
-		$this->controller = $controller;
-		$this->action_name = $action_name;
-		$this->handler = null;
-		$this->args = null;
+		$this->controller          = $controller;
+		$this->action_name         = $action_name;
+		$this->handler             = null;
+		$this->args                = null;
 		$this->permission_callback = null;
 	}
 
@@ -121,6 +122,7 @@ class Zoninator_REST_Controller_Action {
 	 * Used in register rest route
 	 *
 	 * @return array
+	 * @throws Zoninator_REST_Exception Exception.
 	 */
 	public function as_array() {
 		$callable_func = $this->expect_callable( $this->handler );

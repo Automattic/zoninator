@@ -20,8 +20,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Zoninator_REST_Environment {
 	const REGISTRABLE = 'IRegistrable';
-	const BUNDLES = 'Bundles';
-	const MODELS = 'Models';
+	const BUNDLES     = 'Bundles';
+	const MODELS      = 'Models';
 
 	/**
 	 * This environment's registered REST bundles
@@ -75,12 +75,12 @@ class Zoninator_REST_Environment {
 	 * @param Zoninator_REST_Bootstrap $bootstrap The bootstrap.
 	 */
 	public function __construct( $bootstrap ) {
-		$this->bootstrap = $bootstrap;
-		$this->has_started = false;
-		$this->rest_apis = array();
-		$this->variables = array();
+		$this->bootstrap         = $bootstrap;
+		$this->has_started       = false;
+		$this->rest_apis         = array();
+		$this->variables         = array();
 		$this->model_definitions = array();
-		$this->type_registry = new Zoninator_REST_Type_Registry();
+		$this->type_registry     = new Zoninator_REST_Type_Registry();
 		$this->type_registry->initialize( $this );
 		// initialize our array vars.
 		$this->array_var( self::MODELS )
@@ -93,7 +93,7 @@ class Zoninator_REST_Environment {
 	 *
 	 * All builders are evaluated lazily when needed
 	 *
-	 * @param string                $where The queue to push the builder to.
+	 * @param string                            $where The queue to push the builder to.
 	 * @param Zoninator_REST_Interfaces_Builder $builder The builder to push.
 	 *
 	 * @return Zoninator_REST_Environment $this
@@ -375,7 +375,7 @@ class Zoninator_REST_Environment {
 	 *
 	 * @return Zoninator_REST_Model
 	 */
-	function define_model( $declaration ) {
+	public function define_model( $declaration ) {
 		Zoninator_REST_Expect::that( class_exists( $declaration ), '$declaration string should be an existing class' );
 		Zoninator_REST_Expect::that( in_array( 'Zoninator_REST_Interfaces_Model', class_implements( $declaration ), true ), '$declaration does not implement Zoninator_REST_Interfaces_Model' );
 
@@ -402,7 +402,7 @@ class Zoninator_REST_Environment {
 	 */
 	private function add_rest_bundle( $bundle ) {
 		Zoninator_REST_Expect::is_a( $bundle, 'Zoninator_REST_Interfaces_Controller_Bundle' );
-		$key = $bundle->get_prefix();
+		$key                     = $bundle->get_prefix();
 		$this->rest_apis[ $key ] = $bundle;
 		return $this;
 	}

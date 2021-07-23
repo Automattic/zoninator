@@ -28,7 +28,7 @@ class Zoninator_REST_Type_TypedArray extends Zoninator_REST_Type {
 	 *
 	 * @param Zoninator_REST_Interfaces_Type $item_type_definition The type.
 	 */
-	function __construct( $item_type_definition ) {
+	public function __construct( $item_type_definition ) {
 		parent::__construct( 'array:' . $item_type_definition->name() );
 		$this->item_type_definition = $item_type_definition;
 	}
@@ -62,9 +62,9 @@ class Zoninator_REST_Type_TypedArray extends Zoninator_REST_Type {
 	 *
 	 * @return array
 	 */
-	function schema() {
-		$schema = parent::schema();
-		$schema['type'] = 'array';
+	public function schema() {
+		$schema          = parent::schema();
+		$schema['type']  = 'array';
 		$schema['items'] = $this->item_type_definition->schema();
 		return $schema;
 	}

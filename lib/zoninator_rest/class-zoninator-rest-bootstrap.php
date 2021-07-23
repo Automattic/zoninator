@@ -69,10 +69,10 @@ class Zoninator_REST_Bootstrap {
 	 */
 	public static function create( $class_loader = null ) {
 		if ( empty( $class_loader ) ) {
-			include_once( 'interfaces/class-zoninator-rest-interfaces-classloader.php' );
-			include_once( 'class-zoninator-rest-classloader.php' );
-			$prefix = str_replace( '_Bootstrap', '', __CLASS__ );
-			$base_dir = self::get_base_dir();
+			include_once 'interfaces/class-zoninator-rest-interfaces-classloader.php';
+			include_once 'class-zoninator-rest-classloader.php';
+			$prefix       = str_replace( '_Bootstrap', '', __CLASS__ );
+			$base_dir     = self::get_base_dir();
 			$class_loader = new Zoninator_REST_Classloader( $prefix, $base_dir );
 		}
 		return new self( $class_loader );
@@ -98,7 +98,7 @@ class Zoninator_REST_Bootstrap {
 	 *
 	 * @return Zoninator_REST_Bootstrap $this
 	 */
-	function register_autoload() {
+	public function register_autoload() {
 		if ( function_exists( 'spl_autoload_register' ) ) {
 			spl_autoload_register( array( $this->class_loader(), 'load_class' ), true );
 		}
@@ -111,7 +111,7 @@ class Zoninator_REST_Bootstrap {
 	 * @return Zoninator_REST_Bootstrap $this
 	 * @throws Exception In case a class/file is not found.
 	 */
-	function load() {
+	public function load() {
 		$this->class_loader()
 			->load_class( 'Interfaces_Data_Store' )
 			->load_class( 'Interfaces_Registrable' )
@@ -162,7 +162,7 @@ class Zoninator_REST_Bootstrap {
 	 *
 	 * @return Zoninator_REST_Bootstrap $this
 	 */
-	function load_testing_classes() {
+	public function load_testing_classes() {
 		$this->class_loader()
 			->load_class( 'Testing_TestCase' )
 			->load_class( 'Testing_Model_TestCase' )
@@ -175,7 +175,7 @@ class Zoninator_REST_Bootstrap {
 	 *
 	 * @return Zoninator_REST_Classloader
 	 */
-	function class_loader() {
+	public function class_loader() {
 		return $this->class_loader;
 	}
 

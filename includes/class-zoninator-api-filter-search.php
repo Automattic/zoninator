@@ -59,7 +59,7 @@ class Zoninator_Api_Filter_Search extends Zoninator_REST_Model {
 	/**
 	 * Strip slashes
 	 *
-	 * @param mixed $item Item.
+	 * @param string $item Item.
 	 * @return string
 	 */
 	public function strip_slashes( $item ) {
@@ -67,11 +67,24 @@ class Zoninator_Api_Filter_Search extends Zoninator_REST_Model {
 		return stripslashes( $item );
 	}
 
+	/**
+	 * Strip tags
+	 *
+	 * @param string $item string to be stripped.
+	 * @return string
+	 */
 	public function strip_tags( $item ) {
-		return strip_tags( $item );
+		return wp_strip_all_tags( $item );
 	}
 
-	function date_before_set( $model, $item ) {
+	/**
+	 * Strip tags and slashes from the before date.
+	 *
+	 * @param mixed  $model Model (unused).
+	 * @param string $item date string to be stripped.
+	 * @return string
+	 */
+	public function date_before_set( $model, $item ) {
 		return $this->strip_tags( $this->strip_slashes( $item ) );
 	}
 }

@@ -18,7 +18,7 @@ class Zoninator_REST_Field_Declaration_Builder {
 	/**
 	 * Constructor.
 	 */
-	function __construct() {
+	public function __construct() {
 		$this->args = array(
 			'name'               => '',
 			'kind'               => Zoninator_REST_Field_Declaration::FIELD,
@@ -133,7 +133,6 @@ class Zoninator_REST_Field_Declaration_Builder {
 	 */
 	public function with_required( $required = true ) {
 		return $this->with( 'required', $required );
-
 	}
 
 	/**

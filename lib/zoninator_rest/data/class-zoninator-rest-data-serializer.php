@@ -25,7 +25,7 @@ class Zoninator_REST_Data_Serializer {
 	 *
 	 * @param Zoninator_REST_Model_Definition $model_definition MD.
 	 */
-	function __construct( $model_definition ) {
+	public function __construct( $model_definition ) {
 		$this->model_declaration = $model_definition->get_model_declaration();
 	}
 
@@ -33,10 +33,10 @@ class Zoninator_REST_Data_Serializer {
 	 * Deserialize
 	 *
 	 * @param Zoninator_REST_Field_Declaration $field_declaration Declaration.
-	 * @param mixed                $value Value.
+	 * @param mixed                            $value Value.
 	 * @return mixed the deserialized value
 	 */
-	function deserialize( $field_declaration, $value ) {
+	public function deserialize( $field_declaration, $value ) {
 		$deserializer = $field_declaration->get_deserializer();
 		return $deserializer ? $this->model_declaration->call( $deserializer, array( $value ) ) : $value;
 	}
@@ -45,11 +45,11 @@ class Zoninator_REST_Data_Serializer {
 	 * Serialize
 	 *
 	 * @param  Zoninator_REST_Field_Declaration $field_declaration Declaration.
-	 * @param mixed                $value Value.
+	 * @param mixed                            $value Value.
 	 * @return mixed
 	 * @throws Zoninator_REST_Exception If call fails.
 	 */
-	function serialize( $field_declaration, $value ) {
+	public function serialize( $field_declaration, $value ) {
 		$serializer = $field_declaration->get_serializer();
 		if ( isset( $serializer ) && ! empty( $serializer ) ) {
 			return $this->model_declaration->call( $serializer, array( $value ) );
