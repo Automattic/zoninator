@@ -171,9 +171,12 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 	 * @return WP_REST_Response
 	 */
 	public function not_found( $message ) {
-		return $this->respond( array(
-			'message' => $message,
-		), self::HTTP_NOT_FOUND );
+		return $this->respond(
+			array(
+				'message' => $message,
+			),
+			self::HTTP_NOT_FOUND
+		);
 	}
 
 	/**
@@ -249,7 +252,7 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 	 * @param string          $action One of (index, show, create, update, delete, any).
 	 * @return bool
 	 */
-	function permissions_check( $request, $action = 'any' ) {
+	public function permissions_check( $request, $action = 'any' ) {
 		return true;
 	}
 
@@ -259,8 +262,8 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 	 * @param string $pattern The route pattern (e.g. '/').
 	 * @return Zoninator_REST_Controller_Route
 	 */
-	function add_route( $pattern = '' ) {
-		$route = new Zoninator_REST_Controller_Route( $this, $pattern );
+	public function add_route( $pattern = '' ) {
+		$route                    = new Zoninator_REST_Controller_Route( $this, $pattern );
 		$this->routes[ $pattern ] = $route;
 		return $this->routes[ $pattern ];
 	}
@@ -279,7 +282,7 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 	 *
 	 * @return string
 	 */
-	function get_base() {
+	public function get_base() {
 		return rest_url( $this->controller_bundle->get_prefix() . $this->base );
 	}
 }

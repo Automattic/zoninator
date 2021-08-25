@@ -57,7 +57,7 @@ class Zoninator_REST_Data_Store_Builder {
 	 * @param array $args Args.
 	 * @return Zoninator_REST_Data_Store_Builder $this
 	 */
-	function with_args( $args ) {
+	public function with_args( $args ) {
 		$this->args = $args;
 		return $this;
 	}
@@ -68,7 +68,7 @@ class Zoninator_REST_Data_Store_Builder {
 	 * @param string|Zoninator_REST_Model_Definition $model_definition Def.
 	 * @return Zoninator_REST_Data_Store_Builder $this
 	 */
-	function with_model_definition( $model_definition ) {
+	public function with_model_definition( $model_definition ) {
 		$this->model_definition = $model_definition;
 		return $this;
 	}
@@ -78,7 +78,7 @@ class Zoninator_REST_Data_Store_Builder {
 	 *
 	 * @return Zoninator_REST_Interfaces_Data_Store
 	 */
-	function build() {
+	public function build() {
 		$store_class = $this->store_class;
 		return new $store_class( $this->model_definition, $this->args );
 	}

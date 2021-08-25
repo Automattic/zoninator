@@ -66,7 +66,7 @@ class Zoninator_REST_Model implements
 	 *
 	 * @throws Zoninator_REST_Exception Throws when data is not an array.
 	 */
-	function __construct( $data = array(), $args = array() ) {
+	public function __construct( $data = array(), $args = array() ) {
 		Zoninator_REST_Expect::that( is_array( $data ), '$data should be an array' );
 		$this->data = array();
 
@@ -75,7 +75,7 @@ class Zoninator_REST_Model implements
 			$data = $this->deserialize( $data );
 		}
 		$this->raw_data = $data;
-		$data_keys = array_keys( $data );
+		$data_keys      = array_keys( $data );
 
 		foreach ( $data_keys as $key ) {
 			$this->set( $key, $this->raw_data[ $key ] );
@@ -93,7 +93,7 @@ class Zoninator_REST_Model implements
 	 */
 	public function get( $field_name, $args = array() ) {
 		Zoninator_REST_Expect::that( $this->has( $field_name ), 'Field ' . $field_name . 'is not defined' );
-		$fields = $this->get_fields();
+		$fields            = $this->get_fields();
 		$field_declaration = $fields[ $field_name ];
 		$this->set_field_if_unset( $field_declaration );
 
@@ -148,7 +148,7 @@ class Zoninator_REST_Model implements
 	 */
 	public function validate() {
 		$validation_errors = array();
-		$fields = self::get_fields();
+		$fields            = self::get_fields();
 		foreach ( $fields as $key => $field_declaration ) {
 			$is_valid = $this->run_field_validations( $field_declaration );
 			if ( is_wp_error( $is_valid ) ) {
@@ -174,8 +174,8 @@ class Zoninator_REST_Model implements
 			 *
 			 * @var Zoninator_REST_Field_Declaration $field_declaration
 			 */
-			$field_name = $field_declaration->get_name();
-			$value = $this->get( $field_name );
+			$field_name          = $field_declaration->get_name();
+			$value               = $this->get( $field_name );
 			$custom_sanitization = $field_declaration->get_sanitizer();
 			if ( ! empty( $custom_sanitization ) ) {
 				$value = $this->call( $custom_sanitization, array( $this, $value ) );
@@ -211,17 +211,19 @@ class Zoninator_REST_Model implements
 		$value = $this->get( $field_declaration->get_name() );
 		if ( $field_declaration->is_required() && empty( $value ) ) {
 			// translators: %s is usually a field name.
-			$message = sprintf( __( '%s cannot be empty', 'mixtape' ), $field_declaration->get_name() );
+			$message = sprintf( __( '%s cannot be empty', 'zoninator' ), $field_declaration->get_name() );
 			return new WP_Error( 'required-field-empty', $message );
 		} elseif ( ! $field_declaration->is_required() && ! empty( $value ) ) {
 			foreach ( $field_declaration->get_validations() as $validation ) {
 				$result = $this->call( $validation, array( $value ) );
 				if ( is_wp_error( $result ) ) {
-					$result->add_data(array(
-						'reason' => $result->get_error_messages(),
-						'field' => $field_declaration->get_data_transfer_name(),
-						'value' => $value,
-					) );
+					$result->add_data(
+						array(
+							'reason' => $result->get_error_messages(),
+							'field'  => $field_declaration->get_data_transfer_name(),
+							'value'  => $value,
+						)
+					);
 					return $result;
 				}
 			}
@@ -236,8 +238,8 @@ class Zoninator_REST_Model implements
 	 * @return mixed
 	 */
 	private function prepare_value( $field_declaration ) {
-		$key = $field_declaration->get_name();
-		$value = $this->data[ $key ];
+		$key           = $field_declaration->get_name();
+		$value         = $this->data[ $key ];
 		$before_return = $field_declaration->before_get();
 		if ( isset( $before_return ) && ! empty( $before_return ) ) {
 			$value = $this->call( $before_return, array( $value, $key ) );
@@ -279,7 +281,7 @@ class Zoninator_REST_Model implements
 		 */
 		$instance = new $class_name();
 		if ( ! isset( self::$fields_by_class_name[ $class_name ] ) ) {
-			$fields = $instance->declare_fields();
+			$fields                                    = $instance->declare_fields();
 			self::$fields_by_class_name[ $class_name ] = self::initialize_field_map( $fields );
 		}
 
@@ -317,7 +319,7 @@ class Zoninator_REST_Model implements
 			 *
 			 * @var Zoninator_REST_Field_Declaration $field Field Builder.
 			 */
-			$field = $field_builder->build();
+			$field                        = $field_builder->build();
 			$fields[ $field->get_name() ] = $field;
 		}
 		return $fields;
@@ -373,7 +375,7 @@ class Zoninator_REST_Model implements
 	 */
 	public function with_environment( $environment ) {
 		Zoninator_REST_Expect::is_a( $environment, 'Zoninator_REST_Environment' );
-		$class_name = get_class( $this );
+		$class_name                                      = get_class( $this );
 		self::$environments_by_class_name[ $class_name ] = $environment;
 		return $this;
 	}
@@ -404,7 +406,7 @@ class Zoninator_REST_Model implements
 	 * @return Zoninator_REST_Interfaces_Model|WP_Error
 	 * @throws Zoninator_REST_Exception Throws.
 	 */
-	function update_from_array( $data, $updating = false ) {
+	public function update_from_array( $data, $updating = false ) {
 		$mapped_data = self::map_data( $data, $updating );
 		foreach ( $mapped_data as $name => $value ) {
 			$this->set( $name, $value );
@@ -450,10 +452,10 @@ class Zoninator_REST_Model implements
 	 *
 	 * @return array
 	 */
-	function to_dto() {
+	public function to_dto() {
 		$result = array();
 		foreach ( $this->get_dto_field_mappings() as $mapping_name => $field_name ) {
-			$value = $this->get( $field_name );
+			$value                   = $this->get( $field_name );
 			$result[ $mapping_name ] = $value;
 		}
 
@@ -469,7 +471,7 @@ class Zoninator_REST_Model implements
 	 */
 	private function map_data( $data, $updating = false ) {
 		$request_data = array();
-		$fields = $this->get_fields();
+		$fields       = $this->get_fields();
 		foreach ( $fields as $field ) {
 			/**
 			 * Field
@@ -479,10 +481,10 @@ class Zoninator_REST_Model implements
 			if ( $field->is_kind( Zoninator_REST_Field_Declaration::DERIVED ) ) {
 				continue;
 			}
-			$dto_name = $field->get_data_transfer_name();
+			$dto_name   = $field->get_data_transfer_name();
 			$field_name = $field->get_name();
 			if ( isset( $data[ $dto_name ] ) && ! ( $updating && $field->is_primary() ) ) {
-				$value = $data[ $dto_name ];
+				$value                       = $data[ $dto_name ];
 				$request_data[ $field_name ] = $value;
 			}
 		}
@@ -530,7 +532,7 @@ class Zoninator_REST_Model implements
 	 *
 	 * @return mixed|null
 	 */
-	function get_id() {
+	public function get_id() {
 		return $this->get( 'id' );
 	}
 
@@ -541,7 +543,7 @@ class Zoninator_REST_Model implements
 	 *
 	 * @return mixed|null
 	 */
-	function set_id( $new_id ) {
+	public function set_id( $new_id ) {
 		return $this->set( 'id', $new_id );
 	}
 
@@ -562,9 +564,12 @@ class Zoninator_REST_Model implements
 		}
 		$merged_data = array_merge( $raw_post_data, $flattened_meta );
 
-		return self::create( $merged_data, array(
-			'deserialize' => true,
-		) );
+		return self::create(
+			$merged_data,
+			array(
+				'deserialize' => true,
+			)
+		);
 	}
 
 	/**
@@ -575,17 +580,17 @@ class Zoninator_REST_Model implements
 	 */
 	public function deserialize( $data ) {
 		$field_declarations = $this->get_fields();
-		$raw_data = array();
-		$post_array_keys = array_keys( $data );
+		$raw_data           = array();
+		$post_array_keys    = array_keys( $data );
 		foreach ( $field_declarations as $declaration ) {
 			/**
 			 * Declaration
 			 *
 			 * @var Zoninator_REST_Field_Declaration $declaration
 			 */
-			$key = $declaration->get_name();
+			$key     = $declaration->get_name();
 			$mapping = $declaration->get_map_from();
-			$value = null;
+			$value   = null;
 			if ( in_array( $key, $post_array_keys, true ) ) {
 				// simplest case: we got a $key for this, so just map it.
 				$value = $this->deserialize_field( $declaration, $data[ $key ] );
@@ -608,7 +613,7 @@ class Zoninator_REST_Model implements
 	 *
 	 * @return array
 	 */
-	function serialize( $field_type = null ) {
+	public function serialize( $field_type = null ) {
 		$field_values_to_insert = array();
 		foreach ( $this->get_fields( $field_type ) as $field_declaration ) {
 			/**
@@ -616,8 +621,8 @@ class Zoninator_REST_Model implements
 			 *
 			 * @var Zoninator_REST_Field_Declaration $field_declaration
 			 */
-			$what_to_map_to = $field_declaration->get_map_from();
-			$value = $this->get( $field_declaration->get_name() );
+			$what_to_map_to                            = $field_declaration->get_map_from();
+			$value                                     = $this->get( $field_declaration->get_name() );
 			$field_values_to_insert[ $what_to_map_to ] = $this->serialize_field( $field_declaration, $value );
 		}
 
@@ -628,7 +633,7 @@ class Zoninator_REST_Model implements
 	 * Deserialize
 	 *
 	 * @param Zoninator_REST_Field_Declaration $field_declaration Declaration.
-	 * @param mixed                $value Value.
+	 * @param mixed                            $value Value.
 	 * @return mixed the deserialized value
 	 */
 	private function deserialize_field( $field_declaration, $value ) {
@@ -643,7 +648,7 @@ class Zoninator_REST_Model implements
 	 * Serialize
 	 *
 	 * @param  Zoninator_REST_Field_Declaration $field_declaration Declaration.
-	 * @param mixed                $value Value.
+	 * @param mixed                            $value Value.
 	 * @return mixed
 	 * @throws Zoninator_REST_Exception If call fails.
 	 */

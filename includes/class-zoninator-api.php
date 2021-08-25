@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Class Zoninator_Api
+ */
 class Zoninator_Api {
 	/**
 	 * Instance
@@ -27,7 +30,7 @@ class Zoninator_Api {
 	/**
 	 * Rest Api.
 	 */
-	function rest_api() {
+	public function rest_api() {
 		include_once ZONINATOR_PATH . '/lib/zoninator_rest/class-zoninator-rest-bootstrap.php';
 		$this->bootstrap = Zoninator_REST_Bootstrap::create()->load();
 		include_once 'class-zoninator-api-schema-converter.php';

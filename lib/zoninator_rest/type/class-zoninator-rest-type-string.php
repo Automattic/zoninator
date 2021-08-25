@@ -16,7 +16,7 @@ class Zoninator_REST_Type_String extends Zoninator_REST_Type {
 	/**
 	 * Zoninator_REST_Type_String constructor.
 	 */
-	function __construct() {
+	public function __construct() {
 		parent::__construct( 'string' );
 	}
 
@@ -26,7 +26,7 @@ class Zoninator_REST_Type_String extends Zoninator_REST_Type {
 	 * @param mixed $value Val.
 	 * @return string
 	 */
-	function sanitize( $value ) {
+	public function sanitize( $value ) {
 		return sanitize_text_field( $value );
 	}
 
@@ -35,7 +35,7 @@ class Zoninator_REST_Type_String extends Zoninator_REST_Type {
 	 *
 	 * @return string
 	 */
-	function default_value() {
+	public function default_value() {
 		return '';
 	}
 
@@ -45,7 +45,7 @@ class Zoninator_REST_Type_String extends Zoninator_REST_Type {
 	 * @param mixed $value Val.
 	 * @return string
 	 */
-	function cast( $value ) {
+	public function cast( $value ) {
 		if ( is_array( $value ) ) {
 			$cast_ones = array();
 			foreach ( $value as $v ) {

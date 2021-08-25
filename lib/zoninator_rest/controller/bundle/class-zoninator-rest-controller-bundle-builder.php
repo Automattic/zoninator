@@ -44,7 +44,7 @@ class Zoninator_REST_Controller_Bundle_Builder implements Zoninator_REST_Interfa
 	 *
 	 * @param Zoninator_REST_Interfaces_Controller_Bundle|null $bundle Bundle.
 	 */
-	function __construct( $bundle = null ) {
+	public function __construct( $bundle = null ) {
 		$this->bundle = $bundle;
 	}
 
@@ -89,6 +89,7 @@ class Zoninator_REST_Controller_Bundle_Builder implements Zoninator_REST_Interfa
 	 *
 	 * @param null|Zoninator_REST_Interfaces_Controller $controller_object The (optional) controller object.
 	 * @return Zoninator_REST_Controller_Bundle_Builder $this
+	 * @throws Zoninator_REST_Exception Exception.
 	 */
 	public function add_endpoint( $controller_object = null ) {
 		Zoninator_REST_Expect::is_a( $controller_object, 'Zoninator_REST_Interfaces_Controller' );

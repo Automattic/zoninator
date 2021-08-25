@@ -18,5 +18,5 @@ interface Zoninator_REST_Interfaces_Builder {
 	 *
 	 * @return mixed
 	 */
-	function build();
+	public function build();
 }

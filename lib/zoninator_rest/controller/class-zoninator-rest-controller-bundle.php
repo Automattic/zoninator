@@ -46,8 +46,8 @@ class Zoninator_REST_Controller_Bundle implements Zoninator_REST_Interfaces_Cont
 	 * @param string $bundle_prefix Prefix.
 	 * @param array  $endpoints Builders.
 	 */
-	function __construct( $bundle_prefix, $endpoints ) {
-		$this->prefix = $bundle_prefix;
+	public function __construct( $bundle_prefix, $endpoints ) {
+		$this->prefix    = $bundle_prefix;
 		$this->endpoints = $endpoints;
 	}
 
@@ -58,7 +58,7 @@ class Zoninator_REST_Controller_Bundle implements Zoninator_REST_Interfaces_Cont
 	 * @return Zoninator_REST_Controller_Bundle $this
 	 * @throws Zoninator_REST_Exception When no prefix is defined.
 	 */
-	function register( $environment ) {
+	public function register( $environment ) {
 		Zoninator_REST_Expect::that( null !== $this->prefix, 'prefix should be defined' );
 		$this->environment = $environment;
 		/**
@@ -92,7 +92,7 @@ class Zoninator_REST_Controller_Bundle implements Zoninator_REST_Interfaces_Cont
 	 *
 	 * @return string
 	 */
-	function get_prefix() {
+	public function get_prefix() {
 		return $this->prefix;
 	}
 }

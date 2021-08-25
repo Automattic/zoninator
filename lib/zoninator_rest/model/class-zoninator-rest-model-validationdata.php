@@ -35,7 +35,7 @@ class Zoninator_REST_Model_ValidationData {
 	/**
 	 * Mixtape_Model_ValidationData constructor.
 	 *
-	 * @param mixed                $value The value.
+	 * @param mixed                            $value The value.
 	 * @param Zoninator_REST_Interfaces_Model  $model The Model.
 	 * @param Zoninator_REST_Field_Declaration $field The Field.
 	 */

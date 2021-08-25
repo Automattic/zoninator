@@ -41,9 +41,9 @@ class Zoninator_REST_Controller_Extension implements Zoninator_REST_Interfaces_R
 	 * @param string $object_to_extend Post type.
 	 * @param string $model_definition_name Model Definition name.
 	 */
-	function __construct( $object_to_extend, $model_definition_name ) {
+	public function __construct( $object_to_extend, $model_definition_name ) {
 		$this->model_definition_name = $model_definition_name;
-		$this->object_to_extend = $object_to_extend;
+		$this->object_to_extend      = $object_to_extend;
 	}
 
 	/**
@@ -54,8 +54,8 @@ class Zoninator_REST_Controller_Extension implements Zoninator_REST_Interfaces_R
 	 *
 	 * @return bool|WP_Error true if valid otherwise error.
 	 */
-	function register( $environment ) {
-		$this->environment = $environment;
+	public function register( $environment ) {
+		$this->environment      = $environment;
 		$this->model_definition = $this->environment->model( $this->model_definition_name );
 		if ( ! $this->model_definition ) {
 			return new WP_Error( 'model-not-found' );
@@ -74,10 +74,14 @@ class Zoninator_REST_Controller_Extension implements Zoninator_REST_Interfaces_R
 	 * @param Zoninator_REST_Field_Declaration $field Field.
 	 */
 	private function register_field( $field ) {
-		register_rest_field( $this->object_to_extend, $field->get_data_transfer_name(), array(
-			'get_callback' => $field->get_reader(),
-			'update_callback' => $field->get_updater(),
-			'schema' => $field->as_item_schema_property(),
-		) );
+		register_rest_field(
+			$this->object_to_extend,
+			$field->get_data_transfer_name(),
+			array(
+				'get_callback'    => $field->get_reader(),
+				'update_callback' => $field->get_updater(),
+				'schema'          => $field->as_item_schema_property(),
+			)
+		);
 	}
 }

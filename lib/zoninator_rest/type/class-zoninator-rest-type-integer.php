@@ -59,7 +59,7 @@ class Zoninator_REST_Type_Integer extends Zoninator_REST_Type {
 	 * @param mixed $value Val.
 	 * @return int
 	 */
-	function sanitize( $value ) {
+	public function sanitize( $value ) {
 		return $this->cast( $value );
 	}
 }

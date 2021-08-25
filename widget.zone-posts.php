@@ -1,16 +1,19 @@
-<?php
+<?php // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName
 
 /**
  * Zone Posts widget class
  */
 class Zoninator_ZonePosts_Widget extends WP_Widget {
 
-	function __construct() {
+	/**
+	 * Zoninator_ZonePosts_Widget constructor.
+	 */
+	public function __construct() {
 		$widget_ops = array(
-			'classname' => 'widget-zone-posts',
-			'description' => __( 'Use this widget to display a list of posts from any zone.', 'zoninator' )
+			'classname'   => 'widget-zone-posts',
+			'description' => __( 'Use this widget to display a list of posts from any zone.', 'zoninator' ),
 		);
-		
+
 		$this->alt_option_name = 'widget_zone_posts';
 		add_action( 'save_post', array( &$this, 'flush_widget_cache' ) );
 		add_action( 'deleted_post', array( &$this, 'flush_widget_cache' ) );
@@ -23,32 +26,43 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		);
 	}
 
-	function widget( $args, $instance ) {
+	/**
+	 * Generate the widget
+	 *
+	 * @param array $args Arguments.
+	 * @param array $instance Current widget instance.
+	 */
+	public function widget( $args, $instance ) {
 		$cache_key = 'widget-zone-posts';
-		$cache = wp_cache_get( $cache_key, 'widget' );
+		$cache     = wp_cache_get( $cache_key, 'widget' );
 
-		if ( ! is_array( $cache ) )
+		if ( ! is_array( $cache ) ) {
 			$cache = array();
-		
+		}
+
 		if ( isset( $cache[ $args['widget_id'] ] ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			echo $cache[ $args['widget_id'] ];
 			return;
 		}
-		
+
 		ob_start();
-		
+
 		$zone_id          = $instance['zone_id'] ? $instance['zone_id'] : 0;
 		$show_description = $instance['show_description'] ? 1 : 0;
-		if ( ! $zone_id )
+		if ( ! $zone_id ) {
 			return;
-		
+		}
+
 		$zone = z_get_zone( $zone_id );
-		if ( ! $zone )
+		if ( ! $zone ) {
 			return;
-		
+		}
+
 		$posts = z_get_posts_in_zone( $zone_id );
-		if ( empty( $posts ) )
+		if ( empty( $posts ) ) {
 			return;
+		}
 
 		?>
 		<?php echo wp_kses_post( $args['before_widget'] ); ?>
@@ -81,40 +95,62 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		wp_cache_set( 'widget-zone-posts', $cache, 'widget' );
 	}
 
-	function update( $new_instance, $old_instance ) {
-		$instance     = $old_instance;
-		$new_instance = wp_parse_args( (array) $new_instance, array( 'zone_id' => 0, 'show_description' => 0 ) );
+	/**
+	 * Update widget options
+	 *
+	 * @param array $new_instance New instance data.
+	 * @param array $old_instance Old instance data.
+	 * @return array
+	 */
+	public function update( $new_instance, $old_instance ) {
+		$instance                     = $old_instance;
+		$new_instance                 = wp_parse_args(
+			(array) $new_instance,
+			array(
+				'zone_id'          => 0,
+				'show_description' => 0,
+			)
+		);
 		$instance['zone_id']          = absint( $new_instance['zone_id'] );
 		$instance['show_description'] = $new_instance['show_description'] ? 1 : 0;
 		$this->flush_widget_cache();
 		$alloptions = wp_cache_get( 'alloptions', 'options' );
-		if ( isset( $alloptions['widget-zone-posts'] ) )
+		if ( isset( $alloptions['widget-zone-posts'] ) ) {
 			delete_option( 'widget-zone-posts' );
+		}
 
 		return $instance;
 	}
 
-	function flush_widget_cache() {
+	/**
+	 * Flush widget cache
+	 */
+	public function flush_widget_cache() {
 		$cache_key = 'widget-zone-posts';
 
 		$block_save_cache_seconds = absint( apply_filters( 'zone_posts_widget_block_save_cache_seconds', 5 ) );
 		if ( $block_save_cache_seconds > 0 ) {
-			// This key will block updating the cache for n seconds so the following cache delete can propagate
-			wp_cache_set( $cache_key . '-save_blocked', 1, 'widget', $block_save_cache_seconds );
+			// This key will block updating the cache for n seconds so the following cache delete can propagate.
+			wp_cache_set( $cache_key . '-save_blocked', 1, 'widget', $block_save_cache_seconds ); // phpcs:ignore WordPressVIPMinimum.Performance.LowExpiryCacheTime.CacheTimeUndetermined
 		}
 
 		wp_cache_delete( $cache_key, 'widget' );
 	}
 
-	function form( $instance ) {
-		// select - zone 
-		// checkbox - show description
+	/**
+	 * Widget settings form
+	 *
+	 * @param array $instance Widget instance.
+	 */
+	public function form( $instance ) {
+		// select - zone
+		// checkbox - show description.
 		$zones = z_get_zones();
 		if ( empty( $zones ) ) {
 			esc_html_e( 'You need to create at least one zone before you use this widget!', 'zoninator' );
 			return;
 		}
-		
+
 		$zone_id          = isset( $instance['zone_id'] ) ? absint( $instance['zone_id'] ) : 0;
 		$show_description = isset( $instance['show_description'] ) ? (bool) $instance['show_description'] : true;
 		?>
@@ -127,7 +163,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 				</option>
 
 				<?php foreach ( $zones as $zone ) : ?>
-					<option value="<?php echo $zone->term_id; ?>" <?php selected( $zone_id, $zone->term_id ); ?>>
+					<option value="<?php echo esc_attr( $zone->term_id ); ?>" <?php selected( $zone_id, $zone->term_id ); ?>>
 						<?php echo esc_html( $zone->name ); ?>
 					</option>
 				<?php endforeach; ?>
@@ -140,6 +176,6 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 				<?php esc_html_e( 'Show zone description in widget', 'zoninator' ); ?>
 			</label>
 		</p>
-	<?php
+		<?php
 	}
 }

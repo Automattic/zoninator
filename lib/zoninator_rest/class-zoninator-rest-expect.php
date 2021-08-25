@@ -23,7 +23,7 @@ class Zoninator_REST_Expect {
 	 *
 	 * @throws Zoninator_REST_Exception Fail if we got an unexpected class.
 	 */
-	static function is_a( $thing, $class_name ) {
+	public static function is_a( $thing, $class_name ) {
 		self::is_object( $thing );
 		self::that( is_a( $thing, $class_name ), 'Expected ' . $class_name . ', got ' . get_class( $thing ) );
 	}
@@ -34,7 +34,7 @@ class Zoninator_REST_Expect {
 	 * @param mixed $thing The thing.
 	 * @throws Zoninator_REST_Exception Throw if not an object.
 	 */
-	static function is_object( $thing ) {
+	public static function is_object( $thing ) {
 		self::that( is_object( $thing ), 'Variable is is not an Object' );
 	}
 
@@ -46,7 +46,7 @@ class Zoninator_REST_Expect {
 	 *
 	 * @throws Zoninator_REST_Exception Fail if condition doesn't hold.
 	 */
-	static function that( $cond, $fail_message ) {
+	public static function that( $cond, $fail_message ) {
 		if ( ! $cond ) {
 			throw new Zoninator_REST_Exception( $fail_message );
 		}
@@ -59,7 +59,7 @@ class Zoninator_REST_Expect {
 	 *
 	 * @throws Zoninator_REST_Exception To Overrride this.
 	 */
-	static function should_override( $method ) {
+	public static function should_override( $method ) {
 		throw new Zoninator_REST_Exception( $method . ' should be overriden' );
 	}
 }

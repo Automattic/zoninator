@@ -22,5 +22,5 @@ interface Zoninator_REST_Interfaces_Controller {
 	 *
 	 * @return bool|WP_Error true if valid otherwise error.
 	 */
-	function register( $bundle, $environment );
+	public function register( $bundle, $environment );
 }

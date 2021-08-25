@@ -63,21 +63,21 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 	/**
 	 * Mixtape_Model_Definition constructor.
 	 *
-	 * @param Zoninator_REST_Environment                                 $environment The Environment.
-	 * @param Zoninator_REST_Interfaces_Model_Declaration                $model_declaration Declaration.
+	 * @param Zoninator_REST_Environment                                             $environment The Environment.
+	 * @param Zoninator_REST_Interfaces_Model_Declaration                            $model_declaration Declaration.
 	 * @param Zoninator_REST_Interfaces_Data_Store|Zoninator_REST_Data_Store_Builder $data_store Store.
-	 * @param Zoninator_REST_Interfaces_Permissions_Provider             $permissions_provider Provider.
+	 * @param Zoninator_REST_Interfaces_Permissions_Provider                         $permissions_provider Provider.
 	 *
 	 * @throws Zoninator_REST_Exception Throws if wrong types or null args provided.
 	 */
-	function __construct( $environment, $model_declaration, $data_store, $permissions_provider ) {
-		Zoninator_REST_Expect::that( null !== $environment         , '$environment cannot be null' );
-		Zoninator_REST_Expect::that( null !== $model_declaration   , '$model_declaration cannot be null' );
-		Zoninator_REST_Expect::that( null !== $data_store          , '$data_store cannot be null' );
+	public function __construct( $environment, $model_declaration, $data_store, $permissions_provider ) {
+		Zoninator_REST_Expect::that( null !== $environment, '$environment cannot be null' );
+		Zoninator_REST_Expect::that( null !== $model_declaration, '$model_declaration cannot be null' );
+		Zoninator_REST_Expect::that( null !== $data_store, '$data_store cannot be null' );
 		Zoninator_REST_Expect::that( null !== $permissions_provider, '$permissions_provider cannot be null' );
 		// Fail if provided with inappropriate types.
-		Zoninator_REST_Expect::is_a( $environment         , 'Zoninator_REST_Environment' );
-		Zoninator_REST_Expect::is_a( $model_declaration   , 'Zoninator_REST_Interfaces_Model_Declaration' );
+		Zoninator_REST_Expect::is_a( $environment, 'Zoninator_REST_Environment' );
+		Zoninator_REST_Expect::is_a( $model_declaration, 'Zoninator_REST_Interfaces_Model_Declaration' );
 		Zoninator_REST_Expect::is_a( $permissions_provider, 'Zoninator_REST_Interfaces_Permissions_Provider' );
 
 		$this->field_declarations   = null;
@@ -95,7 +95,7 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 	 *
 	 * @return string
 	 */
-	function get_model_class() {
+	public function get_model_class() {
 		return $this->model_class;
 	}
 
@@ -104,7 +104,7 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 	 *
 	 * @return Zoninator_REST_Interfaces_Data_Store
 	 */
-	function get_data_store() {
+	public function get_data_store() {
 		return $this->data_store;
 	}
 
@@ -115,7 +115,7 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 	 * @return $this
 	 * @throws Zoninator_REST_Exception Throws when Data Store Invalid.
 	 */
-	function set_data_store( $data_store ) {
+	public function set_data_store( $data_store ) {
 		if ( is_a( $data_store, 'Zoninator_REST_Data_Store_Builder' ) ) {
 			$this->data_store = $data_store
 				->with_model_definition( $this )
@@ -134,7 +134,7 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 	 *
 	 * @return Zoninator_REST_Environment
 	 */
-	function environment() {
+	public function environment() {
 		return $this->environment;
 	}
 
@@ -145,7 +145,7 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 	 *
 	 * @return array|null
 	 */
-	function get_field_declarations( $filter_by_type = null ) {
+	public function get_field_declarations( $filter_by_type = null ) {
 		$model_declaration = $this->get_model_declaration()->set_definition( $this );
 
 		Zoninator_REST_Expect::is_a( $model_declaration, 'Zoninator_REST_Interfaces_Model_Declaration' );
@@ -183,7 +183,7 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 	 * @return Zoninator_REST_Model
 	 * @throws Zoninator_REST_Exception Throws if data not an array.
 	 */
-	function create_instance( $data ) {
+	public function create_instance( $data ) {
 		if ( is_array( $data ) ) {
 			return new Zoninator_REST_Model( $this, $data );
 		}
@@ -195,13 +195,13 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 	 * Note: Values change in place.
 	 *
 	 * @param Zoninator_REST_Interfaces_Model $model The model.
-	 * @param array               $data The data (key-value assumed).
-	 * @param bool                $updating Is this an update?.
+	 * @param array                           $data The data (key-value assumed).
+	 * @param bool                            $updating Is this an update?.
 	 *
 	 * @return Zoninator_REST_Interfaces_Model|WP_Error
 	 * @throws Zoninator_REST_Exception Throws.
 	 */
-	function update_model_from_array( $model, $data, $updating = false ) {
+	public function update_model_from_array( $model, $data, $updating = false ) {
 		$mapped_data = $this->map_data( $data, $updating );
 		foreach ( $mapped_data as $name => $value ) {
 			$model->set( $name, $value );
@@ -234,7 +234,7 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 	 *
 	 * @return array
 	 */
-	function get_dto_field_mappings() {
+	public function get_dto_field_mappings() {
 		$mappings = array();
 		foreach ( $this->get_field_declarations() as $field_declaration ) {
 			/**
@@ -257,10 +257,10 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 	 *
 	 * @return array
 	 */
-	function model_to_dto( $model ) {
+	public function model_to_dto( $model ) {
 		$result = array();
 		foreach ( $this->get_dto_field_mappings() as $mapping_name => $field_name ) {
-			$value = $model->get( $field_name );
+			$value                   = $model->get( $field_name );
 			$result[ $mapping_name ] = $value;
 		}
 
@@ -296,7 +296,7 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 	 */
 	private function map_data( $data, $updating = false ) {
 		$request_data = array();
-		$fields = $this->get_field_declarations();
+		$fields       = $this->get_field_declarations();
 		foreach ( $fields as $field ) {
 			/**
 			 * Field
@@ -306,10 +306,10 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 			if ( $field->is_kind( Zoninator_REST_Field_Declaration::DERIVED ) ) {
 				continue;
 			}
-			$dto_name = $field->get_data_transfer_name();
+			$dto_name   = $field->get_data_transfer_name();
 			$field_name = $field->get_name();
 			if ( isset( $data[ $dto_name ] ) && ! ( $updating && $field->is_primary() ) ) {
-				$value = $data[ $dto_name ];
+				$value                       = $data[ $dto_name ];
 				$request_data[ $field_name ] = $value;
 			}
 		}
@@ -331,7 +331,7 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 			 *
 			 * @var Zoninator_REST_Field_Declaration $field Field Builder.
 			 */
-			$field = $field_builder->build();
+			$field                        = $field_builder->build();
 			$fields[ $field->get_name() ] = $field;
 		}
 		return $fields;

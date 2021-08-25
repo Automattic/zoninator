@@ -43,9 +43,9 @@ class Zoninator_REST_Classloader implements Zoninator_REST_Interfaces_Classloade
 	 * @throws Exception Throws if an invalid directory is provided.
 	 */
 	public function __construct( $prefix, $base_dir ) {
-		$this->loaded_classes  = array();
-		$this->prefix          = $prefix;
-		$this->base_dir        = $base_dir;
+		$this->loaded_classes = array();
+		$this->prefix         = $prefix;
+		$this->base_dir       = $base_dir;
 		if ( ! is_dir( $this->base_dir ) ) {
 			throw new Exception( 'base_dir does not exist: ' . $this->base_dir );
 		}
@@ -86,7 +86,7 @@ class Zoninator_REST_Classloader implements Zoninator_REST_Interfaces_Classloade
 	public function class_name_to_relative_path( $class_name, $prefix = null ) {
 		$lowercase = strtolower( $this->prefixed_class_name( $class_name, $prefix ) );
 		$file_name = 'class-' . str_replace( '_', '-', $lowercase ) . '.php';
-		$parts = explode( '_', strtolower( $this->strip_prefix( $class_name, $prefix ) ) );
+		$parts     = explode( '_', strtolower( $this->strip_prefix( $class_name, $prefix ) ) );
 		array_pop( $parts );
 		$parts[] = $file_name;
 		return implode( DIRECTORY_SEPARATOR, $parts );
@@ -137,7 +137,7 @@ class Zoninator_REST_Classloader implements Zoninator_REST_Interfaces_Classloade
 		if ( ! file_exists( $path_to_the_class ) ) {
 			throw new Exception( $path_to_the_class . ' not found' );
 		}
-		$included = include_once( $path_to_the_class );
+		$included                                   = include_once $path_to_the_class;
 		$this->loaded_classes[ $path_to_the_class ] = $included;
 
 		return $this;

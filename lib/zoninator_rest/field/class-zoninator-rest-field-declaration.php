@@ -169,32 +169,32 @@ class Zoninator_REST_Field_Declaration {
 			throw new Zoninator_REST_Exception( 'every field should have a kind (one of ' . implode( ',', $this->field_kinds ) . ')' );
 		}
 
-		$this->name                = $args['name'];
-		$this->description         = $this->value_or_default( $args, 'description', '' );
+		$this->name        = $args['name'];
+		$this->description = $this->value_or_default( $args, 'description', '' );
 
-		$this->kind                = $args['kind'];
-		$this->type                = $this->value_or_default( $args, 'type', Zoninator_REST_Type::any() );
-		$this->choices             = $this->value_or_default( $args, 'choices', null );
-		$this->default_value       = $this->value_or_default( $args, 'default_value' );
+		$this->kind          = $args['kind'];
+		$this->type          = $this->value_or_default( $args, 'type', Zoninator_REST_Type::any() );
+		$this->choices       = $this->value_or_default( $args, 'choices', null );
+		$this->default_value = $this->value_or_default( $args, 'default_value' );
 
-		$this->map_from            = $this->value_or_default( $args, 'map_from' );
-		$this->data_transfer_name  = $this->value_or_default( $args, 'data_transfer_name', $this->get_name() );
+		$this->map_from           = $this->value_or_default( $args, 'map_from' );
+		$this->data_transfer_name = $this->value_or_default( $args, 'data_transfer_name', $this->get_name() );
 
-		$this->primary             = $this->value_or_default( $args, 'primary', false );
-		$this->required            = $this->value_or_default( $args, 'required', false );
-		$this->supported_outputs   = $this->value_or_default( $args, 'supported_outputs', array( 'json' ) );
+		$this->primary           = $this->value_or_default( $args, 'primary', false );
+		$this->required          = $this->value_or_default( $args, 'required', false );
+		$this->supported_outputs = $this->value_or_default( $args, 'supported_outputs', array( 'json' ) );
 
-		$this->sanitizer           = $this->value_or_default( $args, 'sanitizer' );
-		$this->validations         = $this->value_or_default( $args, 'validations', array() );
+		$this->sanitizer   = $this->value_or_default( $args, 'sanitizer' );
+		$this->validations = $this->value_or_default( $args, 'validations', array() );
 
-		$this->serializer          = $this->value_or_default( $args, 'serializer' );
-		$this->deserializer        = $this->value_or_default( $args, 'deserializer' );
+		$this->serializer   = $this->value_or_default( $args, 'serializer' );
+		$this->deserializer = $this->value_or_default( $args, 'deserializer' );
 
-		$this->before_get          = $this->value_or_default( $args, 'before_get' );
-		$this->before_set          = $this->value_or_default( $args, 'before_set' );
+		$this->before_get = $this->value_or_default( $args, 'before_get' );
+		$this->before_set = $this->value_or_default( $args, 'before_set' );
 
-		$this->reader              = $this->value_or_default( $args, 'reader' );
-		$this->updater             = $this->value_or_default( $args, 'updater' );
+		$this->reader  = $this->value_or_default( $args, 'reader' );
+		$this->updater = $this->value_or_default( $args, 'updater' );
 	}
 
 	/**
@@ -279,8 +279,8 @@ class Zoninator_REST_Field_Declaration {
 	 * @return array
 	 */
 	public function as_item_schema_property() {
-		$schema = $this->type->schema();
-		$schema['context'] = array( 'view', 'edit' );
+		$schema                = $this->type->schema();
+		$schema['context']     = array( 'view', 'edit' );
 		$schema['description'] = $this->get_description();
 
 		if ( $this->get_choices() ) {
@@ -401,7 +401,7 @@ class Zoninator_REST_Field_Declaration {
 	 *
 	 * @return Zoninator_REST_Interfaces_Type
 	 */
-	function get_type() {
+	public function get_type() {
 		return $this->type;
 	}
 

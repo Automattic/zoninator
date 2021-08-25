@@ -21,5 +21,5 @@ interface Zoninator_REST_Interfaces_Classloader {
 	 * @param string $name The class to load.
 	 * @return Zoninator_REST_Interfaces_Classloader
 	 */
-	function load_class( $name );
+	public function load_class( $name );
 }
