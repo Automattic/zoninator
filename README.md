@@ -27,9 +27,9 @@ More documentation for the plugin can be found on [the WordPress.org plugin page
 
 ### Usage examples
 
-You can work with with a zone's posts either as an array or a WP\_Query object.
+You can work with with a zone's posts either as an array or a WP_Query object.
 
-**WP\_Query**
+**WP_Query**
 
 ```
 $zone_query = z_get_zone_query( 'homepage' );
@@ -39,7 +39,6 @@ if ( $zone_query->have_posts() ) :
     endwhile;
 endif;
 wp_reset_query();
-
 ```
 
 **Posts Array**
@@ -49,7 +48,6 @@ $zone_posts = z_get_posts_in_zone( 'homepage' );
 foreach ( $zone_posts as $zone_post ) :
     echo '<li>' . get_the_title( $zone_post->ID ) . '</li>';
 endforeach;
-
 ```
 
 #### FUNCTION REFERENCE
@@ -58,28 +56,24 @@ Get an array of all zones:
 
 ```
 z_get_zones()
-
 ```
 
 Get a single zone. Accepts either ID or slug.
 
 ```
 z_get_zone( $zone )
-
 ```
 
 Get an array of ordered posts in a given zone. Accepts either ID or slug.
 
 ```
 z_get_posts_in_zone( $zone )
-
 ```
 
-Get a WP\_Query object for a given zone. Accepts either ID or slug.
+Get a WP_Query object for a given zone. Accepts either ID or slug.
 
 ```
 z_get_zone_query( $zone );
-
 ```
 
 More functions listed in functions.php
