@@ -60,6 +60,10 @@ class Zoninator
 	 * @var Zoninator_Api
 	 */
 	public $rest_api = null;
+	/**
+	 * @var array|string[] Default post types that support zones.
+	 */
+	public $default_post_types = array( 'post' );
 
 	function __construct() {
 		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
@@ -75,8 +79,6 @@ class Zoninator
 		add_action( 'split_shared_term', array( $this, 'split_shared_term' ), 10, 4 );
 
 		$this->maybe_add_rest_api();
-
-		$this->default_post_types = array( 'post' );
 	}
 
 	public function maybe_add_rest_api() {
