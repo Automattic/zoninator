@@ -596,7 +596,6 @@ class Zoninator
 		$zone_posts = $this->get_zone_posts( $zone_id );
 		$zone_post_ids = wp_list_pluck( $zone_posts, 'ID' );
 
-
 		// Verify nonce
 		$this->verify_nonce( $this->zone_ajax_nonce_action );
 		$this->verify_access( '', $zone_id );
@@ -667,8 +666,6 @@ class Zoninator
 			'post__not_in' => $zone_post_ids,
 			'suppress_filters' => false,
 		) );
-
-
 
 		$recent_posts = get_posts( $args );
 		?>
@@ -1427,7 +1424,6 @@ class Zoninator
 
 	}
 
-
 	private function filter_zone_feed_fields( $results ) {
 		$filtered_results = array();
 		$whitelisted_fields = apply_filters(
@@ -1449,7 +1445,6 @@ class Zoninator
 			}
 			$i++;
 		}
-
 
 		return $filtered_results;
 	}
@@ -1492,9 +1487,6 @@ class Zoninator
 
 		$wp_header_to_desc[$status] = $official_message;
 	}
-
-
-
 
 	// TODO: Caching needs to be testing properly before being implemented!
 	function get_zone_cache_key( $zone, $args = array() ) {

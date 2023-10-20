@@ -24,9 +24,7 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-
 # </genignore windows>
-
 
 # <genignore node>
 
@@ -89,10 +87,7 @@ typings/
 # dotenv environment variables file
 .env
 
-
-
 # </genignore node>
-
 
 # <genignore macos>
 
@@ -102,7 +97,6 @@ typings/
 
 # Icon must end with two \r
 Icon
-
 
 # Thumbnails
 ._*
@@ -123,9 +117,7 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-
 # </genignore macos>
-
 
 # <genignore c>
 
@@ -181,9 +173,7 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-
 # </genignore c>
-
 
 # <genignore linux>
 
@@ -200,7 +190,6 @@ dkms.conf
 
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
-
 
 # </genignore linux>
 
