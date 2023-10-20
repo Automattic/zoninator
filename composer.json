@@ -57,5 +57,10 @@
     "support": {
         "issues": "https://github.com/Automattic/zoninator/issues",
         "source": "https://github.com/Automattic/zoninator"
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true
+        }
     }
 }
