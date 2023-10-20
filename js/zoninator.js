@@ -83,7 +83,6 @@ var zoninator = {};
 			}
 		});
 
-
 		// Initialize autocomplete
 		if (zoninator.$zonePostSearch.length) {
 			zoninator.$zonePostSearch
@@ -494,7 +493,7 @@ var zoninator = {};
 	 * compareArrays - Compares two arrays!
 	 *
 	 * Copyright (c) David
-	 *      http://stackoverflow.com/questions/1773069/using-jquery-to-compare-two-arrays/1773172#1773172
+	 * http://stackoverflow.com/questions/1773069/using-jquery-to-compare-two-arrays/1773172#1773172
 	 *
 	 * Some mods by Mohammad Jangda
 	 *

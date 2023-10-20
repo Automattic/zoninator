@@ -55,9 +55,9 @@ Filter the following and change according to your needs:
 == Changelog ==
 
 = 0.9 =
-* Correctly position cloned sortable element on mobile 
-* Add method to add post type to zoninator 
-* Fix simple typo 
+* Correctly position cloned sortable element on mobile
+* Add method to add post type to zoninator
+* Fix simple typo
 * Add filter to control fields included in Zoninator zone feed responses
 * Switch from travis to github actions
 * Add default_post_types property to Zoninator class
