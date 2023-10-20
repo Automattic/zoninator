@@ -3,7 +3,7 @@ Contributors: batmoo, automattic, wpcomvip, pkevan, matthumphreys, potatomaster,
 Tags: zones, post order, post list, posts, order, zonination, content curation, curation, content management
 Requires at least: 3.5
 Tested up to: 5.7
-Stable tag: 0.8
+Stable tag: 0.9
 License: GPLv2
 
 Curation made easy! Create "zones" then add and order your content!
@@ -54,6 +54,14 @@ Filter the following and change according to your needs:
 1. Create and manage your zones and content through a fairly intuitive and familiar interface
 
 == Changelog ==
+
+= 0.9 =
+* Correctly position cloned sortable element on mobile 
+* Add method to add post type to zoninator 
+* Fix simple typo 
+* Add filter to control fields included in Zoninator zone feed responses
+* Switch from travis to github actions
+* Add default_post_types property to Zoninator class
 
 = 0.8 =
 
