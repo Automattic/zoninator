@@ -80,7 +80,7 @@ class Zoninator_REST_Model_Declaration_Settings extends Zoninator_REST_Model_Dec
 	}
 
 	/**
-	 * Covert bit to bool
+	 * Convert bit to bool
 	 *
 	 * @param mixed $value Val.
 	 * @return bool

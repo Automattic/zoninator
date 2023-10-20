@@ -57,9 +57,9 @@ class Zoninator_REST_Expect {
 	 *
 	 * @param string $method The method name.
 	 *
-	 * @throws Zoninator_REST_Exception To Overrride this.
+	 * @throws Zoninator_REST_Exception To Override this.
 	 */
 	static function should_override( $method ) {
-		throw new Zoninator_REST_Exception( $method . ' should be overriden' );
+		throw new Zoninator_REST_Exception( $method . ' should be overridden' );
 	}
 }

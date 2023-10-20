@@ -247,7 +247,7 @@ class Zoninator_REST_Environment {
 		 * Filter the variable value
 		 *
 		 * @param mixed          $value The value.
-		 * @param Zoninator_REST_Environment $this The Environemnt.
+		 * @param Zoninator_REST_Environment $this The Environment.
 		 * @param string         $name The var name.
 		 *
 		 * @return mixed
