@@ -48,7 +48,6 @@ Filter the following and change according to your needs:
 * Number of seconds a lock is valid for, default `30`: `zoninator_zone_lock_period`
 * Max idle time in seconds: `zoninator_zone_max_lock_period`
 
-
 == Screenshots ==
 
 1. Create and manage your zones and content through a fairly intuitive and familiar interface
@@ -56,9 +55,9 @@ Filter the following and change according to your needs:
 == Changelog ==
 
 = 0.9 =
-* Correctly position cloned sortable element on mobile 
-* Add method to add post type to zoninator 
-* Fix simple typo 
+* Correctly position cloned sortable element on mobile
+* Add method to add post type to zoninator
+* Fix simple typo
 * Add filter to control fields included in Zoninator zone feed responses
 * Switch from travis to github actions
 * Add default_post_types property to Zoninator class
@@ -175,6 +174,5 @@ Get an array of ordered posts in a given zone. Accepts either ID or slug.
 Get a WP_Query object for a given zone. Accepts either ID or slug.
 
 `z_get_zone_query( $zone );
-
 
 More functions listed in `functions.php`

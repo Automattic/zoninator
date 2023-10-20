@@ -365,7 +365,6 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		$value = $object->get_param( $var );
 		$value = empty( $value ) ? $default : $value;
 
-
 		if ( is_callable( $sanitize_callback ) ) {
 			$value = ( is_array( $value ) ) ? array_map( $sanitize_callback, $value ) : call_user_func( $sanitize_callback, $value );
 		}

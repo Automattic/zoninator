@@ -24,7 +24,6 @@ interface Zoninator_REST_Interfaces_Data_Store {
 	 */
 	public function get_entities( $filter = null );
 
-
 	/**
 	 * Get a Model Using it's unique identifier
 	 *

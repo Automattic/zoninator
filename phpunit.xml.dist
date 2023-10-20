@@ -1,24 +1,23 @@
 <phpunit
-    bootstrap="tests/bootstrap.php"
-    backupGlobals="false"
-    colors="true"
-    convertErrorsToExceptions="true"
-    convertNoticesToExceptions="true"
-    convertWarningsToExceptions="true"
-    verbose="true"
+	bootstrap="tests/bootstrap.php"
+	backupGlobals="false"
+	colors="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	verbose="true"
 >
 <php>
-    <server name='HTTP_HOST' value='http://localhost' />
-    <server name="SERVER_NAME" value="http://foo.bar"/>
-    <server name="SERVER_PORT" value="80"/>
-    <server name="REMOTE_ADDR" value="127.1.2.3"/>
+	<server name='HTTP_HOST' value='http://localhost' />
+	<server name="SERVER_NAME" value="http://foo.bar"/>
+	<server name="SERVER_PORT" value="80"/>
+	<server name="REMOTE_ADDR" value="127.1.2.3"/>
 </php>
 <testsuites>
-    <testsuite name="WP_Tests">
-        <directory suffix="-test.php">./tests/</directory>
-        <exclude>./tests/unit-testing-classes</exclude>
-        <exclude>./tests/bin</exclude>
-    </testsuite>
+	<testsuite name="WP_Tests">
+		<directory suffix="-test.php">./tests/</directory>
+		<exclude>./tests/unit-testing-classes</exclude>
+		<exclude>./tests/bin</exclude>
+	</testsuite>
 </testsuites>
 </phpunit>
-

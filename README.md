@@ -34,9 +34,9 @@ You can work with with a zone's posts either as an array or a WP_Query object.
 ```
 $zone_query = z_get_zone_query( 'homepage' );
 if ( $zone_query->have_posts() ) :
-    while ( $zone_query->have_posts() ) : $zone_query->the_post();
-        echo '<li>' . get_the_title() . '</li>';
-    endwhile;
+	while ( $zone_query->have_posts() ) : $zone_query->the_post();
+		echo '<li>' . get_the_title() . '</li>';
+	endwhile;
 endif;
 wp_reset_query();
 ```
@@ -46,7 +46,7 @@ wp_reset_query();
 ```
 $zone_posts = z_get_posts_in_zone( 'homepage' );
 foreach ( $zone_posts as $zone_post ) :
-    echo '<li>' . get_the_title( $zone_post->ID ) . '</li>';
+	echo '<li>' . get_the_title( $zone_post->ID ) . '</li>';
 endforeach;
 ```
 

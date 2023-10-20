@@ -11,12 +11,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  checkcs:
+  check_cs:
     name: "Basic CS and QA checks"
     runs-on: ubuntu-latest
 
     env:
-      XMLLINT_INDENT: "	"
+      XMLLINT_INDENT: "\x09"
 
     steps:
       - name: Setup PHP

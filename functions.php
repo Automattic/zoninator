@@ -51,7 +51,7 @@ function z_get_next_post_in_zone( $zone, $post_id = 0 ) {
 /**
  * @param $zone int|string ID or Slug of the zone
  * @param $post_id int ID of the post (or, null if in The Loop)
- * @return array|false Returns previous post relative to post_id for the given zone 
+ * @return array|false Returns previous post relative to post_id for the given zone
  */
 function z_get_prev_post_in_zone( $zone, $post_id = 0 ) {
 	$post_id = z_get_loop_post_id_or_default( $post_id );
