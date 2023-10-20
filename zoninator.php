@@ -450,7 +450,7 @@ class Zoninator
 							</div>
 						<?php endif; ?>
 
-						<?php // Ideally, we should seperate nonces for each action. But this will do for simplicity. ?>
+						<?php // Ideally, we should separate nonces for each action. But this will do for simplicity. ?>
 						<?php wp_nonce_field( $this->_get_nonce_key( $this->zone_ajax_nonce_action ), $this->_get_nonce_key( $this->zone_ajax_nonce_action ), false ); ?>
 					</div>
 

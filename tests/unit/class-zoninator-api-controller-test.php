@@ -102,7 +102,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	 * Have WP_REST_Server Dispatch an HTTP request
 	 *
 	 * @param string $endpoint The Endpoint.
-	 * @param string $method Http mehod.
+	 * @param string $method Http method.
 	 * @param array  $args Any Data/Args.
 	 * @return WP_REST_Response
 	 */

@@ -39,7 +39,7 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 	private $routes = array();
 
 	/**
-	 * Optional, an enviromnent.
+	 * Optional, an environment.
 	 *
 	 * @var null|Zoninator_REST_Environment
 	 */
