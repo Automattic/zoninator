@@ -5,6 +5,7 @@
 /.phpcs.xml.dist export-ignore
 /bin/ export-ignore
 /mixtape.json export-ignore
+/package.json export-ignore
 /phpunit.xml.dist export-ignore
 /screenshot-1.png export-ignore
 /tests/ export-ignore
