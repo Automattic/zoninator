@@ -1,0 +1,12 @@
+/.editorconfig export-ignore
+/.github/ export-ignore
+/.gitignore export-ignore
+/.phpcs.xml.dist export-ignore
+/bin/ export-ignore
+/mixtape.json export-ignore
+/phpunit.xml.dist export-ignore
+/screenshot-1.png export-ignore
+/tests/ export-ignore
+/zone-display.png export-ignore
+/zone-widget.png export-ignore
+/zones.png export-ignore
