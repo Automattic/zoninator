@@ -18,15 +18,16 @@ eclint_block_comment_start = /*
 eclint_block_comment = *
 eclint_block_comment_end = */
 
-[{*.yml,*.json}]
+[*.yml]
 indent_style = space
 indent_size = 2
 
+[*.json]
+indent_style = space
+indent_size = 4
+
 [*.md]
 trim_trailing_whitespace = false
-
-#[*.txt]
-#end_of_line = crlf
 
 [LICENSE]
 indent_style = unset
