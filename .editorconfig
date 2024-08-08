@@ -25,5 +25,8 @@ indent_size = 2
 [*.md]
 trim_trailing_whitespace = false
 
+[*.txt]
+end_of_line = crlf
+
 [LICENSE]
 indent_style = unset
