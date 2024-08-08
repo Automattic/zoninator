@@ -61,7 +61,6 @@ class Zoninator_REST_Controller_CRUD extends Zoninator_REST_Controller_Model imp
 		return $this->get_items( $request );
 	}
 
-
 	/**
 	 * Create Item
 	 *

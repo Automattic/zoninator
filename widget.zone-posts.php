@@ -10,7 +10,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 			'classname' => 'widget-zone-posts',
 			'description' => __( 'Use this widget to display a list of posts from any zone.', 'zoninator' )
 		);
-		
+
 		$this->alt_option_name = 'widget_zone_posts';
 		add_action( 'save_post', array( &$this, 'flush_widget_cache' ) );
 		add_action( 'deleted_post', array( &$this, 'flush_widget_cache' ) );
@@ -29,23 +29,23 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 
 		if ( ! is_array( $cache ) )
 			$cache = array();
-		
+
 		if ( isset( $cache[ $args['widget_id'] ] ) ) {
 			echo $cache[ $args['widget_id'] ];
 			return;
 		}
-		
+
 		ob_start();
-		
+
 		$zone_id          = $instance['zone_id'] ? $instance['zone_id'] : 0;
 		$show_description = $instance['show_description'] ? 1 : 0;
 		if ( ! $zone_id )
 			return;
-		
+
 		$zone = z_get_zone( $zone_id );
 		if ( ! $zone )
 			return;
-		
+
 		$posts = z_get_posts_in_zone( $zone_id );
 		if ( empty( $posts ) )
 			return;
@@ -107,14 +107,14 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 	}
 
 	function form( $instance ) {
-		// select - zone 
+		// select - zone
 		// checkbox - show description
 		$zones = z_get_zones();
 		if ( empty( $zones ) ) {
 			esc_html_e( 'You need to create at least one zone before you use this widget!', 'zoninator' );
 			return;
 		}
-		
+
 		$zone_id          = isset( $instance['zone_id'] ) ? absint( $instance['zone_id'] ) : 0;
 		$show_description = isset( $instance['show_description'] ) ? (bool) $instance['show_description'] : true;
 		?>
