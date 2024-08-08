@@ -70,7 +70,7 @@ jobs:
         run: sudo systemctl start mysql.service
 
       - name: Prepare environment for integration tests
-        run: composer prepare-ci
+        run: composer prepare-ci ${{ matrix.wordpress }}
 
       - name: Run integration tests (single site)
         if: ${{ matrix.php != 8.0 }}
