@@ -13,10 +13,7 @@ on:
 jobs:
   test:
     name: WP ${{ matrix.wordpress }} on PHP ${{ matrix.php }}
-    # Ubuntu-20.x includes MySQL 8.0, which causes `caching_sha2_password` issues with PHP < 7.4
-    # https://www.php.net/manual/en/mysqli.requirements.php
-    # TODO: change to ubuntu-latest when we no longer support PHP < 7.4
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     env:
       WP_VERSION: ${{ matrix.wordpress }}
@@ -72,8 +69,12 @@ jobs:
       - name: Start MySQL Service
         run: sudo systemctl start mysql.service
 
+      - name: Setting mysql_native_password for PHP <= 7.3
+        if: ${{ matrix.php <= 7.3 }}
+        run: mysql -u root -proot -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root'";
+
       - name: Prepare environment for integration tests
-        run: composer prepare-ci
+        run: composer prepare-ci ${{ matrix.wordpress }}
 
       - name: Run integration tests (single site)
         if: ${{ matrix.php != 8.0 }}
