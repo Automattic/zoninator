@@ -1215,12 +1215,16 @@ class Zoninator
 
 		$zones = get_terms( $this->zone_taxonomy, $args );
 
-		// Add extra fields in description as properties
-		foreach( $zones as $zone ) {
-			$zone = $this->_fill_zone_details( $zone );
+		if ( ! is_wp_error( $zones ) ) {
+			// Add extra fields in description as properties
+			foreach ( $zones as $zone ) {
+				$zone = $this->_fill_zone_details( $zone );
+			}
+
+			return $zones;
 		}
 
-		return $zones;
+		return false;
 	}
 
 	function get_zone( $zone ) {
