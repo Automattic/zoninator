@@ -230,7 +230,7 @@ class Zoninator_REST_Model implements
 	}
 
 	/**
-	 * Prepare the value associated with this declaraton for output.
+	 * Prepare the value associated with this declaration for output.
 	 *
 	 * @param Zoninator_REST_Field_Declaration $field_declaration The declaration to use.
 	 * @return mixed

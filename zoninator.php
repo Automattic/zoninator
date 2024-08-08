@@ -450,7 +450,7 @@ class Zoninator
 							</div>
 						<?php endif; ?>
 
-						<?php // Ideally, we should seperate nonces for each action. But this will do for simplicity. ?>
+						<?php // Ideally, we should separate nonces for each action. But this will do for simplicity. ?>
 						<?php wp_nonce_field( $this->_get_nonce_key( $this->zone_ajax_nonce_action ), $this->_get_nonce_key( $this->zone_ajax_nonce_action ), false ); ?>
 					</div>
 
@@ -479,7 +479,7 @@ class Zoninator
 							</div>
 
 						<?php else : ?>
-							<p class="description"><?php esc_html_e( 'To create a zone, enter a name (and any other info) to to left and click "Save". You can then choose content items to add to the zone.', 'zoninator' ); ?></p>
+							<p class="description"><?php esc_html_e( 'To create a zone, enter a name (and optional description) and click "Save zone info". You can then choose content items to add to the zone.', 'zoninator' ); ?></p>
 						<?php endif; ?>
 					</div>
 				</div>
@@ -858,8 +858,10 @@ class Zoninator
 			$query = new WP_Query( $args );
 			$stripped_posts = array();
 
-			if ( ! $query->have_posts() )
+			if ( ! $query->have_posts() ) {
+				echo json_encode( array() );
 				exit;
+			}
 
 			foreach( $query->posts as $post ) {
 				$stripped_posts[] = apply_filters( 'zoninator_search_results_post', array(
@@ -1212,12 +1214,16 @@ class Zoninator
 
 		$zones = get_terms( $this->zone_taxonomy, $args );
 
-		// Add extra fields in description as properties
-		foreach( $zones as $zone ) {
-			$zone = $this->_fill_zone_details( $zone );
+		if ( ! is_wp_error( $zones ) ) {
+			// Add extra fields in description as properties
+			foreach ( $zones as $zone ) {
+				$zone = $this->_fill_zone_details( $zone );
+			}
+
+			return $zones;
 		}
 
-		return $zones;
+		return false;
 	}
 
 	function get_zone( $zone ) {

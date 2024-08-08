@@ -81,7 +81,7 @@ class Zoninator_REST_Model_Settings extends Zoninator_REST_Model {
 	}
 
 	/**
-	 * Covert bit to bool
+	 * Convert bit to bool
 	 *
 	 * @param mixed $value Val.
 	 * @return bool
