@@ -103,7 +103,9 @@ class Zoninator
 			'delete-success' => __( 'The zone was successfully deleted.', 'zoninator' ),
 			'error-general' => __( 'Sorry, something went wrong! Please try again?', 'zoninator' ),
 			'error-zone-lock' => __( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
-			'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard.', 'zoninator' ),
+			'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Zones page.', 'zoninator' ),
+			// Translators: %s below refers to the zone title
+			'error-zone-lock-redirect' => __( 'Sorry, you had reached the maximum idle limit while editing zone "%s" and were redirected to the Zones page.', 'zoninator' ),
 		);
 
 		$this->zone_lock_period 	= apply_filters( 'zoninator_zone_lock_period', 		$this->zone_lock_period );
@@ -132,6 +134,8 @@ class Zoninator
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 
 		add_action( 'admin_menu', array( $this, 'admin_page_init' ) );
+
+		add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 
 		# Add default advanced search fields
 		add_action( 'zoninator_advanced_search_fields', array( $this, 'zone_advanced_search_cat_filter' ) );
@@ -171,6 +175,31 @@ class Zoninator
 	function admin_page_init() {
 		// Set up page
 		add_menu_page( __( 'Zoninator', 'zoninator' ), __( 'Zones', 'zoninator' ), $this->_get_manage_zones_cap(), $this->key, array( $this, 'admin_page' ), '', 11 );
+	}
+
+	/**
+	 * Loads any admin notices on the top level zones screen.
+	 */
+	public function admin_notices() {
+
+		$screen = get_current_screen();
+
+		if ( 'toplevel_page_zoninator' === $screen->base ) {
+
+			if ( isset( $_GET['zone_lock'] ) ) {
+				$zone = $this->get_zone( intval( $_GET['zone_lock'] ) );
+
+				// Make sure we actually have a good $zone before showing a notice
+				if ( false !== $zone ) {
+				?>
+				<div class="notice notice-warning is-dismissible">
+					<p><?php echo sprintf( $this->_get_message( 'error-zone-lock-redirect' ), esc_html( $zone->name ) ); ?></p>
+				</div>
+
+				<?php
+				}
+			}
+		}
 	}
 
 	function admin_enqueue_scripts() {
