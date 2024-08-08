@@ -479,7 +479,7 @@ class Zoninator
 							</div>
 
 						<?php else : ?>
-							<p class="description"><?php esc_html_e( 'To create a zone, enter a name (and any other info) to to left and click "Save". You can then choose content items to add to the zone.', 'zoninator' ); ?></p>
+							<p class="description"><?php esc_html_e( 'To create a zone, enter a name (and optional description) and click "Save zone info". You can then choose content items to add to the zone.', 'zoninator' ); ?></p>
 						<?php endif; ?>
 					</div>
 				</div>
