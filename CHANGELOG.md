@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2024-08-09
+
+This release has PHP 7.4 and WordPress 5.9 as the minimum supported versions.
+
+### Fixed
+
+* Fix typos by @szepeviktor in https://github.com/Automattic/zoninator/pull/88
+* UI: Fix typo and clarify Add Zone description by @GaryJones in https://github.com/Automattic/zoninator/pull/93
+
+### Changed 
+
+* Increase min WP and PHP versions by @GaryJones in https://github.com/Automattic/zoninator/pull/98
+* Add WP_Error check by @aosmichenko in https://github.com/Automattic/zoninator/pull/78
+* Send empty set when search yields no results by @dlh01 in https://github.com/Automattic/zoninator/pull/82
+* Increase autocomplete timeout by @pkevan in https://github.com/Automattic/zoninator/pull/69
+
+### Maintenance
+
+* Fix bytes by @szepeviktor in https://github.com/Automattic/zoninator/pull/90
+* CI: Use valid runs-on value, and fix some issues by @GaryJones in https://github.com/Automattic/zoninator/pull/95
+* CI: Update action versions by @GaryJones in https://github.com/Automattic/zoninator/pull/96
+* Docs: Various improvements by @GaryJones in https://github.com/Automattic/zoninator/pull/99
+* NPM: Add version-bump-prompt by @GaryJones in https://github.com/Automattic/zoninator/pull/100
+* Add auto-deploy for WordPress.org plugin repo by @GaryJones in https://github.com/Automattic/zoninator/pull/101
+
 ## [0.9] - 2023-10-20
 
 * Correctly position cloned sortable element on mobile.
@@ -72,6 +97,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Initial Release!
 
+[0.10.0]: https://github.com/automattic/zoninator/compare/0.9..0.10.0
 [0.9]: https://github.com/automattic/zoninator/compare/0.8..0.9
 [0.8]: https://github.com/automattic/zoninator/compare/0.7..0.8
 
