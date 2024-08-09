@@ -32,7 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 if( ! class_exists( 'Zoninator' ) ) :
 
-define( 'ZONINATOR_VERSION', '0.9' );
+define( 'ZONINATOR_VERSION', '0.9.0' );
 define( 'ZONINATOR_PATH', dirname( __FILE__ ) );
 define( 'ZONINATOR_URL', trailingslashit( plugins_url( '', __FILE__ ) ) );
 

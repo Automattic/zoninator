@@ -1,6 +1,6 @@
 # Zone Manager (Zoninator)
 
-Stable tag: 0.9  
+Stable tag: 0.9.0  
 Requires at least: 5.9  
 Tested up to: 6.6  
 Requires PHP: 7.4  
