@@ -1,40 +1,43 @@
 name: Run PHPUnit
 
 on:
-  # Run on all pushes and on all pull requests.
   # Prevent the "push" build from running when there are only irrelevant changes.
   push:
     paths-ignore:
       - "**.md"
-  pull_request:
-  # Allow manually triggering the workflow.
-  workflow_dispatch:
 
 jobs:
   test:
     name: WP ${{ matrix.wordpress }} on PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.allowed_failure }}
 
     env:
       WP_VERSION: ${{ matrix.wordpress }}
 
     strategy:
       matrix:
-        wordpress: ["5.5", "5.6", "5.7"]
-        php: ["5.6", "7.0", "7.1", "7.2", "7.3", "7.4"]
         include:
-          - php: "8.0"
-            # Ignore platform requirements, so that PHPUnit 7.5 can be installed on PHP 8.0 (and above).
-            composer-options: "--ignore-platform-reqs"
-            extensions: pcov
-            ini-values: pcov.directory=., "pcov.exclude=\"~(vendor|tests)~\""
-            coverage: pcov
-        exclude:
-          - php: "8.0"
-            wordpress: "5.5"
+          # Check lowest supported WP version, with the lowest supported PHP.
+          - wordpress: '5.9'
+            php: '7.4'
+            allowed_failure: false
+          # Check latest WP with the highest supported PHP.
+          - wordpress: 'latest'
+            php: 'latest'
+            allowed_failure: false
+          # Check upcoming WP.
+          - wordpress: 'trunk'
+            php: 'latest'
+            allowed_failure: true
+          # Check upcoming PHP - only needed when a new version has been forked (typically Sep-Nov)
+#          - wordpress: 'trunk'
+#            php: 'nightly'
+#            allowed_failure: true
       fail-fast: false
 
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -42,45 +45,31 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: ${{ matrix.extensions }}
-          ini-values: ${{ matrix.ini-values }}
-          coverage: ${{ matrix.coverage }}
-
-      - name: Setup problem matchers for PHP
-        run: echo "::add-matcher::${{ runner.tool_cache }}/php.json"
-
-      # Setup PCOV since we're using PHPUnit < 8 which has it integrated. Requires PHP 7.1.
-      # Ignore platform reqs to make it install on PHP 8.
-      # https://github.com/krakjoe/pcov-clobber
-      - name: Setup PCOV
-        if: ${{ matrix.php == 8.0 }}
-        run: |
-          composer require pcov/clobber --ignore-platform-reqs
-          vendor/bin/pcov clobber
-
-      - name: Setup Problem Matchers for PHPUnit
-        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: Install Composer dependencies
         uses: ramsey/composer-install@v3
         with:
           composer-options: "${{ matrix.composer-options }}"
 
+      - name: Setup problem matchers for PHP
+        run: echo "::add-matcher::${{ runner.tool_cache }}/php.json"
+
+      - name: Setup Problem Matchers for PHPUnit
+        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      - name: Show PHP and PHPUnit version info
+        run: |
+          php --version
+          ./vendor/bin/phpunit --version
+
       - name: Start MySQL Service
         run: sudo systemctl start mysql.service
-
-      - name: Setting mysql_native_password for PHP <= 7.3
-        if: ${{ matrix.php <= 7.3 }}
-        run: mysql -u root -proot -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root'";
 
       - name: Prepare environment for integration tests
         run: composer prepare-ci ${{ matrix.wordpress }}
 
       - name: Run integration tests (single site)
-        if: ${{ matrix.php != 8.0 }}
         run: composer test
-      - name: Run integration tests (single site with code coverage)
-        if: ${{ matrix.php == 8.0 }}
-        run: composer coverage-ci
+
       - name: Run integration tests (multisite)
         run: composer test-ms

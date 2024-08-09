@@ -1,8 +1,9 @@
 === Zone Manager (Zoninator) ===
 Contributors: batmoo, automattic, wpcomvip, pkevan, matthumphreys, potatomaster, jblz, nickdaugherty, betzster
 Tags: zones, post order, post list, posts, order, zonination, content curation, curation, content management
-Requires at least: 3.5
-Tested up to: 5.7
+Requires at least: 5.9
+Tested up to: 6.6
+Requires PHP: 7.4
 Stable tag: 0.9
 License: GPLv2
 

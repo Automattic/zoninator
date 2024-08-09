@@ -161,7 +161,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	/**
 	 * Setup
 	 */
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		/**
 		 *The global
