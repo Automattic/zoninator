@@ -7,7 +7,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	 *
 	 * @var Zoninator
 	 */
-	private $_zoninator = null;
+	private $_zoninator;
 
 	/**
 	 * REST Server

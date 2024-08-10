@@ -48,17 +48,17 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		public $zone_ajax_nonce_action = 'ajax-action';
 		public $zone_lock_period       = 30; // number of seconds a lock is valid for
 		public $zone_max_lock_period   = 600; // max number of seconds for all locks in a session
-		public $post_types             = null;
-		public $zone_detail_defaults   = array(
+		public $post_types;
+		public $zone_detail_defaults = array(
 			'description' => '',
 		// Add additional properties here!
 		);
-		public $zone_messages  = null;
+		public $zone_messages;
 		public $posts_per_page = 10;
 		/**
 		 * @var Zoninator_Api
 		 */
-		public $rest_api = null;
+		public $rest_api;
 		/**
 		 * @var array|string[] Default post types that support zones.
 		 */

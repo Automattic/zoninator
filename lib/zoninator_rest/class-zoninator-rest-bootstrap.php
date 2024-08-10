@@ -25,14 +25,14 @@ class Zoninator_REST_Bootstrap {
 	 *
 	 * @var null|object the Environment implementation.
 	 */
-	private $environment = null;
+	private $environment;
 
 	/**
 	 * The class loader we will use
 	 *
 	 * @var null|Zoninator_REST_Classloader
 	 */
-	private $class_loader = null;
+	private $class_loader;
 
 	/**
 	 * Construct a new Bootstrap

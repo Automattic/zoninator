@@ -19,7 +19,7 @@ class Zoninator_REST_Controller_Bundle implements Zoninator_REST_Interfaces_Cont
 	 *
 	 * @var string|null
 	 */
-	protected $prefix = null;
+	protected $prefix;
 
 	/**
 	 * Collection of Mixtape_Rest_Api_Controller subclasses

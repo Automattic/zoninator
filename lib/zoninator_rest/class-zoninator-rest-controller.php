@@ -30,7 +30,7 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 	 *
 	 * @var string
 	 */
-	protected $base = null;
+	protected $base;
 	/**
 	 * Our Handlers
 	 *
@@ -43,7 +43,7 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 	 *
 	 * @var null|Zoninator_REST_Environment
 	 */
-	protected $environment = null;
+	protected $environment;
 
 	/**
 	 * Zoninator_REST_Rest_Api_Controller constructor.

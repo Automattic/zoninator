@@ -28,7 +28,7 @@ class Zoninator_REST_Type_Registry {
 	 *
 	 * @var null|array
 	 */
-	private $types = null;
+	private $types;
 
 	/**
 	 * Define a new type
