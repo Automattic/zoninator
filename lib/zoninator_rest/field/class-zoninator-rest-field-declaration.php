@@ -224,7 +224,7 @@ class Zoninator_REST_Field_Declaration {
 	 * @return null
 	 */
 	private function value_or_default( $args, $name, $default = null ) {
-		return isset( $args[ $name ] ) ? $args[ $name ] : $default;
+		return $args[ $name ] ?? $default;
 	}
 
 	/**
@@ -357,7 +357,7 @@ class Zoninator_REST_Field_Declaration {
 	 * @return string
 	 */
 	public function get_data_transfer_name() {
-		return isset( $this->data_transfer_name ) ? $this->data_transfer_name : $this->get_name();
+		return $this->data_transfer_name ?? $this->get_name();
 	}
 
 	/**

@@ -119,10 +119,10 @@ class Zoninator_REST_Model_Declaration_Settings extends Zoninator_REST_Model_Dec
 	private function field_declaration_builder_from_data( $env, $field_data ) {
 		$field_name    = $field_data['name'];
 		$field_builder = $env->field( $field_name );
-		$default_value = isset( $field_data['std'] ) ? $field_data['std'] : $this->default_for_attribute( $field_data, 'std' );
-		$label         = isset( $field_data['label'] ) ? $field_data['label'] : $field_name;
-		$description   = isset( $field_data['desc'] ) ? $field_data['desc'] : $label;
-		$setting_type  = isset( $field_data['type'] ) ? $field_data['type'] : null;
+		$default_value = $field_data['std'] ?? $this->default_for_attribute( $field_data, 'std' );
+		$label         = $field_data['label'] ?? $field_name;
+		$description   = $field_data['desc'] ?? $label;
+		$setting_type  = $field_data['type'] ?? null;
 		$choices       = isset( $field_data['options'] ) ? array_keys( $field_data['options'] ) : null;
 		$field_type    = 'string';
 

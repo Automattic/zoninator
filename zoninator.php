@@ -1516,7 +1516,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				$zone_slug = get_query_var( $this->zone_taxonomy );
 				$results   = $this->get_zone_feed( $zone_slug );
 				if ( is_wp_error( $results ) ) {
-					$this->send_user_error( $results->get_error_message() );
+					self::send_user_error($results->get_error_message());
 				}
 				$this->json_return( $results, false );
 			}
@@ -1581,7 +1581,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			global $wp_header_to_desc;
 
 			$status                       = absint( $status );
-			$official_message             = isset( $wp_header_to_desc[ $status ] ) ? $wp_header_to_desc[ $status ] : '';
+			$official_message             = $wp_header_to_desc[ $status ] ?? '';
 			$wp_header_to_desc[ $status ] = $message;
 
 			status_header( $status );

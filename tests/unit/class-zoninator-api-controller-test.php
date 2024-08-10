@@ -413,7 +413,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
-		return isset( $result['term_id'] ) ? $result['term_id'] : 0;
+		return $result['term_id'] ?? 0;
 	}
 
 	/**

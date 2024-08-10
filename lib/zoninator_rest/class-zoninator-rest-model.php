@@ -358,10 +358,7 @@ class Zoninator_REST_Model implements
 	 */
 	public function get_environment() {
 		$class_name = get_class( $this );
-		if ( isset( self::$environments_by_class_name[ $class_name ] ) ) {
-			return self::$environments_by_class_name[ $class_name ];
-		}
-		return null;
+		return self::$environments_by_class_name[ $class_name ] ?? null;
 	}
 
 	/**

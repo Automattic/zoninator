@@ -22,5 +22,5 @@ return RectorConfig::configure()
 			LongArrayToShortArrayRector::class,
 		)
 	)
-	->withPhpSets( php55: true )
+	->withPhpSets( php70: true )
 	->withTypeCoverageLevel( 0 );

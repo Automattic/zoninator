@@ -27,7 +27,7 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 	 * @param array                                $args Args.
 	 */
 	public function __construct( $model_prototype = null, $args = array() ) {
-		$this->post_type = isset( $args['post_type'] ) ? $args['post_type'] : 'post';
+		$this->post_type = $args['post_type'] ?? 'post';
 		parent::__construct( $model_prototype, $args );
 	}
 
