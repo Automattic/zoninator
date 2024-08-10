@@ -11,7 +11,7 @@ if ( ! file_exists( $_tests_dir . '/includes/functions.php' ) ) {
 
 require_once $_tests_dir . '/includes/functions.php';
 
-function _manually_load_plugin() {
+function _manually_load_plugin(): void {
 	$thispath = __DIR__;
 	$file = $thispath . '/../zoninator.php';
 	require_once realpath( $file );

@@ -22,4 +22,4 @@ return RectorConfig::configure()
 		)
 	)
 	->withPhpSets( php74: true )
-	->withTypeCoverageLevel( 0 );
+	->withTypeCoverageLevel( 1 );
