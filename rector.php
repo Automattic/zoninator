@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
 use Rector\Php54\Rector\Array_\LongArrayToShortArrayRector;
-use Rector\ValueObject\PhpVersion;
 
 return RectorConfig::configure()
 	->withPaths(
@@ -22,5 +21,5 @@ return RectorConfig::configure()
 			LongArrayToShortArrayRector::class,
 		)
 	)
-	->withPhpSets( php73: true )
+	->withPhpSets( php74: true )
 	->withTypeCoverageLevel( 0 );

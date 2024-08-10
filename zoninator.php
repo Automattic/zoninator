@@ -1516,7 +1516,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				$zone_slug = get_query_var( $this->zone_taxonomy );
 				$results   = $this->get_zone_feed( $zone_slug );
 				if ( is_wp_error( $results ) ) {
-					self::send_user_error($results->get_error_message());
+					self::send_user_error( $results->get_error_message() );
 				}
 				$this->json_return( $results );
 			}
