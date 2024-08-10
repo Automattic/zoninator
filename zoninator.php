@@ -1116,8 +1116,9 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		}
 
 		/**
-		 * @param $zone
-		 * @param null $posts
+		 * @param mixed $zone
+		 * @param mixed $posts
+		 *
 		 * @return bool|WP_Error
 		 */
 		function remove_zone_posts( $zone, $posts = null ) {

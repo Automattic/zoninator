@@ -221,7 +221,6 @@ class Zoninator_REST_Field_Declaration {
 	 * @param array  $args Args.
 	 * @param string $name Name.
 	 * @param mixed  $default Default.
-	 * @return null
 	 */
 	private function value_or_default( $args, $name, $default = null ) {
 		return $args[ $name ] ?? $default;
@@ -291,8 +290,6 @@ class Zoninator_REST_Field_Declaration {
 
 	/**
 	 * Get Map From
-	 *
-	 * @return null
 	 */
 	public function get_map_from() {
 		if ( isset( $this->map_from ) && ! empty( $this->map_from ) ) {

@@ -23,8 +23,6 @@ interface Zoninator_REST_Interfaces_Type {
 	public function cast( $value );
 	/**
 	 * The default value
-	 *
-	 * @return null
 	 */
 	public function default_value();
 	/**

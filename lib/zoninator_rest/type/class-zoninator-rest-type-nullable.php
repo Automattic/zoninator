@@ -32,8 +32,6 @@ class Zoninator_REST_Type_Nullable extends Zoninator_REST_Type {
 
 	/**
 	 * Default value as always null.
-	 *
-	 * @return null
 	 */
 	public function default_value() {
 		return null;

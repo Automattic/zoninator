@@ -29,7 +29,6 @@ class Zoninator_REST_Data_Store_Nil implements Zoninator_REST_Interfaces_Data_St
 	 * Get Entity
 	 *
 	 * @param int $id Id.
-	 * @return null
 	 */
 	public function get_entity( $id ) {
 		return null;

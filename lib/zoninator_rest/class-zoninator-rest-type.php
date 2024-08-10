@@ -39,8 +39,6 @@ class Zoninator_REST_Type implements Zoninator_REST_Interfaces_Type {
 
 	/**
 	 * The default value
-	 *
-	 * @return null
 	 */
 	function default_value() {
 		return null;
