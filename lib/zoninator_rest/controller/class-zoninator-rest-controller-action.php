@@ -13,6 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Class Zoninator_REST_Controller_Action
  */
 class Zoninator_REST_Controller_Action {
+	public $controller;
+
 	/**
 	 * Permitted actions
 	 *

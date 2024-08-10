@@ -15,6 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Zoninator_REST_Field_Declaration_Builder {
 
+	public $args;
+
 	/**
 	 * Constructor.
 	 */

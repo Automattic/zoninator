@@ -16,6 +16,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 abstract class Zoninator_REST_Data_Store_Abstract implements Zoninator_REST_Interfaces_Data_Store {
 
 	/**
+	 * @var mixed[]
+	 */
+	public $args;
+
+	/**
 	 * Definition
 	 *
 	 * @var Zoninator_REST_Model
