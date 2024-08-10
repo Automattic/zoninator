@@ -23,5 +23,5 @@ return RectorConfig::configure()
 	)
 	->withPhpSets( php74: true )
 	->withPreparedSets( deadCode: true )
-	->withCodeQualityLevel( 22 )
+	->withCodeQualityLevel( 24 )
 	->withTypeCoverageLevel( 1 );
