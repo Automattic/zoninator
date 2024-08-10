@@ -137,11 +137,9 @@ class Zoninator_REST_Model_Settings extends Zoninator_REST_Model {
 				->with_deserializer( array( $this, 'bit_to_bool' ) );
 		} elseif ( 'select' === $setting_type ) {
 			$field_type = 'string';
-		} else {
+		} elseif ( is_numeric( $default_value ) ) {
 			// try to guess numeric fields, although this is not perfect.
-			if ( is_numeric( $default_value ) ) {
-				$field_type = is_float( $default_value ) ? 'float' : 'integer';
-			}
+			$field_type = is_float( $default_value ) ? 'float' : 'integer';
 		}
 
 		if ( $default_value ) {
