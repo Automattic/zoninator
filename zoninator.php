@@ -955,7 +955,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 
 			foreach ( get_post_types() as $post_type ) {
 				if ( post_type_supports( $post_type, $this->zone_taxonomy ) ) {
-					array_push( $this->post_types, $post_type );
+					$this->post_types[] = $post_type;
 				}
 			}
 
