@@ -1517,8 +1517,6 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				}
 				$this->json_return( $results );
 			}
-
-			return;
 		}
 
 		private function filter_zone_feed_fields( $results ) {
@@ -1596,7 +1594,6 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		}
 
 		function add_zone_posts_to_cache( $posts, $zone, $args = array() ) {
-			return;
 		}
 
 		// Handle 4.2 term-splitting
