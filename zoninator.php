@@ -748,7 +748,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			if ( empty( $screen ) ) {
 				return ! empty( $_REQUEST['page'] ) && sanitize_key( $_REQUEST['page'] ) == $this->key;
 			} else {
-				return ! empty( $screen->id ) && strstr( $screen->id, $this->key );
+				return ! empty( $screen->id ) && strstr( $screen->id, (string) $this->key );
 			}
 		}
 
