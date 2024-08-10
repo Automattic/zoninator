@@ -86,7 +86,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				return false;
 			}
 
-			include_once 'includes/class-zoninator-api.php';
+			include_once __DIR__ . '/includes/class-zoninator-api.php';
 			$this->rest_api = new Zoninator_Api( $this );
 			return null;
 		}

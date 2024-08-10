@@ -30,9 +30,9 @@ class Zoninator_Api {
 	function rest_api() {
 		include_once ZONINATOR_PATH . '/lib/zoninator_rest/class-zoninator-rest-bootstrap.php';
 		$this->bootstrap = Zoninator_REST_Bootstrap::create()->load();
-		include_once 'class-zoninator-api-schema-converter.php';
-		include_once 'class-zoninator-api-filter-search.php';
-		include_once 'class-zoninator-api-controller.php';
+		include_once __DIR__ . '/class-zoninator-api-schema-converter.php';
+		include_once __DIR__ . '/class-zoninator-api-filter-search.php';
+		include_once __DIR__ . '/class-zoninator-api-controller.php';
 		$env = $this->bootstrap->environment();
 
 		$env->define_model( 'Zoninator_Api_Filter_Search' );

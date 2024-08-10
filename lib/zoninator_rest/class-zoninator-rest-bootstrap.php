@@ -69,8 +69,8 @@ class Zoninator_REST_Bootstrap {
 	 */
 	public static function create( $class_loader = null ) {
 		if ( empty( $class_loader ) ) {
-			include_once 'interfaces/class-zoninator-rest-interfaces-classloader.php';
-			include_once 'class-zoninator-rest-classloader.php';
+			include_once __DIR__ . '/interfaces/class-zoninator-rest-interfaces-classloader.php';
+			include_once __DIR__ . '/class-zoninator-rest-classloader.php';
 			$prefix       = str_replace( '_Bootstrap', '', self::class );
 			$base_dir     = self::get_base_dir();
 			$class_loader = new Zoninator_REST_Classloader( $prefix, $base_dir );
