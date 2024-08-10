@@ -88,6 +88,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 
 			include_once 'includes/class-zoninator-api.php';
 			$this->rest_api = new Zoninator_Api( $this );
+			return null;
 		}
 
 		function add_zone_feed() {
@@ -1339,6 +1340,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			set_transient( $lock_key, $user->ID, $expiry );
 
 			// Possible alternative: set zone lock as property with time and user
+			return null;
 		}
 
 		// Not really needed with transients...
@@ -1352,6 +1354,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			$lock_key = $this->get_zone_meta_key( $zone );
 
 			delete_transient( $lock_key );
+			return null;
 		}
 
 		function is_zone_locked( $zone ) {
