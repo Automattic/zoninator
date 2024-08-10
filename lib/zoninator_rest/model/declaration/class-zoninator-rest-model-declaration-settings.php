@@ -57,7 +57,7 @@ class Zoninator_REST_Model_Declaration_Settings extends Zoninator_REST_Model_Dec
 		$settings_per_group = $this->get_settings();
 		$fields             = array();
 
-		foreach ( $settings_per_group as $group_name => $group_data ) {
+		foreach ( $settings_per_group as $group_data ) {
 			$group_fields = $group_data[1];
 
 			foreach ( $group_fields as $field_data ) {

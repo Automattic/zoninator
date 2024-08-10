@@ -149,7 +149,7 @@ class Zoninator_REST_Model implements
 	public function validate() {
 		$validation_errors = array();
 		$fields            = self::get_fields();
-		foreach ( $fields as $key => $field_declaration ) {
+		foreach ( $fields as $field_declaration ) {
 			$is_valid = $this->run_field_validations( $field_declaration );
 			if ( is_wp_error( $is_valid ) ) {
 				$validation_errors[] = $is_valid->get_error_data();
@@ -168,7 +168,7 @@ class Zoninator_REST_Model implements
 	 */
 	public function sanitize() {
 		$fields = self::get_fields();
-		foreach ( $fields as $key => $field_declaration ) {
+		foreach ( $fields as $field_declaration ) {
 			/**
 			 * Field Declaration.
 			 *

@@ -89,7 +89,7 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 		$this->setup();
 		Zoninator_REST_Expect::that( ! empty( $this->base ), 'Need to put a string with a backslash in $base' );
 		$prefix = $this->controller_bundle->get_prefix();
-		foreach ( $this->routes as $pattern => $route ) {
+		foreach ( $this->routes as $route ) {
 			/**
 			 * The route we want to register.
 			 *

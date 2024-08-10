@@ -77,7 +77,7 @@ class Zoninator_REST_Controller_Route {
 		$result            = array();
 		$result['pattern'] = $this->pattern;
 		$result['actions'] = array();
-		foreach ( $this->actions as $action => $route_action ) {
+		foreach ( $this->actions as $route_action ) {
 			/**
 			 * The route action.
 			 *

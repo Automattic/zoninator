@@ -183,7 +183,7 @@ class Zoninator_REST_Environment {
 			 */
 			$rest_apis = (array) apply_filters( 'mt_environment_get_rest_apis', $this->rest_apis, $this );
 
-			foreach ( $rest_apis as $k => $bundle ) {
+			foreach ( $rest_apis as $bundle ) {
 				/**
 				 * Register this bundle
 				 *
