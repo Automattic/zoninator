@@ -40,21 +40,21 @@ if ( ! class_exists( 'Zoninator' ) ) :
 
 	class Zoninator {
 
-		var $key                    = 'zoninator';
-		var $zone_taxonomy          = 'zoninator_zones';
-		var $zone_term_prefix       = 'zone-';
-		var $zone_meta_prefix       = '_zoninator_order_';
-		var $zone_nonce_prefix      = 'zone-nonce';
-		var $zone_ajax_nonce_action = 'ajax-action';
-		var $zone_lock_period       = 30; // number of seconds a lock is valid for
-		var $zone_max_lock_period   = 600; // max number of seconds for all locks in a session
-		var $post_types             = null;
-		var $zone_detail_defaults   = array(
+		public $key                    = 'zoninator';
+		public $zone_taxonomy          = 'zoninator_zones';
+		public $zone_term_prefix       = 'zone-';
+		public $zone_meta_prefix       = '_zoninator_order_';
+		public $zone_nonce_prefix      = 'zone-nonce';
+		public $zone_ajax_nonce_action = 'ajax-action';
+		public $zone_lock_period       = 30; // number of seconds a lock is valid for
+		public $zone_max_lock_period   = 600; // max number of seconds for all locks in a session
+		public $post_types             = null;
+		public $zone_detail_defaults   = array(
 			'description' => '',
 		// Add additional properties here!
 		);
-		var $zone_messages  = null;
-		var $posts_per_page = 10;
+		public $zone_messages  = null;
+		public $posts_per_page = 10;
 		/**
 		 * @var Zoninator_Api
 		 */
@@ -511,7 +511,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 						<?php endif; ?>
 					</div>
 				</div>
-			<?php endif; ?>
+<?php endif; ?>
 		</div>
 
 			<?php

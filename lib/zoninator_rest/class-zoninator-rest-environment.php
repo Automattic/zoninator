@@ -165,7 +165,7 @@ class Zoninator_REST_Environment {
 			do_action( 'mt_environment_before_start', $this, get_class( $this ) );
 			$this->load_pending_builders( self::MODELS );
 			$this->load_pending_builders( self::BUNDLES );
-			$registrables = $this->get( self::REGISTRABLE ) ? $this->get( self::REGISTRABLE ) : array();
+			$registrables = $this->get( self::REGISTRABLE ) ?: array();
 			foreach ( $registrables as $registrable ) {
 				/**
 				 * A Registrable

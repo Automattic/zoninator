@@ -38,7 +38,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 
 		ob_start();
 
-		$zone_id          = $instance['zone_id'] ? $instance['zone_id'] : 0;
+		$zone_id          = $instance['zone_id'] ?: 0;
 		$show_description = $instance['show_description'] ? 1 : 0;
 		if ( ! $zone_id ) {
 			return;
