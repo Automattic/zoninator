@@ -1659,7 +1659,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		}
 
 		function _validate_date_filter( $date ) {
-			return preg_match( '/([0-9]{4})-([0-9]{2})-([0-9]{2})/', $date );
+			return preg_match( '/(\d{4})-(\d{2})-(\d{2})/', $date );
 		}
 
 		function _validate_category_filter( $cat ) {
