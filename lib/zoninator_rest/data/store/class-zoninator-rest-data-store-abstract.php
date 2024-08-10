@@ -23,21 +23,13 @@ abstract class Zoninator_REST_Data_Store_Abstract implements Zoninator_REST_Inte
 	protected $model_prototype;
 
 	/**
-	 * Type Serializers
-	 *
-	 * @var array
-	 */
-	private $type_serializers;
-
-	/**
 	 * Zoninator_REST_Data_Store_Abstract constructor.
 	 *
 	 * @param null|Zoninator_REST_Model $model_prototype Def.
 	 * @param array                     $args Args.
 	 */
 	public function __construct( $model_prototype = null, $args = array() ) {
-		$this->type_serializers = array();
-		$this->args             = $args;
+		$this->args = $args;
 		Zoninator_REST_Expect::is_a( $model_prototype, 'Zoninator_REST_Interfaces_Model' );
 		$this->set_model_factory( $model_prototype );
 	}

@@ -29,30 +29,14 @@ class Zoninator_REST_Controller_Route {
 	private $actions;
 
 	/**
-	 * Our Controller
-	 *
-	 * @var Zoninator_REST_Controller
-	 */
-	private $controller;
-
-	/**
-	 * HTTP Methods
-	 *
-	 * @var array
-	 */
-	private $http_methods;
-
-	/**
 	 * Zoninator_REST_Controller_Route constructor.
 	 *
 	 * @param Zoninator_REST_Controller $controller A Controller.
 	 * @param string                    $pattern Pattern.
 	 */
 	public function __construct( $controller, $pattern ) {
-		$this->controller   = $controller;
-		$this->pattern      = $pattern;
-		$this->actions      = array();
-		$this->http_methods = explode( ', ', WP_REST_Server::ALLMETHODS );
+		$this->pattern = $pattern;
+		$this->actions = array();
 	}
 
 	/**

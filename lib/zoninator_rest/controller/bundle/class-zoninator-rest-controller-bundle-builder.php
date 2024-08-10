@@ -21,12 +21,6 @@ class Zoninator_REST_Controller_Bundle_Builder implements Zoninator_REST_Interfa
 	 */
 	private $bundle_prefix;
 	/**
-	 * Env.
-	 *
-	 * @var Zoninator_REST_Environment
-	 */
-	private $environment;
-	/**
 	 * Endpoint Builders.
 	 *
 	 * @var array
@@ -78,7 +72,6 @@ class Zoninator_REST_Controller_Bundle_Builder implements Zoninator_REST_Interfa
 	 * @return Zoninator_REST_Controller_Bundle_Builder $this
 	 */
 	public function with_environment( $env ) {
-		$this->environment = $env;
 		return $this;
 	}
 

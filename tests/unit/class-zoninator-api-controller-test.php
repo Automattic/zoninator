@@ -3,25 +3,11 @@
 class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 
 	/**
-	 * The Mighty Zoninator!
-	 *
-	 * @var Zoninator
-	 */
-	private $_zoninator;
-
-	/**
 	 * REST Server
 	 *
 	 * @var WP_REST_Server
 	 */
 	protected $rest_server;
-
-	/**
-	 * Post ID
-	 *
-	 * @var int
-	 */
-	private $_post_id = 0;
 
 	/**
 	 * Admin ID
@@ -171,7 +157,6 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 		global $wp_rest_server;
 		$this->rest_server = new Spy_REST_Server;
 		$wp_rest_server = $this->rest_server;
-		$this->_zoninator = Zoninator();
 		$admin = get_user_by( 'email', 'rest_api_admin_user@test.com' );
 		if ( false === $admin ) {
 			$this->admin_id = wp_create_user(
