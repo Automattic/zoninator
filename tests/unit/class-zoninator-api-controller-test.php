@@ -305,7 +305,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	 */
 	function test_update_zone_posts_fails_if_invalid_data() {
 		$this->login_as_admin();
-		$post_id = $this->_insert_a_post();
+		$this->_insert_a_post();
 		$zone_id = $this->create_a_zone( 'test-zone', 'Test Zone' );
 		$response = $this->put( '/zoninator/v1/zones/' . $zone_id . '/posts', array() );
 		$this->assertResponseStatus( $response, 400 );
@@ -318,7 +318,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	 */
 	function test_update_zone_posts_fails_if_invalid_post_id() {
 		$this->login_as_admin();
-		$post_id = $this->_insert_a_post();
+		$this->_insert_a_post();
 		$zone_id = $this->create_a_zone( 'test-zone', 'Test Zone' );
 		$response = $this->put( '/zoninator/v1/zones/' . $zone_id . '/posts', array(
 			'post_ids' => array( 123456789 ),

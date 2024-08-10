@@ -43,7 +43,7 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 			array(
 				'post_type'   => $this->post_type,
 				'post_status' => 'any',
-			) 
+			)
 		);
 		$posts      = $query->get_posts();
 		$collection = array();
@@ -76,9 +76,8 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 	 * @throws Zoninator_REST_Exception If something goes wrong.
 	 */
 	private function create_from_post( $post ) {
-		$field_declarations = $this->get_model_prototype()->get_fields();
-		$raw_post_data      = $post->to_array();
-		$raw_meta_data      = get_post_meta( $post->ID ); // assumes we are only ever adding one postmeta per key.
+		$raw_post_data = $post->to_array();
+		$raw_meta_data = get_post_meta( $post->ID ); // assumes we are only ever adding one postmeta per key.
 
 		$flattened_meta = array();
 		foreach ( $raw_meta_data as $key => $value_arr ) {
@@ -90,7 +89,7 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 			$merged_data,
 			array(
 				'deserialize' => true,
-			) 
+			)
 		);
 	}
 
@@ -108,7 +107,7 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 			$args,
 			array(
 				'force_delete' => false,
-			) 
+			)
 		);
 
 		do_action( 'mixtape_data_store_delete_model_before', $model, $id );

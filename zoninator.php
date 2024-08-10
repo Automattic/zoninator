@@ -284,8 +284,6 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		function admin_page() {
 			global $zoninator_admin_page;
 
-			$view  = $this->_get_value_or_default( 'view', $zoninator_admin_page, 'edit.php' );
-			$view  = sprintf( '%s/views/%s', ZONINATOR_PATH, $view );
 			$title = __( 'Zones', 'zoninator' );
 
 			$zones = $this->get_zones( apply_filters( 'zoninator_admin_page_get_zones_args', array() ) );
@@ -345,7 +343,6 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		}
 
 		function admin_page_zone_tabs( $zones, $active_zone_id = 0 ) {
-			$new_link = $this->_get_zone_page_url( array( 'action' => 'new' ) );
 			?>
 		<div class="nav-tabs-container zone-tabs-container">
 			<div class="nav-tabs-nav-wrapper zone-tabs-nav-wrapper">
