@@ -258,7 +258,6 @@ if ( ! class_exists( 'Zoninator' ) ) :
 							);
 							exit;
 						}
-						break;
 
 					case 'delete':
 						$zone_id = $this->_get_request_var( 'zone_id', 0, 'absint' );
@@ -1593,29 +1592,14 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		// TODO: Caching needs to be testing properly before being implemented!
 		function get_zone_cache_key( $zone, $args = array() ) {
 			return '';
-
-			$meta_key = $this->get_zone_meta_key( $zone );
-			$hash     = md5( serialize( $args ) );
-			return $meta_key . $hash;
 		}
 
 		function get_zone_posts_from_cache( $zone, $args = array() ) {
-			return false; // TODO: implement
-
-			$meta_key  = $this->get_zone_meta_key( $zone );
-			$cache_key = $this->get_zone_cache_key( $zone, $args );
-			if ( $posts = wp_cache_get( $cache_key, $meta_key ) ) {
-				return $posts;
-			}
 			return false;
 		}
 
 		function add_zone_posts_to_cache( $posts, $zone, $args = array() ) {
-			return; // TODO: implement
-
-			$meta_key  = $this->get_zone_meta_key( $zone );
-			$cache_key = $this->get_zone_cache_key( $zone, $args );
-			wp_cache_set( $cache_key, $posts, $meta_key );
+			return;
 		}
 
 		// Handle 4.2 term-splitting
