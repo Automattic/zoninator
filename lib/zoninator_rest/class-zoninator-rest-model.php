@@ -155,7 +155,7 @@ class Zoninator_REST_Model implements
 				$validation_errors[] = $is_valid->get_error_data();
 			}
 		}
-		if ( count( $validation_errors ) > 0 ) {
+		if ( $validation_errors !== array() ) {
 			return $this->validation_error( $validation_errors );
 		}
 		return true;
