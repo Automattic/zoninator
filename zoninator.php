@@ -485,7 +485,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				</div>
 
 				<div class="col-wrap zone-col zone-posts-col">
-					<div class="zone-posts-wrapper <?php echo ! $this->_current_user_can_manage_zones( $zone_id ) || $zone_locked ? 'readonly' : ''; ?>">
+					<div class="zone-posts-wrapper <?php echo ! $this->_current_user_can_manage_zones() || $zone_locked ? 'readonly' : ''; ?>">
 						<?php if ( $zone_id ) : ?>
 							<h3><?php esc_html_e( 'Zone Content', 'zoninator' ); ?></h3>
 
@@ -1518,7 +1518,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				if ( is_wp_error( $results ) ) {
 					self::send_user_error($results->get_error_message());
 				}
-				$this->json_return( $results, false );
+				$this->json_return( $results );
 			}
 
 			return;

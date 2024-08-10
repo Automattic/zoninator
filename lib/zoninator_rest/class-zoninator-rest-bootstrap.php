@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * This is the entry point for.
  */
 class Zoninator_REST_Bootstrap {
-	const MINIMUM_PHP_VERSION = '5.2.0';
+	public const MINIMUM_PHP_VERSION = '5.2.0';
 
 	/**
 	 * The Environment we will use

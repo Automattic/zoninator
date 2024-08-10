@@ -19,9 +19,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package Mixtape
  */
 class Zoninator_REST_Environment {
-	const REGISTRABLE = 'IRegistrable';
-	const BUNDLES     = 'Bundles';
-	const MODELS      = 'Models';
+	public const REGISTRABLE = 'IRegistrable';
+	public const BUNDLES     = 'Bundles';
+	public const MODELS      = 'Models';
 
 	/**
 	 * This environment's registered REST bundles

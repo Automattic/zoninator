@@ -17,18 +17,18 @@ class Zoninator_REST_Field_Declaration {
 	/**
 	 * Field A field
 	 */
-	const FIELD = 'field';
+	public const FIELD = 'field';
 
 	/**
 	 * Meta a meta field
 	 */
-	const META = 'meta';
+	public const META = 'meta';
 
 	/**
 	 * Derived field kinds get their values from callables. It is also
 	 * possible to update their values from callables
 	 */
-	const DERIVED = 'derived';
+	public const DERIVED = 'derived';
 	/**
 	 * Map From
 	 *
