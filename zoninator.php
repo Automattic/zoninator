@@ -1085,11 +1085,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			if ( $append ) {
 				// Order should be the highest post order
 				$last_post = $this->get_last_post_in_zone( $zone );
-				if ( $last_post ) {
-					$order = $this->get_post_order( $last_post, $zone );
-				} else {
-					$order = 0;
-				}
+				$order     = $last_post ? $this->get_post_order( $last_post, $zone ) : 0;
 			} else {
 				$order = 0;
 				$this->remove_zone_posts( $zone );
@@ -1686,11 +1682,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			}
 
 			if ( is_callable( $sanitize_callback ) ) {
-				if ( is_array( $value ) ) {
-					$value = array_map( $sanitize_callback, $value );
-				} else {
-					$value = call_user_func( $sanitize_callback, $value );
-				}
+				$value = is_array( $value ) ? array_map( $sanitize_callback, $value ) : call_user_func( $sanitize_callback, $value );
 			}
 
 			return $value;
