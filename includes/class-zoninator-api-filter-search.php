@@ -75,4 +75,3 @@ class Zoninator_Api_Filter_Search extends Zoninator_REST_Model {
 		return $this->strip_tags( $this->strip_slashes( $item ) );
 	}
 }
-

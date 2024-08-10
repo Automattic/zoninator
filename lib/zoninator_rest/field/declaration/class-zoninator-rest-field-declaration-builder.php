@@ -133,7 +133,6 @@ class Zoninator_REST_Field_Declaration_Builder {
 	 */
 	public function with_required( $required = true ) {
 		return $this->with( 'required', $required );
-
 	}
 
 	/**

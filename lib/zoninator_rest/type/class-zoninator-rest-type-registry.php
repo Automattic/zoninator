@@ -33,7 +33,7 @@ class Zoninator_REST_Type_Registry {
 	/**
 	 * Define a new type
 	 *
-	 * @param string             $identifier The Identifier.
+	 * @param string                         $identifier The Identifier.
 	 * @param Zoninator_REST_Interfaces_Type $instance The type instance.
 	 *
 	 * @return Zoninator_REST_Type_Registry $this
@@ -61,7 +61,6 @@ class Zoninator_REST_Type_Registry {
 			// maybe lazy-register missing compound type.
 			$parts = explode( ':', $type );
 			if ( count( $parts ) > 1 ) {
-
 				$container_type = $parts[0];
 				if ( ! in_array( $container_type, $this->container_types, true ) ) {
 					throw new Zoninator_REST_Exception( $container_type . ' is not a known container type' );
@@ -110,16 +109,21 @@ class Zoninator_REST_Type_Registry {
 			return;
 		}
 
-		$this->types = apply_filters( 'mixtape_type_registry_register_types', array(
-			'any'           => new Zoninator_REST_Type( 'any' ),
-			'string'        => new Zoninator_REST_Type_String(),
-			'integer'       => new Zoninator_REST_Type_Integer(),
-			'int'           => new Zoninator_REST_Type_Integer(),
-			'uint'          => new Zoninator_REST_Type_Integer( true ),
-			'number'        => new Zoninator_REST_Type_Number(),
-			'float'         => new Zoninator_REST_Type_Number(),
-			'boolean'       => new Zoninator_REST_Type_Boolean(),
-			'array'         => new Zoninator_REST_Type_Array(),
-		), $this, $environment );
+		$this->types = apply_filters(
+			'mixtape_type_registry_register_types',
+			array(
+				'any'     => new Zoninator_REST_Type( 'any' ),
+				'string'  => new Zoninator_REST_Type_String(),
+				'integer' => new Zoninator_REST_Type_Integer(),
+				'int'     => new Zoninator_REST_Type_Integer(),
+				'uint'    => new Zoninator_REST_Type_Integer( true ),
+				'number'  => new Zoninator_REST_Type_Number(),
+				'float'   => new Zoninator_REST_Type_Number(),
+				'boolean' => new Zoninator_REST_Type_Boolean(),
+				'array'   => new Zoninator_REST_Type_Array(),
+			),
+			$this,
+			$environment 
+		);
 	}
 }

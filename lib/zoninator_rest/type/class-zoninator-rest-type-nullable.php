@@ -69,7 +69,7 @@ class Zoninator_REST_Type_Nullable extends Zoninator_REST_Type {
 	 * Schema
 	 */
 	function schema() {
-		$schema = parent::schema();
+		$schema         = parent::schema();
 		$schema['type'] = array_unique( array_merge( $schema['type'], array( 'null' ) ) );
 	}
 }

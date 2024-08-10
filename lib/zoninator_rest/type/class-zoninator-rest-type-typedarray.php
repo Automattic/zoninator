@@ -63,8 +63,8 @@ class Zoninator_REST_Type_TypedArray extends Zoninator_REST_Type {
 	 * @return array
 	 */
 	function schema() {
-		$schema = parent::schema();
-		$schema['type'] = 'array';
+		$schema          = parent::schema();
+		$schema['type']  = 'array';
 		$schema['items'] = $this->item_type_definition->schema();
 		return $schema;
 	}

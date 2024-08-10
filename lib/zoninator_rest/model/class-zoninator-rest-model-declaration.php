@@ -68,7 +68,7 @@ class Zoninator_REST_Model_Declaration implements Zoninator_REST_Interfaces_Mode
 	 * Set the id
 	 *
 	 * @param Zoninator_REST_Interfaces_Model $model The model.
-	 * @param mixed               $new_id The new id.
+	 * @param mixed                           $new_id The new id.
 	 *
 	 * @return mixed|null
 	 */

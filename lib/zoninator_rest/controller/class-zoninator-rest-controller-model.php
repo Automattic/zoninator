@@ -43,7 +43,7 @@ class Zoninator_REST_Controller_Model extends Zoninator_REST_Controller implemen
 	 * @param string $model_class_name A Definition or a definition name.
 	 */
 	public function __construct( $base, $model_class_name ) {
-		$this->base = $base;
+		$this->base             = $base;
 		$this->model_class_name = $model_class_name;
 	}
 
@@ -67,7 +67,7 @@ class Zoninator_REST_Controller_Model extends Zoninator_REST_Controller implemen
 	 * @return bool|WP_Error true if valid otherwise error.
 	 */
 	public function register( $bundle, $environment ) {
-		$this->model_prototype = $environment->model( $this->model_class_name );
+		$this->model_prototype  = $environment->model( $this->model_class_name );
 		$this->model_data_store = $this->model_prototype->get_data_store();
 		return parent::register( $bundle, $environment );
 	}
@@ -83,9 +83,9 @@ class Zoninator_REST_Controller_Model extends Zoninator_REST_Controller implemen
 	 */
 	public function get_item_schema() {
 		$model_definition = $this->get_model_prototype();
-		$fields = $model_definition->get_fields();
-		$properties = array();
-		$required = array();
+		$fields           = $model_definition->get_fields();
+		$properties       = array();
+		$required         = array();
 		foreach ( $fields as $field_declaration ) {
 			/**
 			 * Our declaration
@@ -98,9 +98,9 @@ class Zoninator_REST_Controller_Model extends Zoninator_REST_Controller implemen
 			}
 		}
 		$schema = array(
-			'$schema' => 'http://json-schema.org/schema#',
-			'title' => $model_definition->get_name(),
-			'type' => 'object',
+			'$schema'    => 'http://json-schema.org/schema#',
+			'title'      => $model_definition->get_name(),
+			'type'       => 'object',
 			'properties' => (array) apply_filters( 'mixtape_rest_api_schema_properties', $properties, $this->get_model_prototype() ),
 		);
 

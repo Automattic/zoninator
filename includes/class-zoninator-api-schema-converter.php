@@ -8,9 +8,9 @@ class Zoninator_Api_Schema_Converter {
 	 * @return mixed
 	 */
 	public function as_schema( $model_definition ) {
-		$fields = $model_definition->get_fields();
+		$fields     = $model_definition->get_fields();
 		$properties = array();
-		$required = array();
+		$required   = array();
 		foreach ( $fields as $field_declaration ) {
 			/**
 			 * Our declaration
@@ -23,9 +23,9 @@ class Zoninator_Api_Schema_Converter {
 			}
 		}
 		$schema = array(
-			'$schema' => 'http://json-schema.org/schema#',
-			'title' => $model_definition->get_name(),
-			'type' => 'object',
+			'$schema'    => 'http://json-schema.org/schema#',
+			'title'      => $model_definition->get_name(),
+			'type'       => 'object',
 			'properties' => (array) apply_filters( 'rest_api_schema_properties', $properties, $model_definition ),
 		);
 
@@ -53,9 +53,9 @@ class Zoninator_Api_Schema_Converter {
 			 * @var Zoninator_REST_Field_Declaration $field_declaration
 			 */
 			$arg = array(
-				'description'       => $field_declaration->get_description(),
-				'type'              => $type_schema['type'],
-				'required'          => $field_declaration->is_required(),
+				'description' => $field_declaration->get_description(),
+				'type'        => $type_schema['type'],
+				'required'    => $field_declaration->is_required(),
 			);
 
 			if ( ! $field_declaration->is_required() ) {

@@ -45,7 +45,7 @@ class Zoninator_REST_Data_Mapper {
 	 * @return array
 	 */
 	function raw_data_to_model_data( $data, $field_declarations ) {
-		$raw_data = array();
+		$raw_data        = array();
 		$post_array_keys = array_keys( $data );
 		foreach ( $field_declarations as $declaration ) {
 			/**
@@ -53,9 +53,9 @@ class Zoninator_REST_Data_Mapper {
 			 *
 			 * @var Zoninator_REST_Field_Declaration $declaration
 			 */
-			$key = $declaration->get_name();
+			$key     = $declaration->get_name();
 			$mapping = $declaration->get_map_from();
-			$value = null;
+			$value   = null;
 			if ( in_array( $key, $post_array_keys, true ) ) {
 				// simplest case: we got a $key for this, so just map it.
 				$value = $this->serializer->deserialize( $declaration, $data[ $key ] );
@@ -73,7 +73,7 @@ class Zoninator_REST_Data_Mapper {
 	 * Transform Model to raw data array
 	 *
 	 * @param Zoninator_REST_Interfaces_Model $model Model.
-	 * @param null|string         $field_type Type.
+	 * @param null|string                     $field_type Type.
 	 * @return array
 	 */
 	function model_to_data( $model, $field_type = null ) {
@@ -84,8 +84,8 @@ class Zoninator_REST_Data_Mapper {
 			 *
 			 * @var Zoninator_REST_Field_Declaration $field_declaration
 			 */
-			$what_to_map_to = $field_declaration->get_map_from();
-			$value = $model->get( $field_declaration->get_name() );
+			$what_to_map_to                            = $field_declaration->get_map_from();
+			$value                                     = $model->get( $field_declaration->get_name() );
 			$field_values_to_insert[ $what_to_map_to ] = $this->serializer->serialize( $field_declaration, $value );
 		}
 

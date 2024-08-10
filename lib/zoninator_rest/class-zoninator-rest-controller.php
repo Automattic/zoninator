@@ -171,9 +171,12 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 	 * @return WP_REST_Response
 	 */
 	public function not_found( $message ) {
-		return $this->respond( array(
-			'message' => $message,
-		), self::HTTP_NOT_FOUND );
+		return $this->respond(
+			array(
+				'message' => $message,
+			),
+			self::HTTP_NOT_FOUND 
+		);
 	}
 
 	/**
@@ -260,7 +263,7 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 	 * @return Zoninator_REST_Controller_Route
 	 */
 	function add_route( $pattern = '' ) {
-		$route = new Zoninator_REST_Controller_Route( $this, $pattern );
+		$route                    = new Zoninator_REST_Controller_Route( $this, $pattern );
 		$this->routes[ $pattern ] = $route;
 		return $this->routes[ $pattern ];
 	}

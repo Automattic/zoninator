@@ -49,7 +49,7 @@ interface Zoninator_REST_Interfaces_Model_Declaration {
 	 * @param array  $args The args.
 	 * @return mixed
 	 */
-	function call( $method, $args = array());
+	function call( $method, $args = array() );
 
 	/**
 	 * Get this model's unique identifier
@@ -63,7 +63,7 @@ interface Zoninator_REST_Interfaces_Model_Declaration {
 	 * Set this model's unique identifier
 	 *
 	 * @param Zoninator_REST_Interfaces_Model $model The model.
-	 * @param mixed               $id The id.
+	 * @param mixed                           $id The id.
 	 *
 	 * @return Zoninator_REST_Interfaces_Model The model.
 	 */
@@ -75,5 +75,4 @@ interface Zoninator_REST_Interfaces_Model_Declaration {
 	 * @return string This declaration's name.
 	 */
 	function get_name();
-
 }

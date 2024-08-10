@@ -46,12 +46,12 @@ class Zoninator_REST_Controller_Route {
 	 * Zoninator_REST_Controller_Route constructor.
 	 *
 	 * @param Zoninator_REST_Controller $controller A Controller.
-	 * @param string        $pattern Pattern.
+	 * @param string                    $pattern Pattern.
 	 */
 	public function __construct( $controller, $pattern ) {
-		$this->controller = $controller;
-		$this->pattern = $pattern;
-		$this->actions = array();
+		$this->controller   = $controller;
+		$this->pattern      = $pattern;
+		$this->actions      = array();
 		$this->http_methods = explode( ', ', WP_REST_Server::ALLMETHODS );
 	}
 
@@ -74,7 +74,7 @@ class Zoninator_REST_Controller_Route {
 	 * @return array
 	 */
 	public function as_array() {
-		$result = array();
+		$result            = array();
 		$result['pattern'] = $this->pattern;
 		$result['actions'] = array();
 		foreach ( $this->actions as $action => $route_action ) {

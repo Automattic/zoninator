@@ -7,8 +7,8 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 
 	function __construct() {
 		$widget_ops = array(
-			'classname' => 'widget-zone-posts',
-			'description' => __( 'Use this widget to display a list of posts from any zone.', 'zoninator' )
+			'classname'   => 'widget-zone-posts',
+			'description' => __( 'Use this widget to display a list of posts from any zone.', 'zoninator' ),
 		);
 
 		$this->alt_option_name = 'widget_zone_posts';
@@ -25,10 +25,11 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 
 	function widget( $args, $instance ) {
 		$cache_key = 'widget-zone-posts';
-		$cache = wp_cache_get( $cache_key, 'widget' );
+		$cache     = wp_cache_get( $cache_key, 'widget' );
 
-		if ( ! is_array( $cache ) )
+		if ( ! is_array( $cache ) ) {
 			$cache = array();
+		}
 
 		if ( isset( $cache[ $args['widget_id'] ] ) ) {
 			echo $cache[ $args['widget_id'] ];
@@ -39,16 +40,19 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 
 		$zone_id          = $instance['zone_id'] ? $instance['zone_id'] : 0;
 		$show_description = $instance['show_description'] ? 1 : 0;
-		if ( ! $zone_id )
+		if ( ! $zone_id ) {
 			return;
+		}
 
 		$zone = z_get_zone( $zone_id );
-		if ( ! $zone )
+		if ( ! $zone ) {
 			return;
+		}
 
 		$posts = z_get_posts_in_zone( $zone_id );
-		if ( empty( $posts ) )
+		if ( empty( $posts ) ) {
 			return;
+		}
 
 		?>
 		<?php echo wp_kses_post( $args['before_widget'] ); ?>
@@ -82,14 +86,21 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 	}
 
 	function update( $new_instance, $old_instance ) {
-		$instance     = $old_instance;
-		$new_instance = wp_parse_args( (array) $new_instance, array( 'zone_id' => 0, 'show_description' => 0 ) );
+		$instance                     = $old_instance;
+		$new_instance                 = wp_parse_args(
+			(array) $new_instance,
+			array(
+				'zone_id'          => 0,
+				'show_description' => 0,
+			) 
+		);
 		$instance['zone_id']          = absint( $new_instance['zone_id'] );
 		$instance['show_description'] = $new_instance['show_description'] ? 1 : 0;
 		$this->flush_widget_cache();
 		$alloptions = wp_cache_get( 'alloptions', 'options' );
-		if ( isset( $alloptions['widget-zone-posts'] ) )
+		if ( isset( $alloptions['widget-zone-posts'] ) ) {
 			delete_option( 'widget-zone-posts' );
+		}
 
 		return $instance;
 	}
@@ -140,6 +151,6 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 				<?php esc_html_e( 'Show zone description in widget', 'zoninator' ); ?>
 			</label>
 		</p>
-	<?php
+		<?php
 	}
 }

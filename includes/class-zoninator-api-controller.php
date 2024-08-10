@@ -7,21 +7,21 @@
  * Class Zoninator_Api_Controller
  */
 class Zoninator_Api_Controller extends Zoninator_REST_Controller {
-	const ZONE_ITEM_URL_REGEX = '/zones/(?P<zone_id>[\d]+)';
-	const ZONE_ITEM_POSTS_URL_REGEX = '/zones/(?P<zone_id>[\d]+)/posts';
+	const ZONE_ITEM_URL_REGEX        = '/zones/(?P<zone_id>[\d]+)';
+	const ZONE_ITEM_POSTS_URL_REGEX  = '/zones/(?P<zone_id>[\d]+)/posts';
 	const ZONE_ITEM_POSTS_POST_REGEX = '/zones/(?P<zone_id>[\d]+)/posts/(?P<post_id>\d+)';
 
-	const INVALID_ZONE_ID = 'invalid-zone-id';
-	const INVALID_POST_ID = 'invalid-post-id';
-	const ZONE_ID_POST_ID_REQUIRED = 'zone-id-post-id-required';
+	const INVALID_ZONE_ID           = 'invalid-zone-id';
+	const INVALID_POST_ID           = 'invalid-post-id';
+	const ZONE_ID_POST_ID_REQUIRED  = 'zone-id-post-id-required';
 	const ZONE_ID_POST_IDS_REQUIRED = 'zone-id-post-ids-required';
-	const ZONE_ID_REQUIRED = 'zone-id-required';
-	const ZONE_FEED_ERROR = 'zone-feed-error';
-	const TERM_REQUIRED = 'term-required';
-	const PERMISSION_DENIED = 'permission-denied';
-	const ZONE_NOT_FOUND = 'zone-not-found';
-	const POST_NOT_FOUND = 'post-not-found';
-	const INVALID_ZONE_SETTINGS = 'invalid-zone-settings';
+	const ZONE_ID_REQUIRED          = 'zone-id-required';
+	const ZONE_FEED_ERROR           = 'zone-feed-error';
+	const TERM_REQUIRED             = 'term-required';
+	const PERMISSION_DENIED         = 'permission-denied';
+	const ZONE_NOT_FOUND            = 'zone-not-found';
+	const POST_NOT_FOUND            = 'post-not-found';
+	const INVALID_ZONE_SETTINGS     = 'invalid-zone-settings';
 	/**
 	 * Instance
 	 *
@@ -43,7 +43,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 */
 	function __construct( $instance ) {
 		$this->instance = $instance;
-		$this->base = '/';
+		$this->base     = '/';
 	}
 
 	/**
@@ -109,9 +109,11 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		$results = $this->instance->get_zones();
 
 		if ( is_wp_error( $results ) ) {
-			return $this->bad_request( array(
-				'message' => $results->get_error_message(),
-			) );
+			return $this->bad_request(
+				array(
+					'message' => $results->get_error_message(),
+				) 
+			);
 		}
 
 		$zones = array_map( array( $this, '_filter_zone_properties' ), $results );
@@ -126,21 +128,27 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	function create_zone( $request ) {
-		$name = $this->_get_param( $request, 'name', '' );
-		$slug = $this->_get_param( $request, 'slug', $name );
+		$name        = $this->_get_param( $request, 'name', '' );
+		$slug        = $this->_get_param( $request, 'slug', $name );
 		$description = $this->_get_param( $request, 'description', '' );
 
-		$result = $this->instance->insert_zone( $slug, $name, array(
-			'description' => $description,
-		) );
+		$result = $this->instance->insert_zone(
+			$slug,
+			$name,
+			array(
+				'description' => $description,
+			) 
+		);
 
 		if ( is_wp_error( $result ) ) {
-			return $this->bad_request( array(
-				'message' => $result->get_error_message(),
-			) );
+			return $this->bad_request(
+				array(
+					'message' => $result->get_error_message(),
+				) 
+			);
 		}
 
-		$zone = $this->instance->get_zone( $result[ 'term_id' ] );
+		$zone = $this->instance->get_zone( $result['term_id'] );
 
 		return $this->created( $this->_filter_zone_properties( $zone ) );
 	}
@@ -152,12 +160,12 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	function update_zone( $request ) {
-		$zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
-		$name = $this->_get_param( $request, 'name', '' );
-		$slug = $this->_get_param( $request, 'slug', '' );
+		$zone_id     = $this->_get_param( $request, 'zone_id', 0, 'absint' );
+		$name        = $this->_get_param( $request, 'name', '' );
+		$slug        = $this->_get_param( $request, 'slug', '' );
 		$description = $this->_get_param( $request, 'description', '', 'strip_tags' );
 
-		$zone = $this->instance->get_zone( $zone_id );
+		$zone          = $this->instance->get_zone( $zone_id );
 		$update_params = array();
 
 		if ( ! $zone ) {
@@ -165,23 +173,25 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		}
 
 		if ( $name ) {
-			$update_params[ 'name' ] = $name;
+			$update_params['name'] = $name;
 		}
 
 		if ( $slug ) {
-			$update_params[ 'slug' ] = $slug;
+			$update_params['slug'] = $slug;
 		}
 
 		if ( $description ) {
-			$update_params[ 'details' ] = array( 'description' => $description );
+			$update_params['details'] = array( 'description' => $description );
 		}
 
 		$result = $this->instance->update_zone( $zone, $update_params );
 
 		if ( is_wp_error( $result ) ) {
-			return $this->bad_request( array(
-				'message' => $result->get_error_message(),
-			) );
+			return $this->bad_request(
+				array(
+					'message' => $result->get_error_message(),
+				) 
+			);
 		}
 
 		return $this->ok( array( 'success' => true ) );
@@ -205,9 +215,11 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		$result = $this->instance->delete_zone( $zone );
 
 		if ( is_wp_error( $result ) ) {
-			return $this->bad_request( array(
-				'message' => $result->get_error_message(),
-			) );
+			return $this->bad_request(
+				array(
+					'message' => $result->get_error_message(),
+				) 
+			);
 		}
 
 		return $this->ok( array( 'success' => true ) );
@@ -242,7 +254,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	function update_zone_posts( $request ) {
-		$zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
+		$zone_id  = $this->_get_param( $request, 'zone_id', 0, 'absint' );
 		$post_ids = $this->_get_param( $request, 'post_ids', array() );
 
 		if ( ! $this->instance->get_zone( $zone_id ) ) {
@@ -252,9 +264,11 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		$posts = array_map( 'get_post', $post_ids );
 
 		if ( count( $posts ) !== count( array_filter( $posts ) ) ) {
-			return $this->bad_request( array(
-				'message' => $this->translations[ self::INVALID_POST_ID ],
-			) );
+			return $this->bad_request(
+				array(
+					'message' => $this->translations[ self::INVALID_POST_ID ],
+				) 
+			);
 		}
 
 		$result = $this->instance->add_zone_posts( $zone_id, $posts );
@@ -275,7 +289,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	function zone_update_lock( $request ) {
 		$zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
 		if ( ! $zone_id ) {
-			return $this->_bad_request(self::ZONE_ID_REQUIRED, __('zone id required', 'zoninator'));
+			return $this->_bad_request( self::ZONE_ID_REQUIRED, __( 'zone id required', 'zoninator' ) );
 		}
 
 		$zone = $this->instance->get_zone( $zone_id );
@@ -286,18 +300,24 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		$zone_locked = $this->instance->is_zone_locked( $zone );
 		if ( $zone_locked ) {
 			$locking_user = get_userdata( $zone_locked );
-			return new WP_REST_Response( array(
-				'zone_id' => $this->instance->get_zone_id( $zone ),
-				'blocked' => true,
-			), 400);
+			return new WP_REST_Response(
+				array(
+					'zone_id' => $this->instance->get_zone_id( $zone ),
+					'blocked' => true,
+				),
+				400
+			);
 		}
 
 		$this->instance->lock_zone( $zone_id );
-		return new WP_REST_Response( array(
-			'zone_id' => $this->instance->get_zone_id( $zone ),
-			'timeout' => $this->instance->zone_lock_period,
-			'max_lock_period' => $this->instance->zone_max_lock_period,
-		), 200 );
+		return new WP_REST_Response(
+			array(
+				'zone_id'         => $this->instance->get_zone_id( $zone ),
+				'timeout'         => $this->instance->zone_lock_period,
+				'max_lock_period' => $this->instance->zone_max_lock_period,
+			),
+			200 
+		);
 	}
 
 	/**
@@ -347,7 +367,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	}
 
 	public function is_numeric_array( $items ) {
-		return count( $items ) === count( array_filter( $items, 'is_numeric') );
+		return count( $items ) === count( array_filter( $items, 'is_numeric' ) );
 	}
 
 	public function sanitize_string( $item ) {
@@ -357,8 +377,8 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	/**
 	 * @param WP_REST_Request $object
 	 * @param $var
-	 * @param string $default
-	 * @param string $sanitize_callback
+	 * @param string          $default
+	 * @param string          $sanitize_callback
 	 * @return array|mixed|null|string
 	 */
 	private function _get_param( $object, $var, $default = '', $sanitize_callback = '' ) {
@@ -374,44 +394,44 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 
 	public function _params_for_create_zone() {
 		return array(
-			'name' => array(
-				'type' => 'string',
+			'name'        => array(
+				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_string' ),
-				'default' => '',
-				'required' => false
+				'default'           => '',
+				'required'          => false,
 			),
-			'slug' => array(
-				'type' => 'string',
+			'slug'        => array(
+				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_string' ),
-				'default' => '',
-				'required' => false,
+				'default'           => '',
+				'required'          => false,
 			),
 			'description' => array(
-				'type' => 'string',
+				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_string' ),
-				'default' => '',
-				'required' => false,
-			)
+				'default'           => '',
+				'required'          => false,
+			),
 		);
 	}
 
 	public function _params_for_update_zone() {
 		return array(
-			'name' => array(
-				'type' => 'string',
+			'name'        => array(
+				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_string' ),
-				'required' => false
+				'required'          => false,
 			),
-			'slug' => array(
-				'type' => 'string',
+			'slug'        => array(
+				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_string' ),
-				'required' => false,
+				'required'          => false,
 			),
 			'description' => array(
-				'type' => 'string',
+				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_string' ),
-				'required' => false,
-			)
+				'required'          => false,
+			),
 		);
 	}
 
@@ -421,35 +441,38 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 				'type'              => 'integer',
 				'validate_callback' => array( $this, 'is_numeric' ),
 				'sanitize_callback' => 'absint',
-				'required'          => true
-			)
+				'required'          => true,
+			),
 		);
 	}
 
 	public function _get_zone_post_rest_route_params() {
 		$zone_params = $this->_get_zone_id_param();
-		return array_merge( array(
-			'post_ids' => array(
-				'type'              => 'array',
-				'validate_callback' => array( $this, 'is_numeric_array' ),
-				'required'          => true,
-				'items'				=> array( 'type' => 'integer' ),
+		return array_merge(
+			array(
+				'post_ids' => array(
+					'type'              => 'array',
+					'validate_callback' => array( $this, 'is_numeric_array' ),
+					'required'          => true,
+					'items'             => array( 'type' => 'integer' ),
+				),
 			),
-		), $zone_params );
+			$zone_params 
+		);
 	}
 
 	public function _filter_zone_properties( $zone ) {
 		$data = $zone->to_array();
 
 		return array(
-			'term_id'		=> $data[ 'term_id' ],
-			'slug'			=> $data[ 'slug' ],
-			'name'			=> $data[ 'name' ],
-			'description'	=> $data[ 'description' ],
+			'term_id'     => $data['term_id'],
+			'slug'        => $data['slug'],
+			'name'        => $data['name'],
+			'description' => $data['description'],
 		);
 	}
 
-	private function _bad_request($code, $message) {
+	private function _bad_request( $code, $message ) {
 		return new WP_Error( $code, $message, array( 'status' => 400 ) );
 	}
 
@@ -457,9 +480,9 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 * @param $zone_id
 	 * @return bool|WP_Error
 	 */
-	private function _permissions_check($action, $zone_id = null ) {
+	private function _permissions_check( $action, $zone_id = null ) {
 		if ( ! $this->instance->check( $action, $zone_id ) ) {
-			return new WP_Error( self::PERMISSION_DENIED, __('Sorry, you\'re not supposed to do that...', 'zoninator' ) );
+			return new WP_Error( self::PERMISSION_DENIED, __( 'Sorry, you\'re not supposed to do that...', 'zoninator' ) );
 		}
 		return true;
 	}

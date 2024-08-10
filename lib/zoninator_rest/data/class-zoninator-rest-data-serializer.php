@@ -33,7 +33,7 @@ class Zoninator_REST_Data_Serializer {
 	 * Deserialize
 	 *
 	 * @param Zoninator_REST_Field_Declaration $field_declaration Declaration.
-	 * @param mixed                $value Value.
+	 * @param mixed                            $value Value.
 	 * @return mixed the deserialized value
 	 */
 	function deserialize( $field_declaration, $value ) {
@@ -45,7 +45,7 @@ class Zoninator_REST_Data_Serializer {
 	 * Serialize
 	 *
 	 * @param  Zoninator_REST_Field_Declaration $field_declaration Declaration.
-	 * @param mixed                $value Value.
+	 * @param mixed                            $value Value.
 	 * @return mixed
 	 * @throws Zoninator_REST_Exception If call fails.
 	 */

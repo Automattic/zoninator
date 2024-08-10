@@ -47,7 +47,7 @@ class Zoninator_REST_Controller_Bundle implements Zoninator_REST_Interfaces_Cont
 	 * @param array  $endpoints Builders.
 	 */
 	function __construct( $bundle_prefix, $endpoints ) {
-		$this->prefix = $bundle_prefix;
+		$this->prefix    = $bundle_prefix;
 		$this->endpoints = $endpoints;
 	}
 
@@ -96,4 +96,3 @@ class Zoninator_REST_Controller_Bundle implements Zoninator_REST_Interfaces_Cont
 		return $this->prefix;
 	}
 }
-
