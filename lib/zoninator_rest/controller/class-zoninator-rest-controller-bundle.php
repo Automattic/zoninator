@@ -78,8 +78,6 @@ class Zoninator_REST_Controller_Bundle implements Zoninator_REST_Interfaces_Cont
 		foreach ( $endpoints as $endpoint ) {
 			/**
 			 * Controller
-			 *
-			 * @var Zoninator_REST_Interfaces_Controller
 			 */
 			$endpoint->register( $this, $this->environment );
 		}

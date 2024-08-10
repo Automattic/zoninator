@@ -186,8 +186,6 @@ class Zoninator_REST_Environment {
 			foreach ( $rest_apis as $bundle ) {
 				/**
 				 * Register this bundle
-				 *
-				 * @var Zoninator_REST_Interfaces_Controller_Bundle
 				 */
 				$bundle->register( $this );
 			}
