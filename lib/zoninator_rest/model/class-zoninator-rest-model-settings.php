@@ -87,7 +87,7 @@ class Zoninator_REST_Model_Settings extends Zoninator_REST_Model {
 	 * @return bool
 	 */
 	public function bit_to_bool( $value ) {
-		return ( ! empty( $value ) && '0' !== $value ) ? true : false;
+		return ! empty( $value ) && '0' !== $value;
 	}
 
 	/**
