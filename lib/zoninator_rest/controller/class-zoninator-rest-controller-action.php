@@ -136,14 +136,12 @@ class Zoninator_REST_Controller_Action {
 			$args = $this->controller->get_endpoint_args_for_item_schema( $this->actions_to_http_methods[ $this->action_name ] );
 		}
 
-		$result = array(
+		return array(
 			'methods'             => $this->actions_to_http_methods[ $this->action_name ],
 			'callback'            => $callable_func,
 			'permission_callback' => $permission_callback,
 			'args'                => $args,
 		);
-
-		return $result;
 	}
 
 	/**

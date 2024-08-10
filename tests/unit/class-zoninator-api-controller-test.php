@@ -425,11 +425,10 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	 */
 	private function add_a_zone( $slug = 'zone-1' ) {
 		$term_factory = new WP_UnitTest_Factory_For_Term(null, Zoninator()->zone_taxonomy);
-		$zone_id = $term_factory->create_object(array(
+		return $term_factory->create_object(array(
 			'name' => 'The Zone Add Post one ' . rand_str(),
 			'description' => 'Zone ' . rand_str(),
 			'slug' => $slug,
 		));
-		return $zone_id;
 	}
 }

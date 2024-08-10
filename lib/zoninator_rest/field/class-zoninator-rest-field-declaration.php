@@ -347,8 +347,7 @@ class Zoninator_REST_Field_Declaration {
 		if ( isset( $this->description ) && ! empty( $this->description ) ) {
 			return $this->description;
 		}
-		$name = ucfirst( str_replace( '_', ' ', $this->get_name() ) );
-		return $name;
+		return ucfirst( str_replace( '_', ' ', $this->get_name() ) );
 	}
 
 	/**
