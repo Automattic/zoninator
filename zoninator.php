@@ -947,7 +947,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		}
 
 		function get_supported_post_types() {
-			if ( isset( $this->post_types ) ) {
+			if ( $this->post_types !== null ) {
 				return $this->post_types;
 			}
 

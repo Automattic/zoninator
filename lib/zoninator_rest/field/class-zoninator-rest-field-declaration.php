@@ -245,7 +245,7 @@ class Zoninator_REST_Field_Declaration {
 	 * @return mixed
 	 */
 	public function get_default_value() {
-		if ( isset( $this->default_value ) && ! empty( $this->default_value ) ) {
+		if ( $this->default_value !== null && ! empty( $this->default_value ) ) {
 			return ( is_array( $this->default_value ) && is_callable( $this->default_value ) ) ? call_user_func( $this->default_value ) : $this->default_value;
 		}
 
@@ -292,7 +292,7 @@ class Zoninator_REST_Field_Declaration {
 	 * Get Map From
 	 */
 	public function get_map_from() {
-		if ( isset( $this->map_from ) && ! empty( $this->map_from ) ) {
+		if ( $this->map_from !== null && ! empty( $this->map_from ) ) {
 			return $this->map_from;
 		}
 
@@ -341,7 +341,7 @@ class Zoninator_REST_Field_Declaration {
 	 * @return string
 	 */
 	public function get_description() {
-		if ( isset( $this->description ) && ! empty( $this->description ) ) {
+		if ( $this->description !== null && ! empty( $this->description ) ) {
 			return $this->description;
 		}
 		return ucfirst( str_replace( '_', ' ', $this->get_name() ) );
