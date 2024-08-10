@@ -289,10 +289,8 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			$zones = $this->get_zones( apply_filters( 'zoninator_admin_page_get_zones_args', array() ) );
 
 			$default_active_zone = 0;
-			if ( ! $this->_current_user_can_add_zones() ) {
-				if ( ! empty( $zones ) ) {
-					$default_active_zone = $zones[0]->term_id;
-				}
+			if ( ! $this->_current_user_can_add_zones() && ! empty( $zones ) ) {
+				$default_active_zone = $zones[0]->term_id;
 			}
 
 			$active_zone_id = $this->_get_request_var( 'zone_id', $default_active_zone, 'absint' );
