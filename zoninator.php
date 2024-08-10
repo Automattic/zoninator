@@ -295,7 +295,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			}
 
 			$active_zone_id = $this->_get_request_var( 'zone_id', $default_active_zone, 'absint' );
-			$active_zone    = ! empty( $active_zone_id ) ? $this->get_zone( $active_zone_id ) : array();
+			$active_zone    = empty( $active_zone_id ) ? array() : $this->get_zone( $active_zone_id );
 			if ( ! empty( $active_zone ) ) {
 				$title = __( 'Edit Zone', 'zoninator' );
 			}
@@ -748,7 +748,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		}
 
 		function ajax_return( $status, $content = '', $action = '' ) {
-			$action = ! empty( $action ) ? $action : $this->zone_ajax_nonce_action;
+			$action = empty( $action ) ? $this->zone_ajax_nonce_action : $action;
 			$nonce  = wp_create_nonce( $this->_get_nonce_key( $action ) );
 
 			echo json_encode(
@@ -915,7 +915,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 					$stripped_posts[] = apply_filters(
 						'zoninator_search_results_post',
 						array(
-							'title'       => ! empty( $post->post_title ) ? $post->post_title : __( '(no title)', 'zoninator' ),
+							'title'       => empty( $post->post_title ) ? __( '(no title)', 'zoninator' ) : $post->post_title,
 							'post_id'     => $post->ID,
 							'date'        => get_the_time( get_option( 'date_format' ), $post ),
 							'post_type'   => $post->post_type,
@@ -1001,7 +1001,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			}
 
 			$slug = $this->get_formatted_zone_slug( $slug );
-			$name = ! empty( $name ) ? $name : $slug;
+			$name = empty( $name ) ? $slug : $name;
 
 			$details = wp_parse_args( $details, $this->zone_detail_defaults );
 			$details = maybe_serialize( stripslashes_deep( $details ) );
@@ -1675,9 +1675,9 @@ if ( ! class_exists( 'Zoninator' ) ) :
 
 		function _get_value_or_default( $var, $object, $default = '', $sanitize_callback = '' ) {
 			if ( is_object( $object ) ) {
-				$value = ! empty( $object->$var ) ? $object->$var : $default;
+				$value = empty( $object->$var ) ? $default : $object->$var;
 			} elseif ( is_array( $object ) ) {
-				$value = ! empty( $object[ $var ] ) ? $object[ $var ] : $default;
+				$value = empty( $object[ $var ] ) ? $default : $object[ $var ];
 			} else {
 				$value = $default;
 			}
