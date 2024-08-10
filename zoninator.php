@@ -1381,12 +1381,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 
 		function zone_exists( $zone ) {
 			$zone_id = $this->get_zone_id( $zone );
-
-			if ( term_exists( $zone_id, $this->zone_taxonomy ) ) {
-				return true;
-			}
-
-			return false;
+			return (bool) term_exists( $zone_id, $this->zone_taxonomy );
 		}
 
 		function get_zone_id( $zone ) {
