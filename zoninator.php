@@ -687,7 +687,7 @@ class Zoninator
 	function zone_admin_search_form() {
 		?>
 		<div class="zone-search-wrapper">
-			<label for="zone-post-search"><?php esc_html_e( 'Search for content', 'zoninator' );?></label>
+			<label for="zone-post-search"><?php esc_html_e( 'Search for content / Search by post ID For Fast search', 'zoninator' );?></label>
 			<input type="text" id="zone-post-search" name="search" />
 			<p class="description"><?php esc_html_e( 'Enter a term or phrase in the text box above to search for and add content to this zone.', 'zoninator' ); ?></p>
 		</div>
@@ -832,6 +832,17 @@ class Zoninator
 				$limit = $this->posts_per_page;
 			$exclude = (array) $this->_get_request_var( 'exclude', array(), 'absint' );
 
+			if ( is_numeric( $q ) ) {
+				$story_id         = intval( $q );
+				$title            = ! empty( $story_id ) && ! empty( get_the_title( $story_id ) ) ? get_the_title( $story_id ) : '';
+				$stripped_posts[] = array(
+					'post_id'     => $story_id,
+					'title'       => ! empty( $title ) ? $title : __( '(no title)', 'zoninator' ),
+					'date'        => get_the_time( get_option( 'date_format' ), $story_id ),
+					'post_type'   => 'post',
+					'post_status' => 'publish',
+				);
+			} else {
 			$args = apply_filters( 'zoninator_search_args', array(
 				's' => $q,
 				'post__not_in' => $exclude,
@@ -865,14 +876,14 @@ class Zoninator
 
 			foreach( $query->posts as $post ) {
 				$stripped_posts[] = apply_filters( 'zoninator_search_results_post', array(
-					'title' => ! empty( $post->post_title ) ? $post->post_title : __( '(no title)', 'zoninator' ),
+					'title' => ! empty( $post->ID ) ? get_the_title( $post->ID ) : __( '(no title)', 'zoninator' ),
 					'post_id' => $post->ID,
 					'date' => get_the_time( get_option( 'date_format' ), $post ),
 					'post_type' => $post->post_type,
 					'post_status' => $post->post_status,
 				), $post );
 			}
-
+		}
 			echo json_encode( $stripped_posts );
 			exit;
 		}
