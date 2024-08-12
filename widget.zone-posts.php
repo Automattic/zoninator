@@ -57,17 +57,15 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 
 		<?php if ( ! empty( $zone->description ) && $show_description ) : ?>
 			<p class="description"><?php echo esc_html( $zone->description ); ?></p>
-		<?php endif; ?>
+		<?php endif;
 
-		<ul>
-			<?php foreach ( $posts as $post ) : ?>
-				<li>
-					<a href="<?php echo esc_url( get_permalink( $post->ID ) ); ?>">
-						<?php echo esc_html( get_the_title( $post->ID ) ); ?>
-					</a>
-				</li>
-			<?php endforeach; ?>
-		</ul>
+        $html = apply_filters( 'widget_zone_posts_override_html', false, $posts );
+        if ( $html !== false ) {
+            echo $html;
+        } else {
+            $this->widget_posts( $posts );
+        }
+        ?>
 
 		<?php echo wp_kses_post( $args['after_widget'] ); ?>
 		<?php
@@ -80,6 +78,21 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		}
 		wp_cache_set( 'widget-zone-posts', $cache, 'widget' );
 	}
+
+    // filterable function to render posts in a zone post widget
+    function widget_posts( $posts ) {
+        ?>
+        <ul>
+            <?php foreach ( $posts as $post ) : ?>
+                <li>
+                    <a href="<?php echo esc_url( get_permalink( $post->ID ) ); ?>">
+                        <?php echo esc_html( get_the_title( $post->ID ) ); ?>
+                    </a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    <?php
+    }
 
 	function update( $new_instance, $old_instance ) {
 		$instance     = $old_instance;
