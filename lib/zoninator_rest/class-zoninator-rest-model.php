@@ -282,7 +282,7 @@ class Zoninator_REST_Model implements
 		$instance = new $class_name();
 		if ( ! isset( self::$fields_by_class_name[ $class_name ] ) ) {
 			$fields                                    = $instance->declare_fields();
-			self::$fields_by_class_name[ $class_name ] = self::initialize_field_map( $fields );
+			self::$fields_by_class_name[ $class_name ] = $this->initialize_field_map( $fields );
 		}
 
 		if ( null === $filter_by_type ) {
@@ -311,7 +311,7 @@ class Zoninator_REST_Model implements
 	 *
 	 * @return array
 	 */
-	private static function initialize_field_map( $declared_field_builders ) {
+	private function initialize_field_map( $declared_field_builders ) {
 		$fields = array();
 		foreach ( $declared_field_builders as $field_builder ) {
 			/**

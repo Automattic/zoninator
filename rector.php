@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
 use Rector\Php54\Rector\Array_\LongArrayToShortArrayRector;
+use Rector\Strict\Rector\Empty_\DisallowedEmptyRuleFixerRector;
 
 return RectorConfig::configure()
 	->withPaths(
@@ -19,9 +20,13 @@ return RectorConfig::configure()
 	->withSkip(
 		array(
 			LongArrayToShortArrayRector::class,
+			// Need a better understanding of intent in this file before switching out the use of empty().
+			DisallowedEmptyRuleFixerRector::class => array(
+				__DIR__ . '/lib/zoninator_rest/type/class-zoninator-rest-type-registry.php',
+			),
 		)
 	)
 	->withPhpSets( php74: true )
 	->withPreparedSets( deadCode: true )
-	->withCodeQualityLevel( 65 )
+	->withCodeQualityLevel( 70 )
 	->withTypeCoverageLevel( 1 );

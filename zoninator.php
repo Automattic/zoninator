@@ -1505,7 +1505,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				$zone_slug = get_query_var( $this->zone_taxonomy );
 				$results   = $this->get_zone_feed( $zone_slug );
 				if ( is_wp_error( $results ) ) {
-					self::send_user_error( $results->get_error_message() );
+					$this->send_user_error( $results->get_error_message() );
 				}
 				$this->json_return( $results );
 			}
@@ -1552,8 +1552,8 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			exit();
 		}
 
-		private static function send_user_error( $message ) {
-			self::status_header_with_message( 406, $message );
+		private function send_user_error( $message ) {
+			$this->status_header_with_message( 406, $message );
 			exit();
 		}
 
@@ -1564,7 +1564,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		 * @param int    $status
 		 * @param string $message
 		 */
-		private static function status_header_with_message( $status, $message ) {
+		private function status_header_with_message( $status, $message ) {
 			global $wp_header_to_desc;
 
 			$status                       = absint( $status );
