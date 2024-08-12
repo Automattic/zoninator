@@ -3,6 +3,7 @@
 # The deploy Action will use rsync + .distignore if the .distignore exists,
 # so it doesn't care what may or may not be ignored via .gitignore.
 
+/.git/
 /.github/
 /bin/
 /tests/
