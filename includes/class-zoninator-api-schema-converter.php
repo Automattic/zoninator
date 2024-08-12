@@ -29,7 +29,7 @@ class Zoninator_Api_Schema_Converter {
 			'properties' => (array) apply_filters( 'rest_api_schema_properties', $properties, $model_definition ),
 		);
 
-		if ( ! empty( $required ) ) {
+		if ( $required !== array() ) {
 			$schema['required'] = $required;
 		}
 

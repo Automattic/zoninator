@@ -829,7 +829,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			$this->verify_access( '', $zone_id );
 
 			// validate
-			if ( ! $zone_id || empty( $post_ids ) ) {
+			if ( ! $zone_id || $post_ids === array() ) {
 				$this->ajax_return( 0 );
 			}
 
@@ -1242,7 +1242,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 
 			$post = $this->get_zone_posts( $zone, $args );
 
-			if ( is_array( $post ) && ! empty( $post ) ) {
+			if ( is_array( $post ) && $post !== array() ) {
 				return array_pop( $post );
 			}
 

@@ -104,7 +104,7 @@ class Zoninator_REST_Controller_Model extends Zoninator_REST_Controller implemen
 			'properties' => (array) apply_filters( 'mixtape_rest_api_schema_properties', $properties, $this->get_model_prototype() ),
 		);
 
-		if ( ! empty( $required ) ) {
+		if ( $required !== array() ) {
 			$schema['required'] = $required;
 		}
 
