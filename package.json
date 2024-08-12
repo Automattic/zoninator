@@ -1,6 +1,6 @@
 {
 	"name": "zoninator",
-	"version": "0.9.0",
+	"version": "0.10.0",
 	"description": "Curation made easy! Create \"zones\" then add and order your content!",
 	"license": "GPL-2.0-or-later",
 	"private": true,
