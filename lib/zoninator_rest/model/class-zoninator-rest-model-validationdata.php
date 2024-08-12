@@ -45,7 +45,6 @@ class Zoninator_REST_Model_ValidationData {
 		$this->field = $field;
 	}
 
-
 	/**
 	 * Get Value
 	 *

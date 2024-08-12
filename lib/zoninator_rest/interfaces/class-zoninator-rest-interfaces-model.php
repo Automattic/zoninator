@@ -22,7 +22,6 @@ interface Zoninator_REST_Interfaces_Model {
 	 */
 	function get_id();
 
-
 	/**
 	 * Set this model's unique identifier
 	 *

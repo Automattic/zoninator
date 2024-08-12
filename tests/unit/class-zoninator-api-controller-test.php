@@ -102,7 +102,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	 * Have WP_REST_Server Dispatch an HTTP request
 	 *
 	 * @param string $endpoint The Endpoint.
-	 * @param string $method Http mehod.
+	 * @param string $method Http method.
 	 * @param array  $args Any Data/Args.
 	 * @return WP_REST_Response
 	 */
@@ -161,7 +161,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	/**
 	 * Setup
 	 */
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		/**
 		 *The global
@@ -281,7 +281,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	function test_delete_zone_responds_with_not_found_if_zone_not_exist() {
 		$this->login_as_admin();
 		$response = $this->delete( '/zoninator/v1/zones/666666' );
-		$this->assertResponseStatus( $response, 404 );				
+		$this->assertResponseStatus( $response, 404 );
 	}
 
 	/**
@@ -391,22 +391,22 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 		$this->assertResponseStatus( $response, 404 );
 	}
 
-    /**
-     * @return int|WP_Error
-     */
-    private function _insert_a_post() {
-        $insert = wp_insert_post( array(
-            'post_content' => 'Content For this post ' . rand_str(),
-            'post_title' => 'Title ' . rand_str(),
-            'post_excerpt' => 'Excerpt ' . rand_str(),
-            'post_status' => 'published',
-            'post_type' => 'post'
-        ) );
+	/**
+	 * @return int|WP_Error
+	 */
+	private function _insert_a_post() {
+		$insert = wp_insert_post( array(
+			'post_content' => 'Content For this post ' . rand_str(),
+			'post_title' => 'Title ' . rand_str(),
+			'post_excerpt' => 'Excerpt ' . rand_str(),
+			'post_status' => 'published',
+			'post_type' => 'post'
+		) );
 		if ( is_wp_error( $insert ) ) {
 			throw new Exception( 'Error' );
 		}
 		return $insert;
-    }
+	}
 
 	private function create_a_zone( $slug, $title ) {
 		$result = Zoninator()->insert_zone( $slug, $title, array( 'description' => rand_str() ) );
