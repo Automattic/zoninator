@@ -1043,7 +1043,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 
 				return wp_update_term( $zone_id, $this->zone_taxonomy, $args );
 			}
-			return new WP_Error( 'invalid-zone', __( 'Sorry, that zone doesn\'t exist.', 'zoninator' ) );
+			return new WP_Error( 'invalid-zone', __( "Sorry, that zone doesn't exist.", 'zoninator' ) );
 		}
 
 		public function delete_zone( $zone ) {
@@ -1060,13 +1060,13 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				$delete = wp_delete_term( $zone_id, $this->zone_taxonomy );
 
 				if ( ! $delete ) {
-					return new WP_Error( 'delete-zone', __( 'Sorry, we couldn\'t delete the zone.', 'zoninator' ) );
+					return new WP_Error( 'delete-zone', __( "Sorry, we couldn't delete the zone.", 'zoninator' ) );
 				} else {
 					do_action( 'zoninator_delete_zone', $zone_id );
 					return $delete;
 				}
 			}
-			return new WP_Error( 'invalid-zone', __( 'Sorry, that zone doesn\'t exist.', 'zoninator' ) );
+			return new WP_Error( 'invalid-zone', __( "Sorry, that zone doesn't exist.", 'zoninator' ) );
 		}
 
 		/**
@@ -1473,7 +1473,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		}
 
 		public function _unauthorized_access() {
-			wp_die( __( 'Sorry, you\'re not supposed to do that...', 'zoninator' ) );
+			wp_die( __( "Sorry, you're not supposed to do that...", 'zoninator' ) );
 		}
 
 		public function _fill_zone_details( $zone ) {

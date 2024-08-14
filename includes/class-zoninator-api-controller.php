@@ -482,7 +482,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 */
 	private function _permissions_check( $action, $zone_id = null ) {
 		if ( ! $this->instance->check( $action, $zone_id ) ) {
-			return new WP_Error( self::PERMISSION_DENIED, __( 'Sorry, you\'re not supposed to do that...', 'zoninator' ) );
+			return new WP_Error( self::PERMISSION_DENIED, __( "Sorry, you're not supposed to do that...", 'zoninator' ) );
 		}
 		return true;
 	}

@@ -30,7 +30,6 @@ return RectorConfig::configure()
 			),
 			MakeInheritedMethodVisibilitySameAsParentRector::class,
 			NewlineAfterStatementRector::class,
-			SymplifyQuoteEscapeRector::class,
 		)
 	)
 	->withPhpSets( php74: true )
