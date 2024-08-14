@@ -57,6 +57,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 
 		// Max number of seconds for all locks in a session.
 		public $zone_max_lock_period = 600;
+
 		public $post_types;
 
 		public $zone_detail_defaults = array(
