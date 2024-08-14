@@ -51,8 +51,10 @@ class Zoninator_REST_Type_String extends Zoninator_REST_Type {
 			foreach ( $value as $v ) {
 				$cast_ones[] = $this->cast( $v );
 			}
+
 			return '(' . implode( ',', $cast_ones ) . ')';
 		}
+
 		return (string) $value;
 	}
 }

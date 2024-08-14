@@ -89,6 +89,7 @@ class Zoninator_REST_Data_Store_Option extends Zoninator_REST_Data_Store_Abstrac
 				}
 			}
 		}
+
 		return true;
 	}
 
@@ -108,6 +109,7 @@ class Zoninator_REST_Data_Store_Option extends Zoninator_REST_Data_Store_Abstrac
 				add_option( $option_name, $option_value );
 			}
 		}
+
 		return true;
 	}
 }

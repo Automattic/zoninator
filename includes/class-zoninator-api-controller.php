@@ -7,27 +7,41 @@
  * Class Zoninator_Api_Controller
  */
 class Zoninator_Api_Controller extends Zoninator_REST_Controller {
-	public const ZONE_ITEM_URL_REGEX        = '/zones/(?P<zone_id>[\d]+)';
-	public const ZONE_ITEM_POSTS_URL_REGEX  = '/zones/(?P<zone_id>[\d]+)/posts';
+	public const ZONE_ITEM_URL_REGEX = '/zones/(?P<zone_id>[\d]+)';
+
+	public const ZONE_ITEM_POSTS_URL_REGEX = '/zones/(?P<zone_id>[\d]+)/posts';
+
 	public const ZONE_ITEM_POSTS_POST_REGEX = '/zones/(?P<zone_id>[\d]+)/posts/(?P<post_id>\d+)';
 
-	public const INVALID_ZONE_ID           = 'invalid-zone-id';
-	public const INVALID_POST_ID           = 'invalid-post-id';
-	public const ZONE_ID_POST_ID_REQUIRED  = 'zone-id-post-id-required';
+	public const INVALID_ZONE_ID = 'invalid-zone-id';
+
+	public const INVALID_POST_ID = 'invalid-post-id';
+
+	public const ZONE_ID_POST_ID_REQUIRED = 'zone-id-post-id-required';
+
 	public const ZONE_ID_POST_IDS_REQUIRED = 'zone-id-post-ids-required';
-	public const ZONE_ID_REQUIRED          = 'zone-id-required';
-	public const ZONE_FEED_ERROR           = 'zone-feed-error';
-	public const TERM_REQUIRED             = 'term-required';
-	public const PERMISSION_DENIED         = 'permission-denied';
-	public const ZONE_NOT_FOUND            = 'zone-not-found';
-	public const POST_NOT_FOUND            = 'post-not-found';
-	public const INVALID_ZONE_SETTINGS     = 'invalid-zone-settings';
+
+	public const ZONE_ID_REQUIRED = 'zone-id-required';
+
+	public const ZONE_FEED_ERROR = 'zone-feed-error';
+
+	public const TERM_REQUIRED = 'term-required';
+
+	public const PERMISSION_DENIED = 'permission-denied';
+
+	public const ZONE_NOT_FOUND = 'zone-not-found';
+
+	public const POST_NOT_FOUND = 'post-not-found';
+
+	public const INVALID_ZONE_SETTINGS = 'invalid-zone-settings';
+
 	/**
 	 * Instance
 	 *
 	 * @var Zoninator
 	 */
 	private $instance;
+
 	/**
 	 * Key Value Translation array
 	 *
@@ -484,6 +498,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		if ( ! $this->instance->check( $action, $zone_id ) ) {
 			return new WP_Error( self::PERMISSION_DENIED, __( "Sorry, you're not supposed to do that...", 'zoninator' ) );
 		}
+
 		return true;
 	}
 }

@@ -16,18 +16,21 @@ class Zoninator_REST_Controller_Extension implements Zoninator_REST_Interfaces_R
 	 * @var Zoninator_REST_Environment
 	 */
 	private $environment;
+
 	/**
 	 * Object to extend
 	 *
 	 * @var string
 	 */
 	private $object_to_extend;
+
 	/**
 	 * Model def.
 	 *
 	 * @var Zoninator_REST_Model_Definition
 	 */
 	private $model_definition;
+
 	/**
 	 * Model Definition name, This should be a valid Model definition at registration time, otherwise register will throw
 	 *
@@ -60,6 +63,7 @@ class Zoninator_REST_Controller_Extension implements Zoninator_REST_Interfaces_R
 		if ( ! $this->model_definition ) {
 			return new WP_Error( 'model-not-found' );
 		}
+
 		$fields = $this->model_definition->get_fields();
 		foreach ( $fields as $field ) {
 			$this->register_field( $field );

@@ -40,25 +40,39 @@ if ( ! class_exists( 'Zoninator' ) ) :
 
 	class Zoninator {
 
-		public $key                    = 'zoninator';
-		public $zone_taxonomy          = 'zoninator_zones';
-		public $zone_term_prefix       = 'zone-';
-		public $zone_meta_prefix       = '_zoninator_order_';
-		public $zone_nonce_prefix      = 'zone-nonce';
+		public $key = 'zoninator';
+
+		public $zone_taxonomy = 'zoninator_zones';
+
+		public $zone_term_prefix = 'zone-';
+
+		public $zone_meta_prefix = '_zoninator_order_';
+
+		public $zone_nonce_prefix = 'zone-nonce';
+
 		public $zone_ajax_nonce_action = 'ajax-action';
-		public $zone_lock_period       = 30; // number of seconds a lock is valid for
-		public $zone_max_lock_period   = 600; // max number of seconds for all locks in a session
+
+		// Number of seconds a lock is valid for.
+		public $zone_lock_period = 30;
+
+		// Max number of seconds for all locks in a session.
+		public $zone_max_lock_period = 600;
 		public $post_types;
+
 		public $zone_detail_defaults = array(
 			'description' => '',
-		// Add additional properties here!
+			// Add additional properties here!
 		);
+
 		public $zone_messages;
+
 		public $posts_per_page = 10;
+
 		/**
 		 * @var Zoninator_Api
 		 */
 		public $rest_api;
+
 		/**
 		 * @var array|string[] Default post types that support zones.
 		 */
@@ -316,20 +330,26 @@ if ( ! class_exists( 'Zoninator' ) ) :
 						<a href="<?php echo esc_url( $new_link ); ?>" class="add-new-h2 zone-button-add-new"><?php esc_html_e( 'Add New', 'zoninator' ); ?></a>
 					<?php else : ?>
 						<span class="nav-tab nav-tab-active zone-tab zone-tab-active"><?php esc_html_e( 'Add New', 'zoninator' ); ?></span>
-					<?php endif; ?>
-				<?php endif; ?>
+						<?php
+					endif;
+				endif;
+				?>
 			</h2>
 
 				<?php if ( $message ) : ?>
 				<div id="zone-message" class="updated below-h2">
 					<p><?php echo esc_html( $message ); ?></p>
 				</div>
-			<?php endif; ?>
+					<?php
+				endif;
+				?>
 				<?php if ( $error ) : ?>
 				<div id="zone-message" class="error below-h2">
 					<p><?php echo esc_html( $error ); ?></p>
 				</div>
-			<?php endif; ?>
+					<?php
+				endif;
+				?>
 
 			<div id="zoninator-wrap">
 
@@ -362,8 +382,10 @@ if ( ! class_exists( 'Zoninator' ) ) :
 								<span class="nav-tab nav-tab-active zone-tab zone-tab-active"><?php echo esc_html( $zone->name ); ?></span>
 							<?php else : ?>
 								<a href="<?php echo esc_url( $zone_link ); ?>" class="nav-tab zone-tab"><?php echo esc_html( $zone->name ); ?></a>
-							<?php endif; ?>
-						<?php endforeach; ?>
+								<?php
+							endif;
+						endforeach;
+						?>
 					</div>
 				</div>
 			</div>
@@ -397,7 +419,9 @@ if ( ! class_exists( 'Zoninator' ) ) :
 						<p><?php printf( $this->_get_message( 'error-zone-lock' ), sprintf( '<a href="mailto:%s">%s</a>', esc_attr( $locking_user->user_email ), esc_html( $locking_user->display_name ) ) ); ?></p>
 					</div>
 					<input type="hidden" id="zone-locked" name="zone-locked" value="1" />
-				<?php endif; ?>
+					<?php
+				endif;
+				?>
 				<div class="col-wrap zone-col zone-info-col">
 					<div class="form-wrap zone-form zone-info-form">
 
@@ -418,7 +442,9 @@ if ( ! class_exists( 'Zoninator' ) ) :
 									<span><?php echo esc_attr( $zone_slug ); ?></span>
 									<input type="hidden" id="zone-slug" name="slug" value="<?php echo esc_attr( $zone_slug ); ?>" />
 								</div>
-								<?php endif; ?>
+									<?php
+								endif;
+								?>
 
 								<div class="form-field zone-field">
 									<label for="zone-description"><?php esc_html_e( 'Description', 'zoninator' ); ?></label>
@@ -432,14 +458,18 @@ if ( ! class_exists( 'Zoninator' ) ) :
 									<?php wp_nonce_field( $this->_get_nonce_key( 'update' ) ); ?>
 								<?php else : ?>
 									<?php wp_nonce_field( $this->_get_nonce_key( 'insert' ) ); ?>
-								<?php endif; ?>
+									<?php
+								endif;
+								?>
 
 								<div class="submit-field submitbox">
 									<input type="submit" value="<?php esc_attr_e( 'Save zone info', 'zoninator' ); ?>" name="submit" class="button" />
 
 									<?php if ( $zone_id ) : ?>
 										<a href="<?php echo $delete_link; ?>" class="submitdelete" onclick="return confirm('<?php echo esc_js( 'Are you sure you want to delete this zone?', 'zoninator' ); ?>')"><?php esc_html_e( 'Delete', 'zoninator' ); ?></a>
-									<?php endif; ?>
+										<?php
+									endif;
+									?>
 								</div>
 
 								<input type="hidden" name="action" value="<?php echo $zone_id ? 'update' : 'insert'; ?>">
@@ -471,7 +501,9 @@ if ( ! class_exists( 'Zoninator' ) ) :
 
 								<?php do_action( 'zoninator_post_zone_readonly', $zone ); ?>
 							</div>
-						<?php endif; ?>
+							<?php
+						endif;
+						?>
 
 						<?php // Ideally, we should separate nonces for each action. But this will do for simplicity. ?>
 						<?php wp_nonce_field( $this->_get_nonce_key( $this->zone_ajax_nonce_action ), $this->_get_nonce_key( $this->zone_ajax_nonce_action ), false ); ?>
@@ -498,17 +530,22 @@ if ( ! class_exists( 'Zoninator' ) ) :
 							<div class="zone-posts-list">
 								<?php foreach ( $zone_posts as $post ) : ?>
 									<?php $this->admin_page_zone_post( $post, $zone ); ?>
-								<?php endforeach; ?>
+									<?php
+								endforeach;
+								?>
 							</div>
 
 						<?php else : ?>
 							<p class="description"><?php esc_html_e( 'To create a zone, enter a name (and optional description) and click "Save zone info". You can then choose content items to add to the zone.', 'zoninator' ); ?></p>
-						<?php endif; ?>
+							<?php
+						endif;
+						?>
 					</div>
 				</div>
-<?php endif; ?>
+				<?php
+				endif;
+			?>
 		</div>
-
 			<?php
 		}
 
@@ -531,8 +568,10 @@ if ( ! class_exists( 'Zoninator' ) ) :
 							<td class="zone-post-col zone-post-<?php echo $column_key; ?>">
 								<?php call_user_func( $column_callback, $post, $zone ); ?>
 							</td>
-						<?php endif; ?>
-					<?php endforeach; ?>
+							<?php
+						endif;
+					endforeach;
+					?>
 				</tr>
 			</table>
 			<input type="hidden" name="zone-post-id" value="<?php echo $post->ID; ?>" />
@@ -548,6 +587,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		</span>
 			<?php
 		}
+
 		public function admin_page_zone_post_col_info( $post, $zone ) {
 			$action_links = array(
 				sprintf( '<a href="%s" class="edit" target="_blank" title="%s">%s</a>', get_edit_post_link( $post->ID ), __( 'Opens in new window', 'zoninator' ), __( 'Edit', 'zoninator' ) ),
@@ -611,6 +651,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 					$output    = ( $timestamp ) ? date( 'Y-m-d', $timestamp ) : 0;
 					$label     = $date;
 				}
+
 				printf( '<option value="%s" %s>%s</option>', esc_attr( $output ), selected( $output, $current_date, false ), esc_html( $label ) );
 				endforeach;
 			?>
@@ -667,6 +708,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				foreach ( $recent_posts as $post ) :
 					$content .= sprintf( '<option value="%d">%s</option>', $post->ID, get_the_title( $post->ID ) . ' (' . $post->post_status . ')' );
 				endforeach;
+
 				wp_reset_postdata();
 				$status = 1;
 			}
@@ -716,6 +758,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				foreach ( $recent_posts as $post ) :
 					printf( '<option value="%d">%s</option>', $post->ID, esc_html( get_the_title( $post->ID ) . ' (' . $post->post_status . ')' ) );
 					endforeach;
+
 				wp_reset_postdata();
 				?>
 			</select>
@@ -875,6 +918,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				if ( $limit <= 0 ) {
 					$limit = $this->posts_per_page;
 				}
+
 				$exclude = (array) $this->_get_request_var( 'exclude', array(), 'absint' );
 
 				$args = apply_filters(
@@ -1043,6 +1087,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 
 				return wp_update_term( $zone_id, $this->zone_taxonomy, $args );
 			}
+
 			return new WP_Error( 'invalid-zone', __( "Sorry, that zone doesn't exist.", 'zoninator' ) );
 		}
 
@@ -1066,6 +1111,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 					return $delete;
 				}
 			}
+
 			return new WP_Error( 'invalid-zone', __( "Sorry, that zone doesn't exist.", 'zoninator' ) );
 		}
 
@@ -1096,6 +1142,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 					++$order;
 					update_metadata( 'post', $post_id, $meta_key, $order, true );
 				}
+
 				// TODO: remove_object_terms -- but need remove object terms function :(
 			}
 
@@ -1414,6 +1461,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		public function get_formatted_zone_slug( $slug ) {
 			return $slug; // legacy function -- slugs can no longer be changed
 		}
+
 		public function get_unformatted_zone_slug( $slug ) {
 			return $slug; // legacy function -- slugs can no longer be changed
 		}
@@ -1507,6 +1555,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				if ( is_wp_error( $results ) ) {
 					$this->send_user_error( $results->get_error_message() );
 				}
+
 				$this->json_return( $results );
 			}
 		}
@@ -1524,12 +1573,15 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				if ( ! isset( $filtered_results[ $i ] ) ) {
 					$filtered_results[ $i ] = new stdClass();
 				}
+
 				foreach ( $whitelisted_fields as $field ) {
 					if ( ! isset( $filtered_results[ $i ] ) ) {
 						$filtered_results[ $i ] = new stdClass();
 					}
+
 					$filtered_results[ $i ]->$field = $result->$field;
 				}
+
 				++$i;
 			}
 
@@ -1696,6 +1748,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		public function _get_get_var( $var, $default = '', $sanitize_callback = '' ) {
 			return $this->_get_value_or_default( $var, $_GET, $default, $sanitize_callback );
 		}
+
 		public function _get_post_var( $var, $default = '', $sanitize_callback = '' ) {
 			return $this->_get_value_or_default( $var, $_POST, $default, $sanitize_callback );
 		}
@@ -1793,6 +1846,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		if ( ! isset( $zoninator ) || null === $zoninator ) {
 			$zoninator = new Zoninator();
 		}
+
 		return $zoninator;
 	}
 

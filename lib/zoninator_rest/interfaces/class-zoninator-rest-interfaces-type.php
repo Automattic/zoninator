@@ -21,16 +21,19 @@ interface Zoninator_REST_Interfaces_Type {
 	 * @return mixed
 	 */
 	public function cast( $value );
+
 	/**
 	 * The default value
 	 */
 	public function default_value();
+
 	/**
 	 * The type's name
 	 *
 	 * @return string
 	 */
 	public function name();
+
 	/**
 	 * Sanitize this value
 	 *
@@ -39,6 +42,7 @@ interface Zoninator_REST_Interfaces_Type {
 	 * @return mixed
 	 */
 	public function sanitize( $value );
+
 	/**
 	 * Get this type's JSON Schema.
 	 *

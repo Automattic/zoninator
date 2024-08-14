@@ -75,6 +75,7 @@ class Zoninator_REST_Bootstrap {
 			$base_dir     = self::get_base_dir();
 			$class_loader = new Zoninator_REST_Classloader( $prefix, $base_dir );
 		}
+
 		return new self( $class_loader );
 	}
 
@@ -87,6 +88,7 @@ class Zoninator_REST_Bootstrap {
 		if ( ! self::is_compatible() ) {
 			return false;
 		}
+
 		$this->load()
 			->environment()->start();
 		return true;
@@ -102,6 +104,7 @@ class Zoninator_REST_Bootstrap {
 		if ( function_exists( 'spl_autoload_register' ) ) {
 			spl_autoload_register( array( $this->class_loader(), 'load_class' ), true );
 		}
+
 		return $this;
 	}
 
@@ -188,6 +191,7 @@ class Zoninator_REST_Bootstrap {
 		if ( null === $this->environment ) {
 			$this->environment = new Zoninator_REST_Environment( $this );
 		}
+
 		return $this->environment;
 	}
 }

@@ -89,6 +89,7 @@ class Zoninator_REST_Model_Declaration implements Zoninator_REST_Interfaces_Mode
 		if ( is_callable( $method ) ) {
 			return $this->perform_call( $method, $args );
 		}
+
 		Zoninator_REST_Expect::that( method_exists( $this, $method ), $method . ' does not exist' );
 		return $this->perform_call( array( $this, $method ), $args );
 	}

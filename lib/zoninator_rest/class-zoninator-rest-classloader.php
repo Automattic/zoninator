@@ -20,13 +20,15 @@ class Zoninator_REST_Classloader implements Zoninator_REST_Interfaces_Classloade
 	 *
 	 * @var array The loaded class map.
 	 */
-	private $loaded_classes;
+	private $loaded_classes = array();
+
 	/**
 	 * The prefix to use (e.g. Mixtape)
 	 *
 	 * @var string
 	 */
 	private $prefix;
+
 	/**
 	 * The directory the loader looks for classes.
 	 *
@@ -43,9 +45,8 @@ class Zoninator_REST_Classloader implements Zoninator_REST_Interfaces_Classloade
 	 * @throws Exception Throws if an invalid directory is provided.
 	 */
 	public function __construct( $prefix, $base_dir ) {
-		$this->loaded_classes = array();
-		$this->prefix         = $prefix;
-		$this->base_dir       = $base_dir;
+		$this->prefix   = $prefix;
+		$this->base_dir = $base_dir;
 		if ( ! is_dir( $this->base_dir ) ) {
 			throw new Exception( 'base_dir does not exist: ' . $this->base_dir );
 		}

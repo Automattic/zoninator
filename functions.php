@@ -75,6 +75,7 @@ function z_get_loop_post_id_or_default( $post_id = 0 ) {
 			$post_id = $post->ID;
 		}
 	}
+
 	return $post_id;
 }
 

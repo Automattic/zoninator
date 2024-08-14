@@ -50,6 +50,7 @@ class Zoninator_REST_Type_Integer extends Zoninator_REST_Type {
 		if ( ! is_numeric( $value ) ) {
 			return $this->default_value();
 		}
+
 		return $this->unsigned ? absint( $value ) : intval( $value, 10 );
 	}
 

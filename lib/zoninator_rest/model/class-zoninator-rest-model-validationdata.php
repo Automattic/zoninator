@@ -19,12 +19,14 @@ class Zoninator_REST_Model_ValidationData {
 	 * @var mixed
 	 */
 	private $value;
+
 	/**
 	 * The model
 	 *
 	 * @var Zoninator_REST_Interfaces_Model
 	 */
 	private $model;
+
 	/**
 	 * The field
 	 *

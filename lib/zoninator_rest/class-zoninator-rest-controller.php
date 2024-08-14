@@ -13,10 +13,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Class Zoninator_REST_Controller
  */
 class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_REST_Interfaces_Controller {
-	public const HTTP_CREATED     = 201;
-	public const HTTP_OK          = 200;
+	public const HTTP_CREATED = 201;
+
+	public const HTTP_OK = 200;
+
 	public const HTTP_BAD_REQUEST = 400;
-	public const HTTP_NOT_FOUND   = 404;
+
+	public const HTTP_NOT_FOUND = 404;
 
 	/**
 	 * The bundle this belongs to.
@@ -31,6 +34,7 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 	 * @var string
 	 */
 	protected $base;
+
 	/**
 	 * Our Handlers
 	 *

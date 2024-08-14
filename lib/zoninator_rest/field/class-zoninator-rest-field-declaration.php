@@ -29,78 +29,91 @@ class Zoninator_REST_Field_Declaration {
 	 * possible to update their values from callables
 	 */
 	public const DERIVED = 'derived';
+
 	/**
 	 * Map From
 	 *
 	 * @var null|string
 	 */
 	private $map_from;
+
 	/**
 	 * The field kind
 	 *
 	 * @var string
 	 */
 	private $kind;
+
 	/**
 	 * Field name
 	 *
 	 * @var string
 	 */
 	private $name;
+
 	/**
 	 * Is this a primary field?
 	 *
 	 * @var bool
 	 */
 	private $primary;
+
 	/**
 	 * Is this a required field?
 	 *
 	 * @var bool
 	 */
 	private $required;
+
 	/**
 	 * Outputs
 	 *
 	 * @var array
 	 */
 	private $supported_outputs;
+
 	/**
 	 * Description
 	 *
 	 * @var string
 	 */
 	private $description;
+
 	/**
 	 * Data Transfer Name
 	 *
 	 * @var null|string
 	 */
 	private $data_transfer_name;
+
 	/**
 	 * Validations
 	 *
 	 * @var null|array
 	 */
 	private $validations;
+
 	/**
 	 * Default Value
 	 *
 	 * @var null|mixed
 	 */
 	private $default_value;
+
 	/**
 	 * Field Choices
 	 *
 	 * @var null|array
 	 */
 	private $choices;
+
 	/**
 	 * Type
 	 *
 	 * @var null|Zoninator_REST_Interfaces_Type
 	 */
 	private $type;
+
 	/**
 	 * Acceptable field kinds
 	 *
@@ -111,18 +124,21 @@ class Zoninator_REST_Field_Declaration {
 		self::META,
 		self::DERIVED,
 	);
+
 	/**
 	 * A custom function to call before serialization
 	 *
 	 * @var null|callable
 	 */
 	private $serializer;
+
 	/**
 	 * A custom function to call before deserialization
 	 *
 	 * @var null|callable
 	 */
 	private $deserializer;
+
 	/**
 	 * A custom function to use for sanitizing the field value before setting it.
 	 * Used when receiving values from untrusted sources (e.g. a web form of a REST API request)
@@ -130,24 +146,28 @@ class Zoninator_REST_Field_Declaration {
 	 * @var null|callable
 	 */
 	private $sanitizer;
+
 	/**
 	 * A custom filtering callable triggered before setting the field with the value
 	 *
 	 * @var null|callable
 	 */
 	private $before_set;
+
 	/**
 	 * A custom filtering callable triggered before returning the field value
 	 *
 	 * @var null|callable
 	 */
 	private $before_get;
+
 	/**
 	 * Used by derived fields: The function to use to get the field value
 	 *
 	 * @var null|callable
 	 */
 	private $reader;
+
 	/**
 	 * Used by derived fields: The function to use to update the field value
 	 *
@@ -165,6 +185,7 @@ class Zoninator_REST_Field_Declaration {
 		if ( ! isset( $args['name'] ) || empty( $args['name'] ) || ! is_string( $args['name'] ) ) {
 			throw new Zoninator_REST_Exception( 'every field declaration should have a (non-empty) name string' );
 		}
+
 		if ( ! isset( $args['kind'] ) || ! in_array( $args['kind'], $this->field_kinds, true ) ) {
 			throw new Zoninator_REST_Exception( 'every field should have a kind (one of ' . implode( ',', $this->field_kinds ) . ')' );
 		}
@@ -236,6 +257,7 @@ class Zoninator_REST_Field_Declaration {
 		if ( ! in_array( $kind, $this->field_kinds, true ) ) {
 			return false;
 		}
+
 		return $this->kind === $kind;
 	}
 
@@ -285,6 +307,7 @@ class Zoninator_REST_Field_Declaration {
 		if ( $this->get_choices() ) {
 			$schema['enum'] = (array) $this->get_choices();
 		}
+
 		return $schema;
 	}
 
@@ -344,6 +367,7 @@ class Zoninator_REST_Field_Declaration {
 		if ( $this->description !== null && ! empty( $this->description ) ) {
 			return $this->description;
 		}
+
 		return ucfirst( str_replace( '_', ' ', $this->get_name() ) );
 	}
 

@@ -97,6 +97,7 @@ class Zoninator_REST_Controller_Model extends Zoninator_REST_Controller implemen
 				$required[] = $field_declaration->get_data_transfer_name();
 			}
 		}
+
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/schema#',
 			'title'      => $model_definition->get_name(),
@@ -143,6 +144,7 @@ class Zoninator_REST_Controller_Model extends Zoninator_REST_Controller implemen
 			foreach ( $entity->get_items() as $model ) {
 				$results[] = $this->model_to_dto( $model );
 			}
+
 			return $results;
 		}
 

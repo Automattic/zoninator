@@ -20,12 +20,14 @@ class Zoninator_REST_Controller_Bundle_Builder implements Zoninator_REST_Interfa
 	 * @var string
 	 */
 	private $bundle_prefix;
+
 	/**
 	 * Endpoint Builders.
 	 *
 	 * @var array
 	 */
 	private $endpoint_builders = array();
+
 	/**
 	 * Bundle.
 	 *
@@ -51,6 +53,7 @@ class Zoninator_REST_Controller_Bundle_Builder implements Zoninator_REST_Interfa
 		if ( is_a( $this->bundle, 'Zoninator_REST_Interfaces_Controller_Bundle' ) ) {
 			return $this->bundle;
 		}
+
 		return new Zoninator_REST_Controller_Bundle( $this->bundle_prefix, $this->endpoint_builders );
 	}
 

@@ -74,6 +74,7 @@ class Zoninator_REST_Model implements
 			unset( $args['deserialize'] );
 			$data = $this->deserialize( $data );
 		}
+
 		$this->raw_data = $data;
 		$data_keys      = array_keys( $data );
 
@@ -121,11 +122,13 @@ class Zoninator_REST_Model implements
 		if ( isset( $args['deserializing'] ) && $args['deserializing'] ) {
 			$value = $this->deserialize_field( $field_declaration, $value );
 		}
+
 		if ( null !== $field_declaration->before_set() ) {
 			$val = $this->call( $field_declaration->before_set(), array( $value, $field_declaration->get_name() ) );
 		} else {
 			$val = $field_declaration->cast_value( $value );
 		}
+
 		$this->data[ $field_declaration->get_name() ] = $val;
 		return $this;
 	}
@@ -155,9 +158,11 @@ class Zoninator_REST_Model implements
 				$validation_errors[] = $is_valid->get_error_data();
 			}
 		}
+
 		if ( $validation_errors !== array() ) {
 			return $this->validation_error( $validation_errors );
 		}
+
 		return true;
 	}
 
@@ -182,8 +187,10 @@ class Zoninator_REST_Model implements
 			} else {
 				$value = $field_declaration->get_type()->sanitize( $value );
 			}
+
 			$this->set( $field_name, $value );
 		}
+
 		return $this;
 	}
 
@@ -208,6 +215,7 @@ class Zoninator_REST_Model implements
 		if ( $field_declaration->is_kind( Zoninator_REST_Field_Declaration::DERIVED ) ) {
 			return true;
 		}
+
 		$value = $this->get( $field_declaration->get_name() );
 		if ( $field_declaration->is_required() && empty( $value ) ) {
 			// translators: %s is usually a field name.
@@ -228,6 +236,7 @@ class Zoninator_REST_Model implements
 				}
 			}
 		}
+
 		return true;
 	}
 
@@ -301,6 +310,7 @@ class Zoninator_REST_Model implements
 				$filtered[] = $field_declaration;
 			}
 		}
+
 		return $filtered;
 	}
 
@@ -322,6 +332,7 @@ class Zoninator_REST_Model implements
 			$field                        = $field_builder->build();
 			$fields[ $field->get_name() ] = $field;
 		}
+
 		return $fields;
 	}
 
@@ -335,6 +346,7 @@ class Zoninator_REST_Model implements
 		if ( ! isset( self::$data_stores_by_class_name[ $class_name ] ) ) {
 			self::$data_stores_by_class_name[ $class_name ] = new Zoninator_REST_Data_Store_Nil();
 		}
+
 		return self::$data_stores_by_class_name[ $class_name ];
 	}
 
@@ -408,6 +420,7 @@ class Zoninator_REST_Model implements
 		foreach ( $mapped_data as $name => $value ) {
 			$this->set( $name, $value );
 		}
+
 		return $this->sanitize();
 	}
 
@@ -439,8 +452,10 @@ class Zoninator_REST_Model implements
 			if ( ! $field_declaration->supports_output_type( 'json' ) ) {
 				continue;
 			}
+
 			$mappings[ $field_declaration->get_data_transfer_name() ] = $field_declaration->get_name();
 		}
+
 		return $mappings;
 	}
 
@@ -478,6 +493,7 @@ class Zoninator_REST_Model implements
 			if ( $field->is_kind( Zoninator_REST_Field_Declaration::DERIVED ) ) {
 				continue;
 			}
+
 			$dto_name   = $field->get_data_transfer_name();
 			$field_name = $field->get_name();
 			if ( isset( $data[ $dto_name ] ) && ! ( $updating && $field->is_primary() ) ) {
@@ -485,6 +501,7 @@ class Zoninator_REST_Model implements
 				$request_data[ $field_name ] = $value;
 			}
 		}
+
 		return $request_data;
 	}
 
@@ -501,6 +518,7 @@ class Zoninator_REST_Model implements
 		if ( is_callable( $method ) ) {
 			return call_user_func_array( $method, $args );
 		}
+
 		Zoninator_REST_Expect::that( method_exists( $this, $method ), $method . ' does not exist' );
 		return call_user_func_array( array( $this, $method ), $args );
 	}
@@ -559,6 +577,7 @@ class Zoninator_REST_Model implements
 		foreach ( $raw_meta_data as $key => $value_arr ) {
 			$flattened_meta[ $key ] = $value_arr[0];
 		}
+
 		$merged_data = array_merge( $raw_post_data, $flattened_meta );
 
 		return self::create(
@@ -598,8 +617,10 @@ class Zoninator_REST_Model implements
 				// just provide a default.
 				$value = $declaration->get_default_value();
 			}
+
 			$raw_data[ $key ] = $declaration->cast_value( $value );
 		}
+
 		return $raw_data;
 	}
 
@@ -638,6 +659,7 @@ class Zoninator_REST_Model implements
 		if ( isset( $deserializer ) && ! empty( $deserializer ) ) {
 			return $this->call( $deserializer, array( $value ) );
 		}
+
 		return $value;
 	}
 
@@ -654,6 +676,7 @@ class Zoninator_REST_Model implements
 		if ( isset( $serializer ) && ! empty( $serializer ) ) {
 			return $this->call( $serializer, array( $value ) );
 		}
+
 		return $value;
 	}
 
@@ -670,6 +693,7 @@ class Zoninator_REST_Model implements
 			$permissions_provider = self::$permissions_providers_by_class_name[ $class_name ];
 			return call_user_func_array( array( $permissions_provider, 'permissions_check' ), array( $request, $action ) );
 		}
+
 		return true;
 	}
 

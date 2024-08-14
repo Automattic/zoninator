@@ -159,8 +159,10 @@ class Zoninator_REST_Controller_Action {
 			if ( is_string( $callable_func ) && method_exists( $this->controller, $callable_func ) ) {
 				return array( $this->controller, $callable_func );
 			}
+
 			Zoninator_REST_Expect::that( is_callable( $callable_func ), 'Callable Expected: $callable_func' );
 		}
+
 		return $callable_func;
 	}
 }

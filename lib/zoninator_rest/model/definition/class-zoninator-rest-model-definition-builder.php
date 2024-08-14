@@ -19,18 +19,21 @@ class Zoninator_REST_Model_Definition_Builder implements Zoninator_REST_Interfac
 	 * @var Zoninator_REST_Interfaces_Model_Declaration
 	 */
 	private $declaration;
+
 	/**
 	 * Data Store
 	 *
 	 * @var Zoninator_REST_Interfaces_Data_Store
 	 */
 	private $data_store;
+
 	/**
 	 * Environment
 	 *
 	 * @var Zoninator_REST_Environment
 	 */
 	private $environment;
+
 	/**
 	 * Permissions Provider
 	 *
@@ -56,11 +59,13 @@ class Zoninator_REST_Model_Definition_Builder implements Zoninator_REST_Interfac
 		if ( is_string( $declaration ) && class_exists( $declaration ) ) {
 			$declaration = new $declaration();
 		}
+
 		Zoninator_REST_Expect::is_a( $declaration, 'Zoninator_REST_Interfaces_Model_Declaration' );
 		$this->declaration = $declaration;
 		if ( is_a( $declaration, 'Zoninator_REST_Interfaces_Permissions_Provider' ) ) {
 			$this->with_permissions_provider( $declaration );
 		}
+
 		return $this;
 	}
 

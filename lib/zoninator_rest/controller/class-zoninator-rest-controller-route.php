@@ -69,6 +69,7 @@ class Zoninator_REST_Controller_Route {
 			 */
 			$result['actions'][] = $route_action->as_array();
 		}
+
 		return $result;
 	}
 }

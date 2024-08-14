@@ -27,6 +27,7 @@ class Zoninator_REST_Controller_Bundle implements Zoninator_REST_Interfaces_Cont
 	 * @var array
 	 */
 	protected $endpoints = array();
+
 	/**
 	 * Environment.
 	 *

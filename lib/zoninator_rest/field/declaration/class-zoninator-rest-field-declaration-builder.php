@@ -159,6 +159,7 @@ class Zoninator_REST_Field_Declaration_Builder {
 		if ( ! is_a( $value_type, 'Zoninator_REST_Interfaces_Type' ) ) {
 			throw new Zoninator_REST_Exception( get_class( $value_type ) . ' is not a Mixtape_Interfaces_Type' );
 		}
+
 		return $this->with( 'type', $value_type );
 	}
 
@@ -192,6 +193,7 @@ class Zoninator_REST_Field_Declaration_Builder {
 		if ( is_callable( $validations ) || ! is_array( $validations ) ) {
 			$validations = array( $validations );
 		}
+
 		return $this->with( 'validations', $validations );
 	}
 
@@ -226,6 +228,7 @@ class Zoninator_REST_Field_Declaration_Builder {
 		if ( empty( $choices ) ) {
 			return $this;
 		}
+
 		return $this->with( 'choices', is_array( $choices ) ? $choices : array( $choices ) );
 	}
 
@@ -252,6 +255,7 @@ class Zoninator_REST_Field_Declaration_Builder {
 		if ( $func ) {
 			$this->with_map_from( $func );
 		}
+
 		return $this->with_kind( Zoninator_REST_Field_Declaration::DERIVED );
 	}
 

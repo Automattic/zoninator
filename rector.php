@@ -3,12 +3,9 @@
 declare(strict_types=1);
 
 use Rector\CodingStyle\Rector\ClassMethod\MakeInheritedMethodVisibilitySameAsParentRector;
-use Rector\CodingStyle\Rector\Stmt\NewlineAfterStatementRector;
-use Rector\CodingStyle\Rector\String_\SymplifyQuoteEscapeRector;
 use Rector\Config\RectorConfig;
 use Rector\Php54\Rector\Array_\LongArrayToShortArrayRector;
 use Rector\Strict\Rector\Empty_\DisallowedEmptyRuleFixerRector;
-use Rector\Visibility\Rector\ClassMethod\ExplicitPublicClassMethodRector;
 
 return RectorConfig::configure()
 	->withPaths(
@@ -28,8 +25,10 @@ return RectorConfig::configure()
 			DisallowedEmptyRuleFixerRector::class => array(
 				__DIR__ . '/lib/zoninator_rest/type/class-zoninator-rest-type-registry.php',
 			),
+			// Child classes can legitimately relax the visibility of a method, so while this
+			// might not be desirable, changing them from public to the original parent-defined
+			// protected would count as a breaking change.
 			MakeInheritedMethodVisibilitySameAsParentRector::class,
-			NewlineAfterStatementRector::class,
 		)
 	)
 	->withPhpSets( php74: true )

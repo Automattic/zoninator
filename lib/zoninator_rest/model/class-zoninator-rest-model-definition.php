@@ -20,18 +20,21 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 	 * @var Zoninator_REST_Environment
 	 */
 	private $environment;
+
 	/**
 	 * Field Declarations
 	 *
 	 * @var array
 	 */
 	private $field_declarations;
+
 	/**
 	 * Model class
 	 *
 	 * @var string
 	 */
 	private $model_class;
+
 	/**
 	 * Data Store
 	 *
@@ -123,6 +126,7 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 		} else {
 			$this->data_store = $data_store;
 		}
+
 		// at this point we should have a data store.
 		Zoninator_REST_Expect::is_a( $this->data_store, 'Zoninator_REST_Interfaces_Data_Store' );
 
@@ -172,6 +176,7 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 				$filtered[] = $field_declaration;
 			}
 		}
+
 		return $filtered;
 	}
 
@@ -187,6 +192,7 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 		if ( is_array( $data ) ) {
 			return new Zoninator_REST_Model( $this, $data );
 		}
+
 		throw new Zoninator_REST_Exception( 'does not understand entity' );
 	}
 
@@ -206,6 +212,7 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 		foreach ( $mapped_data as $name => $value ) {
 			$model->set( $name, $value );
 		}
+
 		return $model->sanitize();
 	}
 
@@ -245,8 +252,10 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 			if ( ! $field_declaration->supports_output_type( 'json' ) ) {
 				continue;
 			}
+
 			$mappings[ $field_declaration->get_data_transfer_name() ] = $field_declaration->get_name();
 		}
+
 		return $mappings;
 	}
 
@@ -306,6 +315,7 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 			if ( $field->is_kind( Zoninator_REST_Field_Declaration::DERIVED ) ) {
 				continue;
 			}
+
 			$dto_name   = $field->get_data_transfer_name();
 			$field_name = $field->get_name();
 			if ( isset( $data[ $dto_name ] ) && ! ( $updating && $field->is_primary() ) ) {
@@ -313,6 +323,7 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 				$request_data[ $field_name ] = $value;
 			}
 		}
+
 		return $request_data;
 	}
 
@@ -334,6 +345,7 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 			$field                        = $field_builder->build();
 			$fields[ $field->get_name() ] = $field;
 		}
+
 		return $fields;
 	}
 }

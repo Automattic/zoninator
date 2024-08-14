@@ -97,6 +97,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 		foreach ( $args as $key => $value ) {
 			$request->set_param( $key, $value );
 		}
+
 		return $this->rest_server->dispatch( $request );
 	}
 
@@ -390,6 +391,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 		if ( is_wp_error( $insert ) ) {
 			throw new Exception( 'Error' );
 		}
+
 		return $insert;
 	}
 
@@ -398,6 +400,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
+
 		return $result['term_id'] ?? 0;
 	}
 

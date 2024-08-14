@@ -54,6 +54,7 @@ class Zoninator_REST_Data_Serializer {
 		if ( isset( $serializer ) && ! empty( $serializer ) ) {
 			return $this->model_declaration->call( $serializer, array( $value ) );
 		}
+
 		return $value;
 	}
 }

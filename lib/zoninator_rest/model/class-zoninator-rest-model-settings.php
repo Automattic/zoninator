@@ -67,6 +67,7 @@ class Zoninator_REST_Model_Settings extends Zoninator_REST_Model {
 				$fields[]      = $field_builder;
 			}
 		}
+
 		return $fields;
 	}
 
@@ -132,6 +133,7 @@ class Zoninator_REST_Model_Settings extends Zoninator_REST_Model {
 				// convert our default value as well.
 				$default_value = $this->bit_to_bool( $default_value );
 			}
+
 			$field_builder
 				->with_serializer( array( $this, 'bool_to_bit' ) )
 				->with_deserializer( array( $this, 'bit_to_bool' ) );
@@ -145,6 +147,7 @@ class Zoninator_REST_Model_Settings extends Zoninator_REST_Model {
 		if ( $default_value ) {
 			$field_builder->with_default( $default_value );
 		}
+
 		$field_builder
 			->with_description( $description )
 			->with_dto_name( $field_name )

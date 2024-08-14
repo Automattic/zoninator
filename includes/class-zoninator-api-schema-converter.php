@@ -22,6 +22,7 @@ class Zoninator_Api_Schema_Converter {
 				$required[] = $field_declaration->get_data_transfer_name();
 			}
 		}
+
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/schema#',
 			'title'      => $model_definition->get_name(),
@@ -64,6 +65,7 @@ class Zoninator_Api_Schema_Converter {
 
 			$result[ $field_declaration->get_data_transfer_name() ] = $arg;
 		}
+
 		return $result;
 	}
 }

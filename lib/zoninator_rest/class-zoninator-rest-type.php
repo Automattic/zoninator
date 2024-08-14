@@ -19,6 +19,7 @@ class Zoninator_REST_Type implements Zoninator_REST_Interfaces_Type {
 	 * @var string
 	 */
 	protected $identifier;
+
 	/**
 	 * Mixtape_Type constructor.
 	 *

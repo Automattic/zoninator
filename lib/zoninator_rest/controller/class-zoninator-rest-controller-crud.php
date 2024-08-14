@@ -145,10 +145,12 @@ class Zoninator_REST_Controller_CRUD extends Zoninator_REST_Controller_Model imp
 		if ( empty( $id ) ) {
 			return $this->bad_request( 'No Model ID provided' );
 		}
+
 		$model = $this->model_prototype->get_data_store()->get_entity( $id );
 		if ( null === $model ) {
 			return $this->not_found( 'Model does not exist' );
 		}
+
 		$result = $this->model_data_store->delete( $model );
 		return $this->ok( $result );
 	}
@@ -188,6 +190,7 @@ class Zoninator_REST_Controller_CRUD extends Zoninator_REST_Controller_Model imp
 				),
 			);
 		}
+
 		if ( $model->has( 'author' ) ) {
 			$result['author'] = array(
 				array(
@@ -195,6 +198,7 @@ class Zoninator_REST_Controller_CRUD extends Zoninator_REST_Controller_Model imp
 				),
 			);
 		}
+
 		return $result;
 	}
 }

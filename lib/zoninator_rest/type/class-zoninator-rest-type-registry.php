@@ -70,6 +70,7 @@ class Zoninator_REST_Type_Registry {
 				if ( empty( $item_type ) ) {
 					throw new Zoninator_REST_Exception( $type . ': invalid syntax' );
 				}
+
 				$item_type_definition = $this->definition( $item_type );
 
 				if ( 'array' === $container_type ) {
@@ -87,6 +88,7 @@ class Zoninator_REST_Type_Registry {
 		if ( ! isset( $types[ $type ] ) ) {
 			throw new Zoninator_REST_Exception();
 		}
+
 		return $types[ $type ];
 	}
 

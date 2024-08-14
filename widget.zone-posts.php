@@ -61,7 +61,9 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 
 		<?php if ( ! empty( $zone->description ) && $show_description ) : ?>
 			<p class="description"><?php echo esc_html( $zone->description ); ?></p>
-		<?php endif; ?>
+			<?php
+		endif;
+		?>
 
 		<ul>
 			<?php foreach ( $posts as $post ) : ?>
@@ -70,7 +72,9 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 						<?php echo esc_html( get_the_title( $post->ID ) ); ?>
 					</a>
 				</li>
-			<?php endforeach; ?>
+				<?php
+			endforeach;
+			?>
 		</ul>
 
 		<?php echo wp_kses_post( $args['after_widget'] ); ?>
@@ -82,6 +86,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 			// Save is blocked while the cache flush is in progress.
 			return;
 		}
+
 		wp_cache_set( 'widget-zone-posts', $cache, 'widget' );
 	}
 
@@ -141,7 +146,9 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 					<option value="<?php echo $zone->term_id; ?>" <?php selected( $zone_id, $zone->term_id ); ?>>
 						<?php echo esc_html( $zone->name ); ?>
 					</option>
-				<?php endforeach; ?>
+					<?php
+				endforeach;
+				?>
 			</select>
 		</p>
 

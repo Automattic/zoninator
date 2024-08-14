@@ -40,6 +40,7 @@ class Zoninator_REST_Type_Number extends Zoninator_REST_Type {
 		if ( ! is_numeric( $value ) ) {
 			return $this->default_value();
 		}
+
 		return floatval( $value );
 	}
 

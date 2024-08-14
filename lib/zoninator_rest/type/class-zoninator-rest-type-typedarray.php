@@ -54,6 +54,7 @@ class Zoninator_REST_Type_TypedArray extends Zoninator_REST_Type {
 		foreach ( $value as $v ) {
 			$new_value[] = $this->item_type_definition->cast( $v );
 		}
+
 		return $new_value;
 	}
 

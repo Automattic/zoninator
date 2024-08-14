@@ -19,6 +19,7 @@ class Zoninator_REST_Data_Mapper {
 	 * @var Zoninator_REST_Data_Serializer
 	 */
 	private $serializer;
+
 	/**
 	 * Definition
 	 *
@@ -64,8 +65,10 @@ class Zoninator_REST_Data_Mapper {
 			} else {
 				$value = $declaration->get_default_value();
 			}
+
 			$raw_data[ $key ] = $declaration->cast_value( $value );
 		}
+
 		return $raw_data;
 	}
 

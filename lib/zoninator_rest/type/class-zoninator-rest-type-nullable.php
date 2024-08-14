@@ -47,6 +47,7 @@ class Zoninator_REST_Type_Nullable extends Zoninator_REST_Type {
 		if ( null === $value ) {
 			return null;
 		}
+
 		return $this->item_type_definition->cast( $value );
 	}
 
@@ -60,6 +61,7 @@ class Zoninator_REST_Type_Nullable extends Zoninator_REST_Type {
 		if ( null === $value ) {
 			return null;
 		}
+
 		return $this->item_type_definition->sanitize( $value );
 	}
 

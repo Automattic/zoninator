@@ -7,6 +7,7 @@ class Zoninator_Api {
 	 * @var Zoninator
 	 */
 	private $instance;
+
 	/**
 	 * Bootstrap
 	 *

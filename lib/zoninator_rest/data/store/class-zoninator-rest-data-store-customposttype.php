@@ -50,6 +50,7 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 		foreach ( $posts as $post ) {
 			$collection[] = $this->create_from_post( $post );
 		}
+
 		return new Zoninator_REST_Model_Collection( $collection );
 	}
 
@@ -83,6 +84,7 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 		foreach ( $raw_meta_data as $key => $value_arr ) {
 			$flattened_meta[ $key ] = $value_arr[0];
 		}
+
 		$merged_data = array_merge( $raw_post_data, $flattened_meta );
 
 		return $this->get_model_prototype()->create(
@@ -126,6 +128,7 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 			do_action( 'mixtape_data_store_delete_model_fail', $model, $id );
 			return new WP_Error( 'delete-failed', 'delete-failed' );
 		}
+
 		return $result;
 	}
 
@@ -144,6 +147,7 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 		if ( ! isset( $fields['post_type'] ) ) {
 			$fields['post_type'] = $this->post_type;
 		}
+
 		if ( isset( $fields['ID'] ) && empty( $fields['ID'] ) ) {
 			// ID of 0 is not acceptable on CPTs, so remove it.
 			unset( $fields['ID'] );
@@ -156,6 +160,7 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 			do_action( 'mixtape_data_store_model_upsert_error', $model );
 			return $id_or_error;
 		}
+
 		$model->set( 'id', absint( $id_or_error ) );
 		foreach ( $meta_fields as $meta_key => $meta_value ) {
 			if ( $updating ) {

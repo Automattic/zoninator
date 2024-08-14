@@ -20,8 +20,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Zoninator_REST_Environment {
 	public const REGISTRABLE = 'IRegistrable';
-	public const BUNDLES     = 'Bundles';
-	public const MODELS      = 'Models';
+
+	public const BUNDLES = 'Bundles';
+
+	public const MODELS = 'Models';
 
 	/**
 	 * This environment's registered REST bundles
@@ -116,6 +118,7 @@ class Zoninator_REST_Environment {
 		if ( ! class_exists( $class ) ) {
 			throw new Zoninator_REST_Exception( $class . ' does not exist' );
 		}
+
 		Zoninator_REST_Expect::that( isset( $this->model_definitions[ $class ] ), $class . ' definition does not exist' );
 		return $this->model_definitions[ $class ];
 	}
@@ -189,6 +192,7 @@ class Zoninator_REST_Environment {
 				 */
 				$bundle->register( $this );
 			}
+
 			$this->has_started = true;
 			do_action( 'mt_environment_after_start', $this );
 		}
@@ -269,6 +273,7 @@ class Zoninator_REST_Environment {
 		if ( $append && ! $this->has_variable( $name ) ) {
 			$this->variables[ $name ] = array();
 		}
+
 		if ( null !== $thing ) {
 			if ( $append ) {
 				$this->variables[ $name ][] = $thing;
@@ -276,6 +281,7 @@ class Zoninator_REST_Environment {
 				$this->variables[ $name ] = $thing;
 			}
 		}
+
 		return $this;
 	}
 
@@ -359,6 +365,7 @@ class Zoninator_REST_Environment {
 			if ( is_string( $maybe_bundle_or_prefix ) ) {
 				$builder->with_prefix( $maybe_bundle_or_prefix );
 			}
+
 			$builder->with_environment( $this );
 		}
 
