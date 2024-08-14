@@ -40,6 +40,7 @@ class Zoninator_REST_Type_Boolean extends Zoninator_REST_Type {
 		if ( 'false' === $value ) {
 			return false;
 		}
+
 		return (bool) $value;
 	}
 }

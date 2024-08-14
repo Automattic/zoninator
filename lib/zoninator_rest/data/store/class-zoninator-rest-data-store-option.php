@@ -25,7 +25,7 @@ class Zoninator_REST_Data_Store_Option extends Zoninator_REST_Data_Store_Abstrac
 	 * Zoninator_REST_Data_Store_Option constructor.
 	 *
 	 * @param Zoninator_REST_Model $model_prototype Def.
-	 * @param array    $args Args.
+	 * @param array                $args Args.
 	 */
 	public function __construct( $model_prototype, $args = array() ) {
 		parent::__construct( $model_prototype, $args );
@@ -51,7 +51,7 @@ class Zoninator_REST_Data_Store_Option extends Zoninator_REST_Data_Store_Abstrac
 	 */
 	public function get_entity( $id ) {
 		$field_declarations = $this->get_model_prototype()->get_fields();
-		$raw_data = array();
+		$raw_data           = array();
 		foreach ( $field_declarations as $field_declaration ) {
 			/**
 			 * Field Declaration
@@ -64,16 +64,19 @@ class Zoninator_REST_Data_Store_Option extends Zoninator_REST_Data_Store_Abstrac
 			}
 		}
 
-		return $this->get_model_prototype()->create( $raw_data, array(
-			'deserialize' => true,
-		) );
+		return $this->get_model_prototype()->create(
+			$raw_data,
+			array(
+				'deserialize' => true,
+			) 
+		);
 	}
 
 	/**
 	 * Delete
 	 *
 	 * @param Zoninator_REST_Interfaces_Model $model Model.
-	 * @param array               $args Args.
+	 * @param array                           $args Args.
 	 * @return mixed
 	 */
 	public function delete( $model, $args = array() ) {
@@ -86,6 +89,7 @@ class Zoninator_REST_Data_Store_Option extends Zoninator_REST_Data_Store_Abstrac
 				}
 			}
 		}
+
 		return true;
 	}
 
@@ -105,6 +109,7 @@ class Zoninator_REST_Data_Store_Option extends Zoninator_REST_Data_Store_Abstrac
 				add_option( $option_name, $option_value );
 			}
 		}
+
 		return true;
 	}
 }

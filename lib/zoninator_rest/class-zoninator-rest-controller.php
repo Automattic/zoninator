@@ -13,10 +13,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Class Zoninator_REST_Controller
  */
 class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_REST_Interfaces_Controller {
-	const HTTP_CREATED     = 201;
-	const HTTP_OK          = 200;
-	const HTTP_BAD_REQUEST = 400;
-	const HTTP_NOT_FOUND   = 404;
+	public const HTTP_CREATED = 201;
+
+	public const HTTP_OK = 200;
+
+	public const HTTP_BAD_REQUEST = 400;
+
+	public const HTTP_NOT_FOUND = 404;
 
 	/**
 	 * The bundle this belongs to.
@@ -30,7 +33,8 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 	 *
 	 * @var string
 	 */
-	protected $base = null;
+	protected $base;
+
 	/**
 	 * Our Handlers
 	 *
@@ -43,7 +47,7 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 	 *
 	 * @var null|Zoninator_REST_Environment
 	 */
-	protected $environment = null;
+	protected $environment;
 
 	/**
 	 * Zoninator_REST_Rest_Api_Controller constructor.
@@ -89,7 +93,7 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 		$this->setup();
 		Zoninator_REST_Expect::that( ! empty( $this->base ), 'Need to put a string with a backslash in $base' );
 		$prefix = $this->controller_bundle->get_prefix();
-		foreach ( $this->routes as $pattern => $route ) {
+		foreach ( $this->routes as $route ) {
 			/**
 			 * The route we want to register.
 			 *
@@ -171,9 +175,12 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 	 * @return WP_REST_Response
 	 */
 	public function not_found( $message ) {
-		return $this->respond( array(
-			'message' => $message,
-		), self::HTTP_NOT_FOUND );
+		return $this->respond(
+			array(
+				'message' => $message,
+			),
+			self::HTTP_NOT_FOUND 
+		);
 	}
 
 	/**
@@ -249,7 +256,7 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 	 * @param string          $action One of (index, show, create, update, delete, any).
 	 * @return bool
 	 */
-	function permissions_check( $request, $action = 'any' ) {
+	public function permissions_check( $request, $action = 'any' ) {
 		return true;
 	}
 
@@ -259,8 +266,8 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 	 * @param string $pattern The route pattern (e.g. '/').
 	 * @return Zoninator_REST_Controller_Route
 	 */
-	function add_route( $pattern = '' ) {
-		$route = new Zoninator_REST_Controller_Route( $this, $pattern );
+	public function add_route( $pattern = '' ) {
+		$route                    = new Zoninator_REST_Controller_Route( $this, $pattern );
 		$this->routes[ $pattern ] = $route;
 		return $this->routes[ $pattern ];
 	}
@@ -279,7 +286,7 @@ class Zoninator_REST_Controller extends WP_REST_Controller implements Zoninator_
 	 *
 	 * @return string
 	 */
-	function get_base() {
+	public function get_base() {
 		return rest_url( $this->controller_bundle->get_prefix() . $this->base );
 	}
 }

@@ -19,7 +19,7 @@ class Zoninator_REST_Controller_Bundle implements Zoninator_REST_Interfaces_Cont
 	 *
 	 * @var string|null
 	 */
-	protected $prefix = null;
+	protected $prefix;
 
 	/**
 	 * Collection of Mixtape_Rest_Api_Controller subclasses
@@ -27,12 +27,7 @@ class Zoninator_REST_Controller_Bundle implements Zoninator_REST_Interfaces_Cont
 	 * @var array
 	 */
 	protected $endpoints = array();
-	/**
-	 * Our Endpoint Builders
-	 *
-	 * @var array
-	 */
-	private $endpoint_builders;
+
 	/**
 	 * Environment.
 	 *
@@ -46,8 +41,8 @@ class Zoninator_REST_Controller_Bundle implements Zoninator_REST_Interfaces_Cont
 	 * @param string $bundle_prefix Prefix.
 	 * @param array  $endpoints Builders.
 	 */
-	function __construct( $bundle_prefix, $endpoints ) {
-		$this->prefix = $bundle_prefix;
+	public function __construct( $bundle_prefix, $endpoints ) {
+		$this->prefix    = $bundle_prefix;
 		$this->endpoints = $endpoints;
 	}
 
@@ -58,7 +53,7 @@ class Zoninator_REST_Controller_Bundle implements Zoninator_REST_Interfaces_Cont
 	 * @return Zoninator_REST_Controller_Bundle $this
 	 * @throws Zoninator_REST_Exception When no prefix is defined.
 	 */
-	function register( $environment ) {
+	public function register( $environment ) {
 		Zoninator_REST_Expect::that( null !== $this->prefix, 'prefix should be defined' );
 		$this->environment = $environment;
 		/**
@@ -78,8 +73,6 @@ class Zoninator_REST_Controller_Bundle implements Zoninator_REST_Interfaces_Cont
 		foreach ( $endpoints as $endpoint ) {
 			/**
 			 * Controller
-			 *
-			 * @var Zoninator_REST_Interfaces_Controller
 			 */
 			$endpoint->register( $this, $this->environment );
 		}
@@ -92,8 +85,7 @@ class Zoninator_REST_Controller_Bundle implements Zoninator_REST_Interfaces_Cont
 	 *
 	 * @return string
 	 */
-	function get_prefix() {
+	public function get_prefix() {
 		return $this->prefix;
 	}
 }
-

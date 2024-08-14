@@ -25,15 +25,13 @@ class Zoninator_REST_Type_Nullable extends Zoninator_REST_Type {
 	 *
 	 * @param Zoninator_REST_Interfaces_Type $item_type_definition Def.
 	 */
-	function __construct( $item_type_definition ) {
+	public function __construct( $item_type_definition ) {
 		parent::__construct( 'nullable:' . $item_type_definition->name() );
 		$this->item_type_definition = $item_type_definition;
 	}
 
 	/**
 	 * Default value as always null.
-	 *
-	 * @return null
 	 */
 	public function default_value() {
 		return null;
@@ -49,6 +47,7 @@ class Zoninator_REST_Type_Nullable extends Zoninator_REST_Type {
 		if ( null === $value ) {
 			return null;
 		}
+
 		return $this->item_type_definition->cast( $value );
 	}
 
@@ -62,14 +61,15 @@ class Zoninator_REST_Type_Nullable extends Zoninator_REST_Type {
 		if ( null === $value ) {
 			return null;
 		}
+
 		return $this->item_type_definition->sanitize( $value );
 	}
 
 	/**
 	 * Schema
 	 */
-	function schema() {
-		$schema = parent::schema();
+	public function schema() {
+		$schema         = parent::schema();
 		$schema['type'] = array_unique( array_merge( $schema['type'], array( 'null' ) ) );
 	}
 }

@@ -18,21 +18,21 @@ if ( ! defined( 'ABSPATH' ) ) {
  * This is the entry point for.
  */
 class Zoninator_REST_Bootstrap {
-	const MINIMUM_PHP_VERSION = '5.2.0';
+	public const MINIMUM_PHP_VERSION = '5.2.0';
 
 	/**
 	 * The Environment we will use
 	 *
 	 * @var null|object the Environment implementation.
 	 */
-	private $environment = null;
+	private $environment;
 
 	/**
 	 * The class loader we will use
 	 *
 	 * @var null|Zoninator_REST_Classloader
 	 */
-	private $class_loader = null;
+	private $class_loader;
 
 	/**
 	 * Construct a new Bootstrap
@@ -58,7 +58,7 @@ class Zoninator_REST_Bootstrap {
 	 * @return string
 	 */
 	public static function get_base_dir() {
-		return untrailingslashit( dirname( __FILE__ ) );
+		return untrailingslashit( __DIR__ );
 	}
 
 	/**
@@ -69,12 +69,13 @@ class Zoninator_REST_Bootstrap {
 	 */
 	public static function create( $class_loader = null ) {
 		if ( empty( $class_loader ) ) {
-			include_once( 'interfaces/class-zoninator-rest-interfaces-classloader.php' );
-			include_once( 'class-zoninator-rest-classloader.php' );
-			$prefix = str_replace( '_Bootstrap', '', __CLASS__ );
-			$base_dir = self::get_base_dir();
+			include_once __DIR__ . '/interfaces/class-zoninator-rest-interfaces-classloader.php';
+			include_once __DIR__ . '/class-zoninator-rest-classloader.php';
+			$prefix       = str_replace( '_Bootstrap', '', self::class );
+			$base_dir     = self::get_base_dir();
 			$class_loader = new Zoninator_REST_Classloader( $prefix, $base_dir );
 		}
+
 		return new self( $class_loader );
 	}
 
@@ -87,6 +88,7 @@ class Zoninator_REST_Bootstrap {
 		if ( ! self::is_compatible() ) {
 			return false;
 		}
+
 		$this->load()
 			->environment()->start();
 		return true;
@@ -98,10 +100,11 @@ class Zoninator_REST_Bootstrap {
 	 *
 	 * @return Zoninator_REST_Bootstrap $this
 	 */
-	function register_autoload() {
+	public function register_autoload() {
 		if ( function_exists( 'spl_autoload_register' ) ) {
 			spl_autoload_register( array( $this->class_loader(), 'load_class' ), true );
 		}
+
 		return $this;
 	}
 
@@ -111,7 +114,7 @@ class Zoninator_REST_Bootstrap {
 	 * @return Zoninator_REST_Bootstrap $this
 	 * @throws Exception In case a class/file is not found.
 	 */
-	function load() {
+	public function load() {
 		$this->class_loader()
 			->load_class( 'Interfaces_Data_Store' )
 			->load_class( 'Interfaces_Registrable' )
@@ -162,7 +165,7 @@ class Zoninator_REST_Bootstrap {
 	 *
 	 * @return Zoninator_REST_Bootstrap $this
 	 */
-	function load_testing_classes() {
+	public function load_testing_classes() {
 		$this->class_loader()
 			->load_class( 'Testing_TestCase' )
 			->load_class( 'Testing_Model_TestCase' )
@@ -175,7 +178,7 @@ class Zoninator_REST_Bootstrap {
 	 *
 	 * @return Zoninator_REST_Classloader
 	 */
-	function class_loader() {
+	public function class_loader() {
 		return $this->class_loader;
 	}
 
@@ -188,6 +191,7 @@ class Zoninator_REST_Bootstrap {
 		if ( null === $this->environment ) {
 			$this->environment = new Zoninator_REST_Environment( $this );
 		}
+
 		return $this->environment;
 	}
 }

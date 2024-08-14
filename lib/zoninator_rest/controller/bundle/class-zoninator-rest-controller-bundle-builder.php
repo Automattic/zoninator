@@ -20,31 +20,27 @@ class Zoninator_REST_Controller_Bundle_Builder implements Zoninator_REST_Interfa
 	 * @var string
 	 */
 	private $bundle_prefix;
-	/**
-	 * Env.
-	 *
-	 * @var Zoninator_REST_Environment
-	 */
-	private $environment;
+
 	/**
 	 * Endpoint Builders.
 	 *
 	 * @var array
 	 */
 	private $endpoint_builders = array();
+
 	/**
 	 * Bundle.
 	 *
 	 * @var Zoninator_REST_Controller_Bundle|null
 	 */
-	private $bundle = null;
+	private $bundle;
 
 	/**
 	 * Zoninator_REST_Controller_Bundle_Builder constructor.
 	 *
 	 * @param Zoninator_REST_Interfaces_Controller_Bundle|null $bundle Bundle.
 	 */
-	function __construct( $bundle = null ) {
+	public function __construct( $bundle = null ) {
 		$this->bundle = $bundle;
 	}
 
@@ -57,6 +53,7 @@ class Zoninator_REST_Controller_Bundle_Builder implements Zoninator_REST_Interfa
 		if ( is_a( $this->bundle, 'Zoninator_REST_Interfaces_Controller_Bundle' ) ) {
 			return $this->bundle;
 		}
+
 		return new Zoninator_REST_Controller_Bundle( $this->bundle_prefix, $this->endpoint_builders );
 	}
 
@@ -78,7 +75,6 @@ class Zoninator_REST_Controller_Bundle_Builder implements Zoninator_REST_Interfa
 	 * @return Zoninator_REST_Controller_Bundle_Builder $this
 	 */
 	public function with_environment( $env ) {
-		$this->environment = $env;
 		return $this;
 	}
 

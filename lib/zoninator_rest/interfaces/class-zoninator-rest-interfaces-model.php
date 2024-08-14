@@ -20,7 +20,7 @@ interface Zoninator_REST_Interfaces_Model {
 	 *
 	 * @return mixed a unique identifier
 	 */
-	function get_id();
+	public function get_id();
 
 	/**
 	 * Set this model's unique identifier
@@ -28,7 +28,7 @@ interface Zoninator_REST_Interfaces_Model {
 	 * @param mixed $new_id The new Id.
 	 * @return Zoninator_REST_Interfaces_Model $model This model.
 	 */
-	function set_id( $new_id );
+	public function set_id( $new_id );
 
 	/**
 	 * Get a field for this model
@@ -38,7 +38,7 @@ interface Zoninator_REST_Interfaces_Model {
 	 *
 	 * @return mixed|null
 	 */
-	function get( $field_name, $args = array() );
+	public function get( $field_name, $args = array() );
 
 	/**
 	 * Set a field for this model
@@ -48,7 +48,7 @@ interface Zoninator_REST_Interfaces_Model {
 	 *
 	 * @return Zoninator_REST_Interfaces_Model $this;
 	 */
-	function set( $field, $value );
+	public function set( $field, $value );
 
 	/**
 	 * Check if this model has a field
@@ -57,7 +57,7 @@ interface Zoninator_REST_Interfaces_Model {
 	 *
 	 * @return bool
 	 */
-	function has( $field );
+	public function has( $field );
 
 	/**
 	 * Validate this Model instance.
@@ -66,7 +66,7 @@ interface Zoninator_REST_Interfaces_Model {
 	 *
 	 * @return bool|WP_Error true if valid otherwise error.
 	 */
-	function validate();
+	public function validate();
 
 	/**
 	 * Sanitize this Model's field values
@@ -75,7 +75,7 @@ interface Zoninator_REST_Interfaces_Model {
 	 *
 	 * @return Zoninator_REST_Interfaces_Model
 	 */
-	function sanitize();
+	public function sanitize();
 
 	/**
 	 * Get this model class fields
@@ -137,7 +137,7 @@ interface Zoninator_REST_Interfaces_Model {
 	 *
 	 * @return mixed
 	 */
-	function update_from_array( $data, $updating = false );
+	public function update_from_array( $data, $updating = false );
 
 	/**
 	 * Transform Model to raw data array
@@ -146,5 +146,5 @@ interface Zoninator_REST_Interfaces_Model {
 	 *
 	 * @return array
 	 */
-	function serialize( $field_type = null );
+	public function serialize( $field_type = null );
 }

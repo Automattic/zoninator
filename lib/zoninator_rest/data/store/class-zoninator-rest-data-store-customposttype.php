@@ -24,10 +24,10 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 	 * Mixtape_Data_Store_CustomPostType constructor.
 	 *
 	 * @param null|Zoninator_REST_Model_Definition $model_prototype Def.
-	 * @param array                    $args Args.
+	 * @param array                                $args Args.
 	 */
 	public function __construct( $model_prototype = null, $args = array() ) {
-		$this->post_type = isset( $args['post_type'] ) ? $args['post_type'] : 'post';
+		$this->post_type = $args['post_type'] ?? 'post';
 		parent::__construct( $model_prototype, $args );
 	}
 
@@ -39,15 +39,18 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 	 * @return Zoninator_REST_Model_Collection
 	 */
 	public function get_entities( $filter = null ) {
-		$query = new WP_Query( array(
-			'post_type' => $this->post_type,
-			'post_status' => 'any',
-		) );
-		$posts = $query->get_posts();
+		$query      = new WP_Query(
+			array(
+				'post_type'   => $this->post_type,
+				'post_status' => 'any',
+			)
+		);
+		$posts      = $query->get_posts();
 		$collection = array();
 		foreach ( $posts as $post ) {
 			$collection[] = $this->create_from_post( $post );
 		}
+
 		return new Zoninator_REST_Model_Collection( $collection );
 	}
 
@@ -74,7 +77,6 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 	 * @throws Zoninator_REST_Exception If something goes wrong.
 	 */
 	private function create_from_post( $post ) {
-		$field_declarations = $this->get_model_prototype()->get_fields();
 		$raw_post_data = $post->to_array();
 		$raw_meta_data = get_post_meta( $post->ID ); // assumes we are only ever adding one postmeta per key.
 
@@ -82,26 +84,33 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 		foreach ( $raw_meta_data as $key => $value_arr ) {
 			$flattened_meta[ $key ] = $value_arr[0];
 		}
+
 		$merged_data = array_merge( $raw_post_data, $flattened_meta );
 
-		return $this->get_model_prototype()->create( $merged_data, array(
-			'deserialize' => true,
-		) );
+		return $this->get_model_prototype()->create(
+			$merged_data,
+			array(
+				'deserialize' => true,
+			)
+		);
 	}
 
 	/**
 	 * Delete
 	 *
 	 * @param Zoninator_REST_Interfaces_Model $model Model.
-	 * @param array               $args Args.
+	 * @param array                           $args Args.
 	 * @return mixed
 	 */
 	public function delete( $model, $args = array() ) {
 		$id = $model->get_id();
 
-		$args = wp_parse_args( $args, array(
-			'force_delete' => false,
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'force_delete' => false,
+			)
+		);
 
 		do_action( 'mixtape_data_store_delete_model_before', $model, $id );
 
@@ -119,6 +128,7 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 			do_action( 'mixtape_data_store_delete_model_fail', $model, $id );
 			return new WP_Error( 'delete-failed', 'delete-failed' );
 		}
+
 		return $result;
 	}
 
@@ -130,13 +140,14 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 	 * @return mixed|WP_Error
 	 */
 	public function upsert( $model ) {
-		$id = $model->get_id();
-		$updating = ! empty( $id );
-		$fields = $model->serialize( Zoninator_REST_Field_Declaration::FIELD );
+		$id          = $model->get_id();
+		$updating    = ! empty( $id );
+		$fields      = $model->serialize( Zoninator_REST_Field_Declaration::FIELD );
 		$meta_fields = $model->serialize( Zoninator_REST_Field_Declaration::META );
 		if ( ! isset( $fields['post_type'] ) ) {
 			$fields['post_type'] = $this->post_type;
 		}
+
 		if ( isset( $fields['ID'] ) && empty( $fields['ID'] ) ) {
 			// ID of 0 is not acceptable on CPTs, so remove it.
 			unset( $fields['ID'] );
@@ -149,6 +160,7 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 			do_action( 'mixtape_data_store_model_upsert_error', $model );
 			return $id_or_error;
 		}
+
 		$model->set( 'id', absint( $id_or_error ) );
 		foreach ( $meta_fields as $meta_key => $meta_value ) {
 			if ( $updating ) {
@@ -164,7 +176,7 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 					'mixtape-error-creating-meta',
 					'There was an error updating/creating an entity field',
 					array(
-						'field_key' => $meta_key,
+						'field_key'   => $meta_key,
 						'field_value' => $meta_value,
 					)
 				);

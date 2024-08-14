@@ -55,7 +55,7 @@ class Zoninator_REST_Controller_Settings extends Zoninator_REST_Controller_Model
 	 * @return WP_REST_Response
 	 */
 	protected function create_or_update( $request ) {
-		$is_update = $request->get_method() !== 'POST';
+		$is_update       = $request->get_method() !== 'POST';
 		$model_to_update = $this->model_prototype->get_data_store()->get_entity( null );
 		if ( empty( $model_to_update ) ) {
 			return $this->not_found( 'Model does not exist' );
@@ -79,7 +79,7 @@ class Zoninator_REST_Controller_Settings extends Zoninator_REST_Controller_Model
 		}
 
 		$model = $this->model_prototype->get_data_store()->get_entity( null );
-		$dto = $this->prepare_dto( $model );
+		$dto   = $this->prepare_dto( $model );
 
 		return $is_update ? $this->ok( $dto ) : $this->created( $dto );
 	}

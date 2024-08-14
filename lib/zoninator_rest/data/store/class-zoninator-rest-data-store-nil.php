@@ -29,7 +29,6 @@ class Zoninator_REST_Data_Store_Nil implements Zoninator_REST_Interfaces_Data_St
 	 * Get Entity
 	 *
 	 * @param int $id Id.
-	 * @return null
 	 */
 	public function get_entity( $id ) {
 		return null;
@@ -39,7 +38,7 @@ class Zoninator_REST_Data_Store_Nil implements Zoninator_REST_Interfaces_Data_St
 	 * Delete
 	 *
 	 * @param Zoninator_REST_Interfaces_Model $model Model.
-	 * @param array               $args Args.
+	 * @param array                           $args Args.
 	 * @return bool
 	 */
 	public function delete( $model, $args = array() ) {

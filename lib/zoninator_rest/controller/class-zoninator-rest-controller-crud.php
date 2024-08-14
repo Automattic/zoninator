@@ -19,12 +19,12 @@ class Zoninator_REST_Controller_CRUD extends Zoninator_REST_Controller_Model imp
 	 */
 	public function setup() {
 		$this->add_route( '/' )
-			->add_action( $this->action( 'index',  array( $this, 'get_items' ) ) )
+			->add_action( $this->action( 'index', array( $this, 'get_items' ) ) )
 			->add_action( $this->action( 'create', array( $this, 'create_item' ) ) );
 
 		$this->add_route( '/(?P<id>\d+)' )
-			->add_action( $this->action( 'show',  array( $this, 'get_item' ) ) )
-			->add_action( $this->action( 'update',  array( $this, 'update_item' ) ) )
+			->add_action( $this->action( 'show', array( $this, 'get_item' ) ) )
+			->add_action( $this->action( 'update', array( $this, 'update_item' ) ) )
 			->add_action( $this->action( 'delete', array( $this, 'delete_item' ) ) );
 	}
 
@@ -39,7 +39,7 @@ class Zoninator_REST_Controller_CRUD extends Zoninator_REST_Controller_Model imp
 
 		if ( null === $item_id ) {
 			$models = $this->get_model_data_store()->get_entities();
-			$data = $this->prepare_dto( $models );
+			$data   = $this->prepare_dto( $models );
 			return $this->ok( $data );
 		}
 
@@ -125,9 +125,11 @@ class Zoninator_REST_Controller_CRUD extends Zoninator_REST_Controller_Model imp
 			return $this->bad_request( $id_or_error );
 		}
 
-		$dto = $this->prepare_dto( array(
-			'id' => absint( $id_or_error ),
-		) );
+		$dto = $this->prepare_dto(
+			array(
+				'id' => absint( $id_or_error ),
+			) 
+		);
 
 		return $is_update ? $this->ok( $dto ) : $this->created( $dto );
 	}
@@ -143,10 +145,12 @@ class Zoninator_REST_Controller_CRUD extends Zoninator_REST_Controller_Model imp
 		if ( empty( $id ) ) {
 			return $this->bad_request( 'No Model ID provided' );
 		}
+
 		$model = $this->model_prototype->get_data_store()->get_entity( $id );
 		if ( null === $model ) {
 			return $this->not_found( 'Model does not exist' );
 		}
+
 		$result = $this->model_data_store->delete( $model );
 		return $this->ok( $result );
 	}
@@ -158,7 +162,7 @@ class Zoninator_REST_Controller_CRUD extends Zoninator_REST_Controller_Model imp
 	 * @return array
 	 */
 	protected function model_to_dto( $model ) {
-		$result = parent::model_to_dto( $model );
+		$result           = parent::model_to_dto( $model );
 		$result['_links'] = $this->add_links( $model );
 		return $result;
 	}
@@ -186,6 +190,7 @@ class Zoninator_REST_Controller_CRUD extends Zoninator_REST_Controller_Model imp
 				),
 			);
 		}
+
 		if ( $model->has( 'author' ) ) {
 			$result['author'] = array(
 				array(
@@ -193,6 +198,7 @@ class Zoninator_REST_Controller_CRUD extends Zoninator_REST_Controller_Model imp
 				),
 			);
 		}
+
 		return $result;
 	}
 }

@@ -19,9 +19,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package Mixtape
  */
 class Zoninator_REST_Environment {
-	const REGISTRABLE = 'IRegistrable';
-	const BUNDLES = 'Bundles';
-	const MODELS = 'Models';
+	public const REGISTRABLE = 'IRegistrable';
+
+	public const BUNDLES = 'Bundles';
+
+	public const MODELS = 'Models';
 
 	/**
 	 * This environment's registered REST bundles
@@ -30,14 +32,14 @@ class Zoninator_REST_Environment {
 	 *
 	 * @var array
 	 */
-	protected $rest_apis;
+	protected $rest_apis = array();
 
 	/**
 	 * This environment's model definitions
 	 *
 	 * @var array
 	 */
-	protected $model_definitions;
+	protected $model_definitions = array();
 
 	/**
 	 * The Environment Variables
@@ -46,14 +48,14 @@ class Zoninator_REST_Environment {
 	 *
 	 * @var array
 	 */
-	protected $variables;
+	protected $variables = array();
 
 	/**
 	 * Did this Environment start?
 	 *
 	 * @var bool
 	 */
-	private $has_started;
+	private $has_started = false;
 
 	/**
 	 * Our Bootstrap
@@ -75,12 +77,8 @@ class Zoninator_REST_Environment {
 	 * @param Zoninator_REST_Bootstrap $bootstrap The bootstrap.
 	 */
 	public function __construct( $bootstrap ) {
-		$this->bootstrap = $bootstrap;
-		$this->has_started = false;
-		$this->rest_apis = array();
-		$this->variables = array();
-		$this->model_definitions = array();
-		$this->type_registry = new Zoninator_REST_Type_Registry();
+		$this->bootstrap         = $bootstrap;
+		$this->type_registry     = new Zoninator_REST_Type_Registry();
 		$this->type_registry->initialize( $this );
 		// initialize our array vars.
 		$this->array_var( self::MODELS )
@@ -93,7 +91,7 @@ class Zoninator_REST_Environment {
 	 *
 	 * All builders are evaluated lazily when needed
 	 *
-	 * @param string                $where The queue to push the builder to.
+	 * @param string                            $where The queue to push the builder to.
 	 * @param Zoninator_REST_Interfaces_Builder $builder The builder to push.
 	 *
 	 * @return Zoninator_REST_Environment $this
@@ -116,6 +114,7 @@ class Zoninator_REST_Environment {
 		if ( ! class_exists( $class ) ) {
 			throw new Zoninator_REST_Exception( $class . ' does not exist' );
 		}
+
 		Zoninator_REST_Expect::that( isset( $this->model_definitions[ $class ] ), $class . ' definition does not exist' );
 		return $this->model_definitions[ $class ];
 	}
@@ -165,7 +164,7 @@ class Zoninator_REST_Environment {
 			do_action( 'mt_environment_before_start', $this, get_class( $this ) );
 			$this->load_pending_builders( self::MODELS );
 			$this->load_pending_builders( self::BUNDLES );
-			$registrables = $this->get( self::REGISTRABLE ) ? $this->get( self::REGISTRABLE ) : array();
+			$registrables = $this->get( self::REGISTRABLE ) ?: array();
 			foreach ( $registrables as $registrable ) {
 				/**
 				 * A Registrable
@@ -183,14 +182,13 @@ class Zoninator_REST_Environment {
 			 */
 			$rest_apis = (array) apply_filters( 'mt_environment_get_rest_apis', $this->rest_apis, $this );
 
-			foreach ( $rest_apis as $k => $bundle ) {
+			foreach ( $rest_apis as $bundle ) {
 				/**
 				 * Register this bundle
-				 *
-				 * @var Zoninator_REST_Interfaces_Controller_Bundle
 				 */
 				$bundle->register( $this );
 			}
+
 			$this->has_started = true;
 			do_action( 'mt_environment_after_start', $this );
 		}
@@ -271,6 +269,7 @@ class Zoninator_REST_Environment {
 		if ( $append && ! $this->has_variable( $name ) ) {
 			$this->variables[ $name ] = array();
 		}
+
 		if ( null !== $thing ) {
 			if ( $append ) {
 				$this->variables[ $name ][] = $thing;
@@ -278,6 +277,7 @@ class Zoninator_REST_Environment {
 				$this->variables[ $name ] = $thing;
 			}
 		}
+
 		return $this;
 	}
 
@@ -361,6 +361,7 @@ class Zoninator_REST_Environment {
 			if ( is_string( $maybe_bundle_or_prefix ) ) {
 				$builder->with_prefix( $maybe_bundle_or_prefix );
 			}
+
 			$builder->with_environment( $this );
 		}
 
@@ -375,7 +376,7 @@ class Zoninator_REST_Environment {
 	 *
 	 * @return Zoninator_REST_Model
 	 */
-	function define_model( $declaration ) {
+	public function define_model( $declaration ) {
 		Zoninator_REST_Expect::that( class_exists( $declaration ), '$declaration string should be an existing class' );
 		Zoninator_REST_Expect::that( in_array( 'Zoninator_REST_Interfaces_Model', class_implements( $declaration ), true ), '$declaration does not implement Zoninator_REST_Interfaces_Model' );
 
@@ -402,7 +403,7 @@ class Zoninator_REST_Environment {
 	 */
 	private function add_rest_bundle( $bundle ) {
 		Zoninator_REST_Expect::is_a( $bundle, 'Zoninator_REST_Interfaces_Controller_Bundle' );
-		$key = $bundle->get_prefix();
+		$key                     = $bundle->get_prefix();
 		$this->rest_apis[ $key ] = $bundle;
 		return $this;
 	}

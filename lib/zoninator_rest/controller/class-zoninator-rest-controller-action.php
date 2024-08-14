@@ -13,18 +13,20 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Class Zoninator_REST_Controller_Action
  */
 class Zoninator_REST_Controller_Action {
+	public $controller;
+
 	/**
 	 * Permitted actions
 	 *
 	 * @var array
 	 */
 	private $actions_to_http_methods = array(
-		'index' => WP_REST_Server::READABLE,
-		'show' => WP_REST_Server::READABLE,
-		'create'  => WP_REST_Server::CREATABLE,
+		'index'  => WP_REST_Server::READABLE,
+		'show'   => WP_REST_Server::READABLE,
+		'create' => WP_REST_Server::CREATABLE,
 		'update' => WP_REST_Server::EDITABLE,
 		'delete' => WP_REST_Server::DELETABLE,
-		'any' => WP_REST_Server::ALLMETHODS,
+		'any'    => WP_REST_Server::ALLMETHODS,
 	);
 
 	/**
@@ -59,17 +61,14 @@ class Zoninator_REST_Controller_Action {
 	 * Zoninator_REST_Controller_Action constructor.
 	 *
 	 * @param Zoninator_REST_Controller $controller Controller.
-	 * @param string        $action_name The action Name.
+	 * @param string                    $action_name The action Name.
 	 */
 	public function __construct( $controller, $action_name ) {
 		$is_known_action = in_array( $action_name, array_keys( $this->actions_to_http_methods ), true );
 		Zoninator_REST_Expect::that( $is_known_action, 'Unknown method: ' . $action_name );
 
-		$this->controller = $controller;
-		$this->action_name = $action_name;
-		$this->handler = null;
-		$this->args = null;
-		$this->permission_callback = null;
+		$this->controller          = $controller;
+		$this->action_name         = $action_name;
 	}
 
 	/**
@@ -136,14 +135,12 @@ class Zoninator_REST_Controller_Action {
 			$args = $this->controller->get_endpoint_args_for_item_schema( $this->actions_to_http_methods[ $this->action_name ] );
 		}
 
-		$result = array(
+		return array(
 			'methods'             => $this->actions_to_http_methods[ $this->action_name ],
 			'callback'            => $callable_func,
 			'permission_callback' => $permission_callback,
 			'args'                => $args,
 		);
-
-		return $result;
 	}
 
 	/**
@@ -159,8 +156,10 @@ class Zoninator_REST_Controller_Action {
 			if ( is_string( $callable_func ) && method_exists( $this->controller, $callable_func ) ) {
 				return array( $this->controller, $callable_func );
 			}
+
 			Zoninator_REST_Expect::that( is_callable( $callable_func ), 'Callable Expected: $callable_func' );
 		}
+
 		return $callable_func;
 	}
 }

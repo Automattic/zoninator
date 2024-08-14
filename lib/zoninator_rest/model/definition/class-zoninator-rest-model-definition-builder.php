@@ -19,18 +19,21 @@ class Zoninator_REST_Model_Definition_Builder implements Zoninator_REST_Interfac
 	 * @var Zoninator_REST_Interfaces_Model_Declaration
 	 */
 	private $declaration;
+
 	/**
 	 * Data Store
 	 *
 	 * @var Zoninator_REST_Interfaces_Data_Store
 	 */
 	private $data_store;
+
 	/**
 	 * Environment
 	 *
 	 * @var Zoninator_REST_Environment
 	 */
 	private $environment;
+
 	/**
 	 * Permissions Provider
 	 *
@@ -41,7 +44,7 @@ class Zoninator_REST_Model_Definition_Builder implements Zoninator_REST_Interfac
 	/**
 	 * Zoninator_REST_Model_Definition_Builder constructor.
 	 */
-	function __construct() {
+	public function __construct() {
 		$this->with_data_store( new Zoninator_REST_Data_Store_Nil() )
 			->with_permissions_provider( new Zoninator_REST_Permissions_Any() );
 	}
@@ -52,15 +55,17 @@ class Zoninator_REST_Model_Definition_Builder implements Zoninator_REST_Interfac
 	 * @param Zoninator_REST_Interfaces_Model_Declaration|Zoninator_REST_Interfaces_Permissions_Provider $declaration D.
 	 * @return Zoninator_REST_Model_Definition_Builder
 	 */
-	function with_declaration( $declaration ) {
+	public function with_declaration( $declaration ) {
 		if ( is_string( $declaration ) && class_exists( $declaration ) ) {
 			$declaration = new $declaration();
 		}
+
 		Zoninator_REST_Expect::is_a( $declaration, 'Zoninator_REST_Interfaces_Model_Declaration' );
 		$this->declaration = $declaration;
 		if ( is_a( $declaration, 'Zoninator_REST_Interfaces_Permissions_Provider' ) ) {
 			$this->with_permissions_provider( $declaration );
 		}
+
 		return $this;
 	}
 
@@ -71,7 +76,7 @@ class Zoninator_REST_Model_Definition_Builder implements Zoninator_REST_Interfac
 	 *
 	 * @return Zoninator_REST_Model_Definition_Builder $this
 	 */
-	function with_data_store( $data_store = null ) {
+	public function with_data_store( $data_store = null ) {
 		$this->data_store = $data_store;
 		return $this;
 	}
@@ -81,7 +86,7 @@ class Zoninator_REST_Model_Definition_Builder implements Zoninator_REST_Interfac
 	 *
 	 * @param Zoninator_REST_Interfaces_Permissions_Provider $permissions_provider Provider.
 	 */
-	function with_permissions_provider( $permissions_provider ) {
+	public function with_permissions_provider( $permissions_provider ) {
 		$this->permissions_provider = $permissions_provider;
 	}
 
@@ -92,7 +97,7 @@ class Zoninator_REST_Model_Definition_Builder implements Zoninator_REST_Interfac
 	 *
 	 * @return Zoninator_REST_Model_Definition_Builder $this
 	 */
-	function with_environment( $environment ) {
+	public function with_environment( $environment ) {
 		$this->environment = $environment;
 		return $this;
 	}
@@ -102,7 +107,7 @@ class Zoninator_REST_Model_Definition_Builder implements Zoninator_REST_Interfac
 	 *
 	 * @return Zoninator_REST_Model_Definition
 	 */
-	function build() {
+	public function build() {
 		return new Zoninator_REST_Model_Definition( $this->environment, $this->declaration, $this->data_store, $this->permissions_provider );
 	}
 }
