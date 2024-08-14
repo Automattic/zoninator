@@ -32,14 +32,14 @@ class Zoninator_REST_Environment {
 	 *
 	 * @var array
 	 */
-	protected $rest_apis;
+	protected $rest_apis = array();
 
 	/**
 	 * This environment's model definitions
 	 *
 	 * @var array
 	 */
-	protected $model_definitions;
+	protected $model_definitions = array();
 
 	/**
 	 * The Environment Variables
@@ -48,14 +48,14 @@ class Zoninator_REST_Environment {
 	 *
 	 * @var array
 	 */
-	protected $variables;
+	protected $variables = array();
 
 	/**
 	 * Did this Environment start?
 	 *
 	 * @var bool
 	 */
-	private $has_started;
+	private $has_started = false;
 
 	/**
 	 * Our Bootstrap
@@ -78,10 +78,6 @@ class Zoninator_REST_Environment {
 	 */
 	public function __construct( $bootstrap ) {
 		$this->bootstrap         = $bootstrap;
-		$this->has_started       = false;
-		$this->rest_apis         = array();
-		$this->variables         = array();
-		$this->model_definitions = array();
 		$this->type_registry     = new Zoninator_REST_Type_Registry();
 		$this->type_registry->initialize( $this );
 		// initialize our array vars.

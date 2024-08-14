@@ -69,9 +69,6 @@ class Zoninator_REST_Controller_Action {
 
 		$this->controller          = $controller;
 		$this->action_name         = $action_name;
-		$this->handler             = null;
-		$this->args                = null;
-		$this->permission_callback = null;
 	}
 
 	/**

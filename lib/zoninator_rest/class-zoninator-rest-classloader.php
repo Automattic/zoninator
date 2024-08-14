@@ -105,6 +105,7 @@ class Zoninator_REST_Classloader implements Zoninator_REST_Interfaces_Classloade
 		if ( empty( $prefix ) ) {
 			$prefix = $this->prefix;
 		}
+
 		return $prefix . '_' . $this->strip_prefix( $class_name, $prefix );
 	}
 
@@ -120,6 +121,7 @@ class Zoninator_REST_Classloader implements Zoninator_REST_Interfaces_Classloade
 		if ( empty( $prefix ) ) {
 			$prefix = $this->prefix;
 		}
+
 		return str_replace( $prefix, '', $class_name );
 	}
 
@@ -135,9 +137,11 @@ class Zoninator_REST_Classloader implements Zoninator_REST_Interfaces_Classloade
 		if ( isset( $this->loaded_classes[ $path_to_the_class ] ) ) {
 			return $this;
 		}
+
 		if ( ! file_exists( $path_to_the_class ) ) {
 			throw new Exception( $path_to_the_class . ' not found' );
 		}
+
 		$included                                   = include_once $path_to_the_class;
 		$this->loaded_classes[ $path_to_the_class ] = $included;
 

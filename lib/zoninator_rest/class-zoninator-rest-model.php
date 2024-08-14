@@ -49,7 +49,7 @@ class Zoninator_REST_Model implements
 	 *
 	 * @var array
 	 */
-	private $data;
+	private $data = array();
 
 	/**
 	 * Our raw data
@@ -68,7 +68,6 @@ class Zoninator_REST_Model implements
 	 */
 	public function __construct( $data = array(), $args = array() ) {
 		Zoninator_REST_Expect::that( is_array( $data ), '$data should be an array' );
-		$this->data = array();
 
 		if ( isset( $args['deserialize'] ) && true === $args['deserialize'] ) {
 			unset( $args['deserialize'] );

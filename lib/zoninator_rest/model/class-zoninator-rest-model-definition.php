@@ -82,8 +82,6 @@ class Zoninator_REST_Model_Definition implements Zoninator_REST_Interfaces_Permi
 		Zoninator_REST_Expect::is_a( $environment, 'Zoninator_REST_Environment' );
 		Zoninator_REST_Expect::is_a( $model_declaration, 'Zoninator_REST_Interfaces_Model_Declaration' );
 		Zoninator_REST_Expect::is_a( $permissions_provider, 'Zoninator_REST_Interfaces_Permissions_Provider' );
-
-		$this->field_declarations   = null;
 		$this->environment          = $environment;
 		$this->model_declaration    = $model_declaration;
 		$this->model_class          = get_class( $model_declaration );

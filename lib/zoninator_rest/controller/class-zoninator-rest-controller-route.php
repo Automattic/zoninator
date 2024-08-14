@@ -26,7 +26,7 @@ class Zoninator_REST_Controller_Route {
 	 *
 	 * @var array
 	 */
-	private $actions;
+	private $actions = array();
 
 	/**
 	 * Zoninator_REST_Controller_Route constructor.
@@ -36,7 +36,6 @@ class Zoninator_REST_Controller_Route {
 	 */
 	public function __construct( $controller, $pattern ) {
 		$this->pattern = $pattern;
-		$this->actions = array();
 	}
 
 	/**
