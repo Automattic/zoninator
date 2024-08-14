@@ -373,7 +373,7 @@ class Zoninator_REST_Environment {
 	 *
 	 * @return Zoninator_REST_Model
 	 */
-	function define_model( $declaration ) {
+	public function define_model( $declaration ) {
 		Zoninator_REST_Expect::that( class_exists( $declaration ), '$declaration string should be an existing class' );
 		Zoninator_REST_Expect::that( in_array( 'Zoninator_REST_Interfaces_Model', class_implements( $declaration ), true ), '$declaration does not implement Zoninator_REST_Interfaces_Model' );
 

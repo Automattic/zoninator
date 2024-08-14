@@ -27,7 +27,7 @@ class Zoninator_REST_Model_Declaration implements Zoninator_REST_Interfaces_Mode
 	 *
 	 * @return Zoninator_REST_Interfaces_Model_Declaration $this
 	 */
-	function set_definition( $def ) {
+	public function set_definition( $def ) {
 		$this->model_definition = $def;
 		return $this;
 	}
@@ -37,7 +37,7 @@ class Zoninator_REST_Model_Declaration implements Zoninator_REST_Interfaces_Mode
 	 *
 	 * @return Zoninator_REST_Model_Definition
 	 */
-	function definition() {
+	public function definition() {
 		return $this->model_definition;
 	}
 
@@ -49,7 +49,7 @@ class Zoninator_REST_Model_Declaration implements Zoninator_REST_Interfaces_Mode
 	 * @return void
 	 * @throws Zoninator_REST_Exception Override this.
 	 */
-	function declare_fields( $env ) {
+	public function declare_fields( $env ) {
 		throw new Zoninator_REST_Exception( 'Override me: ' . __FUNCTION__ );
 	}
 
@@ -60,7 +60,7 @@ class Zoninator_REST_Model_Declaration implements Zoninator_REST_Interfaces_Mode
 	 *
 	 * @return mixed|null
 	 */
-	function get_id( $model ) {
+	public function get_id( $model ) {
 		return $model->get( 'id' );
 	}
 
@@ -72,7 +72,7 @@ class Zoninator_REST_Model_Declaration implements Zoninator_REST_Interfaces_Mode
 	 *
 	 * @return mixed|null
 	 */
-	function set_id( $model, $new_id ) {
+	public function set_id( $model, $new_id ) {
 		return $model->set( 'id', $new_id );
 	}
 
@@ -85,7 +85,7 @@ class Zoninator_REST_Model_Declaration implements Zoninator_REST_Interfaces_Mode
 	 * @return mixed
 	 * @throws Zoninator_REST_Exception Throw if method nonexistent.
 	 */
-	function call( $method, $args = array() ) {
+	public function call( $method, $args = array() ) {
 		if ( is_callable( $method ) ) {
 			return $this->perform_call( $method, $args );
 		}
@@ -98,7 +98,7 @@ class Zoninator_REST_Model_Declaration implements Zoninator_REST_Interfaces_Mode
 	 *
 	 * @return string
 	 */
-	function get_name() {
+	public function get_name() {
 		return strtolower( get_class( $this ) );
 	}
 

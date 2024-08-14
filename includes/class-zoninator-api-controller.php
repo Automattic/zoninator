@@ -41,7 +41,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 * @param string    $base Base.
 	 * @param Zoninator $instance Instance.
 	 */
-	function __construct( $instance ) {
+	public function __construct( $instance ) {
 		$this->instance = $instance;
 		$this->base     = '/';
 	}
@@ -49,7 +49,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	/**
 	 * Set up this controller
 	 */
-	function setup() {
+	public function setup() {
 		$this->translations = array(
 			self::ZONE_NOT_FOUND           => __( 'Zone not found', 'zoninator' ),
 			self::INVALID_POST_ID          => __( 'Invalid post id', 'zoninator' ),
@@ -105,7 +105,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
-	function get_zones( $request ) {
+	public function get_zones( $request ) {
 		$results = $this->instance->get_zones();
 
 		if ( is_wp_error( $results ) ) {
@@ -127,7 +127,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
-	function create_zone( $request ) {
+	public function create_zone( $request ) {
 		$name        = $this->_get_param( $request, 'name', '' );
 		$slug        = $this->_get_param( $request, 'slug', $name );
 		$description = $this->_get_param( $request, 'description', '' );
@@ -159,7 +159,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
-	function update_zone( $request ) {
+	public function update_zone( $request ) {
 		$zone_id     = $this->_get_param( $request, 'zone_id', 0, 'absint' );
 		$name        = $this->_get_param( $request, 'name', '' );
 		$slug        = $this->_get_param( $request, 'slug', '' );
@@ -203,7 +203,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
-	function delete_zone( $request ) {
+	public function delete_zone( $request ) {
 		$zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
 
 		$zone = $this->instance->get_zone( $zone_id );
@@ -253,7 +253,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.]
 	 * @return WP_Error|WP_REST_Response
 	 */
-	function update_zone_posts( $request ) {
+	public function update_zone_posts( $request ) {
 		$zone_id  = $this->_get_param( $request, 'zone_id', 0, 'absint' );
 		$post_ids = $this->_get_param( $request, 'post_ids', array() );
 
@@ -286,7 +286,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
-	function zone_update_lock( $request ) {
+	public function zone_update_lock( $request ) {
 		$zone_id = $this->_get_param( $request, 'zone_id', 0, 'absint' );
 		if ( ! $zone_id ) {
 			return $this->_bad_request( self::ZONE_ID_REQUIRED, __( 'zone id required', 'zoninator' ) );

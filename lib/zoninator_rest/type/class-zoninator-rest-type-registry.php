@@ -54,7 +54,7 @@ class Zoninator_REST_Type_Registry {
 	 *
 	 * @throws Zoninator_REST_Exception In case of type name not confirming to syntax.
 	 */
-	function definition( $type ) {
+	public function definition( $type ) {
 		$types = $this->get_types();
 
 		if ( ! isset( $types[ $type ] ) ) {

@@ -71,7 +71,7 @@ class Zoninator_Api_Filter_Search extends Zoninator_REST_Model {
 		return strip_tags( $item );
 	}
 
-	function date_before_set( $model, $item ) {
+	public function date_before_set( $model, $item ) {
 		return $this->strip_tags( $this->strip_slashes( $item ) );
 	}
 }

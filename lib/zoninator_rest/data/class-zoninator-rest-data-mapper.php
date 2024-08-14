@@ -32,7 +32,7 @@ class Zoninator_REST_Data_Mapper {
 	 * @param Zoninator_REST_Model_Definition $definition Def.
 	 * @param Zoninator_REST_Data_Serializer  $serializer Serializer.
 	 */
-	function __construct( $definition, $serializer ) {
+	public function __construct( $definition, $serializer ) {
 		$this->definition = $definition;
 		$this->serializer = $serializer;
 	}
@@ -44,7 +44,7 @@ class Zoninator_REST_Data_Mapper {
 	 * @param array $field_declarations Declarations.
 	 * @return array
 	 */
-	function raw_data_to_model_data( $data, $field_declarations ) {
+	public function raw_data_to_model_data( $data, $field_declarations ) {
 		$raw_data        = array();
 		$post_array_keys = array_keys( $data );
 		foreach ( $field_declarations as $declaration ) {
@@ -76,7 +76,7 @@ class Zoninator_REST_Data_Mapper {
 	 * @param null|string                     $field_type Type.
 	 * @return array
 	 */
-	function model_to_data( $model, $field_type = null ) {
+	public function model_to_data( $model, $field_type = null ) {
 		$field_values_to_insert = array();
 		foreach ( $this->definition->get_field_declarations( $field_type ) as $field_declaration ) {
 			/**

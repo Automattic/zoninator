@@ -17,7 +17,7 @@ class Zoninator_REST_Type_Number extends Zoninator_REST_Type {
 	/**
 	 * Zoninator_REST_Type_Number constructor.
 	 */
-	function __construct() {
+	public function __construct() {
 		parent::__construct( 'number' );
 	}
 
@@ -26,7 +26,7 @@ class Zoninator_REST_Type_Number extends Zoninator_REST_Type {
 	 *
 	 * @return float
 	 */
-	function default_value() {
+	public function default_value() {
 		return 0.0;
 	}
 
@@ -36,7 +36,7 @@ class Zoninator_REST_Type_Number extends Zoninator_REST_Type {
 	 * @param mixed $value The thing to cast.
 	 * @return float
 	 */
-	function cast( $value ) {
+	public function cast( $value ) {
 		if ( ! is_numeric( $value ) ) {
 			return $this->default_value();
 		}
@@ -49,7 +49,7 @@ class Zoninator_REST_Type_Number extends Zoninator_REST_Type {
 	 * @param mixed $value The value to sanitize.
 	 * @return float
 	 */
-	function sanitize( $value ) {
+	public function sanitize( $value ) {
 		return $this->cast( $value );
 	}
 }

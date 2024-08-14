@@ -20,5 +20,5 @@ interface Zoninator_REST_Interfaces_Registrable {
 	 * @param Zoninator_REST_Environment $environment The Environment to use.
 	 * @return void
 	 */
-	function register( $environment );
+	public function register( $environment );
 }

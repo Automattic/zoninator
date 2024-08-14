@@ -24,7 +24,7 @@ class Zoninator_REST_Type implements Zoninator_REST_Interfaces_Type {
 	 *
 	 * @param string $identifier The identifier.
 	 */
-	function __construct( $identifier ) {
+	public function __construct( $identifier ) {
 		$this->identifier = $identifier;
 	}
 
@@ -33,14 +33,14 @@ class Zoninator_REST_Type implements Zoninator_REST_Interfaces_Type {
 	 *
 	 * @return string
 	 */
-	function name() {
+	public function name() {
 		return $this->identifier;
 	}
 
 	/**
 	 * The default value
 	 */
-	function default_value() {
+	public function default_value() {
 		return null;
 	}
 
@@ -51,7 +51,7 @@ class Zoninator_REST_Type implements Zoninator_REST_Interfaces_Type {
 	 *
 	 * @return mixed
 	 */
-	function cast( $value ) {
+	public function cast( $value ) {
 		return $value;
 	}
 
@@ -62,7 +62,7 @@ class Zoninator_REST_Type implements Zoninator_REST_Interfaces_Type {
 	 *
 	 * @return mixed
 	 */
-	function sanitize( $value ) {
+	public function sanitize( $value ) {
 		return $value;
 	}
 
@@ -71,7 +71,7 @@ class Zoninator_REST_Type implements Zoninator_REST_Interfaces_Type {
 	 *
 	 * @return array
 	 */
-	function schema() {
+	public function schema() {
 		return array(
 			'type' => $this->name(),
 		);
@@ -82,7 +82,7 @@ class Zoninator_REST_Type implements Zoninator_REST_Interfaces_Type {
 	 *
 	 * @return Zoninator_REST_Type
 	 */
-	static function any() {
+	public static function any() {
 		return new self( 'any' );
 	}
 }

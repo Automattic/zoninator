@@ -18,5 +18,5 @@ interface Zoninator_REST_Interfaces_Model_Collection {
 	 *
 	 * @return Iterator
 	 */
-	function get_items();
+	public function get_items();
 }

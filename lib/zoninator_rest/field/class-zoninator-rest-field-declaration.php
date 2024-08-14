@@ -397,7 +397,7 @@ class Zoninator_REST_Field_Declaration {
 	 *
 	 * @return Zoninator_REST_Interfaces_Type
 	 */
-	function get_type() {
+	public function get_type() {
 		return $this->type;
 	}
 

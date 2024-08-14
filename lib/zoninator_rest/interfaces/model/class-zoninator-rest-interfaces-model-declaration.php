@@ -25,14 +25,14 @@ interface Zoninator_REST_Interfaces_Model_Declaration {
 	 * @param Zoninator_REST_Model_Definition $def The definition.
 	 * @return mixed
 	 */
-	function set_definition( $def );
+	public function set_definition( $def );
 
 	/**
 	 * Get this Declaration's Definition
 	 *
 	 * @return Zoninator_REST_Model_Definition
 	 */
-	function definition();
+	public function definition();
 
 	/**
 	 * Declare the fields of our Model.
@@ -40,7 +40,7 @@ interface Zoninator_REST_Interfaces_Model_Declaration {
 	 * @param Zoninator_REST_Environment $environment The Environment.
 	 * @return array list of Mixtape_Model_Field_Declaration
 	 */
-	function declare_fields( $environment );
+	public function declare_fields( $environment );
 
 	/**
 	 * Call a method
@@ -49,7 +49,7 @@ interface Zoninator_REST_Interfaces_Model_Declaration {
 	 * @param array  $args The args.
 	 * @return mixed
 	 */
-	function call( $method, $args = array() );
+	public function call( $method, $args = array() );
 
 	/**
 	 * Get this model's unique identifier
@@ -57,7 +57,7 @@ interface Zoninator_REST_Interfaces_Model_Declaration {
 	 * @param Zoninator_REST_Interfaces_Model $model The model.
 	 * @return mixed
 	 */
-	function get_id( $model );
+	public function get_id( $model );
 
 	/**
 	 * Set this model's unique identifier
@@ -67,12 +67,12 @@ interface Zoninator_REST_Interfaces_Model_Declaration {
 	 *
 	 * @return Zoninator_REST_Interfaces_Model The model.
 	 */
-	function set_id( $model, $id );
+	public function set_id( $model, $id );
 
 	/**
 	 * Get the name
 	 *
 	 * @return string This declaration's name.
 	 */
-	function get_name();
+	public function get_name();
 }

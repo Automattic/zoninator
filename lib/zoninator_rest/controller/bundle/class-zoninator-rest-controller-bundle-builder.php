@@ -38,7 +38,7 @@ class Zoninator_REST_Controller_Bundle_Builder implements Zoninator_REST_Interfa
 	 *
 	 * @param Zoninator_REST_Interfaces_Controller_Bundle|null $bundle Bundle.
 	 */
-	function __construct( $bundle = null ) {
+	public function __construct( $bundle = null ) {
 		$this->bundle = $bundle;
 	}
 

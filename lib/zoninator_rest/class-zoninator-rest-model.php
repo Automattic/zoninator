@@ -66,7 +66,7 @@ class Zoninator_REST_Model implements
 	 *
 	 * @throws Zoninator_REST_Exception Throws when data is not an array.
 	 */
-	function __construct( $data = array(), $args = array() ) {
+	public function __construct( $data = array(), $args = array() ) {
 		Zoninator_REST_Expect::that( is_array( $data ), '$data should be an array' );
 		$this->data = array();
 
@@ -403,7 +403,7 @@ class Zoninator_REST_Model implements
 	 * @return Zoninator_REST_Interfaces_Model|WP_Error
 	 * @throws Zoninator_REST_Exception Throws.
 	 */
-	function update_from_array( $data, $updating = false ) {
+	public function update_from_array( $data, $updating = false ) {
 		$mapped_data = self::map_data( $data, $updating );
 		foreach ( $mapped_data as $name => $value ) {
 			$this->set( $name, $value );
@@ -449,7 +449,7 @@ class Zoninator_REST_Model implements
 	 *
 	 * @return array
 	 */
-	function to_dto() {
+	public function to_dto() {
 		$result = array();
 		foreach ( $this->get_dto_field_mappings() as $mapping_name => $field_name ) {
 			$value                   = $this->get( $field_name );
@@ -529,7 +529,7 @@ class Zoninator_REST_Model implements
 	 *
 	 * @return mixed|null
 	 */
-	function get_id() {
+	public function get_id() {
 		return $this->get( 'id' );
 	}
 
@@ -540,7 +540,7 @@ class Zoninator_REST_Model implements
 	 *
 	 * @return mixed|null
 	 */
-	function set_id( $new_id ) {
+	public function set_id( $new_id ) {
 		return $this->set( 'id', $new_id );
 	}
 
@@ -610,7 +610,7 @@ class Zoninator_REST_Model implements
 	 *
 	 * @return array
 	 */
-	function serialize( $field_type = null ) {
+	public function serialize( $field_type = null ) {
 		$field_values_to_insert = array();
 		foreach ( $this->get_fields( $field_type ) as $field_declaration ) {
 			/**

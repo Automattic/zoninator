@@ -25,7 +25,7 @@ class Zoninator_REST_Type_Nullable extends Zoninator_REST_Type {
 	 *
 	 * @param Zoninator_REST_Interfaces_Type $item_type_definition Def.
 	 */
-	function __construct( $item_type_definition ) {
+	public function __construct( $item_type_definition ) {
 		parent::__construct( 'nullable:' . $item_type_definition->name() );
 		$this->item_type_definition = $item_type_definition;
 	}
@@ -66,7 +66,7 @@ class Zoninator_REST_Type_Nullable extends Zoninator_REST_Type {
 	/**
 	 * Schema
 	 */
-	function schema() {
+	public function schema() {
 		$schema         = parent::schema();
 		$schema['type'] = array_unique( array_merge( $schema['type'], array( 'null' ) ) );
 	}

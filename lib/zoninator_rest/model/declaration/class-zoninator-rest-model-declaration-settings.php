@@ -20,7 +20,7 @@ class Zoninator_REST_Model_Declaration_Settings extends Zoninator_REST_Model_Dec
 	 *
 	 * @throws Zoninator_REST_Exception Override this.
 	 */
-	function get_settings() {
+	public function get_settings() {
 		Zoninator_REST_Expect::that( false, 'Override this' );
 	}
 
@@ -53,7 +53,7 @@ class Zoninator_REST_Model_Declaration_Settings extends Zoninator_REST_Model_Dec
 	 * @param Zoninator_REST_Environment $env Def.
 	 * @return array
 	 */
-	function declare_fields( $env ) {
+	public function declare_fields( $env ) {
 		$settings_per_group = $this->get_settings();
 		$fields             = array();
 
@@ -74,7 +74,7 @@ class Zoninator_REST_Model_Declaration_Settings extends Zoninator_REST_Model_Dec
 	 * @param mixed $value Val.
 	 * @return string
 	 */
-	function bool_to_bit( $value ) {
+	public function bool_to_bit( $value ) {
 		return ( ! empty( $value ) && 'false' !== $value ) ? '1' : '';
 	}
 
@@ -84,7 +84,7 @@ class Zoninator_REST_Model_Declaration_Settings extends Zoninator_REST_Model_Dec
 	 * @param mixed $value Val.
 	 * @return bool
 	 */
-	function bit_to_bool( $value ) {
+	public function bit_to_bool( $value ) {
 		return ! empty( $value ) && '0' !== $value;
 	}
 
@@ -94,7 +94,7 @@ class Zoninator_REST_Model_Declaration_Settings extends Zoninator_REST_Model_Dec
 	 * @param Zoninator_REST_Interfaces_Model $model Model.
 	 * @return string
 	 */
-	function get_id( $model ) {
+	public function get_id( $model ) {
 		return strtolower( get_class( $this ) );
 	}
 
@@ -105,7 +105,7 @@ class Zoninator_REST_Model_Declaration_Settings extends Zoninator_REST_Model_Dec
 	 * @param mixed                           $new_id New ID.
 	 * @return Zoninator_REST_Interfaces_Model $this
 	 */
-	function set_id( $model, $new_id ) {
+	public function set_id( $model, $new_id ) {
 		return $this;
 	}
 
