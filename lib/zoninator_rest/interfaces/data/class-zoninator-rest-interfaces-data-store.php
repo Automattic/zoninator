@@ -9,7 +9,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
-} // End if().
+}
 
 /**
  * Interface Zoninator_REST_Interfaces_Data_Store

@@ -63,12 +63,12 @@ class Zoninator_REST_Type_Registry {
 			if ( count( $parts ) > 1 ) {
 				$container_type = $parts[0];
 				if ( ! in_array( $container_type, $this->container_types, true ) ) {
-					throw new Zoninator_REST_Exception( $container_type . ' is not a known container type' );
+					throw new Zoninator_REST_Exception( esc_html( $container_type . ' is not a known container type' ) );
 				}
 
 				$item_type = $parts[1];
 				if ( empty( $item_type ) ) {
-					throw new Zoninator_REST_Exception( $type . ': invalid syntax' );
+					throw new Zoninator_REST_Exception( esc_html( $type . ': invalid syntax' ) );
 				}
 
 				$item_type_definition = $this->definition( $item_type );
@@ -98,6 +98,7 @@ class Zoninator_REST_Type_Registry {
 	 * @return array
 	 */
 	private function get_types() {
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		return (array) apply_filters( 'mixtape_type_registry_get_types', $this->types, $this );
 	}
 
@@ -112,7 +113,7 @@ class Zoninator_REST_Type_Registry {
 		}
 
 		$this->types = apply_filters(
-			'mixtape_type_registry_register_types',
+			'mixtape_type_registry_register_types', // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 			array(
 				'any'     => new Zoninator_REST_Type( 'any' ),
 				'string'  => new Zoninator_REST_Type_String(),
@@ -125,7 +126,7 @@ class Zoninator_REST_Type_Registry {
 				'array'   => new Zoninator_REST_Type_Array(),
 			),
 			$this,
-			$environment 
+			$environment
 		);
 	}
 }

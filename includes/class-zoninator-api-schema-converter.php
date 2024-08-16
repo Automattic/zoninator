@@ -27,10 +27,11 @@ class Zoninator_Api_Schema_Converter {
 			'$schema'    => 'http://json-schema.org/schema#',
 			'title'      => $model_definition->get_name(),
 			'type'       => 'object',
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- applying a core filter.
 			'properties' => (array) apply_filters( 'rest_api_schema_properties', $properties, $model_definition ),
 		);
 
-		if ( $required !== array() ) {
+		if ( array() !== $required ) {
 			$schema['required'] = $required;
 		}
 

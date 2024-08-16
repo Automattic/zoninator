@@ -67,8 +67,8 @@ class Zoninator_REST_Controller_Action {
 		$is_known_action = in_array( $action_name, array_keys( $this->actions_to_http_methods ), true );
 		Zoninator_REST_Expect::that( $is_known_action, 'Unknown method: ' . $action_name );
 
-		$this->controller          = $controller;
-		$this->action_name         = $action_name;
+		$this->controller  = $controller;
+		$this->action_name = $action_name;
 	}
 
 	/**
@@ -83,36 +83,36 @@ class Zoninator_REST_Controller_Action {
 	/**
 	 * Set Permissions
 	 *
-	 * @param mixed $callable A Callable.
+	 * @param mixed $a_callable A Callable.
 	 *
 	 * @return Zoninator_REST_Controller_Action
 	 */
-	public function permissions( $callable ) {
-		$this->permission_callback = $callable;
+	public function permissions( $a_callable ) {
+		$this->permission_callback = $a_callable;
 		return $this;
 	}
 
 	/**
 	 * Set Handler
 	 *
-	 * @param mixed $callable A Callable.
+	 * @param mixed $a_callable A Callable.
 	 *
 	 * @return Zoninator_REST_Controller_Action
 	 */
-	public function callback( $callable ) {
-		$this->handler = $callable;
+	public function callback( $a_callable ) {
+		$this->handler = $a_callable;
 		return $this;
 	}
 
 	/**
 	 * Set Handler
 	 *
-	 * @param mixed $callable A Callable.
+	 * @param mixed $a_callable A Callable.
 	 *
 	 * @return Zoninator_REST_Controller_Action
 	 */
-	public function args( $callable ) {
-		$this->args = $callable;
+	public function args( $a_callable ) {
+		$this->args = $a_callable;
 		return $this;
 	}
 

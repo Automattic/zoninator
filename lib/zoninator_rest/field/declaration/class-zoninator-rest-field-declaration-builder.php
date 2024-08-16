@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
-} // End if().
+}
 
 /**
  * Class Mixtape_Model_Field_Declaration_Builder
@@ -157,7 +157,7 @@ class Zoninator_REST_Field_Declaration_Builder {
 	 */
 	public function with_type( $value_type ) {
 		if ( ! is_a( $value_type, 'Zoninator_REST_Interfaces_Type' ) ) {
-			throw new Zoninator_REST_Exception( get_class( $value_type ) . ' is not a Mixtape_Interfaces_Type' );
+			throw new Zoninator_REST_Exception( esc_html( get_class( $value_type ) . ' is not a Mixtape_Interfaces_Type' ) );
 		}
 
 		return $this->with( 'type', $value_type );

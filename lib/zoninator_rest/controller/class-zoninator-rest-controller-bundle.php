@@ -65,7 +65,7 @@ class Zoninator_REST_Controller_Bundle implements Zoninator_REST_Interfaces_Cont
 		 * @return array
 		 */
 		$endpoints = (array) apply_filters(
-			'mt_rest_api_controller_bundle_get_endpoints',
+			'mt_rest_api_controller_bundle_get_endpoints', // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 			$this->endpoints,
 			$this
 		);
