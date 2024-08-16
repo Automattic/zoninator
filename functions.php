@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- Yes, a prefix of z is too short, but fixing this is a breaking change.
 
 function z_get_zoninator() {
 	global $zoninator;

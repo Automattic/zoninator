@@ -48,7 +48,7 @@ class Zoninator_REST_Expect {
 	 */
 	public static function that( $cond, $fail_message ) {
 		if ( ! $cond ) {
-			throw new Zoninator_REST_Exception( $fail_message );
+			throw new Zoninator_REST_Exception( esc_html( $fail_message ) );
 		}
 	}
 
@@ -60,6 +60,6 @@ class Zoninator_REST_Expect {
 	 * @throws Zoninator_REST_Exception To Override this.
 	 */
 	public static function should_override( $method ) {
-		throw new Zoninator_REST_Exception( $method . ' should be overridden' );
+		throw new Zoninator_REST_Exception( esc_html( $method . ' should be overridden' ) );
 	}
 }

@@ -117,6 +117,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				'update-success'      => __( 'The zone was successfully updated.', 'zoninator' ),
 				'delete-success'      => __( 'The zone was successfully deleted.', 'zoninator' ),
 				'error-general'       => __( 'Sorry, something went wrong! Please try again?', 'zoninator' ),
+				/* translators: User's display name, or "another user" */
 				'error-zone-lock'     => __( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
 				'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard.', 'zoninator' ),
 			);
@@ -208,8 +209,8 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				);
 				wp_localize_script( 'zoninator-js', 'zoninatorOptions', $options );
 
-				// For mobile support
-				// http://github.com/furf/jquery-ui-touch-punch
+				// For mobile support: https://github.com/furf/jquery-ui-touch-punch
+				// phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter, WordPress.WP.EnqueuedResourceParameters.MissingVersion
 				wp_enqueue_script( 'jquery-ui-touch-punch', ZONINATOR_URL . 'js/jquery.ui.touch-punch.min.js', array( 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse' ) );
 			}
 		}
@@ -254,6 +255,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 						}
 
 						if ( is_wp_error( $result ) ) {
+							// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
 							wp_redirect( add_query_arg( 'message', 'error-general' ) );
 							exit;
 						} else {
@@ -263,6 +265,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 
 							// Redirect with success message
 							$message = sprintf( '%s-success', $action );
+							// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
 							wp_redirect(
 								$this->_get_zone_page_url(
 									array(
@@ -291,6 +294,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 							$redirect_args = array( 'message' => 'delete-success' );
 						}
 
+						// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
 						wp_redirect( $this->_get_zone_page_url( $redirect_args ) );
 						exit;
 				}
@@ -413,11 +417,11 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			$delete_link = wp_nonce_url( $delete_link, $this->_get_nonce_key( 'delete' ) );
 			?>
 		<div id="zone-edit-wrapper">
-			<?php if ( ( $zone_id == 0 && $this->_current_user_can_add_zones() ) || ( $zone_id != 0 && $this->_current_user_can_manage_zones() ) ) : ?>
+			<?php if ( ( 0 == $zone_id && $this->_current_user_can_add_zones() ) || ( 0 != $zone_id && $this->_current_user_can_manage_zones() ) ) : ?>
 				<?php if ( $zone_locked ) : ?>
 					<?php $locking_user = get_userdata( $zone_locked ); ?>
 					<div class="updated below-h2">
-						<p><?php printf( $this->_get_message( 'error-zone-lock' ), sprintf( '<a href="mailto:%s">%s</a>', esc_attr( $locking_user->user_email ), esc_html( $locking_user->display_name ) ) ); ?></p>
+						<p><?php printf( wp_kses_post( $this->_get_message( 'error-zone-lock' ) ), sprintf( '<a href="mailto:%s">%s</a>', esc_attr( $locking_user->user_email ), esc_html( $locking_user->display_name ) ) ); ?></p>
 					</div>
 					<input type="hidden" id="zone-locked" name="zone-locked" value="1" />
 					<?php
@@ -440,7 +444,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 								<?php if ( $zone_id ) : ?>
 								<div class="form-field zone-field">
 									<label for="zone-slug"><?php esc_html_e( 'Slug', 'zoninator' ); ?></label>
-									<span><?php echo esc_attr( $zone_slug ); ?></span>
+									<span><?php echo esc_html( $zone_slug ); ?></span>
 									<input type="hidden" id="zone-slug" name="slug" value="<?php echo esc_attr( $zone_slug ); ?>" />
 								</div>
 									<?php
@@ -467,14 +471,14 @@ if ( ! class_exists( 'Zoninator' ) ) :
 									<input type="submit" value="<?php esc_attr_e( 'Save zone info', 'zoninator' ); ?>" name="submit" class="button" />
 
 									<?php if ( $zone_id ) : ?>
-										<a href="<?php echo $delete_link; ?>" class="submitdelete" onclick="return confirm('<?php echo esc_js( 'Are you sure you want to delete this zone?', 'zoninator' ); ?>')"><?php esc_html_e( 'Delete', 'zoninator' ); ?></a>
+										<a href="<?php echo esc_url( $delete_link ); ?>" class="submitdelete" onclick="return confirm('<?php echo esc_js( 'Are you sure you want to delete this zone?', 'zoninator' ); ?>')"><?php esc_html_e( 'Delete', 'zoninator' ); ?></a>
 										<?php
 									endif;
 									?>
 								</div>
 
 								<input type="hidden" name="action" value="<?php echo $zone_id ? 'update' : 'insert'; ?>">
-								<input type="hidden" name="page" value="<?php echo $this->key; ?>">
+								<input type="hidden" name="page" value="<?php echo esc_attr( $this->key ); ?>">
 
 							</form>
 						<?php else : ?>
@@ -483,13 +487,13 @@ if ( ! class_exists( 'Zoninator' ) ) :
 
 								<div class="form-field zone-field">
 									<label for="zone-name"><?php esc_html_e( 'Name', 'zoninator' ); ?></label>
-									<span><?php echo esc_attr( $zone_name ); ?></span>
+									<span><?php echo esc_html( $zone_name ); ?></span>
 								</div>
 
 								<!--
 								<div class="form-field zone-field">
 									<label for="zone-slug"><?php esc_html_e( 'Slug', 'zoninator' ); ?></label>
-									<span><?php echo esc_attr( $zone_slug ); ?></span>
+									<span><?php echo esc_html( $zone_slug ); ?></span>
 								</div>
 								-->
 
@@ -561,12 +565,12 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				$zone
 			);
 			?>
-		<div id="zone-post-<?php echo $post->ID; ?>" class="zone-post" data-post-id="<?php echo $post->ID; ?>">
+		<div id="zone-post-<?php echo esc_attr( $post->ID ); ?>" class="zone-post" data-post-id="<?php echo esc_attr( $post->ID ); ?>">
 			<table>
 				<tr>
 					<?php foreach ( $columns as $column_key => $column_callback ) : ?>
 						<?php if ( is_callable( $column_callback ) ) : ?>
-							<td class="zone-post-col zone-post-<?php echo $column_key; ?>">
+							<td class="zone-post-col zone-post-<?php echo sanitize_html_class( $column_key ); ?>">
 								<?php call_user_func( $column_callback, $post, $zone ); ?>
 							</td>
 							<?php
@@ -575,7 +579,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 					?>
 				</tr>
 			</table>
-			<input type="hidden" name="zone-post-id" value="<?php echo $post->ID; ?>" />
+			<input type="hidden" name="zone-post-id" value="<?php echo esc_attr( $post->ID ); ?>" />
 		</div>
 			<?php
 		}
@@ -589,7 +593,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			<?php
 		}
 
-		public function admin_page_zone_post_col_info( $post, $zone ) {
+		public function admin_page_zone_post_col_info( $post, $zone ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 			$action_links = array(
 				sprintf( '<a href="%s" class="edit" target="_blank" title="%s">%s</a>', get_edit_post_link( $post->ID ), __( 'Opens in new window', 'zoninator' ), __( 'Edit', 'zoninator' ) ),
 				sprintf( '<a href="#" class="delete" title="%s">%s</a>', __( 'Remove this item from the zone', 'zoninator' ), __( 'Remove', 'zoninator' ) ),
@@ -601,7 +605,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			<?php printf( '%s <span class="zone-post-status">(%s)</span>', esc_html( $post->post_title ), esc_html( $post->post_status ) ); ?>
 
 		<div class="row-actions">
-			<?php echo implode( ' | ', $action_links ); ?>
+			<?php echo wp_kses_post( implode( ' | ', $action_links ) ); ?>
 		</div>
 			<?php
 		}
@@ -649,8 +653,9 @@ if ( ! class_exists( 'Zoninator' ) ) :
 					$label  = array_key_exists( 'label', $date ) ? $date['label'] : $output;
 				} else {
 					$timestamp = strtotime( $date );
-					$output    = ( $timestamp ) ? date( 'Y-m-d', $timestamp ) : 0;
-					$label     = $date;
+					// phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+					$output = ( $timestamp ) ? date( 'Y-m-d', $timestamp ) : 0;
+					$label  = $date;
 				}
 
 				printf( '<option value="%s" %s>%s</option>', esc_attr( $output ), selected( $output, $current_date, false ), esc_html( $label ) );
@@ -688,6 +693,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 						'post_type'           => $post_types,
 						'ignore_sticky_posts' => true,
 						'post_status'         => array( 'publish', 'future' ),
+						// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in
 						'post__not_in'        => $zone_post_ids,
 						'suppress_filters'    => false,
 					)
@@ -718,6 +724,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			if ( ! $content ) {
 				$empty_label = __( 'No results found', 'zoninator' );
 			} elseif ( $cat ) {
+				/* translators: Category name */
 				$empty_label = sprintf( __( 'Choose post from %s', 'zoninator' ), get_the_category_by_ID( $cat ) );
 			} else {
 				$empty_label = __( 'Choose a post', 'zoninator' );
@@ -744,6 +751,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 					'post_type'           => $post_types,
 					'ignore_sticky_posts' => true,
 					'post_status'         => array( 'publish', 'future' ),
+					// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in
 					'post__not_in'        => $zone_post_ids,
 					'suppress_filters'    => false,
 				)
@@ -757,7 +765,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				<option value=""><?php esc_html_e( 'Choose a post', 'zoninator' ); ?></option>
 				<?php
 				foreach ( $recent_posts as $post ) :
-					printf( '<option value="%d">%s</option>', $post->ID, esc_html( get_the_title( $post->ID ) . ' (' . $post->post_status . ')' ) );
+					printf( '<option value="%d">%s</option>', esc_attr( $post->ID ), esc_html( get_the_title( $post->ID ) . ' (' . $post->post_status . ')' ) );
 					endforeach;
 
 				wp_reset_postdata();
@@ -785,6 +793,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			}
 
 			if ( empty( $screen ) ) {
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				return ! empty( $_REQUEST['page'] ) && sanitize_key( $_REQUEST['page'] ) == $this->key;
 			} else {
 				return ! empty( $screen->id ) && strstr( $screen->id, (string) $this->key );
@@ -795,7 +804,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			$action = empty( $action ) ? $this->zone_ajax_nonce_action : $action;
 			$nonce  = wp_create_nonce( $this->_get_nonce_key( $action ) );
 
-			echo json_encode(
+			echo wp_json_encode(
 				array(
 					'status'  => $status,
 					'content' => $content,
@@ -873,7 +882,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			$this->verify_access( '', $zone_id );
 
 			// validate
-			if ( ! $zone_id || $post_ids === array() ) {
+			if ( ! $zone_id || array() === $post_ids ) {
 				$this->ajax_return( 0 );
 			}
 
@@ -926,12 +935,14 @@ if ( ! class_exists( 'Zoninator' ) ) :
 					'zoninator_search_args',
 					array(
 						's'                => $q,
+						// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in
 						'post__not_in'     => $exclude,
 						'posts_per_page'   => $limit,
 						'post_type'        => $post_types,
 						'post_status'      => array( 'publish', 'future' ),
 						'order'            => 'DESC',
 						'orderby'          => 'post_date',
+						// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters
 						'suppress_filters' => true,
 						'no_found_rows'    => true,
 					)
@@ -952,7 +963,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				$stripped_posts = array();
 
 				if ( ! $query->have_posts() ) {
-					echo json_encode( array() );
+					echo wp_json_encode( array() );
 					exit;
 				}
 
@@ -970,7 +981,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 					);
 				}
 
-				echo json_encode( $stripped_posts );
+				echo wp_json_encode( $stripped_posts );
 				exit;
 			}
 		}
@@ -992,7 +1003,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		}
 
 		public function get_supported_post_types() {
-			if ( $this->post_types !== null ) {
+			if ( null !== $this->post_types ) {
 				return $this->post_types;
 			}
 
@@ -1185,7 +1196,8 @@ if ( ! class_exists( 'Zoninator' ) ) :
 
 		public function get_zone_posts( $zone, $args = array() ) {
 			// Check cache first
-			if ( $posts = $this->get_zone_posts_from_cache( $zone, $args ) ) {
+			$posts = $this->get_zone_posts_from_cache( $zone, $args );
+			if ( $posts ) {
 				return $posts;
 			}
 
@@ -1214,6 +1226,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			}
 
 			if ( is_admin() ) { // skip APC in the admin
+				// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters
 				$defaults['suppress_filters'] = true;
 			}
 
@@ -1223,19 +1236,6 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			$args['orderby']  = 'meta_value_num';
 			$args['meta_key'] = $meta_key;
 
-			/*
-			// 3.1-friendly, though missing sort support which is why we're using the old way
-			if( function_exists( 'get_post_format' ) ) {
-			$args['meta_query'] = array(
-				array(
-					'key' => $meta_key,
-					'type' => 'NUMERIC'
-				)
-			);
-			} else {
-			$args['meta_key'] = $meta_key;
-			}
-			*/
 			return new WP_Query( $args );
 		}
 
@@ -1259,6 +1259,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			return $this->get_single_post_in_zone(
 				$zone,
 				array(
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 					'meta_value'   => $order,
 					'meta_compare' => '<=',
 				)
@@ -1272,6 +1273,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			return $this->get_single_post_in_zone(
 				$zone,
 				array(
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 					'meta_value'   => $order,
 					'meta_compare' => '>=',
 				)
@@ -1290,7 +1292,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 
 			$post = $this->get_zone_posts( $zone, $args );
 
-			if ( is_array( $post ) && $post !== array() ) {
+			if ( is_array( $post ) && array() !== $post ) {
 				return array_pop( $post );
 			}
 
@@ -1298,27 +1300,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		}
 
 		public function get_zones_for_post( $post_id ) {
-			// TODO: build this out
-
-			// get_object_terms
-			// get_terms
-
-			// OR
-
-			// get all meta_keys that match the prefix
-			// strip the prefix
-
-			// OR
-
-			// get all zones and see if there's a matching meta entry
-			// strip the prefix from keys
-
-			// array_map( 'absint', $zone_ids )
-			// $zones = array();
-			// foreach( $zone_ids as $zone_id ) {
-			// $zones[] = get_zone( $zone_id );
-			// }
-			// return $zones;
+			// TODO: build this out - see https://github.com/Automattic/zoninator/pull/19
 		}
 
 		public function get_zones( $args = array() ) {
@@ -1332,6 +1314,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 				)
 			);
 
+			// phpcs:ignore WordPress.WP.DeprecatedParameters.Get_termsParam2Found -- See https://github.com/Automattic/zoninator/issues/111
 			$zones = get_terms( $this->zone_taxonomy, $args );
 
 			if ( ! is_wp_error( $zones ) ) {
@@ -1359,6 +1342,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			}
 
 			if ( function_exists( 'wpcom_vip_get_term_by' ) ) {
+				// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wpcom_vip_get_term_by_wpcom_vip_get_term_by -- See https://github.com/Automattic/zoninator/issues/110
 				$zone = wpcom_vip_get_term_by( $field, $zone, $this->zone_taxonomy );
 			} else {
 				$zone = get_term_by( $field, $zone, $this->zone_taxonomy );
@@ -1521,11 +1505,11 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			}
 		}
 
-		public function _unauthorized_access() {
-			wp_die( __( "Sorry, you're not supposed to do that...", 'zoninator' ) );
+		public function _unauthorized_access() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
+			wp_die( esc_html__( "Sorry, you're not supposed to do that...", 'zoninator' ) );
 		}
 
-		public function _fill_zone_details( $zone ) {
+		public function _fill_zone_details( $zone ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
 			if ( ! empty( $zone->zoninator_parsed ) && $zone->zoninator_parsed ) {
 				return $zone;
 			}
@@ -1580,6 +1564,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 						$filtered_results[ $i ] = new stdClass();
 					}
 
+					// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found -- see https://github.com/PHPCSStandards/PHP_CodeSniffer/issues/598
 					$filtered_results[ $i ]->$field = $result->$field;
 				}
 
@@ -1596,12 +1581,12 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		 */
 		private function json_return( $data ) {
 
-			if ( $data == null ) {
+			if ( null == $data ) {
 				return false;
 			}
 
 			header( 'Content-Type: application/json' );
-			echo json_encode( $data );
+			echo wp_json_encode( $data );
 			exit();
 		}
 
@@ -1622,19 +1607,20 @@ if ( ! class_exists( 'Zoninator' ) ) :
 
 			$status                       = absint( $status );
 			$official_message             = $wp_header_to_desc[ $status ] ?? '';
-			$wp_header_to_desc[ $status ] = $message;
+			$wp_header_to_desc[ $status ] = $message; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 
 			status_header( $status );
 
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 			$wp_header_to_desc[ $status ] = $official_message;
 		}
 
 		// TODO: Caching needs to be testing properly before being implemented!
-		public function get_zone_cache_key( $zone, $args = array() ) {
+		public function get_zone_cache_key( $zone, $args = array() ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- potentially breaking change/
 			return '';
 		}
 
-		public function get_zone_posts_from_cache( $zone, $args = array() ) {
+		public function get_zone_posts_from_cache( $zone, $args = array() ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- potentially breaking change/
 			return false;
 		}
 
@@ -1657,11 +1643,11 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			}
 		}
 
-		public function _empty_zone_posts_cache( $meta_key ) {
-			return; // TODO: implement
+		public function _empty_zone_posts_cache( $meta_key ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
+			// TODO: implement
 		}
 
-		public function _get_message( $message_id, $encode = false ) {
+		public function _get_message( $message_id, $encode = false ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
 			$message = '';
 
 			if ( ! empty( $this->zone_messages[ $message_id ] ) ) {
@@ -1675,36 +1661,36 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			return $message;
 		}
 
-		public function _get_nonce_key( $action ) {
+		public function _get_nonce_key( $action ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
 			return sprintf( '%s-%s', $this->zone_nonce_prefix, $action );
 		}
 
-		public function _current_user_can_add_zones() {
+		public function _current_user_can_add_zones() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
 			return current_user_can( $this->_get_add_zones_cap() );
 		}
 
-		public function _current_user_can_edit_zones( $zone_id ) {
+		public function _current_user_can_edit_zones( $zone_id ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
 			$has_cap = current_user_can( $this->_get_edit_zones_cap() );
 			return apply_filters( 'zoninator_current_user_can_edit_zone', $has_cap, $zone_id );
 		}
 
-		public function _current_user_can_manage_zones() {
+		public function _current_user_can_manage_zones() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
 			return current_user_can( $this->_get_manage_zones_cap() );
 		}
 
-		public function _get_add_zones_cap() {
+		public function _get_add_zones_cap() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
 			return apply_filters( 'zoninator_add_zone_cap', 'edit_others_posts' );
 		}
 
-		public function _get_edit_zones_cap() {
+		public function _get_edit_zones_cap() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
 			return apply_filters( 'zoninator_edit_zone_cap', 'edit_others_posts' );
 		}
 
-		public function _get_manage_zones_cap() {
+		public function _get_manage_zones_cap() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
 			return apply_filters( 'zoninator_manage_zone_cap', 'edit_others_posts' );
 		}
 
-		public function _get_zone_page_url( $args = array() ) {
+		public function _get_zone_page_url( $args = array() ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
 			$url = menu_page_url( $this->key, false );
 
 			foreach ( $args as $arg_key => $arg_value ) {
@@ -1714,19 +1700,19 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			return $url;
 		}
 
-		public function _validate_date_filter( $date ) {
+		public function _validate_date_filter( $date ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
 			return preg_match( '/(\d{4})-(\d{2})-(\d{2})/', $date );
 		}
 
-		public function _validate_category_filter( $cat ) {
+		public function _validate_category_filter( $cat ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
 			return $cat && get_term_by( 'id', $cat, 'category' );
 		}
 
-		public function _sanitize_value( $var ) {
+		public function _sanitize_value( $var ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
 			return htmlentities( stripslashes( $var ) );
 		}
 
-		public function _get_value_or_default( $var, $object, $default = '', $sanitize_callback = '' ) {
+		public function _get_value_or_default( $var, $object, $default = '', $sanitize_callback = '' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound, Universal.NamingConventions.NoReservedKeywordParameterNames.objectFound, Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
 			if ( is_object( $object ) ) {
 				$value = empty( $object->$var ) ? $default : $object->$var;
 			} elseif ( is_array( $object ) ) {
@@ -1742,15 +1728,18 @@ if ( ! class_exists( 'Zoninator' ) ) :
 			return $value;
 		}
 
-		public function _get_request_var( $var, $default = '', $sanitize_callback = '' ) {
+		public function _get_request_var( $var, $default = '', $sanitize_callback = '' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound, Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return $this->_get_value_or_default( $var, $_REQUEST, $default, $sanitize_callback );
 		}
 
-		public function _get_get_var( $var, $default = '', $sanitize_callback = '' ) {
+		public function _get_get_var( $var, $default = '', $sanitize_callback = '' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound, Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return $this->_get_value_or_default( $var, $_GET, $default, $sanitize_callback );
 		}
 
-		public function _get_post_var( $var, $default = '', $sanitize_callback = '' ) {
+		public function _get_post_var( $var, $default = '', $sanitize_callback = '' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound, Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			return $this->_get_value_or_default( $var, $_POST, $default, $sanitize_callback );
 		}
 
@@ -1842,7 +1831,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 		}
 	}
 
-	function Zoninator() {
+	function Zoninator() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid, Universal.Files.SeparateFunctionsFromOO.Mixed -- Windows is case-sensitive, so changing this is a breaking change.
 		global $zoninator;
 		if ( ! isset( $zoninator ) || null === $zoninator ) {
 			$zoninator = new Zoninator();

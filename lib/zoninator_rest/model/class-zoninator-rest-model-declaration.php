@@ -106,12 +106,12 @@ class Zoninator_REST_Model_Declaration implements Zoninator_REST_Interfaces_Mode
 	/**
 	 * Perform call
 	 *
-	 * @param mixed $callable A Callable.
+	 * @param mixed $a_callable A Callable.
 	 * @param array $args The args.
 	 *
 	 * @return mixed
 	 */
-	private function perform_call( $callable, $args ) {
-		return call_user_func_array( $callable, $args );
+	private function perform_call( $a_callable, $args ) {
+		return call_user_func_array( $a_callable, $args );
 	}
 }

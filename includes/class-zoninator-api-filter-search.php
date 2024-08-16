@@ -68,7 +68,7 @@ class Zoninator_Api_Filter_Search extends Zoninator_REST_Model {
 	}
 
 	public function strip_tags( $item ) {
-		return strip_tags( $item );
+		return wp_strip_all_tags( $item );
 	}
 
 	public function date_before_set( $model, $item ) {

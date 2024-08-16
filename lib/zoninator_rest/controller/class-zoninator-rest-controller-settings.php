@@ -32,7 +32,7 @@ class Zoninator_REST_Controller_Settings extends Zoninator_REST_Controller_Model
 	public function get_items( $request ) {
 		$model = $this->model_prototype->get_data_store()->get_entity( null );
 		if ( empty( $model ) ) {
-			return $this->not_found( __( 'Settings not found' ) );
+			return $this->not_found( __( 'Settings not found', 'zoninator' ) );
 		}
 
 		return $this->ok( $this->prepare_dto( $model ) );

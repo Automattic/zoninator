@@ -77,8 +77,8 @@ class Zoninator_REST_Environment {
 	 * @param Zoninator_REST_Bootstrap $bootstrap The bootstrap.
 	 */
 	public function __construct( $bootstrap ) {
-		$this->bootstrap         = $bootstrap;
-		$this->type_registry     = new Zoninator_REST_Type_Registry();
+		$this->bootstrap     = $bootstrap;
+		$this->type_registry = new Zoninator_REST_Type_Registry();
 		$this->type_registry->initialize( $this );
 		// initialize our array vars.
 		$this->array_var( self::MODELS )
@@ -106,17 +106,18 @@ class Zoninator_REST_Environment {
 	/**
 	 * Retrieve a previously defined Zoninator_REST_Model
 	 *
-	 * @param string $class the class name.
+	 * @param string $class_name the class name.
+	 *
 	 * @return Zoninator_REST_Model the definition.
 	 * @throws Zoninator_REST_Exception Throws in case the model is not registered.
 	 */
-	public function model( $class ) {
-		if ( ! class_exists( $class ) ) {
-			throw new Zoninator_REST_Exception( $class . ' does not exist' );
+	public function model( $class_name ) {
+		if ( ! class_exists( $class_name ) ) {
+			throw new Zoninator_REST_Exception( esc_html( $class_name . ' does not exist' ) );
 		}
 
-		Zoninator_REST_Expect::that( isset( $this->model_definitions[ $class ] ), $class . ' definition does not exist' );
-		return $this->model_definitions[ $class ];
+		Zoninator_REST_Expect::that( isset( $this->model_definitions[ $class_name ] ), $class_name . ' definition does not exist' );
+		return $this->model_definitions[ $class_name ];
 	}
 
 	/**
@@ -161,6 +162,7 @@ class Zoninator_REST_Environment {
 		}
 
 		if ( false === $this->has_started ) {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 			do_action( 'mt_environment_before_start', $this, get_class( $this ) );
 			$this->load_pending_builders( self::MODELS );
 			$this->load_pending_builders( self::BUNDLES );
@@ -180,7 +182,7 @@ class Zoninator_REST_Environment {
 			 * @param array          $rest_apis The existing rest apis.
 			 * @param Zoninator_REST_Environment $this The Environment.
 			 */
-			$rest_apis = (array) apply_filters( 'mt_environment_get_rest_apis', $this->rest_apis, $this );
+			$rest_apis = (array) apply_filters( 'mt_environment_get_rest_apis', $this->rest_apis, $this ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 
 			foreach ( $rest_apis as $bundle ) {
 				/**
@@ -190,7 +192,7 @@ class Zoninator_REST_Environment {
 			}
 
 			$this->has_started = true;
-			do_action( 'mt_environment_after_start', $this );
+			do_action( 'mt_environment_after_start', $this ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		}
 
 		return $this;
@@ -250,7 +252,7 @@ class Zoninator_REST_Environment {
 		 *
 		 * @return mixed
 		 */
-		return apply_filters( 'mt_variable_get', $value, $this, $name );
+		return apply_filters( 'mt_variable_get', $value, $this, $name ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 	}
 
 	/**

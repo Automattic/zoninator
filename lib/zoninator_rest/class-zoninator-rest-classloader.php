@@ -48,7 +48,7 @@ class Zoninator_REST_Classloader implements Zoninator_REST_Interfaces_Classloade
 		$this->prefix   = $prefix;
 		$this->base_dir = $base_dir;
 		if ( ! is_dir( $this->base_dir ) ) {
-			throw new Exception( 'base_dir does not exist: ' . $this->base_dir );
+			throw new Exception( esc_html( 'base_dir does not exist: ' . $this->base_dir ) );
 		}
 	}
 
@@ -139,7 +139,7 @@ class Zoninator_REST_Classloader implements Zoninator_REST_Interfaces_Classloade
 		}
 
 		if ( ! file_exists( $path_to_the_class ) ) {
-			throw new Exception( $path_to_the_class . ' not found' );
+			throw new Exception( esc_html( $path_to_the_class . ' not found' ) );
 		}
 
 		$included                                   = include_once $path_to_the_class;

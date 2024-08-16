@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
-} // End if().
+}
 
 /**
  * Class Zoninator_REST_Controller_CRUD
@@ -45,7 +45,7 @@ class Zoninator_REST_Controller_CRUD extends Zoninator_REST_Controller_Model imp
 
 		$model = $this->model_prototype->get_data_store()->get_entity( $item_id );
 		if ( empty( $model ) ) {
-			return $this->not_found( __( 'Model not found' ) );
+			return $this->not_found( __( 'Model not found', 'zoninator' ) );
 		}
 
 		return $this->ok( $this->prepare_dto( $model ) );
@@ -128,7 +128,7 @@ class Zoninator_REST_Controller_CRUD extends Zoninator_REST_Controller_Model imp
 		$dto = $this->prepare_dto(
 			array(
 				'id' => absint( $id_or_error ),
-			) 
+			)
 		);
 
 		return $is_update ? $this->ok( $dto ) : $this->created( $dto );

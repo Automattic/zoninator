@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignore WordPress.Files.FileName.InvalidClassFileName
 
 /**
  * Zone Posts widget class
@@ -32,7 +33,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		}
 
 		if ( isset( $cache[ $args['widget_id'] ] ) ) {
-			echo $cache[ $args['widget_id'] ];
+			echo wp_kses_post( $cache[ $args['widget_id'] ] );
 			return;
 		}
 
@@ -97,7 +98,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 			array(
 				'zone_id'          => 0,
 				'show_description' => 0,
-			) 
+			)
 		);
 		$instance['zone_id']          = absint( $new_instance['zone_id'] );
 		$instance['show_description'] = $new_instance['show_description'] ? 1 : 0;
@@ -113,9 +114,11 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 	public function flush_widget_cache() {
 		$cache_key = 'widget-zone-posts';
 
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- breaking change to rename this filter with the correct prefix.
 		$block_save_cache_seconds = absint( apply_filters( 'zone_posts_widget_block_save_cache_seconds', 5 ) );
 		if ( $block_save_cache_seconds > 0 ) {
 			// This key will block updating the cache for n seconds so the following cache delete can propagate
+			// phpcs:ignore -- WordPressVIPMinimum.Performance.LowExpiryCacheTime.CacheTimeUndetermined -- not changing behavior now.
 			wp_cache_set( $cache_key . '-save_blocked', 1, 'widget', $block_save_cache_seconds );
 		}
 
@@ -143,7 +146,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 				</option>
 
 				<?php foreach ( $zones as $zone ) : ?>
-					<option value="<?php echo $zone->term_id; ?>" <?php selected( $zone_id, $zone->term_id ); ?>>
+					<option value="<?php echo esc_attr( $zone->term_id ); ?>" <?php selected( $zone_id, $zone->term_id ); ?>>
 						<?php echo esc_html( $zone->name ); ?>
 					</option>
 					<?php

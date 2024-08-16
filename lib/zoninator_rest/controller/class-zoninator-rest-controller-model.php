@@ -102,10 +102,11 @@ class Zoninator_REST_Controller_Model extends Zoninator_REST_Controller implemen
 			'$schema'    => 'http://json-schema.org/schema#',
 			'title'      => $model_definition->get_name(),
 			'type'       => 'object',
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- breaking change to fix prefix.
 			'properties' => (array) apply_filters( 'mixtape_rest_api_schema_properties', $properties, $this->get_model_prototype() ),
 		);
 
-		if ( $required !== array() ) {
+		if ( array() !== $required ) {
 			$schema['required'] = $required;
 		}
 

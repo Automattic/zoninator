@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
-} // End if().
+}
 
 /**
  * Class Zoninator_REST_Field_Declaration
@@ -187,7 +187,7 @@ class Zoninator_REST_Field_Declaration {
 		}
 
 		if ( ! isset( $args['kind'] ) || ! in_array( $args['kind'], $this->field_kinds, true ) ) {
-			throw new Zoninator_REST_Exception( 'every field should have a kind (one of ' . implode( ',', $this->field_kinds ) . ')' );
+			throw new Zoninator_REST_Exception( esc_html( 'every field should have a kind (one of ' . implode( ',', $this->field_kinds ) . ')' ) );
 		}
 
 		$this->name        = $args['name'];
@@ -241,10 +241,10 @@ class Zoninator_REST_Field_Declaration {
 	 *
 	 * @param array  $args Args.
 	 * @param string $name Name.
-	 * @param mixed  $default Default.
+	 * @param mixed  $default_value Default.
 	 */
-	private function value_or_default( $args, $name, $default = null ) {
-		return $args[ $name ] ?? $default;
+	private function value_or_default( $args, $name, $default_value = null ) {
+		return $args[ $name ] ?? $default_value;
 	}
 
 	/**
@@ -267,7 +267,7 @@ class Zoninator_REST_Field_Declaration {
 	 * @return mixed
 	 */
 	public function get_default_value() {
-		if ( $this->default_value !== null && ! empty( $this->default_value ) ) {
+		if ( null !== $this->default_value && ! empty( $this->default_value ) ) {
 			return ( is_array( $this->default_value ) && is_callable( $this->default_value ) ) ? call_user_func( $this->default_value ) : $this->default_value;
 		}
 
@@ -315,7 +315,7 @@ class Zoninator_REST_Field_Declaration {
 	 * Get Map From
 	 */
 	public function get_map_from() {
-		if ( $this->map_from !== null && ! empty( $this->map_from ) ) {
+		if ( null !== $this->map_from && ! empty( $this->map_from ) ) {
 			return $this->map_from;
 		}
 
@@ -364,7 +364,7 @@ class Zoninator_REST_Field_Declaration {
 	 * @return string
 	 */
 	public function get_description() {
-		if ( $this->description !== null && ! empty( $this->description ) ) {
+		if ( null !== $this->description && ! empty( $this->description ) ) {
 			return $this->description;
 		}
 

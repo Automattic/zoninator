@@ -158,7 +158,7 @@ class Zoninator_REST_Model implements
 			}
 		}
 
-		if ( $validation_errors !== array() ) {
+		if ( array() !== $validation_errors ) {
 			return $this->validation_error( $validation_errors );
 		}
 
@@ -218,7 +218,7 @@ class Zoninator_REST_Model implements
 		$value = $this->get( $field_declaration->get_name() );
 		if ( $field_declaration->is_required() && empty( $value ) ) {
 			// translators: %s is usually a field name.
-			$message = sprintf( __( '%s cannot be empty', 'mixtape' ), $field_declaration->get_name() );
+			$message = sprintf( __( '%s cannot be empty', 'zoninator' ), $field_declaration->get_name() );
 			return new WP_Error( 'required-field-empty', $message );
 		} elseif ( ! $field_declaration->is_required() && ! empty( $value ) ) {
 			foreach ( $field_declaration->get_validations() as $validation ) {
@@ -229,7 +229,7 @@ class Zoninator_REST_Model implements
 							'reason' => $result->get_error_messages(),
 							'field'  => $field_declaration->get_data_transfer_name(),
 							'value'  => $value,
-						) 
+						)
 					);
 					return $result;
 				}
@@ -583,7 +583,7 @@ class Zoninator_REST_Model implements
 			$merged_data,
 			array(
 				'deserialize' => true,
-			) 
+			)
 		);
 	}
 

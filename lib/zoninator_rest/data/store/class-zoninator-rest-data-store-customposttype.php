@@ -112,19 +112,23 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 			)
 		);
 
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		do_action( 'mixtape_data_store_delete_model_before', $model, $id );
 
 		if ( $args['force_delete'] ) {
 			$result = wp_delete_post( $model->get_id() );
 			$model->set( 'id', 0 );
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 			do_action( 'mixtape_data_store_delete_model', $model, $id );
 		} else {
 			$result = wp_trash_post( $model->get_id() );
 			$model->set( 'status', 'trash' );
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 			do_action( 'mixtape_data_store_trash_model', $model, $id );
 		}
 
 		if ( false === $result ) {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 			do_action( 'mixtape_data_store_delete_model_fail', $model, $id );
 			return new WP_Error( 'delete-failed', 'delete-failed' );
 		}
@@ -153,10 +157,12 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 			unset( $fields['ID'] );
 		}
 
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		do_action( 'mixtape_data_store_model_upsert_before', $model );
 
 		$id_or_error = wp_insert_post( $fields, true );
 		if ( is_wp_error( $id_or_error ) ) {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 			do_action( 'mixtape_data_store_model_upsert_error', $model );
 			return $id_or_error;
 		}
@@ -170,6 +176,7 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 			}
 
 			if ( false === $id_or_bool ) {
+				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 				do_action( 'mixtape_data_store_model_upsert_error', $model );
 				// Something was wrong with this update/create. TODO: Should we stop mid create/update?
 				return new WP_Error(
@@ -183,6 +190,7 @@ class Zoninator_REST_Data_Store_CustomPostType extends Zoninator_REST_Data_Store
 			}
 		}
 
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		do_action( 'mixtape_data_store_model_upsert_after', $model );
 
 		return absint( $id_or_error );
