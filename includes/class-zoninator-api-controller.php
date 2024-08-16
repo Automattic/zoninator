@@ -252,7 +252,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
 		}
 
-		$results = $this->instance->get_zone_feed( $zone_id );
+		$results = apply_filters( 'zoninator_get_zone_posts_api' , $this->instance->get_zone_feed( $zone_id ) );
 
 		if ( is_wp_error( $results ) ) {
 			return $this->_bad_request( self::ZONE_FEED_ERROR, $results->get_error_message() );
