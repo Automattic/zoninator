@@ -69,7 +69,7 @@ class Zoninator {
 			return false;
 		}
 
-		include_once ZONINATOR_PATH . '/src/class-zoninator-api.php';
+		include_once dirname( ZONINATOR_FILE ) . '/src/class-zoninator-api.php';
 		$this->rest_api = new Zoninator_Api( $this );
 		return null;
 	}
@@ -130,7 +130,7 @@ class Zoninator {
 	}
 
 	public function load_textdomain() {
-		load_plugin_textdomain( 'zoninator', false, basename( ZONINATOR_PATH ) . '/language' );
+		load_plugin_textdomain( 'zoninator', false, basename( dirname( ZONINATOR_FILE ) ) . '/language' );
 	}
 
 	public function widgets_init() {
@@ -163,7 +163,7 @@ class Zoninator {
 
 	public function admin_enqueue_scripts() {
 		if ( $this->is_zoninator_page() ) {
-			wp_enqueue_script( 'zoninator-js', ZONINATOR_URL . 'js/zoninator.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse', 'jquery-ui-position', 'jquery-ui-sortable', 'jquery-ui-autocomplete' ), ZONINATOR_VERSION, true );
+			wp_enqueue_script( 'zoninator-js', plugin_dir_url( ZONINATOR_FILE ) . 'js/zoninator.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse', 'jquery-ui-position', 'jquery-ui-sortable', 'jquery-ui-autocomplete' ), ZONINATOR_VERSION, true );
 
 			$options = array(
 				'baseUrl'           => $this->_get_zone_page_url(),
@@ -179,14 +179,14 @@ class Zoninator {
 
 			// For mobile support: https://github.com/furf/jquery-ui-touch-punch
 			// phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter, WordPress.WP.EnqueuedResourceParameters.MissingVersion
-			wp_enqueue_script( 'jquery-ui-touch-punch', ZONINATOR_URL . 'js/jquery.ui.touch-punch.min.js', array( 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse' ) );
+			wp_enqueue_script( 'jquery-ui-touch-punch', plugin_dir_url( ZONINATOR_FILE ) . 'js/jquery.ui.touch-punch.min.js', array( 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse' ) );
 		}
 	}
 
 	public function admin_enqueue_styles() {
 		if ( $this->is_zoninator_page() ) {
-			wp_enqueue_style( 'zoninator-jquery-ui', ZONINATOR_URL . 'css/jquery-ui/smoothness/jquery-ui-zoninator.css', false, ZONINATOR_VERSION, 'all' );
-			wp_enqueue_style( 'zoninator-styles', ZONINATOR_URL . 'css/zoninator.css', false, ZONINATOR_VERSION, 'all' );
+			wp_enqueue_style( 'zoninator-jquery-ui', plugin_dir_url( ZONINATOR_FILE ) . 'css/jquery-ui/smoothness/jquery-ui-zoninator.css', false, ZONINATOR_VERSION, 'all' );
+			wp_enqueue_style( 'zoninator-styles', plugin_dir_url( ZONINATOR_FILE ) . 'css/zoninator.css', false, ZONINATOR_VERSION, 'all' );
 		}
 	}
 
