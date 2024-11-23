@@ -36,7 +36,7 @@ if ( ! class_exists( 'Zoninator' ) ) :
 	define( 'ZONINATOR_URL', trailingslashit( plugins_url( '', __FILE__ ) ) );
 
 	require_once ZONINATOR_PATH . '/functions.php';
-	require_once ZONINATOR_PATH . '/widget.zone-posts.php';
+	require_once ZONINATOR_PATH . '/src/class-zoninator-zoneposts-widget.php';
 	require_once ZONINATOR_PATH . '/src/class-zoninator.php';
 
 	function Zoninator() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid, Universal.Files.SeparateFunctionsFromOO.Mixed -- Windows is case-sensitive, so changing this is a breaking change.
