@@ -20,11 +20,9 @@ use Rector\Strict\Rector\Empty_\DisallowedEmptyRuleFixerRector;
 return RectorConfig::configure()
 	->withPaths(
 		array(
-			__DIR__ . '/includes',
-			__DIR__ . '/lib',
+			__DIR__ . '/src',
 			__DIR__ . '/tests',
 			__DIR__ . '/functions.php',
-			__DIR__ . '/widget.zone-posts.php',
 			__DIR__ . '/zoninator.php',
 		)
 	)
@@ -33,7 +31,7 @@ return RectorConfig::configure()
 			LongArrayToShortArrayRector::class,
 			// Need a better understanding of intent in this file before switching out the use of empty().
 			DisallowedEmptyRuleFixerRector::class => array(
-				__DIR__ . '/lib/zoninator_rest/type/class-zoninator-rest-type-registry.php',
+				__DIR__ . '/src/zoninator_rest/type/class-zoninator-rest-type-registry.php',
 			),
 			// Child classes can legitimately relax the visibility of a method, so while this
 			// might not be desirable, changing them from public to the original parent-defined
