@@ -3,7 +3,7 @@
 Plugin Name: Zone Manager (Zoninator)
 Description: Curation made easy! Create "zones" then add and order your content!
 Author: Mohammad Jangda, Automattic
-Version: 0.9
+Version: 0.10.1
 Author URI: http://vip.wordpress.com
 Text Domain: zoninator
 Domain Path: /language/
@@ -32,7 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 if( ! class_exists( 'Zoninator' ) ) :
 
-define( 'ZONINATOR_VERSION', '0.9' );
+define( 'ZONINATOR_VERSION', '0.10.1' );
 define( 'ZONINATOR_PATH', dirname( __FILE__ ) );
 define( 'ZONINATOR_URL', trailingslashit( plugins_url( '', __FILE__ ) ) );
 
@@ -479,7 +479,7 @@ class Zoninator
 							</div>
 
 						<?php else : ?>
-							<p class="description"><?php esc_html_e( 'To create a zone, enter a name (and any other info) to to left and click "Save". You can then choose content items to add to the zone.', 'zoninator' ); ?></p>
+							<p class="description"><?php esc_html_e( 'To create a zone, enter a name (and optional description) and click "Save zone info". You can then choose content items to add to the zone.', 'zoninator' ); ?></p>
 						<?php endif; ?>
 					</div>
 				</div>
@@ -596,7 +596,6 @@ class Zoninator
 		$zone_posts = $this->get_zone_posts( $zone_id );
 		$zone_post_ids = wp_list_pluck( $zone_posts, 'ID' );
 
-
 		// Verify nonce
 		$this->verify_nonce( $this->zone_ajax_nonce_action );
 		$this->verify_access( '', $zone_id );
@@ -667,8 +666,6 @@ class Zoninator
 			'post__not_in' => $zone_post_ids,
 			'suppress_filters' => false,
 		) );
-
-
 
 		$recent_posts = get_posts( $args );
 		?>
@@ -872,8 +869,10 @@ class Zoninator
 			$query = new WP_Query( $args );
 			$stripped_posts = array();
 
-			if ( ! $query->have_posts() )
+			if ( ! $query->have_posts() ) {
+				echo json_encode( array() );
 				exit;
+			}
 
 			foreach( $query->posts as $post ) {
 				$stripped_posts[] = apply_filters( 'zoninator_search_results_post', array(
@@ -1226,12 +1225,16 @@ class Zoninator
 
 		$zones = get_terms( $this->zone_taxonomy, $args );
 
-		// Add extra fields in description as properties
-		foreach( $zones as $zone ) {
-			$zone = $this->_fill_zone_details( $zone );
+		if ( ! is_wp_error( $zones ) ) {
+			// Add extra fields in description as properties
+			foreach ( $zones as $zone ) {
+				$zone = $this->_fill_zone_details( $zone );
+			}
+
+			return $zones;
 		}
 
-		return $zones;
+		return false;
 	}
 
 	function get_zone( $zone ) {
@@ -1438,7 +1441,6 @@ class Zoninator
 
 	}
 
-
 	private function filter_zone_feed_fields( $results ) {
 		$filtered_results = array();
 		$whitelisted_fields = apply_filters(
@@ -1460,7 +1462,6 @@ class Zoninator
 			}
 			$i++;
 		}
-
 
 		return $filtered_results;
 	}
@@ -1503,9 +1504,6 @@ class Zoninator
 
 		$wp_header_to_desc[$status] = $official_message;
 	}
-
-
-
 
 	// TODO: Caching needs to be testing properly before being implemented!
 	function get_zone_cache_key( $zone, $args = array() ) {

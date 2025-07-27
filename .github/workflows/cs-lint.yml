@@ -11,18 +11,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  checkcs:
+  check_cs:
     name: "Basic CS and QA checks"
     runs-on: ubuntu-latest
 
     env:
-      XMLLINT_INDENT: "	"
+      XMLLINT_INDENT: "\x09"
 
     steps:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "7.4"
+          php-version: "8.3"
           coverage: none
           tools: cs2pr
 
@@ -37,7 +37,7 @@ jobs:
         uses: korelstar/xmllint-problem-matcher@v1
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # Validate the composer.json file.
       # @link https://getcomposer.org/doc/03-cli.md#validate
@@ -47,7 +47,7 @@ jobs:
       # Install dependencies and handle caching in one go.
       # @link https://github.com/marketplace/actions/install-composer-dependencies
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@v1
+        uses: ramsey/composer-install@v3
 
       # Lint PHP.
       - name: Lint PHP against parse errors
