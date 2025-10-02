@@ -1,0 +1,290 @@
+# Copyright (C) 2025 Mohammad Jangda, Automattic
+# This file is distributed under the same license as the Zone Manager (Zoninator) plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Zone Manager (Zoninator) 0.10.2\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/zoninator\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2025-10-02T13:54:49+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: zoninator\n"
+
+#. Plugin Name of the plugin
+#: zoninator.php
+msgid "Zone Manager (Zoninator)"
+msgstr ""
+
+#. Description of the plugin
+#: zoninator.php
+msgid "Curation made easy! Create \"zones\" then add and order your content!"
+msgstr ""
+
+#. Author of the plugin
+#: zoninator.php
+msgid "Mohammad Jangda, Automattic"
+msgstr ""
+
+#. Author URI of the plugin
+#: zoninator.php
+msgid "https://wpvip.com"
+msgstr ""
+
+#: src/class-zoninator-api-controller.php:68
+#: src/class-zoninator-api-controller.php:70
+msgid "Zone not found"
+msgstr ""
+
+#: src/class-zoninator-api-controller.php:69
+msgid "Invalid post id"
+msgstr ""
+
+#: src/class-zoninator-api-controller.php:71
+msgid "post id and zone id required"
+msgstr ""
+
+#: src/class-zoninator-api-controller.php:306
+msgid "zone id required"
+msgstr ""
+
+#: src/class-zoninator-api-controller.php:500
+#: src/class-zoninator.php:1471
+msgid "Sorry, you're not supposed to do that..."
+msgstr ""
+
+#: src/class-zoninator-api-filter-search.php:26
+msgid "search term"
+msgstr ""
+
+#: src/class-zoninator-api-filter-search.php:31
+msgid "filter by category"
+msgstr ""
+
+#: src/class-zoninator-api-filter-search.php:35
+msgid "only get posts after this date (format YYYY-mm-dd)"
+msgstr ""
+
+#: src/class-zoninator-api-filter-search.php:39
+msgid "limit results"
+msgstr ""
+
+#: src/class-zoninator-api-filter-search.php:43
+msgid "post_ids to exclude"
+msgstr ""
+
+#: src/class-zoninator-zoneposts-widget.php:12
+msgid "Use this widget to display a list of posts from any zone."
+msgstr ""
+
+#: src/class-zoninator-zoneposts-widget.php:22
+msgid "Zone Posts"
+msgstr ""
+
+#: src/class-zoninator-zoneposts-widget.php:133
+msgid "You need to create at least one zone before you use this widget!"
+msgstr ""
+
+#: src/class-zoninator-zoneposts-widget.php:142
+msgid "Zone:"
+msgstr ""
+
+#: src/class-zoninator-zoneposts-widget.php:145
+msgid "-- Select a zone --"
+msgstr ""
+
+#: src/class-zoninator-zoneposts-widget.php:161
+msgid "Show zone description in widget"
+msgstr ""
+
+#: src/class-zoninator.php:82
+msgid "The zone was successfully created."
+msgstr ""
+
+#: src/class-zoninator.php:83
+msgid "The zone was successfully updated."
+msgstr ""
+
+#: src/class-zoninator.php:84
+msgid "The zone was successfully deleted."
+msgstr ""
+
+#: src/class-zoninator.php:85
+msgid "Sorry, something went wrong! Please try again?"
+msgstr ""
+
+#. translators: User's display name, or "another user"
+#: src/class-zoninator.php:87
+#, php-format
+msgid "Sorry, this zone is in use by %s and is currently locked. Please try again later."
+msgstr ""
+
+#: src/class-zoninator.php:88
+msgid "Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard."
+msgstr ""
+
+#: src/class-zoninator.php:108
+#: src/class-zoninator.php:155
+#: src/class-zoninator.php:269
+msgid "Zones"
+msgstr ""
+
+#: src/class-zoninator.php:155
+msgid "Zoninator"
+msgstr ""
+
+#: src/class-zoninator.php:167
+msgid "another user"
+msgstr ""
+
+#: src/class-zoninator.php:281
+msgid "Edit Zone"
+msgstr ""
+
+#: src/class-zoninator.php:297
+#: src/class-zoninator.php:299
+msgid "Add New"
+msgstr ""
+
+#: src/class-zoninator.php:402
+#: src/class-zoninator.php:451
+msgid "Name"
+msgstr ""
+
+#: src/class-zoninator.php:408
+#: src/class-zoninator.php:457
+msgid "Slug"
+msgstr ""
+
+#: src/class-zoninator.php:417
+#: src/class-zoninator.php:463
+msgid "Description"
+msgstr ""
+
+#: src/class-zoninator.php:433
+msgid "Save zone info"
+msgstr ""
+
+#: src/class-zoninator.php:436
+msgid "Delete"
+msgstr ""
+
+#: src/class-zoninator.php:484
+msgid "Zone Content"
+msgstr ""
+
+#: src/class-zoninator.php:506
+msgid "To create a zone, enter a name (and optional description) and click \"Save zone info\". You can then choose content items to add to the zone."
+msgstr ""
+
+#: src/class-zoninator.php:552
+#: src/class-zoninator.php:1720
+msgid "Click and drag to change the position of this item."
+msgstr ""
+
+#: src/class-zoninator.php:560
+#: src/class-zoninator.php:562
+#: src/class-zoninator.php:1733
+#: src/class-zoninator.php:1746
+msgid "Opens in new window"
+msgstr ""
+
+#: src/class-zoninator.php:560
+#: src/class-zoninator.php:1734
+msgid "Edit"
+msgstr ""
+
+#: src/class-zoninator.php:561
+msgid "Remove this item from the zone"
+msgstr ""
+
+#: src/class-zoninator.php:561
+#: src/class-zoninator.php:1741
+msgid "Remove"
+msgstr ""
+
+#: src/class-zoninator.php:562
+#: src/class-zoninator.php:1747
+msgid "View"
+msgstr ""
+
+#: src/class-zoninator.php:578
+msgid "Hide"
+msgstr ""
+
+#: src/class-zoninator.php:578
+msgid "Show Filters"
+msgstr ""
+
+#: src/class-zoninator.php:589
+msgid "Filter:"
+msgstr ""
+
+#: src/class-zoninator.php:595
+msgid "Show all Categories"
+msgstr ""
+
+#: src/class-zoninator.php:687
+msgid "No results found"
+msgstr ""
+
+#. translators: Category name
+#: src/class-zoninator.php:690
+#, php-format
+msgid "Choose post from %s"
+msgstr ""
+
+#: src/class-zoninator.php:692
+#: src/class-zoninator.php:727
+msgid "Choose a post"
+msgstr ""
+
+#: src/class-zoninator.php:725
+msgid "Add Recent Content"
+msgstr ""
+
+#: src/class-zoninator.php:743
+msgid "Search for content"
+msgstr ""
+
+#: src/class-zoninator.php:745
+msgid "Enter a term or phrase in the text box above to search for and add content to this zone."
+msgstr ""
+
+#: src/class-zoninator.php:936
+msgid "(no title)"
+msgstr ""
+
+#: src/class-zoninator.php:1018
+msgid "Slug is a required field."
+msgstr ""
+
+#: src/class-zoninator.php:1065
+#: src/class-zoninator.php:1089
+msgid "Sorry, that zone doesn't exist."
+msgstr ""
+
+#: src/class-zoninator.php:1082
+msgid "Sorry, we couldn't delete the zone."
+msgstr ""
+
+#: src/class-zoninator.php:1778
+msgid "Invalid zone supplied"
+msgstr ""
+
+#. translators: %s is usually a field name.
+#: src/zoninator_rest/class-zoninator-rest-model.php:221
+#, php-format
+msgid "%s cannot be empty"
+msgstr ""
+
+#: src/zoninator_rest/controller/class-zoninator-rest-controller-crud.php:48
+msgid "Model not found"
+msgstr ""
+
+#: src/zoninator_rest/controller/class-zoninator-rest-controller-settings.php:35
+msgid "Settings not found"
+msgstr ""
