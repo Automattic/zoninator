@@ -17,6 +17,20 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	private $admin_id;
 
 	/**
+	 * Default User ID
+	 *
+	 * @var int
+	 */
+	private $default_user_id;
+
+	/**
+	 * Environment
+	 *
+	 * @var mixed
+	 */
+	private $environment;
+
+	/**
 	 * Assert Status
 	 *
 	 * @param WP_REST_Response $response Response.
