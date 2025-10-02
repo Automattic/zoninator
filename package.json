@@ -1,14 +1,14 @@
 {
 	"name": "zoninator",
-	"version": "0.10.1",
+	"version": "0.10.2",
 	"description": "Curation made easy! Create \"zones\" then add and order your content!",
 	"license": "GPL-2.0-or-later",
 	"private": true,
 	"repository": "automattic/zoninator",
 	"scripts": {
-		"bump:patch": "bump patch --commit 'Version %s.' package.json package-lock.json zoninator.php README.md",
-		"bump:minor": "bump minor --commit 'Version %s.' package.json package-lock.json zoninator.php README.md",
-		"bump:major": "bump major --commit 'Version %s.' package.json package-lock.json zoninator.php README.md"
+		"bump:patch": "bump patch package.json package-lock.json zoninator.php README.md",
+		"bump:minor": "bump minor package.json package-lock.json zoninator.php README.md",
+		"bump:major": "bump major package.json package-lock.json zoninator.php README.md"
 	},
 	"devDependencies": {
 		"mixtape": "git+https://github.com/Automattic/mixtape.git#3a8440",
