@@ -433,4 +433,49 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 			'slug' => $slug,
 		));
 	}
+
+	/**
+	 * Test that password-protected posts do NOT expose their content in zone feed
+	 * This test verifies the security fix is working
+	 */
+	public function test_password_protected_posts_do_not_expose_content_in_zone_feed() {
+		// Create a password-protected post
+		$post_id = wp_insert_post(array(
+			'post_title' => 'Password-protected post',
+			'post_content' => 'This is secret content that should not be exposed!',
+			'post_excerpt' => 'This is a secret excerpt that should not be exposed!',
+			'post_status' => 'publish',
+			'post_password' => 'secret123',
+			'post_type' => 'post'
+		));
+
+		$this->assertNotWPError($post_id);
+
+		// Create a zone and add the password-protected post to it
+		$zone_id = $this->create_a_zone('test-security-zone', 'Test Security Zone');
+		$response = $this->put('/zoninator/v1/zones/' . $zone_id . '/posts', array(
+			'post_ids' => array($post_id),
+		));
+		$this->assertResponseStatus($response, 200);
+
+		// Test as unauthenticated user (simulating public access)
+		wp_set_current_user(0);
+		
+		// Get the zone posts via REST API
+		$response = $this->get('/zoninator/v1/zones/' . $zone_id . '/posts');
+		$this->assertResponseStatus($response, 200);
+		
+		$data = $response->get_data();
+		$this->assertIsArray($data);
+		$this->assertCount(1, $data);
+		
+		$post_data = $data[0];
+		$this->assertEquals($post_id, $post_data->ID);
+		$this->assertEquals('Password-protected post', $post_data->post_title);
+		
+		// Security fix: password-protected content and excerpt should be empty
+		$this->assertEquals('', $post_data->post_content);
+		$this->assertEquals('', $post_data->post_excerpt);
+	}
+
 }

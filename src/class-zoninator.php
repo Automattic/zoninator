@@ -1532,8 +1532,13 @@ class Zoninator {
 					$filtered_results[ $i ] = new stdClass();
 				}
 
-				// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found -- see https://github.com/PHPCSStandards/PHP_CodeSniffer/issues/598
-				$filtered_results[ $i ]->$field = $result->$field;
+				// Don't expose content or excerpt for password-protected posts
+				if ( ( 'post_content' === $field || 'post_excerpt' === $field ) && ! empty( $result->post_password ) ) {
+					$filtered_results[ $i ]->$field = '';
+				} else {
+					// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found -- see https://github.com/PHPCSStandards/PHP_CodeSniffer/issues/598
+					$filtered_results[ $i ]->$field = $result->$field;
+				}
 			}
 
 			++$i;
