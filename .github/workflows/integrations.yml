@@ -65,6 +65,12 @@ jobs:
       - name: Start MySQL Service
         run: sudo systemctl start mysql.service
 
+      # This is needed as the integration tests use SVN to download the WordPress core and test dependencies.
+      - name: Install SVN (Subversion)
+        run: |
+          sudo apt-get update
+          sudo apt-get install subversion
+
       - name: Prepare environment for integration tests
         run: composer prepare-ci ${{ matrix.wordpress }}
 
