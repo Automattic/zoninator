@@ -6,7 +6,7 @@ Author: Mohammad Jangda, Automattic
 Version: 0.10.1
 Author URI: http://vip.wordpress.com
 Text Domain: zoninator
-Domain Path: /language/
+Domain Path: /languages/
 
 Copyright 2010-2015 Mohammad Jangda, Automattic
 

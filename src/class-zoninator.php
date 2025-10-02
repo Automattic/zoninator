@@ -50,8 +50,6 @@ class Zoninator {
 	public function __construct() {
 		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
 
-		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
-
 		add_action( 'widgets_init', array( $this, 'widgets_init' ) );
 
 		add_action( 'init', array( $this, 'add_zone_feed' ) );
@@ -127,10 +125,6 @@ class Zoninator {
 		add_action( 'zoninator_advanced_search_fields', array( $this, 'zone_advanced_search_date_filter' ), 20 );
 
 		do_action( 'zoninator_post_init' );
-	}
-
-	public function load_textdomain() {
-		load_plugin_textdomain( 'zoninator', false, basename( dirname( ZONINATOR_FILE ) ) . '/language' );
 	}
 
 	public function widgets_init() {
