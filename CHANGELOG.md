@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.2] - 2025-10-02
+
+### Fixed
+
+* fix: Prevent exposure of content for password-protected posts by @GaryJones in https://github.com/Automattic/zoninator/pull/125
+
+### Maintenance
+
+* Deploy: Don't include .git/ directory by @GaryJones in https://github.com/Automattic/zoninator/pull/106
+* Add and apply Rector by @GaryJones in https://github.com/Automattic/zoninator/pull/107
+* CS: Fix or ignore coding standards issues by @GaryJones in https://github.com/Automattic/zoninator/pull/112
+* Consolidate classes by @GaryJones in https://github.com/Automattic/zoninator/pull/117
+* Refactor root file by @GaryJones in https://github.com/Automattic/zoninator/pull/118
+* Fix rector config by @GaryJones in https://github.com/Automattic/zoninator/pull/119
+* Update GitHub action to install SVN before deploy to WordPress.org by @raamdev in https://github.com/Automattic/zoninator/pull/120
+* ci: Add SVN installation step for integration tests by @GaryJones in https://github.com/Automattic/zoninator/pull/123
+* fix: Address deprecation notices during tests by @GaryJones in https://github.com/Automattic/zoninator/pull/124
+* chore: Modernise i18n by @GaryJones in https://github.com/Automattic/zoninator/pull/126
+
 ## [0.10.1] - 2024-08-15
 
 ### Fixed
@@ -103,6 +122,7 @@ This release has PHP 7.4 and WordPress 5.9 as the minimum supported versions.
 
 * Initial Release!
 
+[0.10.2]: https://github.com/automattic/zoninator/compare/0.10.1..0.10.2
 [0.10.1]: https://github.com/automattic/zoninator/compare/0.10.0..0.10.1
 [0.10.0]: https://github.com/automattic/zoninator/compare/0.9..0.10.0
 [0.9]: https://github.com/automattic/zoninator/compare/0.8..0.9
