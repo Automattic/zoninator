@@ -1270,14 +1270,14 @@ class Zoninator {
 		$args = wp_parse_args(
 			$args,
 			array(
+				'taxonomy'   => $this->zone_taxonomy,
 				'orderby'    => 'id',
 				'order'      => 'ASC',
 				'hide_empty' => 0,
 			)
 		);
 
-		// phpcs:ignore WordPress.WP.DeprecatedParameters.Get_termsParam2Found -- See https://github.com/Automattic/zoninator/issues/111
-		$zones = get_terms( $this->zone_taxonomy, $args );
+		$zones = get_terms( $args );
 
 		if ( ! is_wp_error( $zones ) ) {
 			// Add extra fields in description as properties
