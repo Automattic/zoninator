@@ -41,10 +41,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install wordpress environment
+        run: npm install -g @wordpress/env
+
       - name: Setup PHP ${{ matrix.php }}
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
+          tools: composer
 
       - name: Install Composer dependencies
         uses: ramsey/composer-install@v3
@@ -57,25 +61,13 @@ jobs:
       - name: Setup Problem Matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
-      - name: Show PHP and PHPUnit version info
-        run: |
-          php --version
-          ./vendor/bin/phpunit --version
-
-      - name: Start MySQL Service
-        run: sudo systemctl start mysql.service
-
-      # This is needed as the integration tests use SVN to download the WordPress core and test dependencies.
-      - name: Install SVN (Subversion)
-        run: |
-          sudo apt-get update
-          sudo apt-get install subversion
-
-      - name: Prepare environment for integration tests
-        run: composer prepare-ci ${{ matrix.wordpress }}
+      - name: Setup wp-env
+        run: wp-env start
+        env:
+          WP_ENV_CORE: WordPress/WordPress#${{ matrix.wordpress }}
 
       - name: Run integration tests (single site)
-        run: composer test
+        run: composer test-integration
 
       - name: Run integration tests (multisite)
-        run: composer test-ms
+        run: composer test-integration-ms

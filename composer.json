@@ -45,16 +45,8 @@
 		"lint-ci": [
 			"@php ./vendor/php-parallel-lint/php-parallel-lint/parallel-lint . -e php --exclude vendor --exclude .git --checkstyle"
 		],
-		"prepare-ci": [
-			"bash bin/install-wp-tests.sh wordpress_test root root localhost"
-		],
-		"test": [
-			"@php ./vendor/bin/phpunit --testsuite WP_Tests"
-		],
-		"test-ms": [
-			"@putenv WP_MULTISITE=1",
-			"@composer test"
-		]
+		"test-integration": "wp-env run tests-cli --env-cwd=wp-content/plugins/zoninator ./vendor/bin/phpunit --testsuite WP_Tests",
+		"test-integration-ms": "wp-env run tests-cli --env-cwd=wp-content/plugins/zoninator /bin/bash -c 'WP_MULTISITE=1 ./vendor/bin/phpunit --testsuite WP_Tests'"
 	},
 	"support": {
 		"issues": "https://github.com/Automattic/zoninator/issues",
