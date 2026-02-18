@@ -1,11 +1,18 @@
 <?php
+/**
+ * Integration tests for the Zoninator API controller.
+ *
+ * @package Automattic\Zoninator
+ */
 
-class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
+namespace Automattic\Zoninator\Tests\Integration;
+
+class Zoninator_Api_Controller_Test extends TestCase {
 
 	/**
 	 * REST Server
 	 *
-	 * @var WP_REST_Server
+	 * @var \WP_REST_Server
 	 */
 	protected $rest_server;
 
@@ -33,7 +40,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	/**
 	 * Assert Status
 	 *
-	 * @param WP_REST_Response $response Response.
+	 * @param \WP_REST_Response $response Response.
 	 * @param int              $status_code Code.
 	 */
 	public function assert_response_status( $response, $status_code ) {
@@ -63,34 +70,34 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	/**
 	 * Assert Status 200
 	 *
-	 * @param WP_REST_Response $response Response.
+	 * @param \WP_REST_Response $response Response.
 	 */
 	public function assert_http_response_status_success( $response ) {
-		$this->assert_response_status( $response, MT_Controller::HTTP_OK );
+		$this->assert_response_status( $response, \MT_Controller::HTTP_OK );
 	}
 
 	/**
 	 * Assert Status 201
 	 *
-	 * @param WP_REST_Response $response Response.
+	 * @param \WP_REST_Response $response Response.
 	 */
 	public function assert_http_response_status_created( $response ) {
-		$this->assert_response_status( $response, MT_Controller::HTTP_CREATED );
+		$this->assert_response_status( $response, \MT_Controller::HTTP_CREATED );
 	}
 
 	/**
 	 * Assert Status 404
 	 *
-	 * @param WP_REST_Response $response Response.
+	 * @param \WP_REST_Response $response Response.
 	 */
 	public function assert_http_response_status_not_found( $response ) {
-		$this->assert_response_status( $response, MT_Controller::HTTP_NOT_FOUND );
+		$this->assert_response_status( $response, \MT_Controller::HTTP_NOT_FOUND );
 	}
 
 	/**
 	 * Ensure we got a certain response code
 	 *
-	 * @param WP_REST_Response $response The Response.
+	 * @param \WP_REST_Response $response The Response.
 	 * @param int              $status_code Expected status code.
 	 */
 	public function assertResponseStatus( $response, $status_code ) {
@@ -104,10 +111,10 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	 * @param string $endpoint The Endpoint.
 	 * @param string $method Http method.
 	 * @param array  $args Any Data/Args.
-	 * @return WP_REST_Response
+	 * @return \WP_REST_Response
 	 */
 	public function request( $endpoint, $method, $args = array() ) {
-		$request = new WP_REST_Request( $method, $endpoint );
+		$request = new \WP_REST_Request( $method, $endpoint );
 		foreach ( $args as $key => $value ) {
 			$request->set_param( $key, $value );
 		}
@@ -120,7 +127,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	 *
 	 * @param string $endpoint The Endpoint.
 	 * @param array  $args Any Data/Args.
-	 * @return WP_REST_Response
+	 * @return \WP_REST_Response
 	 */
 	public function get( $endpoint, $args = array() ) {
 		return $this->request( $endpoint, 'GET', $args );
@@ -131,7 +138,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	 *
 	 * @param string $endpoint The Endpoint.
 	 * @param array  $args Any Data/Args.
-	 * @return WP_REST_Response
+	 * @return \WP_REST_Response
 	 */
 	public function post( $endpoint, $args = array() ) {
 		return $this->request( $endpoint, 'POST', $args );
@@ -142,7 +149,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	 *
 	 * @param string $endpoint The Endpoint.
 	 * @param array  $args Any Data/Args.
-	 * @return WP_REST_Response
+	 * @return \WP_REST_Response
 	 */
 	public function put( $endpoint, $args = array() ) {
 		return $this->request( $endpoint, 'PUT', $args );
@@ -153,7 +160,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	 *
 	 * @param string $endpoint The Endpoint.
 	 * @param array  $args Any Data/Args.
-	 * @return WP_REST_Response
+	 * @return \WP_REST_Response
 	 */
 	public function delete( $endpoint, $args = array() ) {
 		return $this->request( $endpoint, 'DELETE', $args );
@@ -167,10 +174,10 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 		/**
 		 *The global
 		 *
-		 * @var WP_REST_Server $wp_rest_server
+		 * @var \WP_REST_Server $wp_rest_server
 		 */
 		global $wp_rest_server;
-		$this->rest_server = new Spy_REST_Server;
+		$this->rest_server = new \Spy_REST_Server();
 		$wp_rest_server = $this->rest_server;
 		$admin = get_user_by( 'email', 'rest_api_admin_user@test.com' );
 		if ( false === $admin ) {
@@ -187,13 +194,13 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 		$this->login_as_admin();
 		$this->rest_server = $wp_rest_server;
 		do_action( 'rest_api_init' );
-		$this->environment = Zoninator()->rest_api->bootstrap->environment();
+		$this->environment = \Zoninator()->rest_api->bootstrap->environment();
 	}
 
 	/**
 	 * T test_create_zone_responds_with_created_when_method_post
 	 *
-	 * @throws Exception E.
+	 * @throws \Exception E.
 	 */
 	public function test_create_zone_responds_with_created_when_method_post() {
 		$this->login_as_admin();
@@ -206,7 +213,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	/**
 	 * T test_create_zone_fail_if_invalid_data
 	 *
-	 * @throws Exception E.
+	 * @throws \Exception E.
 	 */
 	public function test_create_zone_fail_if_invalid_data() {
 		$this->login_as_admin();
@@ -219,7 +226,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	/**
 	 * T test_create_zone_with_special_chars
 	 *
-	 * @throws Exception E
+	 * @throws \Exception E
 	 */
 	public function test_create_zone_with_special_chars() {
 		$this->login_as_admin();
@@ -237,7 +244,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	/**
 	 * T test_update_zone_responds_with_success_when_method_put
 	 *
-	 * @throws Exception E.
+	 * @throws \Exception E.
 	 */
 	public function test_update_zone_responds_with_success_when_method_put() {
 		$this->login_as_admin();
@@ -251,7 +258,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	/**
 	 * T test_update_zone_responds_with_not_found_if_zone_not_exist
 	 *
-	 * @throws Exception E.
+	 * @throws \Exception E.
 	 */
 	public function test_update_zone_responds_with_not_found_if_zone_not_exist() {
 		$this->login_as_admin();
@@ -264,7 +271,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	/**
 	 * T test_delete_zone_responds_with_success_when_method_delete
 	 *
-	 * @throws Exception E.
+	 * @throws \Exception E.
 	 */
 	public function test_delete_zone_responds_with_success_when_method_delete() {
 		$this->login_as_admin();
@@ -276,7 +283,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	/**
 	 * T test_delete_zone_responds_with_not_found_if_zone_not_exist
 	 *
-	 * @throws Exception E.
+	 * @throws \Exception E.
 	 */
 	public function test_delete_zone_responds_with_not_found_if_zone_not_exist() {
 		$this->login_as_admin();
@@ -287,7 +294,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	/**
 	 * T test_update_zone_posts_responds_with_ok_when_method_put
 	 *
-	 * @throws Exception E.
+	 * @throws \Exception E.
 	 */
 	public function test_update_zone_posts_responds_with_success_when_method_put() {
 		$this->login_as_admin();
@@ -302,7 +309,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	/**
 	 * T test_update_zone_posts_responds_with_not_found_if_zone_not_exist
 	 *
-	 * @throws Exception E.
+	 * @throws \Exception E.
 	 */
 	public function test_update_zone_posts_responds_with_not_found_if_zone_not_exist() {
 		$this->login_as_admin();
@@ -316,7 +323,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	/**
 	 * T test_update_zone_posts_fails_if_invalid_data_format
 	 *
-	 * @throws Exception E.
+	 * @throws \Exception E.
 	 */
 	public function test_update_zone_posts_fails_if_invalid_data() {
 		$this->login_as_admin();
@@ -329,7 +336,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	/**
 	 * T test_update_zone_posts_fails_if_invalid_post_id
 	 *
-	 * @throws Exception E.
+	 * @throws \Exception E.
 	 */
 	public function test_update_zone_posts_fails_if_invalid_post_id() {
 		$this->login_as_admin();
@@ -344,12 +351,12 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	/**
 	 * T test_get_zone_posts_success_when_valid_zone_and_posts
 	 *
-	 * @throws Exception E.
+	 * @throws \Exception E.
 	 */
 	public function test_get_zone_posts_success_when_valid_zone_and_posts() {
 		$this->login_as_admin();
 		self::factory()->post->create_many( 5 );
-		$query = new WP_Query();
+		$query = new \WP_Query();
 		$posts = $query->query( array() );
 		$post = $posts[0];
 		$zone_id = $this->add_a_zone();
@@ -365,7 +372,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	 * Test test_get_zone_posts_success_when_no_posts_in_zone
 	 */
 	public function test_get_zone_posts_success_when_no_posts_in_zone() {
-		$term_factory = new WP_UnitTest_Factory_For_Term( null, Zoninator()->zone_taxonomy );
+		$term_factory = new \WP_UnitTest_Factory_For_Term( null, \Zoninator()->zone_taxonomy );
 		$zone_id = $term_factory->create_object( array(
 			'name' => 'The Zone Add Post one',
 			'description' => 'Zone 2',
@@ -380,7 +387,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	 * Test test_get_zone_posts_not_found_when_invalid_zone
 	 */
 	public function test_get_zone_posts_not_found_when_invalid_zone() {
-		$term_factory = new WP_UnitTest_Factory_For_Term( null, Zoninator()->zone_taxonomy );
+		$term_factory = new \WP_UnitTest_Factory_For_Term( null, \Zoninator()->zone_taxonomy );
 		$zone_id = $term_factory->create_object( array(
 			'name' => 'The Zone Add Post one',
 			'description' => 'Zone 2',
@@ -392,7 +399,7 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @return int|WP_Error
+	 * @return int|\WP_Error
 	 */
 	private function _insert_a_post() {
 		$insert = wp_insert_post( array(
@@ -403,14 +410,14 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 			'post_type' => 'post'
 		) );
 		if ( is_wp_error( $insert ) ) {
-			throw new Exception( 'Error' );
+			throw new \Exception( 'Error' );
 		}
 
 		return $insert;
 	}
 
 	private function create_a_zone( $slug, $title ) {
-		$result = Zoninator()->insert_zone( $slug, $title, array( 'description' => rand_str() ) );
+		$result = \Zoninator()->insert_zone( $slug, $title, array( 'description' => rand_str() ) );
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
@@ -423,10 +430,10 @@ class Zoninator_Api_Controller_Test extends WP_UnitTestCase {
 	 *
 	 * @param string $slug Slug.
 	 *
-	 * @return array|mixed|WP_Error
+	 * @return array|mixed|\WP_Error
 	 */
 	private function add_a_zone( $slug = 'zone-1' ) {
-		$term_factory = new WP_UnitTest_Factory_For_Term(null, Zoninator()->zone_taxonomy);
+		$term_factory = new \WP_UnitTest_Factory_For_Term(null, \Zoninator()->zone_taxonomy);
 		return $term_factory->create_object(array(
 			'name' => 'The Zone Add Post one ' . rand_str(),
 			'description' => 'Zone ' . rand_str(),
