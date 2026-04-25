@@ -83,6 +83,8 @@ class Zoninator {
 			'update-success'      => __( 'The zone was successfully updated.', 'zoninator' ),
 			'delete-success'      => __( 'The zone was successfully deleted.', 'zoninator' ),
 			'error-general'       => __( 'Sorry, something went wrong! Please try again?', 'zoninator' ),
+			'error-delete-zone'   => __( "Sorry, we couldn't delete the zone.", 'zoninator' ),
+			'error-invalid-zone'  => __( "Sorry, that zone doesn't exist.", 'zoninator' ),
 			/* translators: User's display name, or "another user" */
 			'error-zone-lock'     => __( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
 			'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard.', 'zoninator' ),
@@ -251,7 +253,7 @@ class Zoninator {
 					}
 
 					if ( is_wp_error( $result ) ) {
-						$redirect_args = array( 'error' => $result->get_error_messages() );
+						$redirect_args = array( 'error' => $result->get_error_code() );
 					} else {
 						$redirect_args = array( 'message' => 'delete-success' );
 					}
@@ -281,8 +283,16 @@ class Zoninator {
 			$title = __( 'Edit Zone', 'zoninator' );
 		}
 
-		$message = $this->_get_message( $this->_get_get_var( 'message', '', 'urldecode' ) );
-		$error   = $this->_get_get_var( 'error', '', 'urldecode' );
+		$message    = $this->_get_message( $this->_get_get_var( 'message', '', 'sanitize_key' ) );
+		$error_code = $this->_get_get_var( 'error', '', 'sanitize_key' );
+		if ( $error_code ) {
+			$error = $this->_get_message( 'error-' . $error_code );
+			if ( '' === $error ) {
+				$error = $this->_get_message( 'error-general' );
+			}
+		} else {
+			$error = '';
+		}
 
 		?>
 	<div class="wrap zoninator-page">
@@ -675,7 +685,7 @@ class Zoninator {
 			$content      = '';
 			$recent_posts = get_posts( $args );
 			foreach ( $recent_posts as $post ) :
-				$content .= sprintf( '<option value="%d">%s</option>', $post->ID, get_the_title( $post->ID ) . ' (' . $post->post_status . ')' );
+				$content .= sprintf( '<option value="%d">%s</option>', $post->ID, esc_html( get_the_title( $post->ID ) . ' (' . $post->post_status . ')' ) );
 			endforeach;
 
 			wp_reset_postdata();
