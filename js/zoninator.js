@@ -113,6 +113,7 @@ var zoninator = {};
 
 						// Append more request vars
 						request.action = zoninator.getAjaxAction('search_posts');
+						request._wpnonce = zoninator.getAjaxNonce();
 						request.exclude = zoninator.getZonePostIds();
 
 						// Allow developers to hook onto the request
