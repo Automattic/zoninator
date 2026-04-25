@@ -879,6 +879,9 @@ class Zoninator {
 
 	public function ajax_search_posts() {
 
+		$this->verify_nonce( $this->zone_ajax_nonce_action );
+		$this->verify_access();
+
 		$q = $this->_get_request_var( 'term', '', 'stripslashes' );
 
 		if ( ! empty( $q ) ) {
