@@ -337,11 +337,22 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	/**
 	 * Check if a given request has access to the zones index.
 	 *
+	 * Defaults to requiring a logged-in user to avoid leaking zone names and
+	 * descriptions to anonymous callers. Sites that integrated against the
+	 * historical unauthenticated behaviour can restore it via the
+	 * zoninator_rest_get_zones_permissions_check filter.
+	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_Error|bool
+	 * @return bool
 	 */
 	public function get_zones_permissions_check( $request ) {
-		return true;
+		/**
+		 * Filter whether the GET /zones REST endpoint authorises the request.
+		 *
+		 * @param bool            $authorised Whether the caller may list zones.
+		 * @param WP_REST_Request $request    The current REST request.
+		 */
+		return (bool) apply_filters( 'zoninator_rest_get_zones_permissions_check', is_user_logged_in(), $request );
 	}
 
 	/**
