@@ -1478,8 +1478,16 @@ class Zoninator {
 
 		$details = array();
 
-		if ( ! empty( $zone->description ) ) {
-			$details = maybe_unserialize( $zone->description );
+		if ( ! empty( $zone->description ) && is_serialized( $zone->description ) ) {
+			// Disallow object instantiation to prevent PHP object injection if a
+			// crafted serialized payload reaches the term description via any path.
+			// Silenced because unserialize() can still emit notices on truncated or
+			// malformed payloads that pass is_serialized().
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
+			$unserialized = @unserialize( trim( $zone->description ), array( 'allowed_classes' => false ) );
+			if ( is_array( $unserialized ) ) {
+				$details = $unserialized;
+			}
 		}
 
 		$details = wp_parse_args( $details, $this->zone_detail_defaults );
