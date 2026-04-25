@@ -177,7 +177,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		$zone_id     = $this->get_param( $request, 'zone_id', 0, 'absint' );
 		$name        = $this->get_param( $request, 'name', '' );
 		$slug        = $this->get_param( $request, 'slug', '' );
-		$description = $this->get_param( $request, 'description', '', 'strip_tags' );
+		$description = $this->get_param( $request, 'description', '' );
 
 		$zone          = $this->instance->get_zone( $zone_id );
 		$update_params = array();

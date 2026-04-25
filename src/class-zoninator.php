@@ -443,7 +443,7 @@ class Zoninator {
 								<input type="submit" value="<?php esc_attr_e( 'Save zone info', 'zoninator' ); ?>" name="submit" class="button" />
 
 								<?php if ( $zone_id ) : ?>
-									<a href="<?php echo esc_url( $delete_link ); ?>" class="submitdelete" onclick="return confirm('<?php echo esc_js( 'Are you sure you want to delete this zone?', 'zoninator' ); ?>')"><?php esc_html_e( 'Delete', 'zoninator' ); ?></a>
+									<a href="<?php echo esc_url( $delete_link ); ?>" class="submitdelete" onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to delete this zone?', 'zoninator' ) ); ?>')"><?php esc_html_e( 'Delete', 'zoninator' ); ?></a>
 									<?php
 								endif;
 								?>
@@ -643,14 +643,14 @@ class Zoninator {
 		$date    = $this->_get_post_var( 'date', '', 'striptags' );
 		$zone_id = $this->_get_post_var( 'zone_id', 0, 'absint' );
 
+		// Verify nonce and capability before doing any DB work.
+		$this->verify_nonce( $this->zone_ajax_nonce_action );
+		$this->verify_access( '', $zone_id );
+
 		$limit         = $this->posts_per_page;
 		$post_types    = $this->get_supported_post_types();
 		$zone_posts    = $this->get_zone_posts( $zone_id );
 		$zone_post_ids = wp_list_pluck( $zone_posts, 'ID' );
-
-		// Verify nonce
-		$this->verify_nonce( $this->zone_ajax_nonce_action );
-		$this->verify_access( '', $zone_id );
 
 		if ( is_wp_error( $zone_posts ) ) {
 			$status  = 0;
@@ -1335,13 +1335,12 @@ class Zoninator {
 		}
 
 		if ( ! $user_id ) {
-			$user    = wp_get_current_user();
-			$user_id = $user->ID;
+			$user_id = get_current_user_id();
 		}
 
 		$lock_key = $this->get_zone_meta_key( $zone );
 		$expiry   = $this->zone_lock_period + 1; // Add a one to avoid most race condition issues between lock expiry and ajax call
-		set_transient( $lock_key, $user->ID, $expiry );
+		set_transient( $lock_key, $user_id, $expiry );
 
 		// Possible alternative: set zone lock as property with time and user
 		return null;
