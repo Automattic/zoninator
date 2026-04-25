@@ -3,6 +3,7 @@
 /.git/
 /.github/
 /bin/
+/docs/
 /node_modules/
 /tests/
 /vendor/
@@ -17,6 +18,8 @@
 .wp-env.override.json
 AGENTS.md
 CHANGELOG.md
+CONTRIBUTING.md
+SECURITY.md
 composer.json
 composer.lock
 mixtape.json

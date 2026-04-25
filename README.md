@@ -35,7 +35,7 @@ This plugin was originally built by [Mohammad Jangda](http://digitalize.ca) in c
 
 ### Usage examples
 
-You can work with a zone's posts either as an array or a WP_Query object.
+You can work with a zone's posts either as a `WP_Query` object or as a plain array.
 
 **WP_Query**
 
@@ -43,10 +43,10 @@ You can work with a zone's posts either as an array or a WP_Query object.
 $zone_query = z_get_zone_query( 'homepage' );
 if ( $zone_query->have_posts() ) :
 	while ( $zone_query->have_posts() ) : $zone_query->the_post();
-		echo '<li>' . get_the_title() . '</li>';
+		echo '<li>' . esc_html( get_the_title() ) . '</li>';
 	endwhile;
+	wp_reset_postdata();
 endif;
-wp_reset_query();
 ~~~
 
 **Posts Array**
@@ -54,37 +54,21 @@ wp_reset_query();
 ~~~php
 $zone_posts = z_get_posts_in_zone( 'homepage' );
 foreach ( $zone_posts as $zone_post ) :
-	echo '<li>' . get_the_title( $zone_post->ID ) . '</li>';
+	echo '<li>' . esc_html( get_the_title( $zone_post->ID ) ) . '</li>';
 endforeach;
 ~~~
 
-## Function Reference
+For the full template-tag reference, see the [theme developer guide](https://github.com/Automattic/zoninator/blob/main/docs/theme-developers.md).
 
-Get an array of all zones:
+## Documentation
 
-~~~php
-z_get_zones()
-~~~
+Audience-targeted documentation lives in the GitHub repository:
 
-Get a single zone, accepts either ID or slug:
-
-~~~php
-z_get_zone( $zone )
-~~~
-
-Get an array of ordered posts in a given zone, accepts either ID or slug:
-
-~~~php
-z_get_posts_in_zone( $zone )
-~~~
-
-Get a WP_Query object for a given zone, accepts either ID or slug:
-
-~~~php
-z_get_zone_query( $zone );
-~~~
-
-More functions listed in `functions.php`.
+* [Theme developer guide](https://github.com/Automattic/zoninator/blob/main/docs/theme-developers.md) — using zones in your theme.
+* [Hooks reference](https://github.com/Automattic/zoninator/blob/main/docs/hooks.md) — every filter and action the plugin exposes.
+* [REST API](https://github.com/Automattic/zoninator/blob/main/docs/rest-api.md) — endpoints under the `zoninator/v1` namespace, for headless integrations.
+* [Contributing](https://github.com/Automattic/zoninator/blob/main/CONTRIBUTING.md) — local setup, tests, and PR conventions.
+* [Security](https://github.com/Automattic/zoninator/blob/main/SECURITY.md) — responsible disclosure.
 
 ## Frequently Asked Questions
 
@@ -103,9 +87,29 @@ Filter the following and change according to your needs:
 * Number of seconds a lock is valid for, default `30`: `zoninator_zone_lock_period`
 * Max idle time in seconds: `zoninator_zone_max_lock_period`
 
+### Can anonymous users still read zones over the REST API?
+
+Not by default since version 0.11.0. The `GET /wp-json/zoninator/v1/zones` endpoint now requires an authenticated user. If your integration relied on anonymous access, you can restore the previous behaviour with the `zoninator_rest_get_zones_permissions_check` filter:
+
+~~~php
+add_filter( 'zoninator_rest_get_zones_permissions_check', '__return_true' );
+~~~
+
+See the [REST API documentation](https://github.com/Automattic/zoninator/blob/main/docs/rest-api.md) for the full endpoint reference.
+
+### Can I use Zoninator with custom post types?
+
+Yes. Call `Zoninator()->register_zone_post_type( 'your_post_type' )` after `init` to add zone support to a custom post type.
+
+## Upgrade Notice
+
+### 0.11.0
+
+The `GET /wp-json/zoninator/v1/zones` REST endpoint now requires an authenticated user. If your site depends on anonymous access, opt back in with the `zoninator_rest_get_zones_permissions_check` filter. Three security fixes are included — review the changelog before upgrading.
+
 ## Changelog
 
-Please visit the [changelog](https://github.com/automattic/zoninator/blob/trunk/CHANGELOG.md).
+Please visit the [changelog](https://github.com/Automattic/zoninator/blob/main/CHANGELOG.md).
 
 ## Screenshots
 
