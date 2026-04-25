@@ -113,6 +113,7 @@ var zoninator = {};
 
 						// Append more request vars
 						request.action = zoninator.getAjaxAction('search_posts');
+						request._wpnonce = zoninator.getAjaxNonce();
 						request.exclude = zoninator.getZonePostIds();
 
 						// Allow developers to hook onto the request
@@ -138,15 +139,14 @@ var zoninator = {};
 			var autocomplete = zoninator.$zonePostSearch.data('autocomplete') || zoninator.$zonePostSearch.data('ui-autocomplete');
 
 			autocomplete._renderItem = function(ul, item) {
-				var content = '<a>'
-					+ '<span class="title">' + item.title + '</span>'
-					+ '<span class="type">' + item.post_type + '</span>'
-					+ '<span class="date">' + item.date + '</span>'
-					+ '<span class="status">' + item.post_status + '</span>'
-					+ '</a>';
+				var $anchor = $('<a></a>')
+					.append($('<span class="title"></span>').text(item.title))
+					.append($('<span class="type"></span>').text(item.post_type))
+					.append($('<span class="date"></span>').text(item.date))
+					.append($('<span class="status"></span>').text(item.post_status));
 				return $('<li></li>')
 					.data('item.autocomplete', item)
-					.append(content)
+					.append($anchor)
 					.appendTo(ul)
 					;
 			}

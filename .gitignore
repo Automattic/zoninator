@@ -1,7 +1,15 @@
-/.phpunit.cache/
+# Dependencies
 /node_modules/
 /vendor/
-/.phpcs.xml
+
+# Composer
 /composer.lock
+
+# Tests
+/.phpunit.cache/
+
+# Local config overrides
+/.phpcs.xml
 /phpcs.xml
 /phpunit.xml
+/.wp-env.override.json

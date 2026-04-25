@@ -1,4 +1,4 @@
-### Running Unit Tests
+### Running Integration Tests
 
 ```bash
 composer install

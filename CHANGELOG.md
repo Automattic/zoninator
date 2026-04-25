@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-04-25
+
+This release raises the minimum WordPress version to 6.4. The REST `GET /wp-json/zoninator/v1/zones` endpoint now requires an authenticated user; sites that depended on anonymous access can restore the previous behaviour via the new `zoninator_rest_get_zones_permissions_check` filter.
+
+### Security
+
+* fix: Enforce auth and nonce on `zoninator_search_posts` AJAX handler by @GaryJones in https://github.com/Automattic/zoninator/pull/151
+* fix: Harden zone description deserialisation and lock down `/zones` REST index by @GaryJones in https://github.com/Automattic/zoninator/pull/149
+* fix: Harden admin UI against reflected and stored XSS by @GaryJones in https://github.com/Automattic/zoninator/pull/148
+
+### Fixed
+
+* fix: Small correctness fixes around locks, AJAX, and i18n by @GaryJones in https://github.com/Automattic/zoninator/pull/150
+
+### Changed
+
+* Bump minimum WordPress version to 6.4 by @GaryJones in https://github.com/Automattic/zoninator/pull/132
+
+### Maintenance
+
+* Migrate test infrastructure to wp-test-utils by @GaryJones in https://github.com/Automattic/zoninator/pull/142
+* ci: Standardise test matrix and update readme by @GaryJones in https://github.com/Automattic/zoninator/pull/139
+* chore: Migrate dependabot reviewers to CODEOWNERS by @GaryJones in https://github.com/Automattic/zoninator/pull/138
+* Standardise configurations and harden GitHub Actions security by @GaryJones in https://github.com/Automattic/zoninator/pull/136
+* Update composer.json for consistency by @GaryJones in https://github.com/Automattic/zoninator/pull/135
+* Simplify .editorconfig file by @GaryJones in https://github.com/Automattic/zoninator/pull/134
+* Migrate integration tests to use wp-env by @GaryJones in https://github.com/Automattic/zoninator/pull/133
+* Add wp-env configuration for local development by @GaryJones in https://github.com/Automattic/zoninator/pull/131
+* Update Composer, npm, and GitHub Actions dependencies via Dependabot
+
+### Documentation
+
+* Add AGENTS.md with structured agent guidance by @GaryJones in https://github.com/Automattic/zoninator/pull/143
+
 ## [0.10.2] - 2025-10-02
 
 ### Fixed
@@ -122,6 +156,7 @@ This release has PHP 7.4 and WordPress 5.9 as the minimum supported versions.
 
 * Initial Release!
 
+[0.11.0]: https://github.com/automattic/zoninator/compare/0.10.2..0.11.0
 [0.10.2]: https://github.com/automattic/zoninator/compare/0.10.1..0.10.2
 [0.10.1]: https://github.com/automattic/zoninator/compare/0.10.0..0.10.1
 [0.10.0]: https://github.com/automattic/zoninator/compare/0.9..0.10.0
