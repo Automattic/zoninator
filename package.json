@@ -13,5 +13,11 @@
 	"devDependencies": {
 		"mixtape": "git+https://github.com/Automattic/mixtape.git#3a8440",
 		"version-bump-prompt": "^6.1.0"
+	},
+	"overrides": {
+		"cross-spawn": "7.0.6",
+		"micromatch": "4.0.8",
+		"shelljs": "0.10.0",
+		"tmp": "0.2.7"
 	}
 }
