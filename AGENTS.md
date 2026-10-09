@@ -84,7 +84,7 @@ npx wp-env stop                  # Stop it
 Follow the standards documented in `~/code/plugin-standards/` for full details. Key points:
 
 - **Commits**: Use the `/commit` skill. Favour explaining "why" over "what".
-- **PRs**: Use the `/pr` skill. Squash and merge by default.
+- **PRs**: Use the `/pr` skill. PRs land with a merge commit (squash and rebase merging are disabled), so tidy the branch's commits before merging.
 - **Branch naming**: Branch from `develop`. Use prefixes like `feature/`, `fix/`, `chore/`. Releases are merged from `develop` into `main` and tagged from `main`.
 - **Testing**: Integration tests only. Extend `Tests\Integration\TestCase`. Tests run inside `wp-env` so they have access to a real WordPress install.
 - **Code style**: WordPress coding standards via PHPCS (with VIP rules). Tabs for indentation.
