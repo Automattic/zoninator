@@ -1190,6 +1190,7 @@ class Zoninator {
 
 		$defaults = array(
 			'order'               => 'ASC',
+			// phpcs:ignore WordPressVIPMinimum.Performance.NoPaging.posts_per_page_posts_per_page -- Zones are hand-curated and small; callers expect every post in the zone, and can pass their own limit.
 			'posts_per_page'      => -1,
 			'post_type'           => $this->get_supported_post_types(),
 			'ignore_sticky_posts' => '1', // don't want sticky posts messing up our order
