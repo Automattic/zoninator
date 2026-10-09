@@ -68,7 +68,7 @@ Audience-targeted documentation lives in the GitHub repository:
 * [Hooks reference](https://github.com/Automattic/zoninator/blob/main/docs/hooks.md) — every filter and action the plugin exposes.
 * [REST API](https://github.com/Automattic/zoninator/blob/main/docs/rest-api.md) — endpoints under the `zoninator/v1` namespace, for headless integrations.
 * [Contributing](https://github.com/Automattic/zoninator/blob/main/CONTRIBUTING.md) — local setup, tests, and PR conventions.
-* [Security](https://github.com/Automattic/zoninator/blob/main/SECURITY.md) — responsible disclosure.
+* [Security](https://github.com/Automattic/zoninator/security/policy) — responsible disclosure.
 
 ## Frequently Asked Questions
 
