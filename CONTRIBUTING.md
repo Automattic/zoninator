@@ -8,7 +8,7 @@ Thanks for your interest in contributing. This document covers the practical bit
 |---|---|
 | Bug report | [GitHub issue](https://github.com/Automattic/zoninator/issues) |
 | Feature request | [GitHub issue](https://github.com/Automattic/zoninator/issues) |
-| Security vulnerability | [HackerOne](https://hackerone.com/automattic) — see [SECURITY.md](SECURITY.md) |
+| Security vulnerability | [HackerOne](https://hackerone.com/automattic) — see [SECURITY.md](.github/SECURITY.md) |
 | Support question | [WordPress.org support forum](https://wordpress.org/support/plugin/zoninator/) |
 
 ## Filing a useful bug report
