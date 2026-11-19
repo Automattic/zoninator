@@ -81,12 +81,11 @@ npx wp-env stop                  # Stop it
 
 ## Conventions
 
-Follow the standards documented in `~/code/plugin-standards/` for full details. Key points:
+See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key points:
 
-- **Commits**: Use the `/commit` skill. Favour explaining "why" over "what".
-- **PRs**: Use the `/pr` skill. PRs land with a merge commit (squash and rebase merging are disabled), so tidy the branch's commits before merging.
-- **Branch naming**: Branch from `develop`. Use prefixes like `feature/`, `fix/`, `chore/`. Releases are merged from `develop` into `main` and tagged from `main`.
-- **Testing**: Integration tests only. Extend `Tests\Integration\TestCase`. Tests run inside `wp-env` so they have access to a real WordPress install.
+- **Commits**: Every commit must be signed; `develop` and `main` reject unsigned commits. Use a [Conventional Commits](https://www.conventionalcommits.org/) prefix (`fix:`, `feat:`, `test:`, `docs:`, `ci:`, `chore:` and so on) with an imperative subject of about 50 characters, and a body that explains why the change was needed rather than what changed. One concern per commit.
+- **PRs**: Open against `develop`. The title describes the outcome in sentence case, without a conventional commit prefix. The description explains the problem first, then how the PR solves it. PRs land as merge commits (squash and rebase merging are disabled), so every commit message reaches `develop` as written.
+- **Testing**: Integration tests only, run inside `wp-env` against a real WordPress install. Extend `Automattic\Zoninator\Tests\Integration\TestCase`, or `WP_Ajax_UnitTestCase` for admin-ajax handlers.
 - **Code style**: WordPress coding standards via PHPCS (with VIP rules). Tabs for indentation.
 - **i18n**: All user-facing strings must use the `zoninator` text domain.
 
