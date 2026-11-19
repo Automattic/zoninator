@@ -39,7 +39,7 @@ class Zoninator_Api_Filter_Search extends Zoninator_REST_Model {
 			$env->field( 'limit', __( 'limit results', 'zoninator' ) )
 				->with_type( $env->type( 'uint' ) )
 				->with_before_set( array( $this, 'strip_slashes' ) )
-				->with_default( Zoninator()->posts_per_page ),
+				->with_default( Zoninator()->get_posts_per_page() ),
 			$env->field( 'exclude', __( 'post_ids to exclude', 'zoninator' ) )
 				->with_type( $env->type( 'array:uint' ) ),
 		);
