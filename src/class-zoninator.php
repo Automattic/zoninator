@@ -665,8 +665,6 @@ class Zoninator {
 					'post_type'           => $post_types,
 					'ignore_sticky_posts' => true,
 					'post_status'         => array( 'publish', 'future' ),
-					// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in
-					'post__not_in'        => $zone_post_ids,
 					'suppress_filters'    => false,
 				)
 			);
@@ -683,7 +681,7 @@ class Zoninator {
 			}
 
 			$content      = '';
-			$recent_posts = get_posts( $args );
+			$recent_posts = $this->get_posts_excluding( $args, $zone_post_ids );
 			foreach ( $recent_posts as $post ) :
 				$content .= sprintf( '<option value="%d">%s</option>', $post->ID, esc_html( get_the_title( $post->ID ) . ' (' . $post->post_status . ')' ) );
 			endforeach;
@@ -723,13 +721,11 @@ class Zoninator {
 				'post_type'           => $post_types,
 				'ignore_sticky_posts' => true,
 				'post_status'         => array( 'publish', 'future' ),
-				// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in
-				'post__not_in'        => $zone_post_ids,
 				'suppress_filters'    => false,
 			)
 		);
 
-		$recent_posts = get_posts( $args );
+		$recent_posts = $this->get_posts_excluding( $args, $zone_post_ids );
 		?>
 	<div class="zone-search-wrapper">
 		<label for="zone-post-search-latest"><?php esc_html_e( 'Add Recent Content', 'zoninator' ); ?></label><br />
@@ -910,8 +906,6 @@ class Zoninator {
 				'zoninator_search_args',
 				array(
 					's'                => $q,
-					// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in
-					'post__not_in'     => $exclude,
 					'posts_per_page'   => $limit,
 					'post_type'        => $post_types,
 					'post_status'      => array( 'publish', 'future' ),
@@ -934,14 +928,14 @@ class Zoninator {
 				$args['day']       = $filter_date_parts[2];
 			}
 
-			$query          = new WP_Query( $args );
+			$posts          = $this->get_posts_excluding( $args, $exclude );
 			$stripped_posts = array();
 
-			if ( ! $query->have_posts() ) {
+			if ( empty( $posts ) ) {
 				wp_send_json( array() );
 			}
 
-			foreach ( $query->posts as $post ) {
+			foreach ( $posts as $post ) {
 				$stripped_posts[] = apply_filters(
 					'zoninator_search_results_post',
 					array(
@@ -1558,6 +1552,36 @@ class Zoninator {
 		}
 
 		return $filtered_results;
+	}
+
+	/**
+	 * Get posts but leave out the given IDs, without a NOT IN clause.
+	 *
+	 * NOT IN gets slow on big posts tables, so we fetch a few more rows
+	 * and drop the excluded ones in PHP.
+	 *
+	 * @param array $args    WP_Query args.
+	 * @param array $exclude Post IDs to leave out.
+	 * @return WP_Post[]
+	 */
+	private function get_posts_excluding( $args, $exclude ) {
+		$exclude = array_map( 'absint', (array) $exclude );
+		$limit   = isset( $args['posts_per_page'] ) ? (int) $args['posts_per_page'] : 0;
+
+		if ( $limit > 0 ) {
+			$args['posts_per_page'] = $limit + count( $exclude );
+		}
+
+		$posts = array_values(
+			array_filter(
+				get_posts( $args ),
+				static function ( $post ) use ( $exclude ) {
+					return ! in_array( $post->ID, $exclude, true );
+				}
+			)
+		);
+
+		return $limit > 0 ? array_slice( $posts, 0, $limit ) : $posts;
 	}
 
 	/**
