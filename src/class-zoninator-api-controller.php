@@ -327,8 +327,8 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 		return new WP_REST_Response(
 			array(
 				'zone_id'         => $this->instance->get_zone_id( $zone ),
-				'timeout'         => $this->instance->zone_lock_period,
-				'max_lock_period' => $this->instance->zone_max_lock_period,
+				'timeout'         => $this->instance->get_zone_lock_period(),
+				'max_lock_period' => $this->instance->get_zone_max_lock_period(),
 			),
 			200
 		);
