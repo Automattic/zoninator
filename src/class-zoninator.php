@@ -1315,12 +1315,7 @@ class Zoninator {
 			return false;
 		}
 
-		if ( function_exists( 'wpcom_vip_get_term_by' ) ) {
-			// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wpcom_vip_get_term_by_wpcom_vip_get_term_by -- See https://github.com/Automattic/zoninator/issues/110
-			$zone = wpcom_vip_get_term_by( $field, $zone, $this->zone_taxonomy );
-		} else {
-			$zone = get_term_by( $field, $zone, $this->zone_taxonomy );
-		}
+		$zone = get_term_by( $field, $zone, $this->zone_taxonomy );
 
 		if ( ! $zone ) {
 			return false;
