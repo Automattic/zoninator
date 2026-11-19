@@ -9,7 +9,7 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: zones, post order, post list, posts, order, zonination, content curation, curation, content management  
 Contributors: batmoo, automattic, wpcomvip, pkevan, matthumphreys, potatomaster, jblz, nickdaugherty, betzster, garyj  
 
-Content curation made easy! Create "zones" then add and order your content!
+Create zones of selected posts in a set order, and display them on your site.
 
 ## Description
 
