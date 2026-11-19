@@ -118,7 +118,7 @@ class Zoninator_Ajax_Search_Posts_Test extends WP_Ajax_UnitTestCase {
 			$this->_handleAjax( 'zoninator_search_posts' );
 			$this->fail( 'Expected handler to exit after emitting JSON.' );
 		} catch ( WPAjaxDieStopException $e ) {
-			// Expected. Handler calls exit after echoing JSON.
+			// Expected. wp_send_json() dies after echoing JSON.
 		} catch ( WPAjaxDieContinueException $e ) {
 			// Also acceptable under some test die handlers.
 		}
