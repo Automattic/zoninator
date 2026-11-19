@@ -16,7 +16,7 @@ npm ci
 npx wp-env start
 ```
 
-`wp-env start` builds the WordPress containers and mounts this plugin into them. The first run takes a minute or two.
+`wp-env start` builds the WordPress containers and mounts this plugin into them, on WordPress trunk and the latest PHP. To test another version, set `WP_ENV_CORE` and `WP_ENV_PHP_VERSION` when you start it (for example `WP_ENV_CORE=WordPress/WordPress#6.4 WP_ENV_PHP_VERSION=7.4 npx wp-env start`). The first run takes a minute or two.
 
 ## Running the tests
 
@@ -25,7 +25,7 @@ composer test:integration       # Single-site integration tests
 composer test:integration-ms    # Same tests in multisite mode
 ```
 
-Both commands run PHPUnit inside the `tests-cli` container, so you don't need PHP locally to use them.
+Both commands run PHPUnit inside the wp-env `cli` container, so you don't need PHP locally to use them. The tests share the environment's database with the development site. Both scripts give the tests their own `wptests_` tables, so running them leaves your development content alone. If you run PHPUnit in the container yourself, set `WORDPRESS_TABLE_PREFIX=wptests_` as the scripts do; without it, the test suite installs over the development site and deletes its content.
 
 ## Coverage
 
