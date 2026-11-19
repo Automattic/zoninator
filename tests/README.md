@@ -25,7 +25,7 @@ composer test:integration       # Single-site integration tests
 composer test:integration-ms    # Same tests in multisite mode
 ```
 
-Both commands run PHPUnit inside the wp-env `cli` container, so you don't need PHP locally to use them. The tests share the environment's database with the development site. Both scripts give the tests their own `wptests_` tables, so running them leaves your development content alone. If you run PHPUnit in the container yourself, set `WORDPRESS_TABLE_PREFIX=wptests_` as the scripts do; without it, the test suite installs over the development site and deletes its content.
+Both commands run PHPUnit inside the wp-env `cli` container, so you don't need PHP locally to use them. The tests share the environment's database with the development site. `phpunit.xml.dist` gives the tests their own `wptests_` tables, so running them, through these scripts or by calling PHPUnit directly in the container, leaves your development content alone.
 
 ## Coverage
 
