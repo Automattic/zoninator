@@ -41,7 +41,7 @@ git clone git@github.com:Automattic/zoninator.git
 cd zoninator
 composer install
 npm ci
-npx wp-env start
+npx --no wp-env start
 ```
 
 `wp-env start` boots one WordPress environment, on WordPress trunk and the latest PHP, and mounts the plugin into it. The integration tests run in the same environment. Visit http://localhost:8888 to use the site (admin: `admin` / `password`).
@@ -55,7 +55,7 @@ WP_ENV_CORE=WordPress/WordPress#6.4 WP_ENV_PHP_VERSION=7.4 npx wp-env start
 To stop the environment:
 
 ```bash
-npx wp-env stop
+npx --no wp-env stop
 ```
 
 ## Coding standards
