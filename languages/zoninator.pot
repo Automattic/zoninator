@@ -21,7 +21,7 @@ msgstr ""
 
 #. Description of the plugin
 #: zoninator.php
-msgid "Curation made easy! Create \"zones\" then add and order your content!"
+msgid "Create zones of selected posts in a set order, and display them on your site."
 msgstr ""
 
 #. Author of the plugin

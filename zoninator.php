@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Zone Manager (Zoninator)
-Description: Curation made easy! Create "zones" then add and order your content!
+Description: Create zones of selected posts in a set order, and display them on your site.
 Author: Mohammad Jangda, Automattic
 Version: 0.11.0
 Author URI: https://wpvip.com
