@@ -938,8 +938,7 @@ class Zoninator {
 			$stripped_posts = array();
 
 			if ( ! $query->have_posts() ) {
-				echo wp_json_encode( array() );
-				exit;
+				wp_send_json( array() );
 			}
 
 			foreach ( $query->posts as $post ) {
@@ -956,8 +955,7 @@ class Zoninator {
 				);
 			}
 
-			echo wp_json_encode( $stripped_posts );
-			exit;
+			wp_send_json( $stripped_posts );
 		}
 	}
 
