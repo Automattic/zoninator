@@ -21,4 +21,12 @@
 			<directory>./tests/Integration/</directory>
 		</testsuite>
 	</testsuites>
+
+	<coverage>
+		<include>
+			<directory suffix=".php">./src/</directory>
+			<file>./functions.php</file>
+			<file>./zoninator.php</file>
+		</include>
+	</coverage>
 </phpunit>

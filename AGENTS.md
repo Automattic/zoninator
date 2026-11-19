@@ -31,7 +31,6 @@ zoninator/
 │   └── zoninator_rest/              # Vendored Mixtape REST framework
 ├── css/                             # Admin stylesheets
 ├── js/                              # Admin JavaScript (jQuery sortable, autocomplete)
-├── bin/                             # Build/utility scripts (install-wp-tests.sh)
 ├── tests/
 │   ├── bootstrap.php                # PHPUnit bootstrap (yoast/wp-test-utils)
 │   └── Integration/                 # Integration tests + TestCase base
@@ -71,7 +70,7 @@ composer i18n                    # Generate languages/zoninator.pot (requires wp
 composer test:integration        # Run integration tests (requires wp-env)
 composer test:integration-ms     # Run integration tests in multisite mode
 composer coverage                # Run tests with HTML coverage report (build/coverage-html)
-composer coverage-ci             # Run tests, no coverage report
+composer coverage-ci             # Run tests, print text coverage summary
 
 npm ci                           # Install @wordpress/env (pinned in package.json)
 npx --no wp-env start            # Start the local WordPress environment

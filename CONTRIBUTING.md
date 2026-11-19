@@ -41,7 +41,7 @@ git clone git@github.com:Automattic/zoninator.git
 cd zoninator
 composer install
 npm ci
-npx wp-env start
+npx --no wp-env start
 ```
 
 `wp-env start` boots two WordPress containers (one for development, one for tests) and mounts the plugin into both. Visit http://localhost:8888 to use the dev site (admin: `admin` / `password`).
@@ -49,7 +49,7 @@ npx wp-env start
 To stop the environment:
 
 ```bash
-npx wp-env stop
+npx --no wp-env stop
 ```
 
 ## Coding standards
