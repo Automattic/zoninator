@@ -5,13 +5,14 @@ This plugin has integration tests only — no separate unit suite. Tests run ins
 ## Prerequisites
 
 - Docker (required by `wp-env`).
-- Node.js (any LTS version) for `wp-env`.
+- Node.js (any LTS version) for `wp-env`, which `npm ci` installs.
 - Composer for PHP dependencies.
 
 ## One-time setup
 
 ```bash
 composer install
+npm ci
 npx wp-env start
 ```
 

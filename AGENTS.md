@@ -73,8 +73,9 @@ composer test:integration-ms     # Run integration tests in multisite mode
 composer coverage                # Run tests with HTML coverage report (build/coverage-html)
 composer coverage-ci             # Run tests, no coverage report
 
-npx wp-env start                 # Start the local WordPress environment
-npx wp-env stop                  # Stop it
+npm ci                           # Install @wordpress/env (pinned in package.json)
+npx --no wp-env start            # Start the local WordPress environment
+npx --no wp-env stop             # Stop it
 ```
 
 **Note:** This plugin has integration tests only — no separate unit test suite.
@@ -102,7 +103,7 @@ See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key point
 
 - Do not edit WordPress core files or bundled dependencies in `vendor/`.
 - Run `composer cs` before committing. CI will reject code standard violations.
-- Integration tests require `npx wp-env start` running first.
+- Integration tests require `npx --no wp-env start` running first. Run `npm ci` before it, so `npx` uses the `@wordpress/env` pinned in `package.json`. Always keep `--no`: without an installed `@wordpress/env`, plain `npx wp-env` fetches the unrelated `wp-env` package from npm.
 - **Template tags are public API**: Functions in `functions.php` (e.g., `z_get_posts_in_zone()`) are used by themes in production. Do not rename, remove, or change their signatures without a deprecation cycle.
 - **Zone ordering is significant**: posts within a zone have a specific display order. Preserve it through any query modifications.
 - **Admin UI uses jQuery drag-and-drop**: test UI changes in a browser, not just with automated tests.
