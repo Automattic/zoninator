@@ -6,6 +6,7 @@ Author: Mohammad Jangda, Automattic
 Version: 0.11.0
 Author URI: https://wpvip.com
 Requires at least: 6.4
+Tested up to: 7.1
 Requires PHP: 7.4
 Text Domain: zoninator
 Domain Path: /languages/
