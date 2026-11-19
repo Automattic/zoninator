@@ -1,6 +1,6 @@
 <?php
 
-class Zoninator_Api {
+final class Zoninator_Api {
 	/**
 	 * Instance
 	 *

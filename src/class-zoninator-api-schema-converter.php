@@ -1,6 +1,6 @@
 <?php
 
-class Zoninator_Api_Schema_Converter {
+final class Zoninator_Api_Schema_Converter {
 	/**
 	 * As Schema
 	 *

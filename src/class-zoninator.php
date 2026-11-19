@@ -6,7 +6,7 @@
 /**
  * Main Zoninator class.
  */
-class Zoninator {
+final class Zoninator {
 
 	public $key = 'zoninator';
 

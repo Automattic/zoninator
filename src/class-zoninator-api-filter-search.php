@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Class WP_Job_Manager_Filters_Status
  */
-class Zoninator_Api_Filter_Search extends Zoninator_REST_Model {
+final class Zoninator_Api_Filter_Search extends Zoninator_REST_Model {
 
 	/**
 	 * Declare our fields

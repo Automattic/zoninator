@@ -19,7 +19,7 @@ use Zoninator;
 /**
  * @group ajax
  */
-class Zoninator_Ajax_Search_Posts_Test extends WP_Ajax_UnitTestCase {
+final class Zoninator_Ajax_Search_Posts_Test extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @var int

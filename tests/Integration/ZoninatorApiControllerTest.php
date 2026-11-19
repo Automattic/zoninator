@@ -7,7 +7,7 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
-class Zoninator_Api_Controller_Test extends TestCase {
+final class Zoninator_Api_Controller_Test extends TestCase {
 
 	/**
 	 * REST Server

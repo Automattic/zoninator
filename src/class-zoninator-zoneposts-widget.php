@@ -4,7 +4,7 @@
 /**
  * Zone Posts widget class
  */
-class Zoninator_ZonePosts_Widget extends WP_Widget {
+final class Zoninator_ZonePosts_Widget extends WP_Widget {
 
 	public function __construct() {
 		$widget_ops = array(
