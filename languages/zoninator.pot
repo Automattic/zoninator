@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-25T16:37:01+00:00\n"
+"POT-Creation-Date: 2026-11-19T15:58:00+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: zoninator\n"
@@ -52,7 +52,7 @@ msgid "zone id required"
 msgstr ""
 
 #: src/class-zoninator-api-controller.php:511
-#: src/class-zoninator.php:1483
+#: src/class-zoninator.php:1484
 msgid "Sorry, you're not supposed to do that..."
 msgstr ""
 
@@ -196,19 +196,19 @@ msgid "To create a zone, enter a name (and optional description) and click \"Sav
 msgstr ""
 
 #: src/class-zoninator.php:562
-#: src/class-zoninator.php:1740
+#: src/class-zoninator.php:1741
 msgid "Click and drag to change the position of this item."
 msgstr ""
 
 #: src/class-zoninator.php:570
 #: src/class-zoninator.php:572
-#: src/class-zoninator.php:1753
-#: src/class-zoninator.php:1766
+#: src/class-zoninator.php:1754
+#: src/class-zoninator.php:1767
 msgid "Opens in new window"
 msgstr ""
 
 #: src/class-zoninator.php:570
-#: src/class-zoninator.php:1754
+#: src/class-zoninator.php:1755
 msgid "Edit"
 msgstr ""
 
@@ -217,12 +217,12 @@ msgid "Remove this item from the zone"
 msgstr ""
 
 #: src/class-zoninator.php:571
-#: src/class-zoninator.php:1761
+#: src/class-zoninator.php:1762
 msgid "Remove"
 msgstr ""
 
 #: src/class-zoninator.php:572
-#: src/class-zoninator.php:1767
+#: src/class-zoninator.php:1768
 msgid "View"
 msgstr ""
 
@@ -277,7 +277,7 @@ msgstr ""
 msgid "Slug is a required field."
 msgstr ""
 
-#: src/class-zoninator.php:1798
+#: src/class-zoninator.php:1799
 msgid "Invalid zone supplied"
 msgstr ""
 
