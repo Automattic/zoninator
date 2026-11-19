@@ -40,6 +40,7 @@ The plugin uses [`@wordpress/env`](https://www.npmjs.com/package/@wordpress/env)
 git clone git@github.com:Automattic/zoninator.git
 cd zoninator
 composer install
+npm ci
 npx wp-env start
 ```
 
