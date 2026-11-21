@@ -26,30 +26,6 @@ class ZoninatorApiControllerTest extends TestCase {
 	private $admin_id;
 
 	/**
-	 * Default User ID
-	 *
-	 * @var int
-	 */
-	private $default_user_id;
-
-	/**
-	 * Environment
-	 *
-	 * @var mixed
-	 */
-	private $environment;
-
-	/**
-	 * Assert Status
-	 *
-	 * @param \WP_REST_Response $response Response.
-	 * @param int              $status_code Code.
-	 */
-	public function assert_response_status( $response, $status_code ) {
-		$this->assertEquals( $status_code, $response->get_status() );
-	}
-
-	/**
 	 * As Admin
 	 *
 	 * @return ZoninatorApiControllerTest
@@ -67,33 +43,6 @@ class ZoninatorApiControllerTest extends TestCase {
 	public function login_as( $user_id ) {
 		wp_set_current_user( $user_id );
 		return $this;
-	}
-
-	/**
-	 * Assert Status 200
-	 *
-	 * @param \WP_REST_Response $response Response.
-	 */
-	public function assert_http_response_status_success( $response ) {
-		$this->assert_response_status( $response, \MT_Controller::HTTP_OK );
-	}
-
-	/**
-	 * Assert Status 201
-	 *
-	 * @param \WP_REST_Response $response Response.
-	 */
-	public function assert_http_response_status_created( $response ) {
-		$this->assert_response_status( $response, \MT_Controller::HTTP_CREATED );
-	}
-
-	/**
-	 * Assert Status 404
-	 *
-	 * @param \WP_REST_Response $response Response.
-	 */
-	public function assert_http_response_status_not_found( $response ) {
-		$this->assert_response_status( $response, \MT_Controller::HTTP_NOT_FOUND );
 	}
 
 	/**
@@ -181,22 +130,17 @@ class ZoninatorApiControllerTest extends TestCase {
 		global $wp_rest_server;
 		$this->rest_server = new \Spy_REST_Server();
 		$wp_rest_server = $this->rest_server;
-		$admin = get_user_by( 'email', 'rest_api_admin_user@test.com' );
-		if ( false === $admin ) {
-			$this->admin_id = wp_create_user(
-				'rest_api_admin_user',
-				'rest_api_admin_user',
-				'rest_api_admin_user@test.com'
-			);
-			$admin = get_user_by( 'ID', $this->admin_id );
-			$admin->set_role( 'administrator' );
-		}
-
-		$this->default_user_id = get_current_user_id();
+		$this->admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$this->login_as_admin();
 		$this->rest_server = $wp_rest_server;
 		do_action( 'rest_api_init' );
-		$this->environment = \Zoninator()->rest_api->bootstrap->environment();
+	}
+
+	public function tearDown(): void {
+		global $wp_rest_server;
+		$wp_rest_server = null;
+
+		parent::tearDown();
 	}
 
 	/**
@@ -239,8 +183,8 @@ class ZoninatorApiControllerTest extends TestCase {
 		) );
 		$data = $response->get_data();
 		$this->assertResponseStatus( $response, 201 );
-		$this->assertEquals( $data['name'], '&amp;&lt;&gt;!@#(' );
-		$this->assertEquals( $data['description'], '&amp;&lt;&gt;!@#(' );
+		$this->assertSame( '&amp;&lt;&gt;!@#(', $data['name'] );
+		$this->assertSame( '&amp;&lt;&gt;!@#(', $data['description'] );
 	}
 
 	/**
@@ -255,6 +199,7 @@ class ZoninatorApiControllerTest extends TestCase {
 			'name' => 'Other test zone',
 		) );
 		$this->assertResponseStatus( $response, 200 );
+		$this->assertSame( 'Other test zone', \Zoninator()->get_zone( $zone_id )->name );
 	}
 
 	/**
@@ -280,6 +225,7 @@ class ZoninatorApiControllerTest extends TestCase {
 		$zone_id = $this->create_a_zone( 'test-update-zone', 'Test Zone' );
 		$response = $this->delete( '/zoninator/v1/zones/' . $zone_id );
 		$this->assertResponseStatus( $response, 200 );
+		$this->assertFalse( \Zoninator()->get_zone( $zone_id ) );
 	}
 
 	/**
@@ -306,6 +252,7 @@ class ZoninatorApiControllerTest extends TestCase {
 			'post_ids' => array( $post_id ),
 		) );
 		$this->assertResponseStatus( $response, 200 );
+		$this->assertSame( array( $post_id ), wp_list_pluck( \Zoninator()->get_zone_posts( $zone_id ), 'ID' ) );
 	}
 
 	/**
@@ -368,6 +315,7 @@ class ZoninatorApiControllerTest extends TestCase {
 		$this->assertResponseStatus( $response, 200 );
 		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
 		$this->assertResponseStatus( $response, 200 );
+		$this->assertSame( array( $post->ID ), wp_list_pluck( $response->get_data(), 'ID' ) );
 	}
 
 	/**
@@ -383,6 +331,7 @@ class ZoninatorApiControllerTest extends TestCase {
 
 		$response = $this->get( '/zoninator/v1/zones/' . $zone_id . '/posts' );
 		$this->assertResponseStatus( $response, 200 );
+		$this->assertSame( array(), $response->get_data() );
 	}
 
 	/**
@@ -396,9 +345,11 @@ class ZoninatorApiControllerTest extends TestCase {
 			'slug' => 'zone-2',
 		) );
 
-		$response = $this->get( '/zoninator/v1/zones/' . ( $zone_id + 3 ) );
+		$response = $this->get( '/zoninator/v1/zones/' . ( $zone_id + 3 ) . '/posts' );
 		$this->assertResponseStatus( $response, 404 );
+		$this->assertSame( 'Zone not found', $response->get_data()['message'] );
 	}
+
 
 	/**
 	 * @return int|\WP_Error
