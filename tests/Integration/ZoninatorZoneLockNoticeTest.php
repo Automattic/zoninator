@@ -1,4 +1,6 @@
 <?php
+declare( strict_types = 1 );
+
 /**
  * Integration tests for the notice shown when a zone is locked.
  *
@@ -7,7 +9,7 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
-class Zoninator_Zone_Lock_Notice_Test extends TestCase {
+class ZoninatorZoneLockNoticeTest extends TestCase {
 
 	public function test_lock_notice_names_the_user_without_their_email(): void {
 		$locker_id = self::factory()->user->create(

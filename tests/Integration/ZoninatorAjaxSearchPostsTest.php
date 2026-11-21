@@ -1,4 +1,6 @@
 <?php
+declare( strict_types = 1 );
+
 /**
  * Integration tests for the ajax_search_posts admin-ajax handler.
  *
@@ -19,7 +21,7 @@ use Zoninator;
 /**
  * @group ajax
  */
-class Zoninator_Ajax_Search_Posts_Test extends WP_Ajax_UnitTestCase {
+class ZoninatorAjaxSearchPostsTest extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @var int
@@ -36,8 +38,8 @@ class Zoninator_Ajax_Search_Posts_Test extends WP_Ajax_UnitTestCase {
 	 */
 	private $future_post_id;
 
-	public function set_up(): void {
-		parent::set_up();
+	public function setUp(): void {
+		parent::setUp();
 
 		$this->subscriber_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		$this->admin_id      = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -53,11 +55,11 @@ class Zoninator_Ajax_Search_Posts_Test extends WP_Ajax_UnitTestCase {
 		$_GET     = array();
 	}
 
-	public function tear_down(): void {
+	public function tearDown(): void {
 		$_REQUEST = array();
 		$_POST    = array();
 		$_GET     = array();
-		parent::tear_down();
+		parent::tearDown();
 	}
 
 	/**

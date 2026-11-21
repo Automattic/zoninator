@@ -1,4 +1,6 @@
 <?php
+declare( strict_types = 1 );
+
 /**
  * Integration tests for the Zoninator API controller.
  *
@@ -7,7 +9,7 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
-class Zoninator_Api_Controller_Test extends TestCase {
+class ZoninatorApiControllerTest extends TestCase {
 
 	/**
 	 * REST Server
@@ -50,7 +52,7 @@ class Zoninator_Api_Controller_Test extends TestCase {
 	/**
 	 * As Admin
 	 *
-	 * @return Zoninator_Api_Controller_Test
+	 * @return ZoninatorApiControllerTest
 	 */
 	public function login_as_admin() {
 		return $this->login_as( $this->admin_id );
@@ -60,7 +62,7 @@ class Zoninator_Api_Controller_Test extends TestCase {
 	 * Login as
 	 *
 	 * @param int $user_id U.
-	 * @return Zoninator_Api_Controller_Test $this
+	 * @return ZoninatorApiControllerTest $this
 	 */
 	public function login_as( $user_id ) {
 		wp_set_current_user( $user_id );

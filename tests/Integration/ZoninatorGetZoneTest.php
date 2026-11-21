@@ -1,4 +1,6 @@
 <?php
+declare( strict_types = 1 );
+
 /**
  * Integration tests for looking up a zone.
  *
@@ -7,15 +9,15 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
-class Zoninator_Get_Zone_Test extends TestCase {
+class ZoninatorGetZoneTest extends TestCase {
 
 	/**
 	 * @var int
 	 */
 	private $zone_id;
 
-	public function set_up(): void {
-		parent::set_up();
+	public function setUp(): void {
+		parent::setUp();
 
 		$zone          = \Zoninator()->insert_zone( 'get-zone', 'Get Zone' );
 		$this->zone_id = $zone['term_id'];

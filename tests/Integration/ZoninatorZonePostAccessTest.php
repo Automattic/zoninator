@@ -1,4 +1,6 @@
 <?php
+declare( strict_types = 1 );
+
 /**
  * Integration tests for which posts can be put in a zone.
  *
@@ -15,7 +17,7 @@ use WPAjaxDieStopException;
 /**
  * @group ajax
  */
-class Zoninator_Zone_Post_Access_Test extends WP_Ajax_UnitTestCase {
+class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @var int
@@ -34,8 +36,8 @@ class Zoninator_Zone_Post_Access_Test extends WP_Ajax_UnitTestCase {
 	 */
 	private $request_id;
 
-	public function set_up(): void {
-		parent::set_up();
+	public function setUp(): void {
+		parent::setUp();
 
 		$this->editor_id  = self::factory()->user->create( array( 'role' => 'editor' ) );
 		$zone             = Zoninator()->insert_zone( 'access-zone', 'Access zone' );
@@ -47,11 +49,11 @@ class Zoninator_Zone_Post_Access_Test extends WP_Ajax_UnitTestCase {
 		$_GET     = array();
 	}
 
-	public function tear_down(): void {
+	public function tearDown(): void {
 		$_REQUEST = array();
 		$_POST    = array();
 		$_GET     = array();
-		parent::tear_down();
+		parent::tearDown();
 	}
 
 	public function test_add_post_rejects_a_post_the_user_cannot_read(): void {

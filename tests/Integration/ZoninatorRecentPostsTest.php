@@ -1,4 +1,6 @@
 <?php
+declare( strict_types = 1 );
+
 /**
  * Integration tests for the recent posts dropdown on the zone screen.
  *
@@ -10,7 +12,7 @@ namespace Automattic\Zoninator\Tests\Integration;
 /**
  * @group zoninator
  */
-class Zoninator_Recent_Posts_Test extends TestCase {
+class ZoninatorRecentPostsTest extends TestCase {
 
 	/**
 	 * Posts already in the zone must not be listed, and the list must still

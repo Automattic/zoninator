@@ -1,4 +1,6 @@
 <?php
+declare( strict_types = 1 );
+
 /**
  * Integration tests for Zoninator::get_zones().
  *
@@ -10,7 +12,7 @@ namespace Automattic\Zoninator\Tests\Integration;
 /**
  * @group zones
  */
-class Zoninator_Get_Zones_Test extends TestCase {
+class ZoninatorGetZonesTest extends TestCase {
 
 	public function test_get_zones_fills_zone_details() {
 		\Zoninator()->insert_zone( 'zone-details', 'Zone Details', array( 'description' => 'Hello zone' ) );
