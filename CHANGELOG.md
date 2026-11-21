@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.1] - 2026-11-21
+
+### Changed
+
+* The zone screen's post search and Add Recent Content list no longer use a `NOT IN` clause to leave out posts already in the zone, which was slow on large posts tables. They fetch up to 100 extra rows instead and drop the zone's posts in PHP. The `zoninator_search_args` and `zoninator_recent_posts_args` filters receive the same arguments as before by @faisalahammad and @GaryJones in https://github.com/Automattic/zoninator/pull/182
+
+### Fixed
+
+* `z_get_zones()` and `Zoninator::get_zones()` no longer cause a fatal error on PHP 8 when the `zoninator_admin_page_get_zones_args` filter sets `fields` to return IDs or names by @faisalahammad in https://github.com/Automattic/zoninator/pull/175
+* `Zoninator::get_zones()` no longer uses the `get_terms()` signature deprecated in WordPress 4.5, and always queries the zone taxonomy whatever arguments it's given by @trepmal and @GaryJones in https://github.com/Automattic/zoninator/pull/130
+
+### Security
+
+* The Zones screen's add and reorder handlers and the REST zone posts update only accept posts of a zone post type that the user can read. Sites that lower `zoninator_manage_zone_cap` so authors can curate zones will find authors can no longer add posts they can't read, such as another author's scheduled post by @GaryJones in https://github.com/Automattic/zoninator/pull/183
+* `z_get_posts_in_zone()` and the zone query return unpublished posts only on admin screens and only to users who can manage zones. Before, any admin-ajax.php or admin-post.php request, including a logged-out one, got them too by @GaryJones in https://github.com/Automattic/zoninator/pull/183
+* The zone lock notice shows the locking user's display name, without linking to their email address by @GaryJones in https://github.com/Automattic/zoninator/pull/183
+
+### Maintenance
+
+* Pushing a version tag now publishes the GitHub Release, with a ZIP and this changelog's entry as its notes, and deploys to WordPress.org by @GaryJones in https://github.com/Automattic/zoninator/pull/184
+* Declare support for WordPress 7.1, test against it, and run each CI job's integration tests on the PHP version it names by @GaryJones in https://github.com/Automattic/zoninator/pull/168 and https://github.com/Automattic/zoninator/pull/167
+* Run the integration tests on pull requests, including those from forks by @GaryJones in https://github.com/Automattic/zoninator/pull/173
+* Develop and test in a single wp-env environment, pinned as a development dependency. The tests use their own tables, so a test run leaves the development site's content alone, the test and coverage scripts work from any checkout directory, and the unused `install-wp-tests.sh` script is gone by @GaryJones and @faisalahammad in https://github.com/Automattic/zoninator/pull/172, https://github.com/Automattic/zoninator/pull/174, https://github.com/Automattic/zoninator/pull/180, and https://github.com/Automattic/zoninator/pull/181
+* Look zones up with core's `get_term_by()` instead of the deprecated `wpcom_vip_get_term_by()` by @faisalahammad in https://github.com/Automattic/zoninator/pull/178
+* Document that core's query cache already covers zone posts, with tests that changes to a zone show up straight away by @faisalahammad in https://github.com/Automattic/zoninator/pull/177
+* Fix the coding standards check for VIPCS 3.1 by @GaryJones in https://github.com/Automattic/zoninator/pull/164
+* Generate the POT file with the plugin's slug, whatever the checkout directory is called by @GaryJones in https://github.com/Automattic/zoninator/pull/169
+* Describe the plugin plainly in its header and readme by @GaryJones in https://github.com/Automattic/zoninator/pull/170
+* Standardize the security policy, document signed commits and merge-commit-only pull requests, and keep AGENTS.md to material in the public repo by @GaryJones in https://github.com/Automattic/zoninator/pull/165, https://github.com/Automattic/zoninator/pull/163, and https://github.com/Automattic/zoninator/pull/171
+* Name the pinned version of the WordPress.org deploy action by @GaryJones in https://github.com/Automattic/zoninator/pull/160
+* Override vulnerable transitive development dependencies by @lancewillett in https://github.com/Automattic/zoninator/pull/157
+* Update GitHub Actions dependencies by @dependabot
+
 ## [0.11.0] - 2026-04-25
 
 This release raises the minimum WordPress version to 6.4. The REST `GET /wp-json/zoninator/v1/zones` endpoint now requires an authenticated user; sites that depended on anonymous access can restore the previous behaviour via the new `zoninator_rest_get_zones_permissions_check` filter.
@@ -156,6 +189,7 @@ This release has PHP 7.4 and WordPress 5.9 as the minimum supported versions.
 
 * Initial Release!
 
+[0.11.1]: https://github.com/Automattic/zoninator/compare/0.11.0...0.11.1
 [0.11.0]: https://github.com/automattic/zoninator/compare/0.10.2..0.11.0
 [0.10.2]: https://github.com/automattic/zoninator/compare/0.10.1..0.10.2
 [0.10.1]: https://github.com/automattic/zoninator/compare/0.10.0..0.10.1

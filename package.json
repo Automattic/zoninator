@@ -1,6 +1,6 @@
 {
 	"name": "zoninator",
-	"version": "0.11.0",
+	"version": "0.11.1",
 	"description": "Create zones of selected posts in a set order, and display them on your site.",
 	"license": "GPL-2.0-or-later",
 	"private": true,
