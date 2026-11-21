@@ -390,7 +390,7 @@ class Zoninator {
 			<?php if ( $zone_locked ) : ?>
 				<?php $locking_user = get_userdata( $zone_locked ); ?>
 				<div class="updated below-h2">
-					<p><?php printf( wp_kses_post( $this->_get_message( 'error-zone-lock' ) ), sprintf( '<a href="mailto:%s">%s</a>', esc_attr( $locking_user->user_email ), esc_html( $locking_user->display_name ) ) ); ?></p>
+					<p><?php printf( esc_html( $this->_get_message( 'error-zone-lock' ) ), esc_html( $locking_user->display_name ) ); ?></p>
 				</div>
 				<input type="hidden" id="zone-locked" name="zone-locked" value="1" />
 				<?php
