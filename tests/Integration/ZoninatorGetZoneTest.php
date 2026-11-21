@@ -1,0 +1,59 @@
+<?php
+/**
+ * Integration tests for looking up a zone.
+ *
+ * @package Automattic\Zoninator
+ */
+
+namespace Automattic\Zoninator\Tests\Integration;
+
+class Zoninator_Get_Zone_Test extends TestCase {
+
+	/**
+	 * @var int
+	 */
+	private $zone_id;
+
+	public function set_up(): void {
+		parent::set_up();
+
+		$zone          = \Zoninator()->insert_zone( 'get-zone', 'Get Zone' );
+		$this->zone_id = $zone['term_id'];
+	}
+
+	public function test_get_zone_by_id() {
+		$zone = \Zoninator()->get_zone( $this->zone_id );
+
+		$this->assertInstanceOf( \WP_Term::class, $zone );
+		$this->assertSame( 'get-zone', $zone->slug );
+	}
+
+	public function test_get_zone_by_slug() {
+		$zone = \Zoninator()->get_zone( 'get-zone' );
+
+		$this->assertInstanceOf( \WP_Term::class, $zone );
+		$this->assertSame( $this->zone_id, $zone->term_id );
+	}
+
+	public function test_get_zone_returns_object_as_is() {
+		$term = get_term( $this->zone_id );
+
+		$this->assertSame( $term, \Zoninator()->get_zone( $term ) );
+	}
+
+	public function test_get_zone_fills_zone_details() {
+		$zone = \Zoninator()->get_zone( $this->zone_id );
+
+		$this->assertTrue( $zone->zoninator_parsed );
+	}
+
+	public function test_get_zone_returns_false_for_missing_zone() {
+		$this->assertFalse( \Zoninator()->get_zone( 999999 ) );
+		$this->assertFalse( \Zoninator()->get_zone( 'no-such-zone' ) );
+	}
+
+	public function test_get_zone_returns_false_for_invalid_type() {
+		$this->assertFalse( \Zoninator()->get_zone( array( $this->zone_id ) ) );
+		$this->assertFalse( \Zoninator()->get_zone( null ) );
+	}
+}
