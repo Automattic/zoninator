@@ -166,6 +166,33 @@ class Zoninator_Ajax_Search_Posts_Test extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
+	 * The IDs to exclude come from the request, so a long list must not
+	 * make the query fetch a matching number of extra rows.
+	 */
+	public function test_long_exclude_list_does_not_raise_the_query_limit(): void {
+		$queries = array();
+		$logger  = static function ( $query ) use ( &$queries ) {
+			$queries[] = $query;
+			return $query;
+		};
+		add_filter( 'query', $logger );
+
+		$this->search( 'zoninator_exclude_canary', 2, range( 1000000, 1004999 ) );
+
+		remove_filter( 'query', $logger );
+
+		$limits = array();
+		foreach ( $queries as $query ) {
+			if ( preg_match( '/LIMIT \d+, (\d+)/', $query, $matches ) ) {
+				$limits[] = (int) $matches[1];
+			}
+		}
+
+		$this->assertNotEmpty( $limits );
+		$this->assertLessThanOrEqual( 102, max( $limits ) );
+	}
+
+	/**
 	 * Run the search handler as an admin and return the decoded response.
 	 *
 	 * @param string $term    Search term.

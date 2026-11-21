@@ -1560,16 +1560,21 @@ class Zoninator {
 	 * NOT IN gets slow on big posts tables, so we fetch a few more rows
 	 * and drop the excluded ones in PHP.
 	 *
+	 * The search sends the IDs to exclude in the request, so at most 100 extra
+	 * rows are fetched, whatever the request holds. Zones are hand-curated and
+	 * small, so this only shortens the list when over 100 excluded posts are
+	 * among the newest matches.
+	 *
 	 * @param array $args    WP_Query args.
 	 * @param array $exclude Post IDs to leave out.
 	 * @return WP_Post[]
 	 */
 	private function get_posts_excluding( $args, $exclude ) {
-		$exclude = array_map( 'absint', (array) $exclude );
+		$exclude = array_unique( array_map( 'absint', (array) $exclude ) );
 		$limit   = isset( $args['posts_per_page'] ) ? (int) $args['posts_per_page'] : 0;
 
 		if ( $limit > 0 ) {
-			$args['posts_per_page'] = $limit + count( $exclude );
+			$args['posts_per_page'] = $limit + min( count( $exclude ), 100 );
 		}
 
 		$posts = array_values(
