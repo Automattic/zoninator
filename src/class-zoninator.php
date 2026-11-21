@@ -1282,12 +1282,14 @@ class Zoninator {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'taxonomy'   => $this->zone_taxonomy,
 				'orderby'    => 'id',
 				'order'      => 'ASC',
 				'hide_empty' => 0,
 			)
 		);
+
+		// Always the zone taxonomy, as the old get_terms( $taxonomy, $args ) call ensured.
+		$args['taxonomy'] = $this->zone_taxonomy;
 
 		$zones = get_terms( $args );
 

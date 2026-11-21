@@ -31,4 +31,19 @@ class Zoninator_Get_Zones_Test extends TestCase {
 
 		$this->assertSame( array( $zone_id ), array_map( 'intval', $zones ) );
 	}
+
+	public function test_get_zones_ignores_a_taxonomy_arg() {
+		$result  = \Zoninator()->insert_zone( 'zone-only', 'Zone Only' );
+		$zone_id = (int) $result['term_id'];
+		self::factory()->category->create( array( 'name' => 'Not a zone' ) );
+
+		$zones = \Zoninator()->get_zones(
+			array(
+				'taxonomy' => 'category',
+				'fields'   => 'ids',
+			)
+		);
+
+		$this->assertSame( array( $zone_id ), array_map( 'intval', $zones ) );
+	}
 }
