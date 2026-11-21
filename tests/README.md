@@ -13,10 +13,10 @@ This plugin has integration tests only — no separate unit suite. Tests run ins
 ```bash
 composer install
 npm ci
-npx wp-env start
+npx --no wp-env start
 ```
 
-`wp-env start` builds the WordPress containers and mounts this plugin into them, on WordPress trunk and the latest PHP. To test another version, set `WP_ENV_CORE` and `WP_ENV_PHP_VERSION` when you start it (for example `WP_ENV_CORE=WordPress/WordPress#6.4 WP_ENV_PHP_VERSION=7.4 npx wp-env start`). The first run takes a minute or two.
+`wp-env start` builds the WordPress containers and mounts this plugin into them, on WordPress trunk and the latest PHP. To test another version, set `WP_ENV_CORE` and `WP_ENV_PHP_VERSION` when you start it (for example `WP_ENV_CORE=WordPress/WordPress#6.4 WP_ENV_PHP_VERSION=7.4 npx --no wp-env start`). The first run takes a minute or two.
 
 ## Running the tests
 
@@ -29,15 +29,18 @@ Both commands run PHPUnit inside the wp-env `cli` container, so you don't need P
 
 ## Coverage
 
+Coverage needs Xdebug, which `wp-env` turns off by default. Start the environment with coverage mode first:
+
 ```bash
+npx --no wp-env start --xdebug=coverage
 composer coverage               # Generates HTML coverage in build/coverage-html/
-composer coverage-ci            # Runs PHPUnit without writing the report
+composer coverage-ci            # Prints a text coverage summary
 ```
 
 ## Stopping the environment
 
 ```bash
-npx wp-env stop
+npx --no wp-env stop
 ```
 
 ## Where tests live
@@ -48,4 +51,4 @@ npx wp-env stop
 
 ## Continuous integration
 
-The matrix in `.github/workflows/integration.yml` runs the lowest supported combination (WP 6.4 / PHP 7.4) and the latest (`master` / latest PHP). Both single-site and multisite paths run on every push.
+The matrix in `.github/workflows/integration.yml` runs the lowest supported combination (WP 6.4 / PHP 7.4), the "Tested up to" version (WP 7.1 / latest PHP) and the next version (`master` / latest PHP). Both single-site and multisite paths run on every push.

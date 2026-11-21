@@ -2,7 +2,6 @@
 /.claude/
 /.git/
 /.github/
-/bin/
 /docs/
 /node_modules/
 /tests/

@@ -6,7 +6,6 @@
 /.github/          export-ignore
 /.wordpress-org/   export-ignore
 /node_modules/     export-ignore
-/bin/              export-ignore
 /tests/            export-ignore
 
 /.distignore       export-ignore

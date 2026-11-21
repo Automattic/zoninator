@@ -35,10 +35,10 @@
 	},
 	"scripts": {
 		"coverage": [
-			"@php ./vendor/bin/phpunit --coverage-html ./build/coverage-html"
+			"npx --no wp-env run cli \"--env-cwd=wp-content/plugins/$(basename \"$(pwd)\")\" ./vendor/bin/phpunit --testsuite integration --coverage-html ./build/coverage-html"
 		],
 		"coverage-ci": [
-			"@php ./vendor/bin/phpunit"
+			"npx --no wp-env run cli \"--env-cwd=wp-content/plugins/$(basename \"$(pwd)\")\" ./vendor/bin/phpunit --testsuite integration --coverage-text"
 		],
 		"cs": [
 			"@php ./vendor/bin/phpcs -q"
