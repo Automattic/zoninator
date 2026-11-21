@@ -103,13 +103,34 @@ Yes. Call `Zoninator()->register_zone_post_type( 'your_post_type' )` after `init
 
 ## Upgrade Notice
 
+### 0.11.1
+
+Fixes three security issues, so update soon. If you lower `zoninator_manage_zone_cap` so authors can curate zones, they can no longer add posts they can't read, such as another author's scheduled post.
+
 ### 0.11.0
 
 The `GET /wp-json/zoninator/v1/zones` REST endpoint now requires an authenticated user. If your site depends on anonymous access, opt back in with the `zoninator_rest_get_zones_permissions_check` filter. Three security fixes are included — review the changelog before upgrading.
 
 ## Changelog
 
-Please visit the [changelog](https://github.com/Automattic/zoninator/blob/main/CHANGELOG.md).
+The highlights of recent releases are below. Every change, including older releases, is listed in [CHANGELOG.md](https://github.com/Automattic/zoninator/blob/main/CHANGELOG.md).
+
+### 0.11.1
+
+- **Security:** Posts added to or reordered in a zone must be of a zone post type that the user can read.
+- **Security:** Unpublished posts in a zone are shown only on admin screens, and only to users who can manage zones.
+- **Security:** The zone lock notice no longer reveals the locking user's email address.
+- **Changed:** The post search and Add Recent Content list on the Zones screen are faster on sites with many posts.
+- **Fixed:** A fatal error on PHP 8 when the `zoninator_admin_page_get_zones_args` filter asks for zone IDs or names.
+
+### 0.11.0
+
+Requires WordPress 6.4 or later.
+
+- **Changed:** The `GET /wp-json/zoninator/v1/zones` REST endpoint requires a logged-in user. The `zoninator_rest_get_zones_permissions_check` filter can allow anonymous access again.
+- **Security:** The post search on the Zones screen checks the user's permissions and nonce.
+- **Security:** Zone descriptions and the Zones screen are hardened against cross-site scripting.
+- **Fixed:** Small fixes to zone locks, AJAX responses and translations.
 
 ## Screenshots
 
