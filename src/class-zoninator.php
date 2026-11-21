@@ -219,8 +219,7 @@ class Zoninator {
 					}
 
 					if ( is_wp_error( $result ) ) {
-						// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
-						wp_redirect( add_query_arg( 'message', 'error-general' ) );
+						wp_safe_redirect( add_query_arg( 'message', 'error-general' ) );
 						exit;
 					} else {
 						if ( ! $zone_id && isset( $result['term_id'] ) ) {
@@ -229,8 +228,7 @@ class Zoninator {
 
 						// Redirect with success message
 						$message = sprintf( '%s-success', $action );
-						// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
-						wp_redirect(
+						wp_safe_redirect(
 							$this->_get_zone_page_url(
 								array(
 									'action'  => 'edit',
@@ -258,8 +256,7 @@ class Zoninator {
 						$redirect_args = array( 'message' => 'delete-success' );
 					}
 
-					// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
-					wp_redirect( $this->_get_zone_page_url( $redirect_args ) );
+					wp_safe_redirect( $this->_get_zone_page_url( $redirect_args ) );
 					exit;
 			}
 		}
@@ -393,7 +390,7 @@ class Zoninator {
 			<?php if ( $zone_locked ) : ?>
 				<?php $locking_user = get_userdata( $zone_locked ); ?>
 				<div class="updated below-h2">
-					<p><?php printf( wp_kses_post( $this->_get_message( 'error-zone-lock' ) ), sprintf( '<a href="mailto:%s">%s</a>', esc_attr( $locking_user->user_email ), esc_html( $locking_user->display_name ) ) ); ?></p>
+					<p><?php printf( esc_html( $this->_get_message( 'error-zone-lock' ) ), esc_html( $locking_user->display_name ) ); ?></p>
 				</div>
 				<input type="hidden" id="zone-locked" name="zone-locked" value="1" />
 				<?php
@@ -772,14 +769,13 @@ class Zoninator {
 		$action = empty( $action ) ? $this->zone_ajax_nonce_action : $action;
 		$nonce  = wp_create_nonce( $this->_get_nonce_key( $action ) );
 
-		echo wp_json_encode(
+		wp_send_json(
 			array(
 				'status'  => $status,
 				'content' => $content,
 				'nonce'   => $nonce,
 			)
 		);
-		exit;
 	}
 
 	public function ajax_add_post() {
@@ -791,7 +787,7 @@ class Zoninator {
 		$this->verify_access( '', $zone_id );
 
 		// Validate
-		if ( ! $zone_id || ! $post_id ) {
+		if ( ! $zone_id || ! $this->current_user_can_add_post_to_zone( $post_id ) ) {
 			$this->ajax_return( 0 );
 		}
 
@@ -850,7 +846,7 @@ class Zoninator {
 		$this->verify_access( '', $zone_id );
 
 		// validate
-		if ( ! $zone_id || array() === $post_ids ) {
+		if ( ! $zone_id || array() === $post_ids || count( $post_ids ) !== count( array_filter( $post_ids, array( $this, 'current_user_can_add_post_to_zone' ) ) ) ) {
 			$this->ajax_return( 0 );
 		}
 
@@ -1188,8 +1184,10 @@ class Zoninator {
 			'ignore_sticky_posts' => '1', // don't want sticky posts messing up our order
 		);
 
-		// Default to published posts on the front-end
-		if ( ! is_admin() ) {
+		// Default to published posts, except for zone managers in the admin.
+		// is_admin() alone is true for every admin-ajax.php and admin-post.php
+		// request, including logged-out ones.
+		if ( ! is_admin() || ! $this->_current_user_can_manage_zones() ) {
 			$defaults['post_status'] = array( 'publish' );
 		}
 
@@ -1425,6 +1423,24 @@ class Zoninator {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Whether the current user may put a post in a zone.
+	 *
+	 * Request handlers take post IDs from the user, so they check here that
+	 * each ID is a post of a zone post type that the user can read.
+	 *
+	 * @param int|WP_Post $post Post ID or object.
+	 * @return bool
+	 */
+	public function current_user_can_add_post_to_zone( $post ) {
+		// get_post() falls back to the global post when given an empty value.
+		$post = empty( $post ) ? null : get_post( $post );
+
+		return $post
+			&& in_array( $post->post_type, $this->get_supported_post_types(), true )
+			&& current_user_can( 'read_post', $post->ID );
 	}
 
 	public function get_post_order( $post, $zone ) {
