@@ -772,14 +772,13 @@ class Zoninator {
 		$action = empty( $action ) ? $this->zone_ajax_nonce_action : $action;
 		$nonce  = wp_create_nonce( $this->_get_nonce_key( $action ) );
 
-		echo wp_json_encode(
+		wp_send_json(
 			array(
 				'status'  => $status,
 				'content' => $content,
 				'nonce'   => $nonce,
 			)
 		);
-		exit;
 	}
 
 	public function ajax_add_post() {
