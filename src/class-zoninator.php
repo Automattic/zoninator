@@ -219,8 +219,7 @@ class Zoninator {
 					}
 
 					if ( is_wp_error( $result ) ) {
-						// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
-						wp_redirect( add_query_arg( 'message', 'error-general' ) );
+						wp_safe_redirect( add_query_arg( 'message', 'error-general' ) );
 						exit;
 					} else {
 						if ( ! $zone_id && isset( $result['term_id'] ) ) {
@@ -229,8 +228,7 @@ class Zoninator {
 
 						// Redirect with success message
 						$message = sprintf( '%s-success', $action );
-						// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
-						wp_redirect(
+						wp_safe_redirect(
 							$this->_get_zone_page_url(
 								array(
 									'action'  => 'edit',
@@ -258,8 +256,7 @@ class Zoninator {
 						$redirect_args = array( 'message' => 'delete-success' );
 					}
 
-					// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
-					wp_redirect( $this->_get_zone_page_url( $redirect_args ) );
+					wp_safe_redirect( $this->_get_zone_page_url( $redirect_args ) );
 					exit;
 			}
 		}
@@ -393,7 +390,7 @@ class Zoninator {
 			<?php if ( $zone_locked ) : ?>
 				<?php $locking_user = get_userdata( $zone_locked ); ?>
 				<div class="updated below-h2">
-					<p><?php printf( wp_kses_post( $this->_get_message( 'error-zone-lock' ) ), sprintf( '<a href="mailto:%s">%s</a>', esc_attr( $locking_user->user_email ), esc_html( $locking_user->display_name ) ) ); ?></p>
+					<p><?php printf( esc_html( $this->_get_message( 'error-zone-lock' ) ), esc_html( $locking_user->display_name ) ); ?></p>
 				</div>
 				<input type="hidden" id="zone-locked" name="zone-locked" value="1" />
 				<?php
@@ -665,8 +662,6 @@ class Zoninator {
 					'post_type'           => $post_types,
 					'ignore_sticky_posts' => true,
 					'post_status'         => array( 'publish', 'future' ),
-					// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in
-					'post__not_in'        => $zone_post_ids,
 					'suppress_filters'    => false,
 				)
 			);
@@ -683,7 +678,7 @@ class Zoninator {
 			}
 
 			$content      = '';
-			$recent_posts = get_posts( $args );
+			$recent_posts = $this->get_posts_excluding( $args, $zone_post_ids );
 			foreach ( $recent_posts as $post ) :
 				$content .= sprintf( '<option value="%d">%s</option>', $post->ID, esc_html( get_the_title( $post->ID ) . ' (' . $post->post_status . ')' ) );
 			endforeach;
@@ -723,13 +718,11 @@ class Zoninator {
 				'post_type'           => $post_types,
 				'ignore_sticky_posts' => true,
 				'post_status'         => array( 'publish', 'future' ),
-				// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in
-				'post__not_in'        => $zone_post_ids,
 				'suppress_filters'    => false,
 			)
 		);
 
-		$recent_posts = get_posts( $args );
+		$recent_posts = $this->get_posts_excluding( $args, $zone_post_ids );
 		?>
 	<div class="zone-search-wrapper">
 		<label for="zone-post-search-latest"><?php esc_html_e( 'Add Recent Content', 'zoninator' ); ?></label><br />
@@ -776,14 +769,13 @@ class Zoninator {
 		$action = empty( $action ) ? $this->zone_ajax_nonce_action : $action;
 		$nonce  = wp_create_nonce( $this->_get_nonce_key( $action ) );
 
-		echo wp_json_encode(
+		wp_send_json(
 			array(
 				'status'  => $status,
 				'content' => $content,
 				'nonce'   => $nonce,
 			)
 		);
-		exit;
 	}
 
 	public function ajax_add_post() {
@@ -795,7 +787,7 @@ class Zoninator {
 		$this->verify_access( '', $zone_id );
 
 		// Validate
-		if ( ! $zone_id || ! $post_id ) {
+		if ( ! $zone_id || ! $this->current_user_can_add_post_to_zone( $post_id ) ) {
 			$this->ajax_return( 0 );
 		}
 
@@ -854,7 +846,7 @@ class Zoninator {
 		$this->verify_access( '', $zone_id );
 
 		// validate
-		if ( ! $zone_id || array() === $post_ids ) {
+		if ( ! $zone_id || array() === $post_ids || count( $post_ids ) !== count( array_filter( $post_ids, array( $this, 'current_user_can_add_post_to_zone' ) ) ) ) {
 			$this->ajax_return( 0 );
 		}
 
@@ -910,8 +902,6 @@ class Zoninator {
 				'zoninator_search_args',
 				array(
 					's'                => $q,
-					// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in
-					'post__not_in'     => $exclude,
 					'posts_per_page'   => $limit,
 					'post_type'        => $post_types,
 					'post_status'      => array( 'publish', 'future' ),
@@ -934,15 +924,14 @@ class Zoninator {
 				$args['day']       = $filter_date_parts[2];
 			}
 
-			$query          = new WP_Query( $args );
+			$posts          = $this->get_posts_excluding( $args, $exclude );
 			$stripped_posts = array();
 
-			if ( ! $query->have_posts() ) {
-				echo wp_json_encode( array() );
-				exit;
+			if ( empty( $posts ) ) {
+				wp_send_json( array() );
 			}
 
-			foreach ( $query->posts as $post ) {
+			foreach ( $posts as $post ) {
 				$stripped_posts[] = apply_filters(
 					'zoninator_search_results_post',
 					array(
@@ -956,8 +945,7 @@ class Zoninator {
 				);
 			}
 
-			echo wp_json_encode( $stripped_posts );
-			exit;
+			wp_send_json( $stripped_posts );
 		}
 	}
 
@@ -1190,13 +1178,16 @@ class Zoninator {
 
 		$defaults = array(
 			'order'               => 'ASC',
+			// phpcs:ignore WordPressVIPMinimum.Performance.NoPaging.posts_per_page_posts_per_page -- Zones are hand-curated and small; callers expect every post in the zone, and can pass their own limit.
 			'posts_per_page'      => -1,
 			'post_type'           => $this->get_supported_post_types(),
 			'ignore_sticky_posts' => '1', // don't want sticky posts messing up our order
 		);
 
-		// Default to published posts on the front-end
-		if ( ! is_admin() ) {
+		// Default to published posts, except for zone managers in the admin.
+		// is_admin() alone is true for every admin-ajax.php and admin-post.php
+		// request, including logged-out ones.
+		if ( ! is_admin() || ! $this->_current_user_can_manage_zones() ) {
 			$defaults['post_status'] = array( 'publish' );
 		}
 
@@ -1289,13 +1280,15 @@ class Zoninator {
 			)
 		);
 
-		// phpcs:ignore WordPress.WP.DeprecatedParameters.Get_termsParam2Found -- See https://github.com/Automattic/zoninator/issues/111
-		$zones = get_terms( $this->zone_taxonomy, $args );
+		// Always the zone taxonomy, as the old get_terms( $taxonomy, $args ) call ensured.
+		$args['taxonomy'] = $this->zone_taxonomy;
+
+		$zones = get_terms( $args );
 
 		if ( ! is_wp_error( $zones ) ) {
 			// Add extra fields in description as properties
-			foreach ( $zones as $zone ) {
-				$zone = $this->_fill_zone_details( $zone );
+			foreach ( $zones as $key => $zone ) {
+				$zones[ $key ] = $this->_fill_zone_details( $zone );
 			}
 
 			return $zones;
@@ -1316,12 +1309,7 @@ class Zoninator {
 			return false;
 		}
 
-		if ( function_exists( 'wpcom_vip_get_term_by' ) ) {
-			// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wpcom_vip_get_term_by_wpcom_vip_get_term_by -- See https://github.com/Automattic/zoninator/issues/110
-			$zone = wpcom_vip_get_term_by( $field, $zone, $this->zone_taxonomy );
-		} else {
-			$zone = get_term_by( $field, $zone, $this->zone_taxonomy );
-		}
+		$zone = get_term_by( $field, $zone, $this->zone_taxonomy );
 
 		if ( ! $zone ) {
 			return false;
@@ -1437,6 +1425,24 @@ class Zoninator {
 		return false;
 	}
 
+	/**
+	 * Whether the current user may put a post in a zone.
+	 *
+	 * Request handlers take post IDs from the user, so they check here that
+	 * each ID is a post of a zone post type that the user can read.
+	 *
+	 * @param int|WP_Post $post Post ID or object.
+	 * @return bool
+	 */
+	public function current_user_can_add_post_to_zone( $post ) {
+		// get_post() falls back to the global post when given an empty value.
+		$post = empty( $post ) ? null : get_post( $post );
+
+		return $post
+			&& in_array( $post->post_type, $this->get_supported_post_types(), true )
+			&& current_user_can( 'read_post', $post->ID );
+	}
+
 	public function get_post_order( $post, $zone ) {
 		$post_id  = $this->get_post_id( $post );
 		$meta_key = $this->get_zone_meta_key( $zone );
@@ -1484,6 +1490,11 @@ class Zoninator {
 	}
 
 	public function _fill_zone_details( $zone ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
+		// get_terms() gives ids or names instead of terms when the fields arg is set.
+		if ( ! is_object( $zone ) ) {
+			return $zone;
+		}
+
 		if ( ! empty( $zone->zoninator_parsed ) && $zone->zoninator_parsed ) {
 			return $zone;
 		}
@@ -1562,6 +1573,41 @@ class Zoninator {
 	}
 
 	/**
+	 * Get posts but leave out the given IDs, without a NOT IN clause.
+	 *
+	 * NOT IN gets slow on big posts tables, so we fetch a few more rows
+	 * and drop the excluded ones in PHP.
+	 *
+	 * The search sends the IDs to exclude in the request, so at most 100 extra
+	 * rows are fetched, whatever the request holds. Zones are hand-curated and
+	 * small, so this only shortens the list when over 100 excluded posts are
+	 * among the newest matches.
+	 *
+	 * @param array $args    WP_Query args.
+	 * @param array $exclude Post IDs to leave out.
+	 * @return WP_Post[]
+	 */
+	private function get_posts_excluding( $args, $exclude ) {
+		$exclude = array_unique( array_map( 'absint', (array) $exclude ) );
+		$limit   = isset( $args['posts_per_page'] ) ? (int) $args['posts_per_page'] : 0;
+
+		if ( $limit > 0 ) {
+			$args['posts_per_page'] = $limit + min( count( $exclude ), 100 );
+		}
+
+		$posts = array_values(
+			array_filter(
+				get_posts( $args ),
+				static function ( $post ) use ( $exclude ) {
+					return ! in_array( $post->ID, $exclude, true );
+				}
+			)
+		);
+
+		return $limit > 0 ? array_slice( $posts, 0, $limit ) : $posts;
+	}
+
+	/**
 	 * Encode some data and echo it (possibly without cached headers)
 	 *
 	 * @param array $data
@@ -1602,7 +1648,11 @@ class Zoninator {
 		$wp_header_to_desc[ $status ] = $official_message;
 	}
 
-	// TODO: Caching needs to be testing properly before being implemented!
+	/*
+	 * No plugin level cache for zone posts. Since WP 6.1, WP_Query caches the
+	 * zone query in the `post-queries` group, and any post meta change (add,
+	 * remove, reorder) clears it. These no-op methods stay for back-compat.
+	 */
 	public function get_zone_cache_key( $zone, $args = array() ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- potentially breaking change/
 		return '';
 	}
@@ -1631,7 +1681,7 @@ class Zoninator {
 	}
 
 	public function _empty_zone_posts_cache( $meta_key ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		// TODO: implement
+		// No-op, see the note above get_zone_cache_key().
 	}
 
 	public function _get_message( $message_id, $encode = false ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change

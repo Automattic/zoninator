@@ -1,7 +1,7 @@
 {
 	"name": "zoninator",
-	"version": "0.11.0",
-	"description": "Curation made easy! Create \"zones\" then add and order your content!",
+	"version": "0.11.1",
+	"description": "Create zones of selected posts in a set order, and display them on your site.",
 	"license": "GPL-2.0-or-later",
 	"private": true,
 	"repository": "automattic/zoninator",
@@ -11,7 +11,14 @@
 		"bump:major": "bump major package.json package-lock.json zoninator.php README.md"
 	},
 	"devDependencies": {
+		"@wordpress/env": "^12.2.0",
 		"mixtape": "git+https://github.com/Automattic/mixtape.git#3a8440",
 		"version-bump-prompt": "^6.1.0"
+	},
+	"overrides": {
+		"cross-spawn": "7.0.6",
+		"micromatch": "4.0.8",
+		"shelljs": "0.10.0",
+		"tmp": "0.2.7"
 	}
 }

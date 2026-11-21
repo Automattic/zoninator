@@ -5,6 +5,10 @@ on:
   push:
     paths-ignore:
       - "**.md"
+  pull_request:
+    branches: [develop, main]
+    paths-ignore:
+      - "**.md"
 
 permissions: {}
 
@@ -15,6 +19,9 @@ jobs:
 
     env:
       WP_VERSION: ${{ matrix.wordpress }}
+      # Without this, the tests run on the PHP version in .wp-env.json,
+      # whatever the matrix says.
+      WP_ENV_PHP_VERSION: ${{ matrix.php }}
 
     strategy:
       matrix:
@@ -22,23 +29,32 @@ jobs:
           # Check lowest supported WP version, with the lowest supported PHP.
           - wordpress: '6.4'
             php: '7.4'
-          # Check latest WP with the latest PHP.
+          # Check the WP version in the readme's "Tested up to", with the latest PHP.
+          - wordpress: '7.1'
+            php: '8.5'
+          # Check the next WP version, with the latest PHP.
           - wordpress: 'master'
-            php: 'latest'
+            php: '8.5'
       fail-fast: false
 
     steps:
 
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Install wordpress environment
-        run: npm install -g @wordpress/env
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 'lts/*'
+          cache: npm
+
+      - name: Install Node.js dependencies
+        run: npm ci
 
       - name: Setup PHP ${{ matrix.php }}
-        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # 2.37.0
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: ${{ matrix.php }}
           tools: composer
@@ -59,7 +75,7 @@ jobs:
           RUNNER_TOOL_CACHE: ${{ runner.tool_cache }}
 
       - name: Setup wp-env
-        run: wp-env start
+        run: npx --no wp-env start
         env:
           WP_ENV_CORE: WordPress/WordPress#${{ matrix.wordpress }}
 

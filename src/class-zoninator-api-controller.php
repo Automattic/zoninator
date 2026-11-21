@@ -277,7 +277,7 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 
 		$posts = array_map( 'get_post', $post_ids );
 
-		if ( count( $posts ) !== count( array_filter( $posts ) ) ) {
+		if ( count( $posts ) !== count( array_filter( $posts, array( $this->instance, 'current_user_can_add_post_to_zone' ) ) ) ) {
 			return $this->bad_request(
 				array(
 					'message' => $this->translations[ self::INVALID_POST_ID ],
