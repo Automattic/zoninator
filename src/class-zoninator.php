@@ -790,7 +790,7 @@ class Zoninator {
 		$this->verify_access( '', $zone_id );
 
 		// Validate
-		if ( ! $zone_id || ! $post_id ) {
+		if ( ! $zone_id || ! $this->current_user_can_add_post_to_zone( $post_id ) ) {
 			$this->ajax_return( 0 );
 		}
 
@@ -849,7 +849,7 @@ class Zoninator {
 		$this->verify_access( '', $zone_id );
 
 		// validate
-		if ( ! $zone_id || array() === $post_ids ) {
+		if ( ! $zone_id || array() === $post_ids || count( $post_ids ) !== count( array_filter( $post_ids, array( $this, 'current_user_can_add_post_to_zone' ) ) ) ) {
 			$this->ajax_return( 0 );
 		}
 
@@ -1424,6 +1424,24 @@ class Zoninator {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Whether the current user may put a post in a zone.
+	 *
+	 * Request handlers take post IDs from the user, so they check here that
+	 * each ID is a post of a zone post type that the user can read.
+	 *
+	 * @param int|WP_Post $post Post ID or object.
+	 * @return bool
+	 */
+	public function current_user_can_add_post_to_zone( $post ) {
+		// get_post() falls back to the global post when given an empty value.
+		$post = empty( $post ) ? null : get_post( $post );
+
+		return $post
+			&& in_array( $post->post_type, $this->get_supported_post_types(), true )
+			&& current_user_can( 'read_post', $post->ID );
 	}
 
 	public function get_post_order( $post, $zone ) {

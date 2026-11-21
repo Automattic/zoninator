@@ -406,7 +406,7 @@ class Zoninator_Api_Controller_Test extends TestCase {
 			'post_content' => 'Content For this post ' . rand_str(),
 			'post_title' => 'Title ' . rand_str(),
 			'post_excerpt' => 'Excerpt ' . rand_str(),
-			'post_status' => 'published',
+			'post_status' => 'publish',
 			'post_type' => 'post'
 		) );
 		if ( is_wp_error( $insert ) ) {
