@@ -130,4 +130,98 @@ class Zoninator_Ajax_Search_Posts_Test extends WP_Ajax_UnitTestCase {
 		$ids = array_map( static fn( $row ) => (int) $row['post_id'], $response );
 		$this->assertContains( $this->future_post_id, $ids );
 	}
+
+	/**
+	 * Excluded posts must not come back, and the page must still be full
+	 * when the excluded posts are the newest matches.
+	 */
+	public function test_excluded_posts_are_left_out_and_page_is_full(): void {
+		$post_ids = array();
+		for ( $i = 1; $i <= 4; $i++ ) {
+			$post_ids[] = self::factory()->post->create( array(
+				'post_title' => 'zoninator_exclude_canary ' . $i,
+				'post_date'  => gmdate( 'Y-m-d H:i:s', time() - ( 10 - $i ) * HOUR_IN_SECONDS ),
+			) );
+		}
+
+		$queries = array();
+		$logger  = static function ( $query ) use ( &$queries ) {
+			$queries[] = $query;
+			return $query;
+		};
+		add_filter( 'query', $logger );
+
+		// Newest two posts are the ones already in the zone.
+		$response = $this->search( 'zoninator_exclude_canary', 2, array( $post_ids[3], $post_ids[2] ) );
+
+		remove_filter( 'query', $logger );
+
+		$ids = array_map( static fn( $row ) => (int) $row['post_id'], $response );
+		$this->assertSame( array( $post_ids[1], $post_ids[0] ), $ids );
+
+		// The slow NOT IN clause from issue #75 must not be used.
+		foreach ( $queries as $query ) {
+			$this->assertDoesNotMatchRegularExpression( '/\.ID NOT IN/', $query );
+		}
+	}
+
+	/**
+	 * The IDs to exclude come from the request, so a long list must not
+	 * make the query fetch a matching number of extra rows.
+	 */
+	public function test_long_exclude_list_does_not_raise_the_query_limit(): void {
+		$queries = array();
+		$logger  = static function ( $query ) use ( &$queries ) {
+			$queries[] = $query;
+			return $query;
+		};
+		add_filter( 'query', $logger );
+
+		$this->search( 'zoninator_exclude_canary', 2, range( 1000000, 1004999 ) );
+
+		remove_filter( 'query', $logger );
+
+		$limits = array();
+		foreach ( $queries as $query ) {
+			if ( preg_match( '/LIMIT \d+, (\d+)/', $query, $matches ) ) {
+				$limits[] = (int) $matches[1];
+			}
+		}
+
+		$this->assertNotEmpty( $limits );
+		$this->assertLessThanOrEqual( 102, max( $limits ) );
+	}
+
+	/**
+	 * Run the search handler as an admin and return the decoded response.
+	 *
+	 * @param string $term    Search term.
+	 * @param int    $limit   Max results.
+	 * @param int[]  $exclude Post IDs to exclude.
+	 * @return array
+	 */
+	private function search( string $term, int $limit, array $exclude ): array {
+		wp_set_current_user( $this->admin_id );
+
+		$zoninator = Zoninator();
+
+		$_POST['action']   = 'zoninator_search_posts';
+		$_POST['term']     = $term;
+		$_POST['limit']    = $limit;
+		$_POST['exclude']  = $exclude;
+		$_POST['_wpnonce'] = wp_create_nonce( $zoninator->_get_nonce_key( $zoninator->zone_ajax_nonce_action ) );
+
+		try {
+			$this->_handleAjax( 'zoninator_search_posts' );
+		} catch ( WPAjaxDieStopException $e ) {
+			// Expected. wp_send_json() dies after echoing JSON.
+		} catch ( WPAjaxDieContinueException $e ) {
+			// Also acceptable under some test die handlers.
+		}
+
+		$response = json_decode( $this->_last_response, true );
+		$this->assertIsArray( $response );
+
+		return $response;
+	}
 }
