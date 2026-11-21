@@ -1293,8 +1293,8 @@ class Zoninator {
 
 		if ( ! is_wp_error( $zones ) ) {
 			// Add extra fields in description as properties
-			foreach ( $zones as $zone ) {
-				$zone = $this->_fill_zone_details( $zone );
+			foreach ( $zones as $key => $zone ) {
+				$zones[ $key ] = $this->_fill_zone_details( $zone );
 			}
 
 			return $zones;
@@ -1483,6 +1483,11 @@ class Zoninator {
 	}
 
 	public function _fill_zone_details( $zone ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
+		// get_terms() gives ids or names instead of terms when the fields arg is set.
+		if ( ! is_object( $zone ) ) {
+			return $zone;
+		}
+
 		if ( ! empty( $zone->zoninator_parsed ) && $zone->zoninator_parsed ) {
 			return $zone;
 		}
