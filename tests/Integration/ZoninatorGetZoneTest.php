@@ -58,4 +58,20 @@ class ZoninatorGetZoneTest extends TestCase {
 		$this->assertFalse( \Zoninator()->get_zone( array( $this->zone_id ) ) );
 		$this->assertFalse( \Zoninator()->get_zone( null ) );
 	}
+
+	public function test_get_zone_does_not_instantiate_objects_from_the_description() {
+		global $wpdb;
+
+		// Write straight to the table, as any path to the description could.
+		$wpdb->update(
+			$wpdb->term_taxonomy,
+			array( 'description' => serialize( array( 'description' => new \ArrayObject() ) ) ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
+			array( 'term_id' => $this->zone_id )
+		);
+		clean_term_cache( $this->zone_id );
+
+		$zone = \Zoninator()->get_zone( $this->zone_id );
+
+		$this->assertInstanceOf( \__PHP_Incomplete_Class::class, $zone->description );
+	}
 }
