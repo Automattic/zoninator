@@ -1,0 +1,147 @@
+name: Create GitHub Release
+
+# Runs on any pushed tag, wherever that tag lives. A tag containing a hyphen
+# (1.2.0-RC1, 1.2.0-rc.2) is published as a GitHub pre-release.
+on:
+  push:
+    tags:
+      - '*'
+
+permissions: {}
+
+concurrency:
+  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+env:
+  # The ZIP must be rooted at the installed plugin folder name. A ZIP rooted at
+  # any other name installs alongside an existing copy instead of updating it,
+  # so the slug is hardcoded rather than derived from the repository name,
+  # which has differed from it before.
+  SLUG: zoninator
+
+jobs:
+  release:
+    name: Build ZIP and publish release
+    runs-on: ubuntu-latest
+    # Publishing the release needs write access to the repository contents.
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check the tag matches the plugin version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -eu
+
+          VERSION="${TAG#v}"
+          # The header block has no leading " * " on each line, so that's optional.
+          HEADER="$(sed -nE 's/^[[:space:]]*\*?[[:space:]]*Version:[[:space:]]*//p' "${SLUG}.php" | head -n1 | tr -d '[:space:]')"
+
+          # Shipping a ZIP whose internal version disagrees with its tag makes
+          # every later "which build is this?" question unanswerable.
+          if [ "$HEADER" != "$VERSION" ]; then
+            echo "::error::Plugin header Version is '${HEADER}' but the tag is '${VERSION}'"
+            exit 1
+          fi
+
+      - name: Build the distributable ZIP
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -eu
+
+          VERSION="${TAG#v}"
+
+          # The ZIP must contain a single top-level directory named after the
+          # plugin folder, or WordPress unpacks the files loose into
+          # wp-content/plugins/. Staged outside the checkout so rsync never
+          # copies the staging directory into itself.
+          mkdir -p "$RUNNER_TEMP/dist/$SLUG"
+          rsync -a --exclude-from=.distignore ./ "$RUNNER_TEMP/dist/$SLUG/"
+
+          ( cd "$RUNNER_TEMP/dist" && zip -rq "$RUNNER_TEMP/${SLUG}-${VERSION}.zip" "$SLUG" )
+
+          echo "ZIP contents:"
+          unzip -l "$RUNNER_TEMP/${SLUG}-${VERSION}.zip"
+
+          echo "ZIP_PATH=$RUNNER_TEMP/${SLUG}-${VERSION}.zip" >> "$GITHUB_ENV"
+
+      - name: Prepare release title and notes
+        id: prep
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -eu
+
+          VERSION="${TAG#v}"
+
+          # Title carries the plugin name so the release reads with context
+          # wherever it surfaces (Slack, email) rather than as a bare version.
+          PLUGIN_NAME="$(sed -nE 's/^[[:space:]]*\*?[[:space:]]*Plugin Name:[[:space:]]*//p' "${SLUG}.php" | head -n1 | sed 's/[[:space:]]*$//')"
+          echo "title=${PLUGIN_NAME} ${VERSION}" >> "$GITHUB_OUTPUT"
+
+          # A hyphen marks a pre-release: 1.2.0-alpha, 1.2.0-rc.1.
+          case "$VERSION" in
+            *-*) echo "prerelease=true" >> "$GITHUB_OUTPUT" ;;
+            *)   echo "prerelease=false" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+          # Notes come from the CHANGELOG entry for this version: the curated,
+          # categorised list beats an auto-generated dump of merged PRs. The
+          # "## [x.y.z] - date" heading is dropped (the title says it already)
+          # and "###" subsections are promoted so they render as top level.
+          awk -v ver="$VERSION" '
+            BEGIN { gsub(/\./, "\\.", ver) }
+            $0 ~ ("^## \\[?" ver "(\\]|[[:space:]]|$)") { found = 1; next }
+            found && /^## / { exit }
+            # The link-reference definitions at the foot of the file follow the
+            # last version section with no heading to stop on.
+            found && /^\[[^]]+\]:[[:space:]]/ { exit }
+            found { print }
+          ' CHANGELOG.md | sed -E 's/^### /## /' > "$RUNNER_TEMP/notes.raw"
+
+          # Trim leading and trailing blank lines.
+          awk 'NF { seen = 1 } seen' "$RUNNER_TEMP/notes.raw" \
+            | tac | awk 'NF { seen = 1 } seen' | tac > "$RUNNER_TEMP/notes.md"
+
+          if [ -s "$RUNNER_TEMP/notes.md" ]; then
+            echo "have_notes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "have_notes=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::No CHANGELOG entry found for ${VERSION}; falling back to auto-generated notes."
+          fi
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          TITLE: ${{ steps.prep.outputs.title }}
+          HAVE_NOTES: ${{ steps.prep.outputs.have_notes }}
+          PRERELEASE: ${{ steps.prep.outputs.prerelease }}
+        run: |
+          set -eu
+
+          # An array, not a string: the title contains spaces and would
+          # otherwise word-split into several arguments.
+          args=( --title "$TITLE" )
+
+          if [ "$HAVE_NOTES" = 'true' ]; then
+            args+=( --notes-file "$RUNNER_TEMP/notes.md" )
+          else
+            args+=( --generate-notes )
+          fi
+
+          if [ "$PRERELEASE" = 'true' ]; then
+            args+=( --prerelease )
+          fi
+
+          # The gh CLI is preinstalled on the runner, so this needs no
+          # third-party action to pin, review, or allow-list.
+          gh release create "$TAG" "$ZIP_PATH" "${args[@]}"
