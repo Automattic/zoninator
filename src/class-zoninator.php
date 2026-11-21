@@ -219,8 +219,7 @@ class Zoninator {
 					}
 
 					if ( is_wp_error( $result ) ) {
-						// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
-						wp_redirect( add_query_arg( 'message', 'error-general' ) );
+						wp_safe_redirect( add_query_arg( 'message', 'error-general' ) );
 						exit;
 					} else {
 						if ( ! $zone_id && isset( $result['term_id'] ) ) {
@@ -229,8 +228,7 @@ class Zoninator {
 
 						// Redirect with success message
 						$message = sprintf( '%s-success', $action );
-						// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
-						wp_redirect(
+						wp_safe_redirect(
 							$this->_get_zone_page_url(
 								array(
 									'action'  => 'edit',
@@ -258,8 +256,7 @@ class Zoninator {
 						$redirect_args = array( 'message' => 'delete-success' );
 					}
 
-					// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
-					wp_redirect( $this->_get_zone_page_url( $redirect_args ) );
+					wp_safe_redirect( $this->_get_zone_page_url( $redirect_args ) );
 					exit;
 			}
 		}
