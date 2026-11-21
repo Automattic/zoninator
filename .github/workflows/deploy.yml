@@ -1,16 +1,26 @@
 name: Deploy to WordPress.org
+
+# Runs on the version tag, the same event as release.yml. Don't trigger this on
+# `release: [released]`: release.yml publishes the release with GITHUB_TOKEN, and
+# events raised by GITHUB_TOKEN don't start other workflows, so that trigger would
+# never fire.
 on:
-  release:
-    types: [ released ]
-  # Allow manual triggering of the workflow.
+  push:
+    tags:
+      - '*'
+      - '!*-*' # Skip pre-releases (1.2.3-rc.1). Negative patterns must follow the positive one.
+  # Escape hatch for a tag cut before this trigger existed.
   workflow_dispatch:
 
 permissions: {}
 
 jobs:
-  release:
-    name: New release to WordPress.org
+  deploy:
+    name: Deploy to WordPress.org SVN
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
