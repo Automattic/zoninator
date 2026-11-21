@@ -35,10 +35,10 @@
 	},
 	"scripts": {
 		"coverage": [
-			"npx --no wp-env run tests-cli --env-cwd=wp-content/plugins/zoninator ./vendor/bin/phpunit --testsuite integration --coverage-html ./build/coverage-html"
+			"npx --no wp-env run cli \"--env-cwd=wp-content/plugins/$(basename \"$(pwd)\")\" ./vendor/bin/phpunit --testsuite integration --coverage-html ./build/coverage-html"
 		],
 		"coverage-ci": [
-			"npx --no wp-env run tests-cli --env-cwd=wp-content/plugins/zoninator ./vendor/bin/phpunit --testsuite integration --coverage-text"
+			"npx --no wp-env run cli \"--env-cwd=wp-content/plugins/$(basename \"$(pwd)\")\" ./vendor/bin/phpunit --testsuite integration --coverage-text"
 		],
 		"cs": [
 			"@php ./vendor/bin/phpcs -q"

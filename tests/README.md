@@ -16,7 +16,7 @@ npm ci
 npx --no wp-env start
 ```
 
-`wp-env start` builds the WordPress containers and mounts this plugin into them, on WordPress trunk and the latest PHP. To test another version, set `WP_ENV_CORE` and `WP_ENV_PHP_VERSION` when you start it (for example `WP_ENV_CORE=WordPress/WordPress#6.4 WP_ENV_PHP_VERSION=7.4 npx wp-env start`). The first run takes a minute or two.
+`wp-env start` builds the WordPress containers and mounts this plugin into them, on WordPress trunk and the latest PHP. To test another version, set `WP_ENV_CORE` and `WP_ENV_PHP_VERSION` when you start it (for example `WP_ENV_CORE=WordPress/WordPress#6.4 WP_ENV_PHP_VERSION=7.4 npx --no wp-env start`). The first run takes a minute or two.
 
 ## Running the tests
 
