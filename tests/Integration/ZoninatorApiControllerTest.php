@@ -351,6 +351,70 @@ class ZoninatorApiControllerTest extends TestCase {
 	}
 
 
+	public function test_get_zones_refuses_a_logged_out_user(): void {
+		$this->create_a_zone( 'private-zone', 'Private zone' );
+		wp_set_current_user( 0 );
+
+		$response = $this->get( '/zoninator/v1/zones' );
+
+		$this->assertResponseStatus( $response, 401 );
+	}
+
+	public function test_get_zones_filter_can_allow_a_logged_out_user(): void {
+		$this->create_a_zone( 'public-zone', 'Public zone' );
+		wp_set_current_user( 0 );
+		add_filter( 'zoninator_rest_get_zones_permissions_check', '__return_true' );
+
+		$response = $this->get( '/zoninator/v1/zones' );
+
+		$this->assertResponseStatus( $response, 200 );
+		$this->assertSame( array( 'public-zone' ), wp_list_pluck( $response->get_data(), 'slug' ) );
+	}
+
+	/**
+	 * An author lacks the default zone capabilities, so every write route
+	 * must refuse them before its callback runs.
+	 *
+	 * @dataProvider data_write_routes
+	 *
+	 * @param string $method HTTP method.
+	 * @param string $route  Route, with %d for the zone ID.
+	 */
+	public function test_write_route_refuses_a_user_who_cannot_manage_zones( string $method, string $route ): void {
+		$zone_id = $this->create_a_zone( 'guarded-zone', 'Guarded zone' );
+		$post_id = $this->_insert_a_post();
+		$this->login_as( self::factory()->user->create( array( 'role' => 'author' ) ) );
+
+		$response = $this->request(
+			sprintf( $route, $zone_id ),
+			$method,
+			array(
+				'slug'     => 'new-zone',
+				'name'     => 'Renamed zone',
+				'post_ids' => array( $post_id ),
+			)
+		);
+
+		$this->assertSame( 'permission-denied', $response->as_error()->get_error_code() );
+		$this->assertSame( 'Guarded zone', \Zoninator()->get_zone( $zone_id )->name );
+		$this->assertFalse( \Zoninator()->get_zone( 'new-zone' ) );
+		$this->assertSame( array(), \Zoninator()->get_zone_posts( $zone_id ) );
+		$this->assertFalse( \Zoninator()->is_zone_locked( $zone_id ) );
+	}
+
+	/**
+	 * @return array<string, array{string, string}>
+	 */
+	public function data_write_routes(): array {
+		return array(
+			'create zone'       => array( 'POST', '/zoninator/v1/zones' ),
+			'update zone'       => array( 'PUT', '/zoninator/v1/zones/%d' ),
+			'delete zone'       => array( 'DELETE', '/zoninator/v1/zones/%d' ),
+			'update zone posts' => array( 'PUT', '/zoninator/v1/zones/%d/posts' ),
+			'lock zone'         => array( 'PUT', '/zoninator/v1/zones/%d/lock' ),
+		);
+	}
+
 	/**
 	 * @return int|\WP_Error
 	 */
