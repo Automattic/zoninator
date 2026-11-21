@@ -1187,8 +1187,10 @@ class Zoninator {
 			'ignore_sticky_posts' => '1', // don't want sticky posts messing up our order
 		);
 
-		// Default to published posts on the front-end
-		if ( ! is_admin() ) {
+		// Default to published posts, except for zone managers in the admin.
+		// is_admin() alone is true for every admin-ajax.php and admin-post.php
+		// request, including logged-out ones.
+		if ( ! is_admin() || ! $this->_current_user_can_manage_zones() ) {
 			$defaults['post_status'] = array( 'publish' );
 		}
 
