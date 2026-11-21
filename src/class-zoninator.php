@@ -1601,7 +1601,11 @@ class Zoninator {
 		$wp_header_to_desc[ $status ] = $official_message;
 	}
 
-	// TODO: Caching needs to be testing properly before being implemented!
+	/*
+	 * No plugin level cache for zone posts. Since WP 6.1, WP_Query caches the
+	 * zone query in the `post-queries` group, and any post meta change (add,
+	 * remove, reorder) clears it. These no-op methods stay for back-compat.
+	 */
 	public function get_zone_cache_key( $zone, $args = array() ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- potentially breaking change/
 		return '';
 	}
@@ -1630,7 +1634,7 @@ class Zoninator {
 	}
 
 	public function _empty_zone_posts_cache( $meta_key ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		// TODO: implement
+		// No-op, see the note above get_zone_cache_key().
 	}
 
 	public function _get_message( $message_id, $encode = false ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
