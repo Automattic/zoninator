@@ -49,7 +49,7 @@ class Zoninator_Admin_Accessibility_Test extends TestCase {
 	public function test_zone_items_have_keyboard_move_and_remove_buttons(): void {
 		$output = $this->render_zone_post();
 
-		foreach ( array( 'move-up' => 'Move up', 'move-down' => 'Move down', 'delete' => 'Remove' ) as $class => $text ) {
+		foreach ( array( 'move-up' => 'Move up', 'move-down' => 'Move down', 'button-link-delete delete' => 'Remove' ) as $class => $text ) {
 			$this->assertMatchesRegularExpression( '#<button (?=[^>]*type="button")[^>]*class="button-link ' . $class . '"[^>]*>' . $text . '<span class="screen-reader-text"> “Zoned story”</span></button>#u', $output );
 		}
 		$this->assertStringNotContainsString( 'href="#"', $output );
@@ -112,7 +112,7 @@ class Zoninator_Admin_Accessibility_Test extends TestCase {
 		unset( $_GET['zone_id'], $_REQUEST['zone_id'] );
 
 		$this->assertSame( 1, substr_count( $output, '<h1' ) );
-		$this->assertStringContainsString( '<h2>Zone Content</h2>', $output );
+		$this->assertStringContainsString( '<h2 class="hndle">Zone Content</h2>', $output );
 		$this->assertStringNotContainsString( '<h3>', $output );
 	}
 }
