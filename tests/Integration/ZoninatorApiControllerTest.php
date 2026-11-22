@@ -322,7 +322,7 @@ class ZoninatorApiControllerTest extends TestCase {
 	 * Test test_get_zone_posts_success_when_no_posts_in_zone
 	 */
 	public function test_get_zone_posts_success_when_no_posts_in_zone() {
-		$term_factory = new \WP_UnitTest_Factory_For_Term( null, \Zoninator()->zone_taxonomy );
+		$term_factory = new \WP_UnitTest_Factory_For_Term( null, \Zoninator::ZONE_TAXONOMY );
 		$zone_id = $term_factory->create_object( array(
 			'name' => 'The Zone Add Post one',
 			'description' => 'Zone 2',
@@ -338,7 +338,7 @@ class ZoninatorApiControllerTest extends TestCase {
 	 * Test test_get_zone_posts_not_found_when_invalid_zone
 	 */
 	public function test_get_zone_posts_not_found_when_invalid_zone() {
-		$term_factory = new \WP_UnitTest_Factory_For_Term( null, \Zoninator()->zone_taxonomy );
+		$term_factory = new \WP_UnitTest_Factory_For_Term( null, \Zoninator::ZONE_TAXONOMY );
 		$zone_id = $term_factory->create_object( array(
 			'name' => 'The Zone Add Post one',
 			'description' => 'Zone 2',
@@ -450,7 +450,7 @@ class ZoninatorApiControllerTest extends TestCase {
 	 * @return array|mixed|\WP_Error
 	 */
 	private function add_a_zone( $slug = 'zone-1' ) {
-		$term_factory = new \WP_UnitTest_Factory_For_Term(null, \Zoninator()->zone_taxonomy);
+		$term_factory = new \WP_UnitTest_Factory_For_Term(null, \Zoninator::ZONE_TAXONOMY);
 		return $term_factory->create_object(array(
 			'name' => 'The Zone Add Post one ' . rand_str(),
 			'description' => 'Zone ' . rand_str(),

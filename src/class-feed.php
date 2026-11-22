@@ -37,15 +37,15 @@ class Feed {
 	}
 
 	public function add_rewrite_rule() {
-		add_rewrite_tag( '%' . $this->zoninator->zone_taxonomy . '%', '([^&]+)' );
-		add_rewrite_rule( '^zones/([^/]+)/feed.json/?$', 'index.php?' . $this->zoninator->zone_taxonomy . '=$matches[1]', 'top' );
+		add_rewrite_tag( '%' . Zoninator::ZONE_TAXONOMY . '%', '([^&]+)' );
+		add_rewrite_rule( '^zones/([^/]+)/feed.json/?$', 'index.php?' . Zoninator::ZONE_TAXONOMY . '=$matches[1]', 'top' );
 	}
 
 	public function serve() {
-		$query_var = get_query_var( $this->zoninator->zone_taxonomy );
+		$query_var = get_query_var( Zoninator::ZONE_TAXONOMY );
 
 		if ( ! empty( $query_var ) ) {
-			$zone_slug = get_query_var( $this->zoninator->zone_taxonomy );
+			$zone_slug = get_query_var( Zoninator::ZONE_TAXONOMY );
 			$results   = $this->get( $zone_slug );
 			if ( is_wp_error( $results ) ) {
 				$this->send_error( $results->get_error_message() );

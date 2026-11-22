@@ -27,6 +27,13 @@ final class Taxonomy {
 	private $zoninator;
 
 	/**
+	 * Cache of the post types that support zones, or null to work it out again.
+	 *
+	 * @var string[]|null
+	 */
+	private $post_types;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Zoninator $zoninator The Zoninator facade.
@@ -41,13 +48,13 @@ final class Taxonomy {
 	public function register() {
 		// Default post type support
 		foreach ( $this->zoninator->default_post_types as $post_type ) {
-			add_post_type_support( $post_type, $this->zoninator->zone_taxonomy );
+			add_post_type_support( $post_type, Zoninator::ZONE_TAXONOMY );
 		}
 
 		// Register taxonomy
-		if ( ! taxonomy_exists( $this->zoninator->zone_taxonomy ) ) {
+		if ( ! taxonomy_exists( Zoninator::ZONE_TAXONOMY ) ) {
 			register_taxonomy(
-				$this->zoninator->zone_taxonomy,
+				Zoninator::ZONE_TAXONOMY,
 				$this->get_post_types(),
 				array(
 					'label'        => __( 'Zones', 'zoninator' ),
@@ -62,19 +69,19 @@ final class Taxonomy {
 	}
 
 	public function get_post_types() {
-		if ( null !== $this->zoninator->post_types ) {
-			return $this->zoninator->post_types;
+		if ( null !== $this->post_types ) {
+			return $this->post_types;
 		}
 
-		$this->zoninator->post_types = array();
+		$this->post_types = array();
 
 		foreach ( get_post_types() as $post_type ) {
-			if ( post_type_supports( $post_type, $this->zoninator->zone_taxonomy ) ) {
-				$this->zoninator->post_types[] = $post_type;
+			if ( post_type_supports( $post_type, Zoninator::ZONE_TAXONOMY ) ) {
+				$this->post_types[] = $post_type;
 			}
 		}
 
-		return $this->zoninator->post_types;
+		return $this->post_types;
 	}
 
 	/**
@@ -96,11 +103,11 @@ final class Taxonomy {
 				continue;
 			}
 
-			add_post_type_support( $post_type, $this->zoninator->zone_taxonomy );
-			register_taxonomy_for_object_type( $this->zoninator->zone_taxonomy, $post_type );
+			add_post_type_support( $post_type, Zoninator::ZONE_TAXONOMY );
+			register_taxonomy_for_object_type( Zoninator::ZONE_TAXONOMY, $post_type );
 
 			// Clear Zoninator supported post types cache
-			$this->zoninator->post_types = null;
+			$this->post_types = null;
 
 			$did_register_post_types = true;
 		}

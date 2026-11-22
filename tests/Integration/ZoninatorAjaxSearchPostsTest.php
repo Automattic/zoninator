@@ -74,7 +74,7 @@ class ZoninatorAjaxSearchPostsTest extends WP_Ajax_UnitTestCase {
 
 		$_POST['action']   = 'zoninator_search_posts';
 		$_POST['term']     = 'zoninator_future_leak';
-		$_POST['_wpnonce'] = wp_create_nonce( $zoninator->_get_nonce_key( $zoninator->zone_ajax_nonce_action ) );
+		$_POST['_wpnonce'] = wp_create_nonce( $zoninator->_get_nonce_key( \Zoninator::ZONE_AJAX_NONCE_ACTION ) );
 
 		try {
 			$this->_handleAjax( 'zoninator_search_posts' );
@@ -109,7 +109,7 @@ class ZoninatorAjaxSearchPostsTest extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( $this->admin_id );
 
 		$zoninator  = Zoninator();
-		$nonce_key  = $zoninator->_get_nonce_key( $zoninator->zone_ajax_nonce_action );
+		$nonce_key  = $zoninator->_get_nonce_key( \Zoninator::ZONE_AJAX_NONCE_ACTION );
 		$nonce      = wp_create_nonce( $nonce_key );
 
 		$_POST['action']   = 'zoninator_search_posts';
@@ -211,7 +211,7 @@ class ZoninatorAjaxSearchPostsTest extends WP_Ajax_UnitTestCase {
 		$_POST['term']     = $term;
 		$_POST['limit']    = $limit;
 		$_POST['exclude']  = $exclude;
-		$_POST['_wpnonce'] = wp_create_nonce( $zoninator->_get_nonce_key( $zoninator->zone_ajax_nonce_action ) );
+		$_POST['_wpnonce'] = wp_create_nonce( $zoninator->_get_nonce_key( \Zoninator::ZONE_AJAX_NONCE_ACTION ) );
 
 		try {
 			$this->_handleAjax( 'zoninator_search_posts' );

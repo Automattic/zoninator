@@ -230,7 +230,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$_REQUEST = array_merge(
 			$_POST,
 			array(
-				'page'   => $zoninator->key,
+				'page'   => \Zoninator::KEY,
 				'action' => $action,
 			)
 		);

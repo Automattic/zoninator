@@ -15,9 +15,17 @@ class ZoninatorTaxonomyTest extends TestCase {
 		remove_post_type_support( 'page', 'zoninator_zones' );
 		unregister_taxonomy_for_object_type( 'zoninator_zones', 'page' );
 		Zoninator()->default_post_types = array( 'post' );
-		Zoninator()->post_types         = null;
+		$this->clear_post_types_cache();
 
 		parent::tear_down();
+	}
+
+	/**
+	 * Clear the cached list of zone post types, so later tests see only posts again.
+	 */
+	private function clear_post_types_cache(): void {
+		$taxonomy = \Closure::bind( fn() => $this->taxonomy, Zoninator(), \Zoninator::class )();
+		\Closure::bind( fn() => $this->post_types = null, $taxonomy, \Automattic\Zoninator\Taxonomy::class )();
 	}
 
 	public function test_the_taxonomy_is_a_private_data_store(): void {

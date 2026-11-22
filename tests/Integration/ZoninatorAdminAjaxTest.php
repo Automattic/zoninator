@@ -269,7 +269,7 @@ class ZoninatorAdminAjaxTest extends WP_Ajax_UnitTestCase {
 	}
 
 	private function ajax_nonce_action(): string {
-		return Zoninator()->_get_nonce_key( Zoninator()->zone_ajax_nonce_action );
+		return Zoninator()->_get_nonce_key( \Zoninator::ZONE_AJAX_NONCE_ACTION );
 	}
 
 	private function render_zone_post( int $post_id ): string {

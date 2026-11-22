@@ -419,13 +419,13 @@ final class ZoninatorRestContractTest extends TestCase {
 	}
 
 	public function test_get_zones_returns_a_message_only_body_when_zones_cannot_be_read(): void {
-		$taxonomy = $GLOBALS['wp_taxonomies'][ Zoninator()->zone_taxonomy ];
-		unset( $GLOBALS['wp_taxonomies'][ Zoninator()->zone_taxonomy ] );
+		$taxonomy = $GLOBALS['wp_taxonomies'][ \Zoninator::ZONE_TAXONOMY ];
+		unset( $GLOBALS['wp_taxonomies'][ \Zoninator::ZONE_TAXONOMY ] );
 
 		try {
 			$response = $this->dispatch( 'GET', '/zones' );
 		} finally {
-			$GLOBALS['wp_taxonomies'][ Zoninator()->zone_taxonomy ] = $taxonomy;
+			$GLOBALS['wp_taxonomies'][ \Zoninator::ZONE_TAXONOMY ] = $taxonomy;
 		}
 
 		$this->assertSame( 400, $response->get_status() );
@@ -450,8 +450,8 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame(
 			array(
 				'zone_id'         => $zone_id,
-				'timeout'         => Zoninator()->zone_lock_period,
-				'max_lock_period' => Zoninator()->zone_max_lock_period,
+				'timeout'         => Zoninator()->get_zone_lock_period(),
+				'max_lock_period' => Zoninator()->get_zone_max_lock_period(),
 			),
 			$response->get_data()
 		);
