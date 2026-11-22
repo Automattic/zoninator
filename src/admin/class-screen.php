@@ -12,10 +12,11 @@ use Zoninator;
 /**
  * Renders the Zones admin screen, saves its zone form, and loads its assets.
  *
- * Zoninator keeps a public method for each of these, which delegates here,
- * and hooks are registered on it, so array( Zoninator(), 'method' ) keeps
- * working as a callback. Callbacks this class hands to WordPress point at
- * Zoninator too, for the same reason.
+ * Zoninator keeps a public method for each of these under its original name
+ * (admin_page() for render(), admin_page_zone_post() for render_zone_post(),
+ * and so on), which delegates here. Hooks are registered on it, so
+ * array( Zoninator(), 'method' ) keeps working as a callback. Callbacks this
+ * class hands to WordPress point at Zoninator too, for the same reason.
  */
 class Screen {
 
@@ -35,13 +36,13 @@ class Screen {
 		$this->zoninator = $zoninator;
 	}
 
-	public function admin_page_init() {
+	public function register_menu_page() {
 		// Set up page
 		add_menu_page( __( 'Zones', 'zoninator' ), __( 'Zones', 'zoninator' ), $this->zoninator->_get_manage_zones_cap(), $this->zoninator->key, array( $this->zoninator, 'admin_page' ), 'dashicons-layout', 11 );
 	}
 
-	public function admin_enqueue_scripts() {
-		if ( $this->is_zoninator_page() ) {
+	public function enqueue_scripts() {
+		if ( $this->is_current() ) {
 			wp_enqueue_script( 'zoninator-js', plugin_dir_url( ZONINATOR_FILE ) . 'js/zoninator.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse', 'jquery-ui-position', 'jquery-ui-sortable', 'jquery-ui-autocomplete', 'wp-a11y' ), ZONINATOR_VERSION, true );
 
 			$options = array(
@@ -70,14 +71,14 @@ class Screen {
 		}
 	}
 
-	public function admin_enqueue_styles() {
-		if ( $this->is_zoninator_page() ) {
+	public function enqueue_styles() {
+		if ( $this->is_current() ) {
 				wp_enqueue_style( 'zoninator-styles', plugin_dir_url( ZONINATOR_FILE ) . 'css/zoninator.css', false, ZONINATOR_VERSION, 'all' );
 		}
 	}
 
-	public function admin_controller() {
-		if ( $this->is_zoninator_page() ) {
+	public function handle_request() {
+		if ( $this->is_current() ) {
 			$action = $this->zoninator->_get_request_var( 'action' );
 
 			switch ( $action ) {
@@ -152,7 +153,7 @@ class Screen {
 		}
 	}
 
-	public function admin_page() {
+	public function render() {
 		global $zoninator_admin_page;
 
 		$title = __( 'Zones', 'zoninator' );
@@ -210,12 +211,12 @@ class Screen {
 			<div id="col-container" class="wp-clearfix">
 				<div id="col-left">
 					<div class="col-wrap">
-						<?php $this->admin_page_zone_tabs( $zones, $active_zone_id ); ?>
+						<?php $this->render_zone_tabs( $zones, $active_zone_id ); ?>
 					</div>
 				</div>
 				<div id="col-right">
 					<div class="col-wrap">
-						<?php $this->admin_page_zone_edit( $active_zone ); ?>
+						<?php $this->render_zone_edit( $active_zone ); ?>
 					</div>
 				</div>
 			</div>
@@ -224,7 +225,7 @@ class Screen {
 		<?php
 	}
 
-	public function admin_page_zone_tabs( $zones, $active_zone_id = 0 ) {
+	public function render_zone_tabs( $zones, $active_zone_id = 0 ) {
 		?>
 	<table class="wp-list-table widefat fixed striped zone-tabs">
 		<thead>
@@ -260,7 +261,7 @@ class Screen {
 		<?php
 	}
 
-	public function admin_page_zone_edit( $zone = null ) {
+	public function render_zone_edit( $zone = null ) {
 		$zone_id = $this->zoninator->_get_value_or_default( 'term_id', $zone, 0, 'absint' );
 
 		$zone_posts = $zone_id ? $this->zoninator->get_zone_posts( $zone ) : array();
@@ -294,13 +295,13 @@ class Screen {
 				// Curating content is the main task, so it comes before the zone's details.
 				?>
 				<div class="metabox-holder">
-					<?php $this->admin_page_zone_content( $zone, $zone_posts, $zone_locked ); ?>
+					<?php $this->render_zone_content( $zone, $zone_posts, $zone_locked ); ?>
 					<div class="postbox zone-col zone-info-col">
 						<div class="postbox-header">
 							<h2 class="hndle"><?php esc_html_e( 'Zone details', 'zoninator' ); ?></h2>
 						</div>
 						<div class="inside">
-							<?php $this->admin_page_zone_details( $zone, $zone_locked, $delete_link ); ?>
+							<?php $this->render_zone_details( $zone, $zone_locked, $delete_link ); ?>
 						</div>
 					</div>
 				</div>
@@ -308,7 +309,7 @@ class Screen {
 			} else {
 				?>
 				<div class="col-wrap zone-col zone-info-col">
-					<?php $this->admin_page_zone_details( $zone, $zone_locked, $delete_link ); ?>
+					<?php $this->render_zone_details( $zone, $zone_locked, $delete_link ); ?>
 				</div>
 				<?php
 			}
@@ -325,7 +326,7 @@ class Screen {
 	 * @param int|false     $zone_locked ID of the user holding the zone's lock, or false.
 	 * @param string        $delete_link URL that deletes the zone.
 	 */
-	public function admin_page_zone_details( $zone, $zone_locked, $delete_link ) {
+	public function render_zone_details( $zone, $zone_locked, $delete_link ) {
 		$zone_id          = $this->zoninator->_get_value_or_default( 'term_id', $zone, 0, 'absint' );
 		$zone_name        = $this->zoninator->_get_value_or_default( 'name', $zone );
 		$zone_slug        = $this->zoninator->_get_value_or_default( 'slug', $zone, '', array( $this->zoninator, 'get_unformatted_zone_slug' ) );
@@ -413,7 +414,7 @@ class Screen {
 	 * @param WP_Post[] $zone_posts  Posts in the zone, in order.
 	 * @param int|false $zone_locked ID of the user holding the zone's lock, or false.
 	 */
-	public function admin_page_zone_content( $zone, $zone_posts, $zone_locked ) {
+	public function render_zone_content( $zone, $zone_posts, $zone_locked ) {
 		?>
 	<div class="postbox zone-col zone-posts-col">
 		<div class="postbox-header">
@@ -426,12 +427,12 @@ class Screen {
 		<div class="inside zone-posts-wrapper <?php echo ! $this->zoninator->_current_user_can_manage_zones() || $zone_locked ? 'readonly' : ''; ?>">
 			<div id="zone-posts-notices"></div>
 
-			<?php $this->zone_admin_search_form(); ?>
+			<?php $this->render_search_form(); ?>
 
 			<div class="zone-posts-list">
 				<?php
 				foreach ( $zone_posts as $post ) {
-					$this->admin_page_zone_post( $post, $zone );
+					$this->render_zone_post( $post, $zone );
 				}
 				?>
 			</div>
@@ -440,7 +441,7 @@ class Screen {
 		<?php
 	}
 
-	public function admin_page_zone_post( $post, $zone ) {
+	public function render_zone_post( $post, $zone ) {
 		$columns = apply_filters(
 			'zoninator_zone_post_columns',
 			array(
@@ -470,7 +471,7 @@ class Screen {
 		<?php
 	}
 
-	public function admin_page_zone_post_col_position( $post, $zone ) {
+	public function render_position_column( $post, $zone ) {
 		$current_position = $this->zoninator->get_post_order( $post->ID, $zone );
 		?>
 	<span title="<?php esc_attr_e( 'Drag to change the position of this item, or use Move up and Move down.', 'zoninator' ); ?>">
@@ -479,7 +480,7 @@ class Screen {
 		<?php
 	}
 
-	public function admin_page_zone_post_col_info( $post, $zone ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+	public function render_info_column( $post, $zone ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 		/* translators: %s: post title. */
 		$title = sprintf( __( '“%s”', 'zoninator' ), $post->post_title );
 		/* translators: %s: post title. */
@@ -502,7 +503,7 @@ class Screen {
 		<?php
 	}
 
-	public function zone_advanced_search_filters() {
+	public function render_search_filters() {
 		?>
 	<div class="zone-advanced-search-filters-heading">
 		<button type="button" class="button-link zone-toggle-advanced-search" aria-expanded="false" aria-controls="zone-advanced-search-filters" data-alt-label="<?php esc_attr_e( 'Hide filters', 'zoninator' ); ?>"><?php esc_html_e( 'Show filters', 'zoninator' ); ?></button>
@@ -513,7 +514,7 @@ class Screen {
 		<?php
 	}
 
-	public function zone_advanced_search_cat_filter() {
+	public function render_category_filter() {
 		$current_cat = $this->zoninator->_get_post_var( 'zone_advanced_filter_taxonomy', '', 'absint' );
 		?>
 	<label for="zone_advanced_filter_taxonomy" class="screen-reader-text"><?php esc_html_e( 'Filter by category', 'zoninator' ); ?></label>
@@ -532,7 +533,7 @@ class Screen {
 		);
 	}
 
-	public function zone_advanced_search_date_filter() {
+	public function render_date_filter() {
 		$current_date = $this->zoninator->_get_post_var( 'zone_advanced_filter_date', apply_filters( 'zoninator_advanced_filter_date_default', '' ), 'striptags' );
 		$date_filters = apply_filters( 'zoninator_advanced_filter_date', array( 'all', 'today', 'yesterday' ) );
 		$date_labels  = array(
@@ -563,18 +564,18 @@ class Screen {
 		<?php
 	}
 
-	public function zone_admin_search_form() {
+	public function render_search_form() {
 		?>
 	<div class="zone-search-wrapper">
 		<label for="zone-post-search"><?php esc_html_e( 'Add content', 'zoninator' ); ?></label>
 		<input type="text" id="zone-post-search" name="search" class="large-text" aria-describedby="zone-post-search-description" />
 		<p class="description" id="zone-post-search-description"><?php esc_html_e( 'Type to search, or choose from the latest content.', 'zoninator' ); ?></p>
-		<?php $this->zone_advanced_search_filters(); ?>
+		<?php $this->render_search_filters(); ?>
 	</div>
 		<?php
 	}
 
-	public function is_zoninator_page() {
+	public function is_current() {
 		global $current_screen;
 
 		if ( function_exists( 'get_current_screen' ) ) {

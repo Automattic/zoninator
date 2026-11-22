@@ -173,31 +173,31 @@ class Zoninator {
 	}
 
 	public function admin_page_init() {
-		return $this->admin_screen->admin_page_init();
+		return $this->admin_screen->register_menu_page();
 	}
 
 	public function admin_enqueue_scripts() {
-		return $this->admin_screen->admin_enqueue_scripts();
+		return $this->admin_screen->enqueue_scripts();
 	}
 
 	public function admin_enqueue_styles() {
-		return $this->admin_screen->admin_enqueue_styles();
+		return $this->admin_screen->enqueue_styles();
 	}
 
 	public function admin_controller() {
-		return $this->admin_screen->admin_controller();
+		return $this->admin_screen->handle_request();
 	}
 
 	public function admin_page() {
-		return $this->admin_screen->admin_page();
+		return $this->admin_screen->render();
 	}
 
 	public function admin_page_zone_tabs( $zones, $active_zone_id = 0 ) {
-		return $this->admin_screen->admin_page_zone_tabs( $zones, $active_zone_id );
+		return $this->admin_screen->render_zone_tabs( $zones, $active_zone_id );
 	}
 
 	public function admin_page_zone_edit( $zone = null ) {
-		return $this->admin_screen->admin_page_zone_edit( $zone );
+		return $this->admin_screen->render_zone_edit( $zone );
 	}
 
 	/**
@@ -208,7 +208,7 @@ class Zoninator {
 	 * @param string        $delete_link URL that deletes the zone.
 	 */
 	public function admin_page_zone_details( $zone, $zone_locked, $delete_link ) {
-		return $this->admin_screen->admin_page_zone_details( $zone, $zone_locked, $delete_link );
+		return $this->admin_screen->render_zone_details( $zone, $zone_locked, $delete_link );
 	}
 
 	/**
@@ -219,35 +219,35 @@ class Zoninator {
 	 * @param int|false $zone_locked ID of the user holding the zone's lock, or false.
 	 */
 	public function admin_page_zone_content( $zone, $zone_posts, $zone_locked ) {
-		return $this->admin_screen->admin_page_zone_content( $zone, $zone_posts, $zone_locked );
+		return $this->admin_screen->render_zone_content( $zone, $zone_posts, $zone_locked );
 	}
 
 	public function admin_page_zone_post( $post, $zone ) {
-		return $this->admin_screen->admin_page_zone_post( $post, $zone );
+		return $this->admin_screen->render_zone_post( $post, $zone );
 	}
 
 	public function admin_page_zone_post_col_position( $post, $zone ) {
-		return $this->admin_screen->admin_page_zone_post_col_position( $post, $zone );
+		return $this->admin_screen->render_position_column( $post, $zone );
 	}
 
 	public function admin_page_zone_post_col_info( $post, $zone ) {
-		return $this->admin_screen->admin_page_zone_post_col_info( $post, $zone );
+		return $this->admin_screen->render_info_column( $post, $zone );
 	}
 
 	public function zone_advanced_search_filters() {
-		return $this->admin_screen->zone_advanced_search_filters();
+		return $this->admin_screen->render_search_filters();
 	}
 
 	public function zone_advanced_search_cat_filter() {
-		return $this->admin_screen->zone_advanced_search_cat_filter();
+		return $this->admin_screen->render_category_filter();
 	}
 
 	public function zone_advanced_search_date_filter() {
-		return $this->admin_screen->zone_advanced_search_date_filter();
+		return $this->admin_screen->render_date_filter();
 	}
 
 	public function zone_admin_search_form() {
-		return $this->admin_screen->zone_admin_search_form();
+		return $this->admin_screen->render_search_form();
 	}
 
 	/**
@@ -273,7 +273,7 @@ class Zoninator {
 	}
 
 	public function is_zoninator_page() {
-		return $this->admin_screen->is_zoninator_page();
+		return $this->admin_screen->is_current();
 	}
 
 	public function ajax_return( $status, $content = '', $action = '' ) {
