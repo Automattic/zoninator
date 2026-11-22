@@ -35,7 +35,7 @@ var zoninator = {};
 		if (!zoninator.$zonePostsWrap.hasClass('readonly')) {
 			zoninator.$zonePostsList.sortable({
 				stop                  : zoninator.reorderPosts
-				, placeholder         : 'ui-state-highlight'
+				, placeholder         : 'sortable-placeholder'
 				, forcePlaceholderSize: true
 				//, handle: '.zone-post-handle'
 				// This helper function addresses #41 (Drag and Drop on Mobile Issue) and corrects the placement of the cloned sortable item on Chrome/Safari iOS
@@ -143,11 +143,9 @@ var zoninator = {};
 			var autocomplete = zoninator.$zonePostSearch.data('autocomplete') || zoninator.$zonePostSearch.data('ui-autocomplete');
 
 			autocomplete._renderItem = function(ul, item) {
-				var $anchor = $('<a></a>')
+				var $anchor = $('<div></div>')
 					.append($('<span class="title"></span>').text(item.title))
-					.append($('<span class="type"></span>').text(item.post_type))
-					.append($('<span class="date"></span>').text(item.date))
-					.append($('<span class="status"></span>').text(item.post_status));
+					.append($('<span class="meta"></span>').text([item.post_type, item.date, item.post_status].join(' · ')));
 				return $('<li></li>')
 					.attr('aria-label', [item.title, item.post_type, item.date, item.post_status].join(', '))
 					.data('item.autocomplete', item)
