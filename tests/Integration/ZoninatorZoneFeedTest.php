@@ -78,6 +78,60 @@ final class ZoninatorZoneFeedTest extends TestCase {
 		$this->assertSame( 'invalid-zone-supplied', $feed->get_error_code() );
 	}
 
+	public function test_feed_filters_get_the_zone_they_were_asked_for(): void {
+		$zone_id = $this->create_zone();
+		\Zoninator()->add_zone_posts( $zone_id, array( self::factory()->post->create() ) );
+		$seen    = array();
+		$args    = static function ( $args, $zone ) use ( &$seen ) {
+			$seen[] = array( 'args', $args, $zone );
+			return $args;
+		};
+		$results = static function ( $results, $zone ) use ( &$seen ) {
+			$seen[] = array( 'results', count( $results ), $zone );
+			return array( 'replaced' );
+		};
+		add_filter( 'zoninator_json_feed_fields', $args, 10, 2 );
+		add_filter( 'zoninator_json_feed_results', $results, 10, 2 );
+
+		$feed = \Zoninator()->get_zone_feed( 'feed-zone' );
+
+		$this->assertSame( array( 'replaced' ), $feed );
+		$this->assertSame(
+			array(
+				array( 'args', array(), 'feed-zone' ),
+				array( 'results', 1, 'feed-zone' ),
+			),
+			$seen
+		);
+	}
+
+	public function test_a_request_without_the_feed_query_var_is_left_alone(): void {
+		ob_start();
+		\Zoninator()->do_zoninator_feeds();
+
+		$this->assertSame( '', ob_get_clean() );
+	}
+
+	/**
+	 * @dataProvider data_feed_hooks
+	 *
+	 * @param string $hook   Hook name.
+	 * @param string $method Zoninator method.
+	 */
+	public function test_feed_hooks_are_registered_on_the_facade( string $hook, string $method ): void {
+		$this->assertSame( 10, has_action( $hook, array( \Zoninator(), $method ) ) );
+	}
+
+	/**
+	 * @return array<string, array{string, string}>
+	 */
+	public function data_feed_hooks(): array {
+		return array(
+			'rewrite rule' => array( 'init', 'add_zone_feed' ),
+			'feed request' => array( 'template_redirect', 'do_zoninator_feeds' ),
+		);
+	}
+
 	private function create_zone(): int {
 		$zone = \Zoninator()->insert_zone( 'feed-zone', 'Feed zone' );
 
