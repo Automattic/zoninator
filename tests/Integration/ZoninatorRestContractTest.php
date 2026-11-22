@@ -295,8 +295,8 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( 'New', $zone->description );
 	}
 
-	public function test_update_zone_with_no_fields_keeps_name_and_slug_but_clears_description(): void {
-		$zone_id = $this->create_zone( 'same', 'Same', 'Will be cleared' );
+	public function test_update_zone_with_no_fields_changes_nothing(): void {
+		$zone_id = $this->create_zone( 'same', 'Same', 'Kept' );
 
 		$response = $this->dispatch( 'PUT', "/zones/$zone_id" );
 		$zone     = Zoninator()->get_zone( $zone_id );
@@ -305,7 +305,25 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( array( 'success' => true ), $response->get_data() );
 		$this->assertSame( 'Same', $zone->name );
 		$this->assertSame( 'same', $zone->slug );
-		$this->assertSame( '', $zone->description );
+		$this->assertSame( 'Kept', $zone->description );
+	}
+
+	public function test_update_zone_name_keeps_the_description(): void {
+		$zone_id = $this->create_zone( 'renamed', 'Old name', 'Kept' );
+
+		$this->dispatch( 'PUT', "/zones/$zone_id", array( 'name' => 'New name' ) );
+		$zone = Zoninator()->get_zone( $zone_id );
+
+		$this->assertSame( 'New name', $zone->name );
+		$this->assertSame( 'Kept', $zone->description );
+	}
+
+	public function test_update_zone_with_an_empty_description_clears_it(): void {
+		$zone_id = $this->create_zone( 'cleared', 'Cleared', 'Gone' );
+
+		Zoninator()->update_zone( $zone_id, array( 'details' => array( 'description' => '' ) ) );
+
+		$this->assertSame( '', Zoninator()->get_zone( $zone_id )->description );
 	}
 
 	public function test_delete_zone_removes_the_zone(): void {

@@ -1072,9 +1072,9 @@ class Zoninator {
 			$slug    = $this->_get_value_or_default( 'slug', $data, $zone->slug, array( $this, 'get_formatted_zone_slug' ) );
 			$details = $this->_get_value_or_default( 'details', $data, array() );
 
-			// TODO: Back-fill current zone details
-			// $details = wp_parse_args( $details, $this->zone_detail_defaults );
-			$details = wp_parse_args( $details, $this->zone_detail_defaults );
+			// Keep the zone's current value for any detail the caller didn't send.
+			$current = array_intersect_key( get_object_vars( $zone ), $this->zone_detail_defaults );
+			$details = wp_parse_args( $details, wp_parse_args( $current, $this->zone_detail_defaults ) );
 			$details = maybe_serialize( $details );
 
 			$args = array(
