@@ -1524,6 +1524,30 @@ class Zoninator {
 		wp_die( esc_html__( "Sorry, you're not supposed to do that...", 'zoninator' ) );
 	}
 
+	/**
+	 * Recount the string lengths in a serialised value.
+	 *
+	 * Earlier versions stored a description with non-ASCII characters with its
+	 * length counted before core decoded its HTML entities, so it no longer
+	 * unserialised. The text is intact, so recounting recovers it.
+	 *
+	 * Limitation: this assumes no stored string contains `";`. The sanitisers
+	 * encode `"`, so saved zone details don't; if one does, unserialize() still
+	 * fails safely and the description reads as empty, as before.
+	 *
+	 * @param string $serialized Serialised value.
+	 * @return string
+	 */
+	private function repair_serialized_lengths( $serialized ) {
+		return preg_replace_callback(
+			'/s:\d+:"(.*?)";/s',
+			static function ( $matches ) {
+				return 's:' . strlen( $matches[1] ) . ':"' . $matches[1] . '";';
+			},
+			$serialized
+		);
+	}
+
 	public function _fill_zone_details( $zone ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
 		// get_terms() gives ids or names instead of terms when the fields arg is set.
 		if ( ! is_object( $zone ) ) {
@@ -1543,6 +1567,10 @@ class Zoninator {
 			// malformed payloads that pass is_serialized().
 			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
 			$unserialized = @unserialize( trim( $zone->description ), array( 'allowed_classes' => false ) );
+			if ( false === $unserialized ) {
+				// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
+				$unserialized = @unserialize( $this->repair_serialized_lengths( trim( $zone->description ) ), array( 'allowed_classes' => false ) );
+			}
 			if ( is_array( $unserialized ) ) {
 				$details = $unserialized;
 			}
@@ -1781,7 +1809,9 @@ class Zoninator {
 	}
 
 	public function _sanitize_value( $var ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return htmlentities( stripslashes( $var ) );
+		// htmlspecialchars(), not htmlentities(): core decodes named entities such as
+		// &eacute; when it saves a term, which broke the serialised zone details.
+		return htmlspecialchars( stripslashes( $var ) );
 	}
 
 	public function _get_value_or_default( $var, $object, $default = '', $sanitize_callback = '' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound, Universal.NamingConventions.NoReservedKeywordParameterNames.objectFound, Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
