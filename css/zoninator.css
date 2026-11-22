@@ -99,7 +99,8 @@
 	padding: 10px;
 }
 
-.zone-posts-col h3 {
+.zone-posts-col h2 {
+	font-size: 1.1em;
 	margin: 3px 0;
 }
 

@@ -297,22 +297,20 @@ class Zoninator {
 
 		?>
 	<div class="wrap zoninator-page">
-		<div id="icon-edit-pages" class="icon32"><br /></div>
-		<h2>
-			<?php echo esc_html( $title ); ?>
-			<?php
-			if ( $this->_current_user_can_add_zones() ) :
-				$new_link = $this->_get_zone_page_url( array( 'action' => 'new' ) );
-				?>
-				<?php if ( $active_zone_id ) : ?>
-					<a href="<?php echo esc_url( $new_link ); ?>" class="add-new-h2 zone-button-add-new"><?php esc_html_e( 'Add New', 'zoninator' ); ?></a>
-				<?php else : ?>
-					<span class="nav-tab nav-tab-active zone-tab zone-tab-active"><?php esc_html_e( 'Add New', 'zoninator' ); ?></span>
-					<?php
-				endif;
-			endif;
+		<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
+		<?php
+		if ( $this->_current_user_can_add_zones() ) :
+			$new_link = $this->_get_zone_page_url( array( 'action' => 'new' ) );
 			?>
-		</h2>
+			<?php if ( $active_zone_id ) : ?>
+				<a href="<?php echo esc_url( $new_link ); ?>" class="page-title-action zone-button-add-new"><?php esc_html_e( 'Add New', 'zoninator' ); ?></a>
+			<?php else : ?>
+				<span class="nav-tab nav-tab-active zone-tab zone-tab-active"><?php esc_html_e( 'Add New', 'zoninator' ); ?></span>
+				<?php
+			endif;
+		endif;
+		?>
+		<hr class="wp-header-end">
 
 			<?php if ( $message ) : ?>
 			<div id="zone-message" class="updated below-h2">
@@ -492,7 +490,7 @@ class Zoninator {
 			<div class="col-wrap zone-col zone-posts-col">
 				<div class="zone-posts-wrapper <?php echo ! $this->_current_user_can_manage_zones() || $zone_locked ? 'readonly' : ''; ?>">
 					<?php if ( $zone_id ) : ?>
-						<h3><?php esc_html_e( 'Zone Content', 'zoninator' ); ?></h3>
+						<h2><?php esc_html_e( 'Zone Content', 'zoninator' ); ?></h2>
 
 						<?php $this->zone_advanced_search_filters(); ?>
 
@@ -539,7 +537,7 @@ class Zoninator {
 		);
 		?>
 	<div id="zone-post-<?php echo esc_attr( $post->ID ); ?>" class="zone-post" data-post-id="<?php echo esc_attr( $post->ID ); ?>">
-		<table>
+		<table role="presentation">
 			<tr>
 				<?php foreach ( $columns as $column_key => $column_callback ) : ?>
 					<?php if ( is_callable( $column_callback ) ) : ?>
@@ -568,14 +566,17 @@ class Zoninator {
 
 	public function admin_page_zone_post_col_info( $post, $zone ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 		/* translators: %s: post title. */
-		$title        = sprintf( __( '“%s”', 'zoninator' ), $post->post_title );
-		$sr_title     = '<span class="screen-reader-text"> ' . esc_html( $title ) . '</span>';
-		$action_links = array(
-			sprintf( '<a href="%s" class="edit" target="_blank" title="%s">%s</a>', get_edit_post_link( $post->ID ), __( 'Opens in new window', 'zoninator' ), __( 'Edit', 'zoninator' ) ),
+		$title = sprintf( __( '“%s”', 'zoninator' ), $post->post_title );
+		/* translators: %s: post title. */
+		$title_new_tab   = sprintf( __( '“%s” (opens in a new tab)', 'zoninator' ), $post->post_title );
+		$sr_title        = '<span class="screen-reader-text"> ' . esc_html( $title ) . '</span>';
+		$sr_title_newtab = '<span class="screen-reader-text"> ' . esc_html( $title_new_tab ) . '</span>';
+		$action_links    = array(
+			sprintf( '<a href="%s" class="edit" target="_blank">%s%s</a>', esc_url( get_edit_post_link( $post->ID ) ), esc_html__( 'Edit', 'zoninator' ), $sr_title_newtab ),
 			sprintf( '<button type="button" class="button-link move-up">%s%s</button>', esc_html__( 'Move up', 'zoninator' ), $sr_title ),
 			sprintf( '<button type="button" class="button-link move-down">%s%s</button>', esc_html__( 'Move down', 'zoninator' ), $sr_title ),
 			sprintf( '<button type="button" class="button-link delete">%s%s</button>', esc_html__( 'Remove', 'zoninator' ), $sr_title ),
-			sprintf( '<a href="%s" class="view" target="_blank" title="%s">%s</a>', get_permalink( $post->ID ), __( 'Opens in new window', 'zoninator' ), __( 'View', 'zoninator' ) ),
+			sprintf( '<a href="%s" class="view" target="_blank">%s%s</a>', esc_url( get_permalink( $post->ID ) ), esc_html__( 'View', 'zoninator' ), $sr_title_newtab ),
 		);
 		?>
 		<?php printf( '%s <span class="zone-post-status">(%s)</span>', esc_html( $post->post_title ), esc_html( $post->post_status ) ); ?>

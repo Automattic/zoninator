@@ -82,4 +82,33 @@ class Zoninator_Admin_Accessibility_Test extends TestCase {
 		$this->assertStringContainsString( '<button type="button" class="button-link zone-toggle-advanced-search" aria-expanded="false" aria-controls="zone-advanced-search-filters"', $output );
 		$this->assertStringContainsString( 'id="zone-advanced-search-filters"', $output );
 	}
+
+	public function test_links_that_open_a_new_tab_say_so(): void {
+		$output = $this->render_zone_post();
+
+		$this->assertSame( 2, substr_count( $output, 'target="_blank"' ) );
+		$this->assertSame( 2, substr_count( $output, '<span class="screen-reader-text"> “Zoned story” (opens in a new tab)</span>' ) );
+	}
+
+	public function test_zone_item_layout_table_is_presentational(): void {
+		$this->assertStringContainsString( '<table role="presentation">', $this->render_zone_post() );
+	}
+
+	public function test_admin_page_has_a_single_h1(): void {
+		list( $zone )        = $this->create_zone_with_post();
+		$_GET['zone_id']     = $zone->term_id;
+		$_REQUEST['zone_id'] = $zone->term_id;
+
+		$output = $this->capture(
+			static function () {
+				Zoninator()->admin_page();
+			}
+		);
+
+		unset( $_GET['zone_id'], $_REQUEST['zone_id'] );
+
+		$this->assertSame( 1, substr_count( $output, '<h1' ) );
+		$this->assertStringContainsString( '<h2>Zone Content</h2>', $output );
+		$this->assertStringNotContainsString( '<h3>', $output );
+	}
 }
