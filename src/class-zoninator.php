@@ -168,6 +168,7 @@ class Zoninator {
 				'errorGeneral'      => $this->_get_message( 'error-general' ),
 				'errorZoneLock'     => sprintf( $this->_get_message( 'error-zone-lock' ), __( 'another user', 'zoninator' ) ),
 				'errorZoneLockMax'  => $this->_get_message( 'error-zone-lock-max' ),
+				'confirmZoneLock'   => __( 'You have had this zone open for a while. Select OK to keep editing it, or Cancel to unlock it and go to the Dashboard.', 'zoninator' ),
 				'zoneLockPeriod'    => $this->zone_lock_period,
 				'zoneLockPeriodMax' => $this->zone_max_lock_period,
 				'postAdded'         => __( 'Item added to the zone.', 'zoninator' ),

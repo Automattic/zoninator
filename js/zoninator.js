@@ -320,15 +320,23 @@ var zoninator = {};
 		zoninator.ajax('update_lock', {
 			zone_id: zoninator.getZoneId()
 		}, function(returnData, originalData) {
-			zoninator.currentLockPeriod += zoninator.heartbeatInterval;
+			// We want to set a max to avoid people leaving their tabs open and then running away for long periods.
+			// Ask before letting the lock go, so someone still working can keep it. While the question is open
+			// the heartbeat stops, so an abandoned tab still loses the lock.
+			if (zoninator.currentLockPeriod >= zoninator.maxLockPeriod) {
+				if (!confirm(zoninatorOptions.confirmZoneLock)) {
+					location.href = zoninatorOptions.adminUrl;
+					return;
+				}
 
-			// We want to set a max to avoid people leaving their tabs open and then running away for long periods
-			if (zoninator.currentLockPeriod < zoninator.maxLockPeriod) {
-				setTimeout(zoninator.updateLock, zoninator.heartbeatInterval);
-			} else {
-				alert(zoninatorOptions.errorZoneLockMax);
-				location.href = zoninatorOptions.adminUrl;
+				// The question may have been open longer than the lock lasts, so take it again straight away.
+				zoninator.resetCurrentLockPeriod();
+				zoninator.updateLock();
+				return;
 			}
+
+			zoninator.currentLockPeriod += zoninator.heartbeatInterval;
+			setTimeout(zoninator.updateLock, zoninator.heartbeatInterval);
 		}, function(returnData, originalData) {
 			// Show alert and reload page to update lock
 			alert(zoninatorOptions.errorZoneLock);
