@@ -148,6 +148,8 @@ Each search result, including the latest content offered before anything is type
 
 ## Zone CRUD
 
+These fire from `src/class-zones.php`.
+
 ### `zoninator_insert_zone` (filter)
 
 Arguments passed to `wp_insert_term()` when a new zone is created.
@@ -179,6 +181,8 @@ Fires after one or more posts have been removed from a zone.
 - **Parameters:** `WP_Post[] $posts`, `WP_Term $zone`
 
 ## Term splitting (WordPress 4.2 carry-over)
+
+These fire from `src/class-zones.php`.
 
 ### `zoninator_split_shared_term` (action)
 
