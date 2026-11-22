@@ -213,6 +213,8 @@ var zoninator = {};
 
 		// Reorder Posts
 		zoninator.updatePostOrder(true);
+
+		wp.a11y.speak(zoninatorOptions.postAdded);
 	}
 
 	zoninator.initZonePost = function($elem) {
@@ -226,6 +228,32 @@ var zoninator = {};
 			e.preventDefault();
 			var postId = zoninator.getPostIdFromElem(this);
 			zoninator.removePost(postId);
+		});
+
+		// Keyboard alternative to drag and drop.
+		$elem.find('.move-up, .move-down').bind('click', function() {
+			var $post = $(this).closest('.zone-post'),
+				up = $(this).hasClass('move-up'),
+				$target = up ? $post.prev('.zone-post') : $post.next('.zone-post');
+
+			if (!$target.length) {
+				return;
+			}
+
+			if (up) {
+				$post.insertBefore($target);
+			} else {
+				$post.insertAfter($target);
+			}
+
+			// Moving the row in the DOM drops focus, so put it back on the button.
+			this.focus();
+			zoninator.reorderPosts();
+			wp.a11y.speak(
+				zoninatorOptions.postMoved
+					.replace('%1$d', $post.index() + 1)
+					.replace('%2$d', zoninator.getZonePosts().length)
+			);
 		});
 	}
 
@@ -241,11 +269,18 @@ var zoninator = {};
 	zoninator.removePostSuccessCallback = function(returnData, originalData) {
 		var postId = originalData.post_id;
 
-		zoninator.getPost(postId).fadeOut('slow', function() {
+		var $post = zoninator.getPost(postId),
+			$next = $post.next('.zone-post').length ? $post.next('.zone-post') : $post.prev('.zone-post');
+
+		$post.fadeOut('slow', function() {
 			$(this).remove();
 			if (zoninator.getZonePostIds().length)
 				zoninator.updatePostOrder(true);
 			zoninator.$zonePostsWrap.trigger('loading.end');
+
+			// The focused button has gone, so move focus to a neighboring item, or to the search field.
+			($next.length ? $next.find('.delete') : zoninator.$zonePostSearch).trigger('focus');
+			wp.a11y.speak(zoninatorOptions.postRemoved);
 		});
 	}
 

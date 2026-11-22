@@ -159,7 +159,7 @@ class Zoninator {
 
 	public function admin_enqueue_scripts() {
 		if ( $this->is_zoninator_page() ) {
-			wp_enqueue_script( 'zoninator-js', plugin_dir_url( ZONINATOR_FILE ) . 'js/zoninator.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse', 'jquery-ui-position', 'jquery-ui-sortable', 'jquery-ui-autocomplete' ), ZONINATOR_VERSION, true );
+			wp_enqueue_script( 'zoninator-js', plugin_dir_url( ZONINATOR_FILE ) . 'js/zoninator.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse', 'jquery-ui-position', 'jquery-ui-sortable', 'jquery-ui-autocomplete', 'wp-a11y' ), ZONINATOR_VERSION, true );
 
 			$options = array(
 				'baseUrl'           => $this->_get_zone_page_url(),
@@ -170,6 +170,10 @@ class Zoninator {
 				'errorZoneLockMax'  => $this->_get_message( 'error-zone-lock-max' ),
 				'zoneLockPeriod'    => $this->zone_lock_period,
 				'zoneLockPeriodMax' => $this->zone_max_lock_period,
+				'postAdded'         => __( 'Item added to the zone.', 'zoninator' ),
+				'postRemoved'       => __( 'Item removed from the zone.', 'zoninator' ),
+				/* translators: 1: new position of the item in the zone, 2: number of items in the zone. */
+				'postMoved'         => __( 'Item moved to position %1$d of %2$d.', 'zoninator' ),
 			);
 			wp_localize_script( 'zoninator-js', 'zoninatorOptions', $options );
 
@@ -498,7 +502,7 @@ class Zoninator {
 
 						<div class="zone-posts-save-input">
 							<input type="button" value="Save zone posts" name="zone-posts-save" id="zone-posts-save" class="button-primary" />
-							<p id="zone-posts-save-info" class="zone-posts-save-info"></p>
+							<p id="zone-posts-save-info" class="zone-posts-save-info" role="status"></p>
 						</div>
 
 						<div class="zone-posts-list">
@@ -563,12 +567,15 @@ class Zoninator {
 	}
 
 	public function admin_page_zone_post_col_info( $post, $zone ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		/* translators: %s: post title. */
+		$title        = sprintf( __( '“%s”', 'zoninator' ), $post->post_title );
+		$sr_title     = '<span class="screen-reader-text"> ' . esc_html( $title ) . '</span>';
 		$action_links = array(
 			sprintf( '<a href="%s" class="edit" target="_blank" title="%s">%s</a>', get_edit_post_link( $post->ID ), __( 'Opens in new window', 'zoninator' ), __( 'Edit', 'zoninator' ) ),
-			sprintf( '<a href="#" class="delete" title="%s">%s</a>', __( 'Remove this item from the zone', 'zoninator' ), __( 'Remove', 'zoninator' ) ),
+			sprintf( '<button type="button" class="button-link move-up">%s%s</button>', esc_html__( 'Move up', 'zoninator' ), $sr_title ),
+			sprintf( '<button type="button" class="button-link move-down">%s%s</button>', esc_html__( 'Move down', 'zoninator' ), $sr_title ),
+			sprintf( '<button type="button" class="button-link delete">%s%s</button>', esc_html__( 'Remove', 'zoninator' ), $sr_title ),
 			sprintf( '<a href="%s" class="view" target="_blank" title="%s">%s</a>', get_permalink( $post->ID ), __( 'Opens in new window', 'zoninator' ), __( 'View', 'zoninator' ) ),
-		// Move To
-		// Copy To
 		);
 		?>
 		<?php printf( '%s <span class="zone-post-status">(%s)</span>', esc_html( $post->post_title ), esc_html( $post->post_status ) ); ?>

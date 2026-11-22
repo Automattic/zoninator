@@ -206,6 +206,16 @@
 	font-weight: normal;
 }
 
+/* Core hides row actions off screen until hover; show them while one has keyboard focus. */
+.zone-post:focus-within .row-actions {
+	position: static;
+}
+
+.zone-post .row-actions .button-link {
+	font-size: inherit;
+	vertical-align: baseline;
+}
+
 .zone-post:hover .row-actions,
 .zone-post.loading .row-actions,
 .zone-post:hover .zone-post-handle,
