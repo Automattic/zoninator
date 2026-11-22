@@ -9,7 +9,7 @@ Content zone management for WordPress editorial workflows.
 | **Main file** | `zoninator.php` |
 | **Text domain** | `zoninator` |
 | **Function prefix** | `z_` (template tags), `zoninator_` (hooks) |
-| **Class prefix** | `Zoninator`, `Zoninator_` (no namespaces) |
+| **Class prefix** | `Zoninator`, `Zoninator_` (legacy, global); `Automattic\Zoninator\` for new classes |
 | **Source directory** | Root level + `src/` |
 | **Version** | 0.11.1 |
 | **Requires PHP** | 7.4+ |
@@ -24,11 +24,8 @@ zoninator/
 ├── src/
 │   ├── class-zoninator.php          # Main Zoninator class (zone CRUD, admin UI, AJAX)
 │   ├── class-zoninator-zoneposts-widget.php  # Zone Posts widget
-│   ├── class-zoninator-api.php      # REST API bootstrap
-│   ├── class-zoninator-api-controller.php    # REST endpoints (/zoninator/v1/zones)
-│   ├── class-zoninator-api-filter-search.php # Search filter model
-│   ├── class-zoninator-api-schema-converter.php # REST schema helper
-│   └── zoninator_rest/              # Vendored Mixtape REST framework
+│   └── rest/
+│       └── class-zones-controller.php # REST endpoints (/zoninator/v1/zones)
 ├── css/                             # Admin stylesheets
 ├── js/                              # Admin JavaScript (jQuery sortable, autocomplete)
 ├── tests/
@@ -46,8 +43,7 @@ zoninator/
 - `src/class-zoninator.php` — `Zoninator` class: registers the `zoninator_zones` taxonomy, owns the admin screen, handles AJAX (search, lock, ordering), and exposes the JSON feed at `/zones/{slug}/feed.json`.
 - `functions.php` — Public template tags: `z_get_zones()`, `z_get_zone()`, `z_get_posts_in_zone()`, `z_get_zone_query()`, `z_get_next_post_in_zone()`, `z_get_prev_post_in_zone()`, `z_get_post_zones()`. Used by themes in production.
 - `src/class-zoninator-zoneposts-widget.php` — Classic widget (`Zoninator_ZonePosts_Widget`).
-- `src/class-zoninator-api.php` + `src/class-zoninator-api-controller.php` — Registers the `zoninator/v1` REST namespace via the vendored Mixtape framework.
-- `src/zoninator_rest/` — Vendored `Mixtape` REST mini-framework, namespaced as `Zoninator_REST_*` to avoid collisions. Treat as third-party; do not refactor in place.
+- `src/rest/class-zones-controller.php` — `Automattic\Zoninator\REST\Zones_Controller`, a `WP_REST_Controller` that registers the `zoninator/v1` routes. `Zoninator::register_rest_routes()` loads it on `rest_api_init`.
 - `tests/Integration/TestCase.php` — Base class for integration tests.
 
 ### Storage model
@@ -93,8 +89,8 @@ See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key point
 
 - **Taxonomy-based storage**: Zones are stored as custom taxonomy terms; posts are assigned via term relationships and ordered via term meta. This leverages WordPress's built-in caching and query infrastructure. Do not switch to custom database tables.
 - **Template tags in `functions.php`**: Theme developers consume zones through these functions. They are part of the public API — do not rename or change signatures without a deprecation cycle.
-- **Global namespace (legacy)**: Classes and functions are in the global namespace. This is legacy. Do not introduce namespaced classes alongside global ones without a migration plan.
-- **Vendored REST framework**: `src/zoninator_rest/` contains a copy of the Mixtape REST framework, prefixed with `Zoninator_REST_`. The plugin's own controllers extend its base classes. Replacing it with `WP_REST_Controller` is a worthwhile future project but not currently scoped.
+- **Namespaces**: Legacy classes and functions are in the global namespace; keep their names, as themes and integrations use them. New classes go under `Automattic\Zoninator\`, in WordPress-style `class-*.php` files loaded with `require_once` (the release package has no Composer autoloader).
+- **REST controller on core**: The REST API extends core's `WP_REST_Controller` directly. `ZoninatorRestContractTest` pins its routes, methods, args and response bodies; change them only on purpose.
 - **REST `/zones` index requires auth**: Since 0.11.0 the `GET /zoninator/v1/zones` endpoint requires `is_user_logged_in()` by default. Sites needing the historical anonymous behaviour must opt in via the `zoninator_rest_get_zones_permissions_check` filter.
 - **WordPress.org deployment**: Releases push to the WP.org SVN via `.github/workflows/deploy.yml` on GitHub release. Do not manually modify SVN assets.
 

@@ -120,7 +120,7 @@ Look up the holder via the WordPress users API if you need to display them.
 
 ## Errors
 
-Errors follow the standard `WP_REST_Response` shape with a top-level `message` field describing the problem in the site's language. Common codes are documented as constants on `Zoninator_Api_Controller`:
+Errors follow the standard `WP_REST_Response` shape with a top-level `message` field describing the problem in the site's language. Common codes are documented as constants on `Automattic\Zoninator\REST\Zones_Controller`:
 
 | Constant | Meaning |
 |---|---|
@@ -133,7 +133,8 @@ Errors follow the standard `WP_REST_Response` shape with a top-level `message` f
 
 ## Implementation notes
 
-- The endpoints are built on a vendored copy of the Mixtape REST framework (`src/zoninator_rest/`). The controller registers routes through `add_route()` rather than `register_rest_route()` directly, but the resulting routes behave like any other WordPress REST endpoint.
+- The endpoints are registered by `Automattic\Zoninator\REST\Zones_Controller` (`src/rest/class-zones-controller.php`), which extends core's `WP_REST_Controller`. The file loads only on `rest_api_init`.
+- The update routes (`/zones/{zone_id}`, `/zones/{zone_id}/posts` and `/zones/{zone_id}/lock`) accept `POST`, `PUT` and `PATCH`.
 - Lock state is persisted in user meta keyed against the zone term, so locks survive page reloads but expire automatically when `zoninator_zone_lock_period` lapses.
 
 ## See also
