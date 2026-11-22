@@ -1,0 +1,110 @@
+<?php
+/**
+ * The zone taxonomy.
+ *
+ * @package Automattic\Zoninator
+ */
+
+namespace Automattic\Zoninator;
+
+use Zoninator;
+
+/**
+ * Registers the zoninator_zones taxonomy, which stores the zones, and
+ * tracks which post types can be put in a zone.
+ *
+ * Zoninator keeps a public method for each of these under its original name
+ * (get_supported_post_types() for get_post_types(), and
+ * register_zone_post_type() for add_post_types()), which delegates here.
+ */
+final class Taxonomy {
+
+	/**
+	 * The Zoninator facade, which holds the settings and shared helpers.
+	 *
+	 * @var Zoninator
+	 */
+	private $zoninator;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param Zoninator $zoninator The Zoninator facade.
+	 */
+	public function __construct( Zoninator $zoninator ) {
+		$this->zoninator = $zoninator;
+	}
+
+	/**
+	 * Adds zone support to the default post types, and registers the taxonomy.
+	 */
+	public function register() {
+		// Default post type support
+		foreach ( $this->zoninator->default_post_types as $post_type ) {
+			add_post_type_support( $post_type, $this->zoninator->zone_taxonomy );
+		}
+
+		// Register taxonomy
+		if ( ! taxonomy_exists( $this->zoninator->zone_taxonomy ) ) {
+			register_taxonomy(
+				$this->zoninator->zone_taxonomy,
+				$this->get_post_types(),
+				array(
+					'label'        => __( 'Zones', 'zoninator' ),
+					'hierarchical' => false,
+					'query_var'    => false,
+					'rewrite'      => false,
+					'public'       => false,
+
+				)
+			);
+		}
+	}
+
+	public function get_post_types() {
+		if ( null !== $this->zoninator->post_types ) {
+			return $this->zoninator->post_types;
+		}
+
+		$this->zoninator->post_types = array();
+
+		foreach ( get_post_types() as $post_type ) {
+			if ( post_type_supports( $post_type, $this->zoninator->zone_taxonomy ) ) {
+				$this->zoninator->post_types[] = $post_type;
+			}
+		}
+
+		return $this->zoninator->post_types;
+	}
+
+	/**
+	 * Registers a post type to be available for zones
+	 *
+	 * @param string|array $post_types A post type string or array of post type strings to register.
+	 * @return bool True if any post types were added, false if not.
+	 */
+	public function add_post_types( $post_types = '' ) {
+
+		$did_register_post_types = false;
+
+		if ( ! is_array( $post_types ) ) {
+			$post_types = array( $post_types );
+		}
+
+		foreach ( $post_types as $post_type ) {
+			if ( ! post_type_exists( $post_type ) ) {
+				continue;
+			}
+
+			add_post_type_support( $post_type, $this->zoninator->zone_taxonomy );
+			register_taxonomy_for_object_type( $this->zoninator->zone_taxonomy, $post_type );
+
+			// Clear Zoninator supported post types cache
+			$this->zoninator->post_types = null;
+
+			$did_register_post_types = true;
+		}
+
+		return $did_register_post_types;
+	}
+}

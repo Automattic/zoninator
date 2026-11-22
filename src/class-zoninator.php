@@ -71,6 +71,13 @@ class Zoninator {
 	private $zones;
 
 	/**
+	 * The zone taxonomy. The post type support methods here delegate to it.
+	 *
+	 * @var \Automattic\Zoninator\Taxonomy
+	 */
+	private $taxonomy;
+
+	/**
 	 * Zone locks. The lock methods here delegate to it.
 	 *
 	 * @var \Automattic\Zoninator\Locks
@@ -85,6 +92,7 @@ class Zoninator {
 	private $feed;
 
 	public function __construct() {
+		$this->taxonomy     = new \Automattic\Zoninator\Taxonomy( $this );
 		$this->zones        = new \Automattic\Zoninator\Zones( $this );
 		$this->locks        = new \Automattic\Zoninator\Locks( $this );
 		$this->feed         = new \Automattic\Zoninator\Feed( $this );
@@ -140,26 +148,7 @@ class Zoninator {
 
 		do_action( 'zoninator_pre_init' );
 
-		// Default post type support
-		foreach ( $this->default_post_types as $post_type ) {
-			add_post_type_support( $post_type, $this->zone_taxonomy );
-		}
-
-		// Register taxonomy
-		if ( ! taxonomy_exists( $this->zone_taxonomy ) ) {
-			register_taxonomy(
-				$this->zone_taxonomy,
-				$this->get_supported_post_types(),
-				array(
-					'label'        => __( 'Zones', 'zoninator' ),
-					'hierarchical' => false,
-					'query_var'    => false,
-					'rewrite'      => false,
-					'public'       => false,
-
-				)
-			);
-		}
+		$this->taxonomy->register();
 
 		add_action( 'admin_init', array( $this, 'admin_controller' ) );
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
@@ -329,19 +318,7 @@ class Zoninator {
 	}
 
 	public function get_supported_post_types() {
-		if ( null !== $this->post_types ) {
-			return $this->post_types;
-		}
-
-		$this->post_types = array();
-
-		foreach ( get_post_types() as $post_type ) {
-			if ( post_type_supports( $post_type, $this->zone_taxonomy ) ) {
-				$this->post_types[] = $post_type;
-			}
-		}
-
-		return $this->post_types;
+		return $this->taxonomy->get_post_types();
 	}
 
 	/**
@@ -351,28 +328,7 @@ class Zoninator {
 	 * @return bool True if any post types were added, false if not.
 	 */
 	public function register_zone_post_type( $post_types = '' ) {
-
-		$did_register_post_types = false;
-
-		if ( ! is_array( $post_types ) ) {
-			$post_types = array( $post_types );
-		}
-
-		foreach ( $post_types as $post_type ) {
-			if ( ! post_type_exists( $post_type ) ) {
-				continue;
-			}
-
-			add_post_type_support( $post_type, $this->zone_taxonomy );
-			register_taxonomy_for_object_type( $this->zone_taxonomy, $post_type );
-
-			// Clear Zoninator supported post types cache
-			$this->post_types = null;
-
-			$did_register_post_types = true;
-		}
-
-		return $did_register_post_types;
+		return $this->taxonomy->add_post_types( $post_types );
 	}
 
 	public function insert_zone( $slug, $name = '', $details = array() ) {
