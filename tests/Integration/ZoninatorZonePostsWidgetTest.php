@@ -67,6 +67,16 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 		$this->assertStringNotContainsString( 'Draft post', $this->render( array( 'show_description' => 0 ) ) );
 	}
 
+	public function test_widget_for_an_empty_zone_outputs_nothing(): void {
+		$this->assertSame( '', $this->render( array( 'show_description' => 0 ) ) );
+	}
+
+	public function test_widget_saved_without_a_description_setting_still_renders(): void {
+		\Zoninator()->add_zone_posts( $this->zone_id, array( self::factory()->post->create( array( 'post_title' => 'Only post' ) ) ) );
+
+		$this->assertStringContainsString( 'Only post', $this->render( array() ) );
+	}
+
 	public function test_update_keeps_only_a_zone_id_and_a_description_flag(): void {
 		$instance = $this->widget->update(
 			array(
