@@ -21,7 +21,7 @@ This plugin was originally built by [Mohammad Jangda](http://digitalize.ca) in c
 
 * Add, edit, and delete zones.
 * Add and remove posts (or any custom post type) to or from zones.
-* Order posts in any given zone.
+* Order posts in any given zone, by drag and drop or with the keyboard (Move up and Move down).
 * Limit capabilities on who can add, edit, and delete zones vs add content to zones.
 * Locking mechanism, so only one user can edit a zone at a time (to avoid conflicts).
 * Idle control, so people can't keep the zone locked.

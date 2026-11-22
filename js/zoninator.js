@@ -35,7 +35,7 @@ var zoninator = {};
 		if (!zoninator.$zonePostsWrap.hasClass('readonly')) {
 			zoninator.$zonePostsList.sortable({
 				stop                  : zoninator.reorderPosts
-				, placeholder         : 'ui-state-highlight'
+				, placeholder         : 'sortable-placeholder'
 				, forcePlaceholderSize: true
 				//, handle: '.zone-post-handle'
 				// This helper function addresses #41 (Drag and Drop on Mobile Issue) and corrects the placement of the cloned sortable item on Chrome/Safari iOS
@@ -58,28 +58,26 @@ var zoninator = {};
 				zoninator.$zoneSubmit.attr("disabled", false);
 			});
 
-		// Validate form
-		// TODO: This is really simplistic validation; beef it up a bit.
+		// The name field is required; a name of only spaces is empty too, so let the browser report it.
 		$('#zone-info').submit(function(e) {
-			var $form = $(this);
-			var $name = $form.find('input[name="name"]');
+			var $name = $(this).find('input[name="name"]');
 			if (!$name.val().trim()) {
-				$name.closest('.zone-field').addClass('error');
+				$name.val('');
+				this.reportValidity();
 				return false;
-			} else {
-				$name.closest('.zone-field').removeClass('error');
 			}
 		});
 
 		zoninator.$zonePostsSave.on('click', zoninator.forceSavePosts);
 
-		// On selecting a post from the latest posts list, add it to the zone
-		zoninator.$zonePostLatest.change(function() {
-			var $this = $(this),
-				post_id = $this.val();
+		// Add the post chosen from the latest posts list. This waits for the button, rather than adding on change,
+		// because moving through a closed list with the arrow keys changes its value at every step in some browsers.
+		$('#zone-post-latest-add').on('click', function() {
+			var post_id = zoninator.$zonePostLatest.val();
 			if (post_id) {
 				zoninator.addPost(post_id);
-				$this.find('[value="' + post_id + '"]').remove();
+				zoninator.$zonePostLatest.find('[value="' + post_id + '"]').remove();
+				zoninator.$zonePostLatest.val('');
 			}
 		});
 
@@ -120,6 +118,10 @@ var zoninator = {};
 						zoninator.$zonePostSearch.trigger('search.request', request);
 
 						zoninator.autocompleteAjax = $.getJSON(ajaxurl, request, function(data, status, xhr) {
+							// Give each result a value, so moving through them with the arrow keys shows and announces its title.
+							data = $.map(data, function(item) {
+								return $.extend({ value: item.title }, item);
+							});
 							zoninator.autocompleteCache[term] = data;
 							if (xhr === zoninator.autocompleteAjax) {
 								response(data);
@@ -129,6 +131,8 @@ var zoninator = {};
 					}
 					, select : function(e, ui) {
 						zoninator.addPost(ui.item.post_id);
+						$(this).val('');
+						return false;
 					}
 					, search : function(e, ui) {
 						zoninator.$zonePostSearch.trigger('loading.start');
@@ -139,12 +143,11 @@ var zoninator = {};
 			var autocomplete = zoninator.$zonePostSearch.data('autocomplete') || zoninator.$zonePostSearch.data('ui-autocomplete');
 
 			autocomplete._renderItem = function(ul, item) {
-				var $anchor = $('<a></a>')
+				var $anchor = $('<div></div>')
 					.append($('<span class="title"></span>').text(item.title))
-					.append($('<span class="type"></span>').text(item.post_type))
-					.append($('<span class="date"></span>').text(item.date))
-					.append($('<span class="status"></span>').text(item.post_status));
+					.append($('<span class="meta"></span>').text([item.post_type, item.date, item.post_status].join(' · ')));
 				return $('<li></li>')
+					.attr('aria-label', [item.title, item.post_type, item.date, item.post_status].join(', '))
 					.data('item.autocomplete', item)
 					.append($anchor)
 					.appendTo(ul)
@@ -213,6 +216,8 @@ var zoninator = {};
 
 		// Reorder Posts
 		zoninator.updatePostOrder(true);
+
+		wp.a11y.speak(zoninatorOptions.postAdded);
 	}
 
 	zoninator.initZonePost = function($elem) {
@@ -226,6 +231,32 @@ var zoninator = {};
 			e.preventDefault();
 			var postId = zoninator.getPostIdFromElem(this);
 			zoninator.removePost(postId);
+		});
+
+		// Keyboard alternative to drag and drop.
+		$elem.find('.move-up, .move-down').bind('click', function() {
+			var $post = $(this).closest('.zone-post'),
+				up = $(this).hasClass('move-up'),
+				$target = up ? $post.prev('.zone-post') : $post.next('.zone-post');
+
+			if (!$target.length) {
+				return;
+			}
+
+			if (up) {
+				$post.insertBefore($target);
+			} else {
+				$post.insertAfter($target);
+			}
+
+			// Moving the row in the DOM drops focus, so put it back on the button.
+			this.focus();
+			zoninator.reorderPosts();
+			wp.a11y.speak(
+				zoninatorOptions.postMoved
+					.replace('%1$d', $post.index() + 1)
+					.replace('%2$d', zoninator.getZonePosts().length)
+			);
 		});
 	}
 
@@ -241,11 +272,18 @@ var zoninator = {};
 	zoninator.removePostSuccessCallback = function(returnData, originalData) {
 		var postId = originalData.post_id;
 
-		zoninator.getPost(postId).fadeOut('slow', function() {
+		var $post = zoninator.getPost(postId),
+			$next = $post.next('.zone-post').length ? $post.next('.zone-post') : $post.prev('.zone-post');
+
+		$post.fadeOut('slow', function() {
 			$(this).remove();
 			if (zoninator.getZonePostIds().length)
 				zoninator.updatePostOrder(true);
 			zoninator.$zonePostsWrap.trigger('loading.end');
+
+			// The focused button has gone, so move focus to a neighboring item, or to the search field.
+			($next.length ? $next.find('.delete') : zoninator.$zonePostSearch).trigger('focus');
+			wp.a11y.speak(zoninatorOptions.postRemoved);
 		});
 	}
 
@@ -281,15 +319,23 @@ var zoninator = {};
 		zoninator.ajax('update_lock', {
 			zone_id: zoninator.getZoneId()
 		}, function(returnData, originalData) {
-			zoninator.currentLockPeriod += zoninator.heartbeatInterval;
+			// We want to set a max to avoid people leaving their tabs open and then running away for long periods.
+			// Ask before letting the lock go, so someone still working can keep it. While the question is open
+			// the heartbeat stops, so an abandoned tab still loses the lock.
+			if (zoninator.currentLockPeriod >= zoninator.maxLockPeriod) {
+				if (!confirm(zoninatorOptions.confirmZoneLock)) {
+					location.href = zoninatorOptions.adminUrl;
+					return;
+				}
 
-			// We want to set a max to avoid people leaving their tabs open and then running away for long periods
-			if (zoninator.currentLockPeriod < zoninator.maxLockPeriod) {
-				setTimeout(zoninator.updateLock, zoninator.heartbeatInterval);
-			} else {
-				alert(zoninatorOptions.errorZoneLockMax);
-				location.href = zoninatorOptions.adminUrl;
+				// The question may have been open longer than the lock lasts, so take it again straight away.
+				zoninator.resetCurrentLockPeriod();
+				zoninator.updateLock();
+				return;
 			}
+
+			zoninator.currentLockPeriod += zoninator.heartbeatInterval;
+			setTimeout(zoninator.updateLock, zoninator.heartbeatInterval);
 		}, function(returnData, originalData) {
 			// Show alert and reload page to update lock
 			alert(zoninatorOptions.errorZoneLock);
@@ -527,7 +573,8 @@ var zoninator = {};
 
 		$('.zone-advanced-search-filters-wrapper').toggle();
 
-		$this.text(altLabel).data('alt-label', currentLabel);
+		$this.text(altLabel).data('alt-label', currentLabel)
+			.attr('aria-expanded', $this.attr('aria-expanded') !== 'true');
 	});
 
 	// TODO: fix this
