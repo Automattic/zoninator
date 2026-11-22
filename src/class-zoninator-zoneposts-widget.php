@@ -16,6 +16,9 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		add_action( 'save_post', array( &$this, 'flush_widget_cache' ) );
 		add_action( 'deleted_post', array( &$this, 'flush_widget_cache' ) );
 		add_action( 'switch_theme', array( &$this, 'flush_widget_cache' ) );
+		add_action( 'zoninator_add_zone_posts', array( $this, 'flush_widget_cache' ) );
+		add_action( 'zoninator_remove_zone_posts', array( $this, 'flush_widget_cache' ) );
+		add_action( 'edited_' . Zoninator()->zone_taxonomy, array( $this, 'flush_widget_cache' ) );
 
 		parent::__construct(
 			false,
@@ -37,10 +40,8 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 			return;
 		}
 
-		ob_start();
-
-		$zone_id          = $instance['zone_id'] ?: 0;
-		$show_description = $instance['show_description'] ? 1 : 0;
+		$zone_id          = $instance['zone_id'] ?? 0;
+		$show_description = empty( $instance['show_description'] ) ? 0 : 1;
 		if ( ! $zone_id ) {
 			return;
 		}
@@ -55,6 +56,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 			return;
 		}
 
+		ob_start();
 		?>
 		<?php echo wp_kses_post( $args['before_widget'] ); ?>
 

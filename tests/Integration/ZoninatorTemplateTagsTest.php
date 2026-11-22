@@ -67,6 +67,48 @@ final class ZoninatorTemplateTagsTest extends TestCase {
 		$this->assertSame( $this->post_ids, $this->ids( $query->posts ) );
 	}
 
+	public function test_z_get_next_post_in_zone_returns_the_following_post(): void {
+		$next = z_get_next_post_in_zone( $this->zone_id, $this->post_ids[0] );
+
+		$this->assertSame( $this->post_ids[1], $next->ID );
+	}
+
+	public function test_z_get_prev_post_in_zone_returns_the_preceding_post(): void {
+		$prev = z_get_prev_post_in_zone( $this->zone_id, $this->post_ids[2] );
+
+		$this->assertSame( $this->post_ids[1], $prev->ID );
+	}
+
+	public function test_z_get_next_post_in_zone_returns_false_after_the_last_post(): void {
+		$this->assertFalse( z_get_next_post_in_zone( $this->zone_id, $this->post_ids[2] ) );
+	}
+
+	public function test_z_get_prev_post_in_zone_returns_false_before_the_first_post(): void {
+		$this->assertFalse( z_get_prev_post_in_zone( $this->zone_id, $this->post_ids[0] ) );
+	}
+
+	public function test_z_get_next_post_in_zone_returns_false_for_a_post_outside_the_zone(): void {
+		$this->assertFalse( z_get_next_post_in_zone( $this->zone_id, self::factory()->post->create() ) );
+	}
+
+	public function test_z_get_next_post_in_zone_compares_positions_as_numbers(): void {
+		$more = self::factory()->post->create_many( 8 );
+		\Zoninator()->add_zone_posts( $this->zone_id, $more, true );
+
+		// Position 9 is followed by 10, which sorts before 9 as a string.
+		$next = z_get_next_post_in_zone( $this->zone_id, $more[5] );
+
+		$this->assertSame( $more[6], $next->ID );
+	}
+
+	public function test_z_get_next_post_in_zone_defaults_to_the_loop_post(): void {
+		$GLOBALS['post'] = get_post( $this->post_ids[0] );
+
+		$next = z_get_next_post_in_zone( $this->zone_id );
+
+		$this->assertSame( $this->post_ids[1], $next->ID );
+	}
+
 	/**
 	 * @param \WP_Post[] $posts Posts.
 	 * @return int[]
