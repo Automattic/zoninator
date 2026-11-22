@@ -11,9 +11,13 @@
 }
 
 /** Zone content **/
-.zone-search-wrapper,
-.zone-posts-save-input {
+.zone-search-wrapper {
 	margin: 1em 0;
+}
+
+.zone-posts-save-input {
+	margin: 0 12px;
+	white-space: nowrap;
 }
 
 .zone-advanced-search-filters-heading {
@@ -25,20 +29,19 @@
 	margin: 1em 0;
 }
 
+.zone-posts-save-input .spinner {
+	float: none;
+	margin: 0 4px 0 0;
+}
+
 .zone-posts-save-info {
 	display: inline-block;
-	margin: 0 0 0 1em;
+	margin: 0;
 	vertical-align: middle;
 }
 
-.zone-posts-wrapper.loading,
-.zone-post.loading .zone-post-position {
-	background: url(images/wpspin_light.gif) no-repeat right top;
-}
-
-.zone-post.loading .zone-post-position {
-	background-position: center;
-	text-indent: -9999px;
+.zone-post.loading {
+	opacity: 0.5;
 }
 
 .zone-posts-wrapper.readonly .zone-search-wrapper,

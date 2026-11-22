@@ -12,7 +12,6 @@ var zoninator = {};
 		zoninator.$zoneAdvancedCat = $('#zone_advanced_filter_taxonomy');
 		zoninator.$zoneAdvancedDate = $('#zone_advanced_filter_date');
 		zoninator.$zoneSubmit = $('#zone-info input[type="submit"]');
-		zoninator.$zonePostsSave = $('#zone-posts-save');
 		zoninator.$zonePostsSaveInfo = $('#zone-posts-save-info');
 
 		zoninator.$zoneAdvancedDate.change(function() {
@@ -51,10 +50,10 @@ var zoninator = {};
 		zoninator.$zonePostsWrap
 			.bind('loading.start', function() {
 				zoninator.$zoneSubmit.attr("disabled", true);
-				$(this).addClass('loading');
+				$('.zone-posts-save-input .spinner').addClass('is-active');
 			})
 			.bind('loading.end', function() {
-				$(this).removeClass('loading');
+				$('.zone-posts-save-input .spinner').removeClass('is-active');
 				zoninator.$zoneSubmit.attr("disabled", false);
 			});
 
@@ -67,8 +66,6 @@ var zoninator = {};
 				return false;
 			}
 		});
-
-		zoninator.$zonePostsSave.on('click', zoninator.forceSavePosts);
 
 		// Add the post chosen from the latest posts list. This waits for the button, rather than adding on change,
 		// because moving through a closed list with the arrow keys changes its value at every step in some browsers.
@@ -182,14 +179,6 @@ var zoninator = {};
 			cat    : zoninator.getAdvancedCat(),
 			date   : zoninator.getAdvancedDate()
 		}, zoninator.addUpdateLatestSuccessCallback);
-	}
-
-	zoninator.addUpdateLatestSuccessCallback = function(returnData) {
-
-		zoninator.$zonePostSearch.trigger('loading.end');
-		var $list = $(returnData.content);
-		$('#zone-post-latest').html($list);
-
 	}
 
 	zoninator.addPost = function(postId) {
@@ -339,8 +328,7 @@ var zoninator = {};
 			zoninator.currentLockPeriod += zoninator.heartbeatInterval;
 			setTimeout(zoninator.updateLock, zoninator.heartbeatInterval);
 		}, function(returnData, originalData) {
-			// Show alert and reload page to update lock
-			alert(zoninatorOptions.errorZoneLock);
+			// Someone else has the zone. Reloading shows who, and the zone read only.
 			location.reload();
 		});
 	}
@@ -373,14 +361,6 @@ var zoninator = {};
 		}
 		params = $.extend({}, defaultParams, params);
 
-		if (action === 'reorder_posts') {
-			zoninator.$zonePostsSave
-				.prop({
-					value   : 'Saving...',
-					disabled: 'disabled'
-				});
-		}
-
 		$.ajax(params);
 	}
 
@@ -393,21 +373,8 @@ var zoninator = {};
 		//console.log('ajaxSuccessCallback', returnData, originalData);
 
 		if (originalData.action === 'zoninator_reorder_posts') {
-			setTimeout(function() {
-				zoninator.$zonePostsSave
-					.prop({
-						value   : 'Save zone posts',
-						disabled: false
-					});
-				zoninator.$zonePostsSaveInfo
-					.removeClass('notice-error')
-					.addClass('notice-info')
-					.text('Saved at ' + new Date().toLocaleTimeString());
-				setTimeout(function() {
-					zoninator.$zonePostsSaveInfo
-						.removeClass('notice-error notice-info')
-				}, 2000);
-			}, 250);
+			$('#zone-posts-notices').empty();
+			zoninator.$zonePostsSaveInfo.text(zoninatorOptions.savedAt.replace('%s', new Date().toLocaleTimeString()));
 		}
 
 		if (returnData.nonce)
@@ -415,8 +382,6 @@ var zoninator = {};
 
 		if (typeof(successCallback) === 'function') {
 			return successCallback(returnData, originalData);
-		} else {
-			alert(returnData.content);
 		}
 	}
 
@@ -428,22 +393,35 @@ var zoninator = {};
 			}
 		}
 
-		//console.log('ajaxErrorCallback', returnData, originalData);
-
-		if (originalData.action === 'zoninator_reorder_posts') {
-			zoninator.$zonePostsSaveInfo
-				.removeClass('notice-info')
-				.addClass('notice-error')
-				.text('Error saving posts. Please try again.');
-		}
+		// Whatever failed has stopped loading.
+		zoninator.$zonePostsWrap.trigger('loading.end');
+		zoninator.getZonePosts().removeClass('loading');
 
 		if (typeof(errorCallback) === 'function') {
 			return errorCallback(returnData, originalData);
-		} else {
-			if (typeof(returnData.content) === 'undefined' || !returnData.content)
-				returnData.content = zoninatorOptions.errorGeneral;
-			alert(returnData.content);
 		}
+
+		if (originalData.action === 'zoninator_reorder_posts') {
+			zoninator.notice(zoninatorOptions.errorSave, zoninator.forceSavePosts);
+		} else {
+			zoninator.notice(returnData.content || zoninatorOptions.errorGeneral);
+		}
+	}
+
+	// Shows an error above the zone's content, with an optional button to try again, and announces it.
+	zoninator.notice = function(message, retry) {
+		var $notice = $('<div class="notice notice-error inline"><p></p></div>');
+		$notice.find('p').text(message);
+		if (typeof(retry) === 'function') {
+			$notice.find('p').append(' ', $('<button type="button" class="button-link"></button>')
+				.text(zoninatorOptions.retry)
+				.on('click', function() {
+					$notice.remove();
+					retry();
+				}));
+		}
+		$('#zone-posts-notices').empty().append($notice);
+		wp.a11y.speak(message, 'assertive');
 	}
 
 	zoninator.updateAjaxNonce = function(action, nonce) {

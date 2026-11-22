@@ -167,7 +167,10 @@ class Zoninator {
 				'ajaxNonceAction'   => $this->_get_nonce_key( $this->zone_ajax_nonce_action ),
 				'errorGeneral'      => $this->_get_message( 'error-general' ),
 				'errorZoneLock'     => sprintf( $this->_get_message( 'error-zone-lock' ), __( 'another user', 'zoninator' ) ),
-				'errorZoneLockMax'  => $this->_get_message( 'error-zone-lock-max' ),
+				'errorSave'         => __( 'The order of the zone could not be saved.', 'zoninator' ),
+				'retry'             => __( 'Try again', 'zoninator' ),
+				/* translators: %s: time of day. */
+				'savedAt'           => __( 'Saved at %s', 'zoninator' ),
 				'confirmZoneLock'   => __( 'You have had this zone open for a while. Select OK to keep editing it, or Cancel to unlock it and go to the Dashboard.', 'zoninator' ),
 				'zoneLockPeriod'    => $this->zone_lock_period,
 				'zoneLockPeriodMax' => $this->zone_max_lock_period,
@@ -497,21 +500,21 @@ class Zoninator {
 				<?php if ( $zone_id ) : ?>
 					<div class="postbox-header">
 						<h2 class="hndle"><?php esc_html_e( 'Zone Content', 'zoninator' ); ?></h2>
+						<div class="zone-posts-save-input">
+							<span class="spinner"></span>
+							<p id="zone-posts-save-info" class="zone-posts-save-info" role="status"></p>
+						</div>
 					</div>
 				<?php endif; ?>
 				<div class="inside zone-posts-wrapper <?php echo ! $this->_current_user_can_manage_zones() || $zone_locked ? 'readonly' : ''; ?>">
 					<?php if ( $zone_id ) : ?>
+						<div id="zone-posts-notices"></div>
 
 						<?php $this->zone_advanced_search_filters(); ?>
 
 						<?php $this->zone_admin_recent_posts_dropdown( $zone_id ); ?>
 
 						<?php $this->zone_admin_search_form(); ?>
-
-						<div class="zone-posts-save-input">
-							<input type="button" value="Save zone posts" name="zone-posts-save" id="zone-posts-save" class="button button-primary" />
-							<p id="zone-posts-save-info" class="zone-posts-save-info" role="status"></p>
-						</div>
 
 						<div class="zone-posts-list">
 							<?php foreach ( $zone_posts as $post ) : ?>

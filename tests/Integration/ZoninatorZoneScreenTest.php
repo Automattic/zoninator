@@ -20,6 +20,14 @@ class Zoninator_Zone_Screen_Test extends TestCase {
 		$zone = Zoninator()->insert_zone( 'screen-zone', 'Screen zone' );
 		return Zoninator()->get_zone( (int) $zone['term_id'] );
 	}
+	public function test_content_saves_without_a_save_button(): void {
+		$output = $this->render_zone_edit( $this->create_zone() );
+
+		$this->assertStringNotContainsString( 'id="zone-posts-save"', $output );
+		$this->assertStringContainsString( '<div id="zone-posts-notices"></div>', $output );
+		$this->assertStringContainsString( '<span class="spinner"></span>', $output );
+	}
+
 	public function test_items_show_the_status_label(): void {
 		$zone    = $this->create_zone();
 		$post_id = self::factory()->post->create( array( 'post_title' => 'Labelled story' ) );
