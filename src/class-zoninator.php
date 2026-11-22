@@ -1781,7 +1781,9 @@ class Zoninator {
 	}
 
 	public function _sanitize_value( $var ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return htmlentities( stripslashes( $var ) );
+		// htmlspecialchars(), not htmlentities(): core decodes named entities such as
+		// &eacute; when it saves a term, which broke the serialised zone details.
+		return htmlspecialchars( stripslashes( $var ) );
 	}
 
 	public function _get_value_or_default( $var, $object, $default = '', $sanitize_callback = '' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound, Universal.NamingConventions.NoReservedKeywordParameterNames.objectFound, Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change

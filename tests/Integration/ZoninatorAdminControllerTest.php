@@ -106,6 +106,21 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->assertSame( 'D:\\path', $zone->description );
 	}
 
+	public function test_insert_keeps_non_ascii_text_in_the_description(): void {
+		$this->submit(
+			'insert',
+			array(
+				'name'        => 'Crème',
+				'slug'        => 'creme',
+				'description' => 'Crème <b>brûlée</b> — “à la carte”',
+			)
+		);
+
+		$zone = \Zoninator()->get_zone( 'creme' );
+		$this->assertSame( 'Crème', $zone->name );
+		$this->assertSame( 'Crème &lt;b&gt;brûlée&lt;/b&gt; — “à la carte”', $zone->description );
+	}
+
 	public function test_delete_removes_the_zone_and_its_posts(): void {
 		$post_id = self::factory()->post->create();
 		\Zoninator()->add_zone_posts( $this->zone_id, array( $post_id ) );
