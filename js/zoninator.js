@@ -70,13 +70,14 @@ var zoninator = {};
 
 		zoninator.$zonePostsSave.on('click', zoninator.forceSavePosts);
 
-		// On selecting a post from the latest posts list, add it to the zone
-		zoninator.$zonePostLatest.change(function() {
-			var $this = $(this),
-				post_id = $this.val();
+		// Add the post chosen from the latest posts list. This waits for the button, rather than adding on change,
+		// because moving through a closed list with the arrow keys changes its value at every step in some browsers.
+		$('#zone-post-latest-add').on('click', function() {
+			var post_id = zoninator.$zonePostLatest.val();
 			if (post_id) {
 				zoninator.addPost(post_id);
-				$this.find('[value="' + post_id + '"]').remove();
+				zoninator.$zonePostLatest.find('[value="' + post_id + '"]').remove();
+				zoninator.$zonePostLatest.val('');
 			}
 		});
 

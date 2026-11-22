@@ -746,6 +746,7 @@ class Zoninator {
 			wp_reset_postdata();
 			?>
 		</select>
+		<button type="button" class="button" id="zone-post-latest-add"><?php esc_html_e( 'Add', 'zoninator' ); ?></button>
 	</div>
 		<?php
 	}

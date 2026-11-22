@@ -255,7 +255,7 @@
 }
 
 #zone-post-latest {
-	width: 98%;
+	max-width: calc(98% - 5em);
 }
 
 /** Autocomplete **/

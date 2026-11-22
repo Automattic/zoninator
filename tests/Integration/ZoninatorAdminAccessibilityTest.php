@@ -72,6 +72,10 @@ class Zoninator_Admin_Accessibility_Test extends TestCase {
 		$this->assertMatchesRegularExpression( '#<input type="text" id="zone-name" name="name" value="[^"]*" required />#', $output );
 	}
 
+	public function test_recent_content_is_added_with_a_button(): void {
+		$this->assertMatchesRegularExpression( '#</select>\s*<button type="button" class="button" id="zone-post-latest-add">Add</button>#', $this->render_zone_edit() );
+	}
+
 	public function test_filter_toggle_is_a_button_that_reports_its_state(): void {
 		$output = $this->capture(
 			static function () {
