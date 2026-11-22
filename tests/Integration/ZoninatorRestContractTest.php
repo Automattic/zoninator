@@ -353,6 +353,44 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( 'rest_invalid_param', $response->get_data()['code'] );
 	}
 
+	/**
+	 * @dataProvider data_logged_in
+	 *
+	 * @param bool $logged_in Whether the caller is logged in.
+	 */
+	public function test_update_zone_posts_rejects_post_ids_that_are_not_an_array( $logged_in ): void {
+		$zone_id = $this->create_zone( 'not-an-array' );
+		if ( ! $logged_in ) {
+			wp_set_current_user( 0 );
+		}
+
+		$response = $this->dispatch( 'PUT', "/zones/$zone_id/posts", array( 'post_ids' => '5' ) );
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( 'rest_invalid_param', $response->get_data()['code'] );
+	}
+
+	public static function data_logged_in(): array {
+		return array(
+			'logged in'  => array( true ),
+			'logged out' => array( false ),
+		);
+	}
+
+	public function test_get_zones_returns_a_message_only_body_when_zones_cannot_be_read(): void {
+		$taxonomy = $GLOBALS['wp_taxonomies'][ Zoninator()->zone_taxonomy ];
+		unset( $GLOBALS['wp_taxonomies'][ Zoninator()->zone_taxonomy ] );
+
+		try {
+			$response = $this->dispatch( 'GET', '/zones' );
+		} finally {
+			$GLOBALS['wp_taxonomies'][ Zoninator()->zone_taxonomy ] = $taxonomy;
+		}
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( array( 'message' => 'Zones could not be read.' ), $response->get_data() );
+	}
+
 	public function test_update_zone_posts_with_a_missing_post_returns_a_message_only_body(): void {
 		$zone_id = $this->create_zone( 'missing-post' );
 
