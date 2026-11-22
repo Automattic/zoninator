@@ -23,6 +23,7 @@ zoninator/
 ├── functions.php                    # Template tag functions (z_*)
 ├── src/
 │   ├── class-zoninator.php          # Main Zoninator class (hooks, settings, helpers; facade for the rest)
+│   ├── class-taxonomy.php           # Taxonomy: registers the zone taxonomy and its post types
 │   ├── class-zones.php              # Zones: zone CRUD, zone posts and their order
 │   ├── class-locks.php              # Locks: zone edit locks
 │   ├── class-feed.php               # Feed: the JSON feed at /zones/{slug}/feed.json
@@ -46,7 +47,8 @@ zoninator/
 
 ### Key Classes and Files
 
-- `src/class-zoninator.php` — `Zoninator` class: registers the `zoninator_zones` taxonomy and every hook, and owns the settings (its public properties) and the request, capability and sanitising helpers. Its zone data, lock, feed, admin screen and `ajax_*` methods are thin delegates, kept so `array( Zoninator(), 'method' )` callbacks keep working.
+- `src/class-zoninator.php` — `Zoninator` class: registers every hook, and owns the settings (its public properties) and the request, capability and sanitising helpers. Its zone data, lock, feed, admin screen and `ajax_*` methods are thin delegates, kept so `array( Zoninator(), 'method' )` callbacks keep working.
+- `src/class-taxonomy.php` — `Automattic\Zoninator\Taxonomy`: registers the `zoninator_zones` taxonomy on `init` and tracks which post types support zones.
 - `src/class-zones.php` — `Automattic\Zoninator\Zones`: creates, reads, updates and deletes zones, and stores each zone's posts in order. It reads the taxonomy, meta key prefix and detail defaults from `Zoninator`'s public properties.
 - `src/class-locks.php` — `Automattic\Zoninator\Locks`: takes, reports and releases the transient that stops two people editing a zone at once.
 - `src/class-feed.php` — `Automattic\Zoninator\Feed`: the rewrite rule and response for the JSON feed at `/zones/{slug}/feed.json`.
@@ -102,7 +104,7 @@ See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key point
 - **Template tags in `functions.php`**: Theme developers consume zones through these functions. They are part of the public API — do not rename or change signatures without a deprecation cycle.
 - **Namespaces**: Legacy classes and functions are in the global namespace; keep their names, as themes and integrations use them. New classes go under `Automattic\Zoninator\`, in WordPress-style `class-*.php` files loaded with `require_once` (the release package has no Composer autoloader).
 - **REST controller on core**: The REST API extends core's `WP_REST_Controller` directly. `ZoninatorRestContractTest` pins its routes, methods, args and response bodies; change them only on purpose.
-- **`Zoninator` is the facade**: register hooks, and any callback handed to WordPress, as `array( $zoninator, 'method' )`, never on `Zones`, `Locks`, `Feed`, `Admin\Screen` or `Admin\Ajax`. Sites unhook with `array( Zoninator(), 'method' )`, which silently does nothing if the callback lives on another object. `ZoninatorAdminAjaxTest` pins this and the AJAX response shapes `js/zoninator.js` depends on.
+- **`Zoninator` is the facade**: register hooks, and any callback handed to WordPress, as `array( $zoninator, 'method' )`, never on `Taxonomy`, `Zones`, `Locks`, `Feed`, `Admin\Screen` or `Admin\Ajax`. Sites unhook with `array( Zoninator(), 'method' )`, which silently does nothing if the callback lives on another object. `ZoninatorAdminAjaxTest` pins this and the AJAX response shapes `js/zoninator.js` depends on.
 - **REST `/zones` index requires auth**: Since 0.11.0 the `GET /zoninator/v1/zones` endpoint requires `is_user_logged_in()` by default. Sites needing the historical anonymous behaviour must opt in via the `zoninator_rest_get_zones_permissions_check` filter.
 - **WordPress.org deployment**: Releases push to the WP.org SVN via `.github/workflows/deploy.yml` on GitHub release. Do not manually modify SVN assets.
 
