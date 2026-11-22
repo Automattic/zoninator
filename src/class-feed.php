@@ -18,7 +18,7 @@ use Zoninator;
  * (do_zoninator_feeds() for serve(), get_zone_feed() for get(), and so on),
  * which delegates here. Its hooks stay registered on Zoninator.
  */
-class Feed {
+final class Feed {
 
 	/**
 	 * The Zoninator facade, which holds the settings and shared helpers.

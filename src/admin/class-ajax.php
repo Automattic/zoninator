@@ -19,7 +19,7 @@ use Zoninator;
  * keeps working as a callback. Callbacks this class hands to WordPress point
  * at Zoninator too, for the same reason.
  */
-class Ajax {
+final class Ajax {
 
 	/**
 	 * The nonce action every handler checks, passed through Zoninator::_get_nonce_key().
