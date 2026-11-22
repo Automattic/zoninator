@@ -66,7 +66,7 @@ Per-zone editing check, run after the user has cleared the global `zoninator_edi
 
 ### `zoninator_rest_get_zones_permissions_check` (filter)
 
-Fires from `src/class-zoninator-api-controller.php`. Whether the `GET /zoninator/v1/zones` endpoint authorises the current request. Defaults to `is_user_logged_in()` since 0.11.0; return `true` to restore the historical anonymous behaviour.
+Fires from `src/rest/class-zones-controller.php`. Whether the `GET /zoninator/v1/zones` endpoint authorises the current request. Defaults to `is_user_logged_in()` since 0.11.0; return `true` to restore the historical anonymous behaviour.
 
 - **Parameters:** `bool $authorised`, `WP_REST_Request $request`
 
@@ -76,6 +76,8 @@ add_filter( 'zoninator_rest_get_zones_permissions_check', '__return_true' );
 
 ## Admin UI
 
+These fire from `src/admin/class-screen.php`, except where noted.
+
 ### `zoninator_admin_page_get_zones_args` (filter)
 
 Arguments passed to `get_zones()` when rendering the admin Zones list page.
@@ -84,7 +86,7 @@ Arguments passed to `get_zones()` when rendering the admin Zones list page.
 
 ### `zoninator_zone_post_columns` (filter)
 
-Columns rendered for each post inside the zone editor. Two call sites — one for HTML output, one for the array consumed by the JS UI.
+Columns rendered for each post inside the zone editor. Two call sites: one in `src/admin/class-screen.php` for HTML output, and one in `src/class-zoninator.php` for the array returned by `get_admin_zone_post()`.
 
 - **Parameters:** `array $columns`, `WP_Post $post`, `WP_Term $zone`
 
@@ -123,6 +125,8 @@ Default selected date filter.
 - **Parameters:** `string $default`
 
 ## Content search
+
+These fire from `src/admin/class-ajax.php`.
 
 ### `zoninator_recent_posts_args` (filter)
 
