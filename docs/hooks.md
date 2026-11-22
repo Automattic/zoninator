@@ -218,14 +218,6 @@ Fires from `src/class-zoninator-zoneposts-widget.php`. How long (in seconds) the
 
 > **Naming note.** This hook predates the `zoninator_` prefix convention and cannot be renamed without breaking sites that use it.
 
-## REST framework hooks
-
-The vendored Mixtape REST framework in `src/zoninator_rest/` exposes a few internal hooks under the `mt_*` and `mixtape_*` prefixes. These are framework-level extension points rather than parts of Zoninator's public API and are unlikely to be useful from outside the plugin. They are listed here for completeness:
-
-- `mt_environment_before_start`, `mt_environment_after_start`, `mt_environment_get_rest_apis`, `mt_variable_get`
-- `mixtape_rest_api_schema_properties`, `mixtape_type_registry_get_types`, `mixtape_data_store_*`
-- `rest_api_schema_properties` (called from Zoninator's schema converter)
-
 ## See also
 
 - [theme-developers.md](theme-developers.md) — using zones in templates.

@@ -38,7 +38,9 @@ class Zoninator {
 	public $posts_per_page = 10;
 
 	/**
-	* @var Zoninator_Api
+	* The REST controller, set on rest_api_init.
+	*
+	* @var \Automattic\Zoninator\REST\Zones_Controller|null
 	*/
 	public $rest_api;
 
@@ -62,14 +64,16 @@ class Zoninator {
 	}
 
 	public function maybe_add_rest_api() {
-		global $wp_version;
-		if ( version_compare( $wp_version, '4.7', '<' ) ) {
-			return false;
-		}
+		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+	}
 
-		include_once dirname( ZONINATOR_FILE ) . '/src/class-zoninator-api.php';
-		$this->rest_api = new Zoninator_Api( $this );
-		return null;
+	/**
+	 * Load the REST controller only when the REST API is in use, and register its routes.
+	 */
+	public function register_rest_routes() {
+		require_once __DIR__ . '/rest/class-zones-controller.php';
+		$this->rest_api = new \Automattic\Zoninator\REST\Zones_Controller( $this );
+		$this->rest_api->register_routes();
 	}
 
 	public function add_zone_feed() {

@@ -20,7 +20,6 @@ CHANGELOG.md
 CONTRIBUTING.md
 composer.json
 composer.lock
-mixtape.json
 package.json
 package-lock.json
 phpunit.xml.dist
