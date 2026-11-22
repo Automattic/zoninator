@@ -128,7 +128,7 @@ Errors follow the standard `WP_REST_Response` shape with a top-level `message` f
 | `INVALID_POST_ID` / `POST_NOT_FOUND` | One of the supplied post IDs does not exist. |
 | `ZONE_ID_REQUIRED` / `ZONE_ID_POST_ID_REQUIRED` / `ZONE_ID_POST_IDS_REQUIRED` | A required identifier is missing. |
 | `ZONE_FEED_ERROR` | The zone exists but its feed couldn't be assembled. |
-| `PERMISSION_DENIED` | Caller failed the relevant capability check. |
+| `PERMISSION_DENIED` | Caller failed the relevant capability check. Returned with HTTP 401 when logged out and 403 when logged in. |
 | `INVALID_ZONE_SETTINGS` | Submitted zone arguments are malformed. |
 
 ## Implementation notes

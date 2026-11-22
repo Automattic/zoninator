@@ -101,9 +101,27 @@ final class ZoninatorRestContractTest extends TestCase {
 
 		$response = $this->dispatch( $method, sprintf( $path, $zone_id ), $params );
 
-		$this->assertSame( 500, $response->get_status() );
+		$this->assertSame( 403, $response->get_status() );
 		$this->assertSame( 'permission-denied', $response->get_data()['code'] );
 		$this->assertSame( "Sorry, you're not supposed to do that...", $response->get_data()['message'] );
+	}
+
+	/**
+	 * @dataProvider data_write_routes
+	 *
+	 * @param string $method HTTP method.
+	 * @param string $path   Route, with %d for the zone ID.
+	 * @param bool   $post   Whether to send a valid post_ids param.
+	 */
+	public function test_write_routes_ask_logged_out_users_to_authenticate( $method, $path, $post ): void {
+		$zone_id = $this->create_zone( 'anonymous' );
+		$params  = $post ? array( 'post_ids' => array( self::factory()->post->create() ) ) : array();
+		wp_set_current_user( 0 );
+
+		$response = $this->dispatch( $method, sprintf( $path, $zone_id ), $params );
+
+		$this->assertSame( 401, $response->get_status() );
+		$this->assertSame( 'permission-denied', $response->get_data()['code'] );
 	}
 
 	public static function data_write_routes(): array {

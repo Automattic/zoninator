@@ -602,7 +602,7 @@ class Zones_Controller extends WP_REST_Controller {
 	 */
 	private function _permissions_check( $action, $zone_id = null ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
 		if ( ! $this->instance->check( $action, $zone_id ) ) {
-			return new WP_Error( self::PERMISSION_DENIED, __( "Sorry, you're not supposed to do that...", 'zoninator' ) );
+			return new WP_Error( self::PERMISSION_DENIED, __( "Sorry, you're not supposed to do that...", 'zoninator' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
