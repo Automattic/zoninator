@@ -12,7 +12,6 @@
 	},
 	"devDependencies": {
 		"@wordpress/env": "^12.2.0",
-		"mixtape": "git+https://github.com/Automattic/mixtape.git#3a8440",
 		"version-bump-prompt": "^6.1.0"
 	},
 	"overrides": {
