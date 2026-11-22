@@ -92,7 +92,7 @@ Columns rendered for each post inside the zone editor. Two call sites: one in `s
 
 ### `zoninator_pre_zone_fields` / `zoninator_post_zone_fields` (actions)
 
-Wrap the zone-edit form fields. Use these to add custom inputs that you persist via `zoninator_insert_zone` / `zoninator_update_zone`.
+Wrap the zone-edit form fields. Use these to add custom inputs, register them with `zoninator_zone_detail_defaults`, and save them via `zoninator_insert_zone` / `zoninator_update_zone`.
 
 - **Parameters:** `WP_Term $zone`
 
@@ -155,6 +155,18 @@ These fire from `src/class-zones.php`.
 Arguments passed to `wp_insert_term()` when a new zone is created.
 
 - **Parameters:** `array $args`
+
+### `zoninator_zone_detail_defaults` (filter)
+
+The details a zone stores in its term, with their default values. Zoninator saves only `description`. Add your own detail here, then read it as a property of the zone, for example `z_get_zone( 'homepage' )->kicker`. Zones without it get the default, and updating a zone without sending it keeps its current value. Since 0.12.0; it replaces writing to `Zoninator()->zone_detail_defaults`.
+
+- **Parameters:** `array $defaults` (detail name => default value)
+
+```php
+add_filter( 'zoninator_zone_detail_defaults', function ( $defaults ) {
+	return $defaults + [ 'kicker' => '' ];
+} );
+```
 
 ### `zoninator_update_zone` (filter)
 
