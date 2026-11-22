@@ -590,7 +590,7 @@ class Zoninator {
 			sprintf( '<a href="%s" class="view" target="_blank">%s%s</a>', esc_url( get_permalink( $post->ID ) ), esc_html__( 'View', 'zoninator' ), $sr_title_newtab ),
 		);
 		?>
-		<?php printf( '%s <span class="zone-post-status">(%s)</span>', esc_html( $post->post_title ), esc_html( $post->post_status ) ); ?>
+		<?php printf( '%s <span class="zone-post-status">(%s)</span>', esc_html( $post->post_title ), esc_html( $this->get_post_status_label( $post ) ) ); ?>
 
 	<div class="row-actions">
 		<?php echo wp_kses_post( implode( ' | ', $action_links ) ); ?>
@@ -631,6 +631,11 @@ class Zoninator {
 	public function zone_advanced_search_date_filter() {
 		$current_date = $this->_get_post_var( 'zone_advanced_filter_date', apply_filters( 'zoninator_advanced_filter_date_default', '' ), 'striptags' );
 		$date_filters = apply_filters( 'zoninator_advanced_filter_date', array( 'all', 'today', 'yesterday' ) );
+		$date_labels  = array(
+			'all'       => __( 'All dates', 'zoninator' ),
+			'today'     => __( 'Today', 'zoninator' ),
+			'yesterday' => __( 'Yesterday', 'zoninator' ),
+		);
 		?>
 	<label for="zone_advanced_filter_date" class="screen-reader-text"><?php esc_html_e( 'Filter by date', 'zoninator' ); ?></label>
 	<select name="zone_advanced_filter_date" id="zone_advanced_filter_date">
@@ -644,7 +649,7 @@ class Zoninator {
 				$timestamp = strtotime( $date );
 				// phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 				$output = ( $timestamp ) ? date( 'Y-m-d', $timestamp ) : 0;
-				$label  = $date;
+				$label  = $date_labels[ $date ] ?? $date;
 			}
 
 			printf( '<option value="%s" %s>%s</option>', esc_attr( $output ), selected( $output, $current_date, false ), esc_html( $label ) );
@@ -769,6 +774,28 @@ class Zoninator {
 		<p class="description" id="zone-post-search-description"><?php esc_html_e( 'Enter a term or phrase in the text box above to search for and add content to this zone.', 'zoninator' ); ?></p>
 	</div>
 		<?php
+	}
+
+	/**
+	 * Gets the label for a post's status, such as "Published", falling back to the status itself.
+	 *
+	 * @param WP_Post $post Post.
+	 * @return string
+	 */
+	public function get_post_status_label( $post ) {
+		$status = get_post_status_object( $post->post_status );
+		return $status ? $status->label : $post->post_status;
+	}
+
+	/**
+	 * Gets the singular label for a post's type, such as "Post", falling back to the type itself.
+	 *
+	 * @param WP_Post $post Post.
+	 * @return string
+	 */
+	public function get_post_type_label( $post ) {
+		$type = get_post_type_object( $post->post_type );
+		return $type ? $type->labels->singular_name : $post->post_type;
 	}
 
 	public function is_zoninator_page() {
@@ -956,11 +983,13 @@ class Zoninator {
 				$stripped_posts[] = apply_filters(
 					'zoninator_search_results_post',
 					array(
-						'title'       => empty( $post->post_title ) ? __( '(no title)', 'zoninator' ) : $post->post_title,
-						'post_id'     => $post->ID,
-						'date'        => get_the_time( get_option( 'date_format' ), $post ),
-						'post_type'   => $post->post_type,
-						'post_status' => $post->post_status,
+						'title'             => empty( $post->post_title ) ? __( '(no title)', 'zoninator' ) : $post->post_title,
+						'post_id'           => $post->ID,
+						'date'              => get_the_time( get_option( 'date_format' ), $post ),
+						'post_type'         => $post->post_type,
+						'post_type_label'   => $this->get_post_type_label( $post ),
+						'post_status'       => $post->post_status,
+						'post_status_label' => $this->get_post_status_label( $post ),
 					),
 					$post
 				);

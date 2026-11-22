@@ -143,11 +143,13 @@ var zoninator = {};
 			var autocomplete = zoninator.$zonePostSearch.data('autocomplete') || zoninator.$zonePostSearch.data('ui-autocomplete');
 
 			autocomplete._renderItem = function(ul, item) {
-				var $anchor = $('<div></div>')
-					.append($('<span class="title"></span>').text(item.title))
-					.append($('<span class="meta"></span>').text([item.post_type, item.date, item.post_status].join(' · ')));
+				var type = item.post_type_label || item.post_type,
+					status = item.post_status_label || item.post_status,
+					$anchor = $('<div></div>')
+						.append($('<span class="title"></span>').text(item.title))
+						.append($('<span class="meta"></span>').text([type, item.date, status].join(' · ')));
 				return $('<li></li>')
-					.attr('aria-label', [item.title, item.post_type, item.date, item.post_status].join(', '))
+					.attr('aria-label', [item.title, type, item.date, status].join(', '))
 					.data('item.autocomplete', item)
 					.append($anchor)
 					.appendTo(ul)
