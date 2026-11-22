@@ -73,6 +73,39 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->assertStringContainsString( 'message=update-success', $location );
 	}
 
+	public function test_insert_and_update_keep_backslashes(): void {
+		// WordPress slashes $_POST, so send the fields as a browser's form post would arrive.
+		$this->submit(
+			'insert',
+			wp_slash(
+				array(
+					'name'        => 'Back\\slash',
+					'slug'        => 'backslash',
+					'description' => 'C:\\path',
+				)
+			)
+		);
+
+		$zone = \Zoninator()->get_zone( 'backslash' );
+		$this->assertSame( 'Back\\slash', $zone->name );
+		$this->assertSame( 'C:\\path', $zone->description );
+
+		$this->submit(
+			'update',
+			wp_slash(
+				array(
+					'zone_id'     => $zone->term_id,
+					'name'        => 'Two\\back\\slashes',
+					'description' => 'D:\\path',
+				)
+			)
+		);
+
+		$zone = \Zoninator()->get_zone( (int) $zone->term_id );
+		$this->assertSame( 'Two\\back\\slashes', $zone->name );
+		$this->assertSame( 'D:\\path', $zone->description );
+	}
+
 	public function test_delete_removes_the_zone_and_its_posts(): void {
 		$post_id = self::factory()->post->create();
 		\Zoninator()->add_zone_posts( $this->zone_id, array( $post_id ) );

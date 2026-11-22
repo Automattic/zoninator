@@ -1048,7 +1048,7 @@ class Zoninator {
 		$name = empty( $name ) ? $slug : $name;
 
 		$details = wp_parse_args( $details, $this->zone_detail_defaults );
-		$details = maybe_serialize( stripslashes_deep( $details ) );
+		$details = maybe_serialize( $details );
 
 		$args = array(
 			'slug'        => $slug,
@@ -1058,7 +1058,8 @@ class Zoninator {
 		// Filterize to allow other inputs
 		$args = apply_filters( 'zoninator_insert_zone', $args );
 
-		return wp_insert_term( $name, $this->zone_taxonomy, $args );
+		// wp_insert_term() expects slashed data, as it unslashes the name and description.
+		return wp_insert_term( wp_slash( $name ), $this->zone_taxonomy, wp_slash( $args ) );
 	}
 
 	public function update_zone( $zone, $data = array() ) {
@@ -1074,7 +1075,7 @@ class Zoninator {
 			// TODO: Back-fill current zone details
 			// $details = wp_parse_args( $details, $this->zone_detail_defaults );
 			$details = wp_parse_args( $details, $this->zone_detail_defaults );
-			$details = maybe_serialize( stripslashes_deep( $details ) );
+			$details = maybe_serialize( $details );
 
 			$args = array(
 				'name'        => $name,
@@ -1085,7 +1086,8 @@ class Zoninator {
 			// Filterize to allow other inputs
 			$args = apply_filters( 'zoninator_update_zone', $args, $zone_id, $zone );
 
-			return wp_update_term( $zone_id, $this->zone_taxonomy, $args );
+			// wp_update_term() expects slashed data, as it unslashes the name and description.
+			return wp_update_term( $zone_id, $this->zone_taxonomy, wp_slash( $args ) );
 		}
 
 		return new WP_Error( 'invalid-zone', __( "Sorry, that zone doesn't exist.", 'zoninator' ) );
