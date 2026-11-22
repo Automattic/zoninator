@@ -277,32 +277,32 @@ class Zoninator {
 	}
 
 	public function ajax_return( $status, $content = '', $action = '' ) {
-		return $this->admin_ajax->ajax_return( $status, $content, $action );
+		return $this->admin_ajax->respond( $status, $content, $action );
 	}
 
 	public function ajax_add_post() {
-		return $this->admin_ajax->ajax_add_post();
+		return $this->admin_ajax->add_post();
 	}
 
 	public function ajax_remove_post() {
-		return $this->admin_ajax->ajax_remove_post();
+		return $this->admin_ajax->remove_post();
 	}
 
 	public function ajax_reorder_posts() {
-		return $this->admin_ajax->ajax_reorder_posts();
+		return $this->admin_ajax->reorder_posts();
 	}
 
 	// TODO: implement in front-end
 	public function ajax_move_zone_post( $from_zone, $to_zone, $post_id ) {
-		return $this->admin_ajax->ajax_move_zone_post( $from_zone, $to_zone, $post_id );
+		return $this->admin_ajax->move_zone_post( $from_zone, $to_zone, $post_id );
 	}
 
 	public function ajax_search_posts() {
-		return $this->admin_ajax->ajax_search_posts();
+		return $this->admin_ajax->search_posts();
 	}
 
 	public function ajax_update_lock() {
-		return $this->admin_ajax->ajax_update_lock();
+		return $this->admin_ajax->update_lock();
 	}
 
 	public function get_supported_post_types() {

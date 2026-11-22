@@ -13,10 +13,11 @@ use Zoninator;
  * Handles the Zones screen's admin-ajax requests: adding, removing and
  * ordering zone posts, searching for posts, and refreshing zone locks.
  *
- * Zoninator keeps a public method for each of these, which delegates here,
- * and hooks are registered on it, so array( Zoninator(), 'method' ) keeps
- * working as a callback. Callbacks this class hands to WordPress point at
- * Zoninator too, for the same reason.
+ * Zoninator keeps a public method for each of these, with an ajax_ prefix
+ * (ajax_add_post() for add_post(), and ajax_return() for respond()), which
+ * delegates here. Hooks are registered on it, so array( Zoninator(), 'method' )
+ * keeps working as a callback. Callbacks this class hands to WordPress point
+ * at Zoninator too, for the same reason.
  */
 class Ajax {
 
@@ -36,7 +37,7 @@ class Ajax {
 		$this->zoninator = $zoninator;
 	}
 
-	public function ajax_return( $status, $content = '', $action = '' ) {
+	public function respond( $status, $content = '', $action = '' ) {
 		$action = empty( $action ) ? $this->zoninator->zone_ajax_nonce_action : $action;
 		$nonce  = wp_create_nonce( $this->zoninator->_get_nonce_key( $action ) );
 
@@ -49,7 +50,7 @@ class Ajax {
 		);
 	}
 
-	public function ajax_add_post() {
+	public function add_post() {
 		$zone_id = $this->zoninator->_get_post_var( 'zone_id', 0, 'absint' );
 		$post_id = $this->zoninator->_get_post_var( 'post_id', 0, 'absint' );
 
@@ -59,7 +60,7 @@ class Ajax {
 
 		// Validate
 		if ( ! $zone_id || ! $this->zoninator->current_user_can_add_post_to_zone( $post_id ) ) {
-			$this->ajax_return( 0 );
+			$this->respond( 0 );
 		}
 
 		$result = $this->zoninator->add_zone_posts( $zone_id, $post_id, true );
@@ -79,10 +80,10 @@ class Ajax {
 			$status = 1;
 		}
 
-		$this->ajax_return( $status, $content );
+		$this->respond( $status, $content );
 	}
 
-	public function ajax_remove_post() {
+	public function remove_post() {
 		$zone_id = $this->zoninator->_get_post_var( 'zone_id', 0, 'absint' );
 		$post_id = $this->zoninator->_get_post_var( 'post_id', 0, 'absint' );
 
@@ -92,7 +93,7 @@ class Ajax {
 
 		// Validate
 		if ( ! $zone_id || ! $post_id ) {
-			$this->ajax_return( 0 );
+			$this->respond( 0 );
 		}
 
 		$result = $this->zoninator->remove_zone_posts( $zone_id, $post_id );
@@ -105,10 +106,10 @@ class Ajax {
 			$content = '';
 		}
 
-		$this->ajax_return( $status, $content );
+		$this->respond( $status, $content );
 	}
 
-	public function ajax_reorder_posts() {
+	public function reorder_posts() {
 		$zone_id  = $this->zoninator->_get_post_var( 'zone_id', 0, 'absint' );
 		$post_ids = (array) $this->zoninator->_get_post_var( 'posts', array(), 'absint' );
 
@@ -118,7 +119,7 @@ class Ajax {
 
 		// validate
 		if ( ! $zone_id || array() === $post_ids || count( $post_ids ) !== count( array_filter( $post_ids, array( $this->zoninator, 'current_user_can_add_post_to_zone' ) ) ) ) {
-			$this->ajax_return( 0 );
+			$this->respond( 0 );
 		}
 
 		$result = $this->zoninator->add_zone_posts( $zone_id, $post_ids, false );
@@ -131,11 +132,11 @@ class Ajax {
 			$content = '';
 		}
 
-		$this->ajax_return( $status, $content );
+		$this->respond( $status, $content );
 	}
 
 	// TODO: implement in front-end
-	public function ajax_move_zone_post( $from_zone, $to_zone, $post_id ) {
+	public function move_zone_post( $from_zone, $to_zone, $post_id ) {
 		$from_zone_id = $this->zoninator->_get_post_var( 'from_zone_id', 0, 'absint' );
 		$to_zone_id   = $this->zoninator->_get_post_var( 'to_zone_id', 0, 'absint' );
 
@@ -150,7 +151,7 @@ class Ajax {
 		$this->zoninator->remove_zone_posts( $from_zone_id, $post_id );
 	}
 
-	public function ajax_search_posts() {
+	public function search_posts() {
 
 		$this->zoninator->verify_nonce( $this->zoninator->zone_ajax_nonce_action );
 		$this->zoninator->verify_access();
@@ -228,7 +229,7 @@ class Ajax {
 		wp_send_json( $stripped_posts );
 	}
 
-	public function ajax_update_lock() {
+	public function update_lock() {
 		$zone_id = $this->zoninator->_get_post_var( 'zone_id', 0, 'absint' );
 
 		$this->zoninator->verify_nonce( $this->zoninator->zone_ajax_nonce_action );
@@ -240,7 +241,7 @@ class Ajax {
 
 		if ( ! $this->zoninator->is_zone_locked( $zone_id ) ) {
 			$this->zoninator->lock_zone( $zone_id );
-			$this->ajax_return( 1, '' );
+			$this->respond( 1, '' );
 		}
 	}
 
