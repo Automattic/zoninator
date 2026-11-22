@@ -47,13 +47,13 @@ zoninator/
 
 ### Key Classes and Files
 
-- `src/class-zoninator.php` — `Zoninator` class: registers every hook, and owns the settings (its public properties) and the request, capability and sanitising helpers. Its zone data, lock, feed, admin screen and `ajax_*` methods are thin delegates, kept so `array( Zoninator(), 'method' )` callbacks keep working.
-- `src/class-taxonomy.php` — `Automattic\Zoninator\Taxonomy`: registers the `zoninator_zones` taxonomy on `init` and tracks which post types support zones.
-- `src/class-zones.php` — `Automattic\Zoninator\Zones`: creates, reads, updates and deletes zones, and stores each zone's posts in order. It reads the taxonomy, meta key prefix and detail defaults from `Zoninator`'s public properties.
+- `src/class-zoninator.php` — `Zoninator` class: registers every hook, and owns the tunable settings (getters such as `get_zone_lock_period()` and `get_zone_detail_defaults()`) and the request, capability and sanitising helpers. `Zoninator::ZONE_TAXONOMY` and `Zoninator::ZONE_META_PREFIX` are public aliases of `Taxonomy::NAME` and `Zones::META_PREFIX`. The old public properties still work through `__get()` and `__set()`, with a notice, until 1.0.0. Its zone data, lock, feed, admin screen and `ajax_*` methods are thin delegates, kept so `array( Zoninator(), 'method' )` callbacks keep working.
+- `src/class-taxonomy.php` — `Automattic\Zoninator\Taxonomy`: registers the `zoninator_zones` taxonomy (`Taxonomy::NAME`) on `init` and tracks which post types support zones.
+- `src/class-zones.php` — `Automattic\Zoninator\Zones`: creates, reads, updates and deletes zones, and stores each zone's posts in order under post meta keys starting `Zones::META_PREFIX`. It reads the detail defaults from `Zoninator::get_zone_detail_defaults()`.
 - `src/class-locks.php` — `Automattic\Zoninator\Locks`: takes, reports and releases the transient that stops two people editing a zone at once.
 - `src/class-feed.php` — `Automattic\Zoninator\Feed`: the rewrite rule and response for the JSON feed at `/zones/{slug}/feed.json`.
-- `src/admin/class-screen.php` — `Automattic\Zoninator\Admin\Screen`: renders the Zones screen, saves its zone form and loads its assets.
-- `src/admin/class-ajax.php` — `Automattic\Zoninator\Admin\Ajax`: the screen's admin-ajax handlers (add, remove, reorder, search, lock).
+- `src/admin/class-screen.php` — `Automattic\Zoninator\Admin\Screen`: renders the Zones screen (`Screen::PAGE_SLUG`, `admin.php?page=zoninator`), saves its zone form and loads its assets.
+- `src/admin/class-ajax.php` — `Automattic\Zoninator\Admin\Ajax`: the screen's admin-ajax handlers (add, remove, reorder, search, lock), which all check `Ajax::NONCE_ACTION`.
 - `functions.php` — Public template tags: `z_get_zones()`, `z_get_zone()`, `z_get_posts_in_zone()`, `z_get_zone_query()`, `z_get_next_post_in_zone()`, `z_get_prev_post_in_zone()`, `z_get_post_zones()`. Used by themes in production.
 - `src/class-zoninator-zoneposts-widget.php` — Classic widget (`Zoninator_ZonePosts_Widget`).
 - `src/rest/class-zones-controller.php` — `Automattic\Zoninator\REST\Zones_Controller`, a `WP_REST_Controller` that registers the `zoninator/v1` routes. `Zoninator::register_rest_routes()` loads it on `rest_api_init`.

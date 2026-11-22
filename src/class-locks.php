@@ -47,7 +47,7 @@ class Locks {
 		}
 
 		$lock_key = $this->zoninator->get_zone_meta_key( $zone );
-		$expiry   = $this->zoninator->zone_lock_period + 1; // Add a one to avoid most race condition issues between lock expiry and ajax call
+		$expiry   = $this->zoninator->get_zone_lock_period() + 1; // Add a one to avoid most race condition issues between lock expiry and ajax call
 		set_transient( $lock_key, $user_id, $expiry );
 
 		// Possible alternative: set zone lock as property with time and user

@@ -18,7 +18,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		add_action( 'switch_theme', array( &$this, 'flush_widget_cache' ) );
 		add_action( 'zoninator_add_zone_posts', array( $this, 'flush_widget_cache' ) );
 		add_action( 'zoninator_remove_zone_posts', array( $this, 'flush_widget_cache' ) );
-		add_action( 'edited_' . Zoninator()->zone_taxonomy, array( $this, 'flush_widget_cache' ) );
+		add_action( 'edited_' . Zoninator::ZONE_TAXONOMY, array( $this, 'flush_widget_cache' ) );
 
 		parent::__construct(
 			false,

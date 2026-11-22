@@ -8,34 +8,37 @@
  */
 class Zoninator {
 
-	public $key = 'zoninator';
+	/**
+	 * The zone taxonomy's name. Taxonomy owns it; this is its public name.
+	 */
+	public const ZONE_TAXONOMY = \Automattic\Zoninator\Taxonomy::NAME;
 
-	public $zone_taxonomy = 'zoninator_zones';
+	/**
+	 * Prefix of the post meta key that holds a post's position in a zone. The
+	 * zone's term ID follows it. Zones owns it; this is its public name.
+	 */
+	public const ZONE_META_PREFIX = \Automattic\Zoninator\Zones::META_PREFIX;
 
-	public $zone_term_prefix = 'zone-';
-
-	public $zone_meta_prefix = '_zoninator_order_';
-
-	public $zone_nonce_prefix = 'zone-nonce';
-
-	public $zone_ajax_nonce_action = 'ajax-action';
+	/**
+	 * Prefix of every nonce action, used by _get_nonce_key().
+	 */
+	private const NONCE_PREFIX = 'zone-nonce';
 
 	// Number of seconds a lock is valid for.
-	public $zone_lock_period = 30;
+	private $zone_lock_period = 30;
 
 	// Max number of seconds for all locks in a session.
-	public $zone_max_lock_period = 600;
+	private $zone_max_lock_period = 600;
 
-	public $post_types;
+	private $zone_messages;
 
-	public $zone_detail_defaults = array(
+	private $posts_per_page = 10;
+
+	// Zone details saved in the zone term, with their default values. Add
+	// your own with the zoninator_zone_detail_defaults filter.
+	private $zone_detail_defaults = array(
 		'description' => '',
-		// Add additional properties here!
 	);
-
-	public $zone_messages;
-
-	public $posts_per_page = 10;
 
 	/**
 	* The REST controller, set on rest_api_init.
@@ -110,6 +113,146 @@ class Zoninator {
 		add_action( 'split_shared_term', array( $this, 'split_shared_term' ), 10, 4 );
 
 		$this->maybe_add_rest_api();
+	}
+
+	/**
+	 * Keeps the old public properties readable, with a notice, so sites can update their code.
+	 *
+	 * @param string $name Property name.
+	 * @return mixed
+	 */
+	public function __get( $name ) {
+		$properties = $this->get_old_properties();
+
+		if ( ! isset( $properties[ $name ] ) ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error, WordPress.Security.EscapeOutput.OutputNotEscaped -- same warning PHP gives for an undefined property.
+			trigger_error( sprintf( 'Undefined property: %s::$%s', __CLASS__, esc_html( $name ) ), E_USER_WARNING );
+			return null;
+		}
+
+		_doing_it_wrong(
+			esc_html( __CLASS__ . '::$' . $name ),
+			/* translators: %s: Replacement constant or method. */
+			sprintf( esc_html__( 'This property is no longer public. Use %s instead.', 'zoninator' ), esc_html( $properties[ $name ][1] ) ),
+			'0.12.0'
+		);
+
+		return $properties[ $name ][0];
+	}
+
+	/**
+	 * Keeps writes to the old public properties working, with a notice, until 1.0.0.
+	 *
+	 * A write to a property that is now private still takes effect. A write to
+	 * one that is now a constant is ignored, as those values name the
+	 * taxonomy, meta keys and nonces the stored data depends on.
+	 *
+	 * @param string $name  Property name.
+	 * @param mixed  $value New value.
+	 */
+	public function __set( $name, $value ) {
+		$properties = $this->get_old_properties();
+
+		if ( ! isset( $properties[ $name ] ) ) {
+			// Same as PHP without __set(): create the dynamic property.
+			$this->$name = $value;
+			return;
+		}
+
+		if ( 'post_types' === $name || property_exists( $this, $name ) ) {
+			if ( 'post_types' === $name ) {
+				$this->taxonomy->set_post_types( $value );
+			} else {
+				$this->$name = $value;
+			}
+
+			if ( isset( $properties[ $name ][2] ) ) {
+				/* translators: %s: Filter or method to use instead. */
+				$message = sprintf( esc_html__( 'This property is no longer public. The new value is used for now, but will be ignored from 1.0.0. Use %s instead.', 'zoninator' ), esc_html( $properties[ $name ][2] ) );
+			} else {
+				$message = esc_html__( 'This property is no longer public. The new value is used for now, but will be ignored from 1.0.0.', 'zoninator' );
+			}
+		} else {
+			$message = esc_html__( 'This property is no longer public and the new value is ignored. This value can not be changed.', 'zoninator' );
+		}
+
+		_doing_it_wrong( esc_html( __CLASS__ . '::$' . $name ), $message, '0.12.0' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+	}
+
+	/**
+	 * @param string $name Property name.
+	 * @return bool
+	 */
+	public function __isset( $name ) {
+		$properties = $this->get_old_properties();
+		return isset( $properties[ $name ] ) && null !== $properties[ $name ][0];
+	}
+
+	/**
+	 * Old public property name => array( value, replacement to read it, way to change it or null ).
+	 *
+	 * The ones still backed by a private property keep honouring writes until 1.0.0.
+	 *
+	 * @return array
+	 */
+	private function get_old_properties() {
+		return array(
+			'key'                    => array( \Automattic\Zoninator\Admin\Screen::PAGE_SLUG, 'Automattic\\Zoninator\\Admin\\Screen::PAGE_SLUG', null ),
+			'zone_taxonomy'          => array( self::ZONE_TAXONOMY, 'Zoninator::ZONE_TAXONOMY', null ),
+			'zone_term_prefix'       => array( 'zone-', 'your own value (Zoninator never used it)', null ),
+			'zone_meta_prefix'       => array( self::ZONE_META_PREFIX, 'Zoninator::ZONE_META_PREFIX', null ),
+			'zone_nonce_prefix'      => array( self::NONCE_PREFIX, 'Zoninator::_get_nonce_key()', null ),
+			'zone_ajax_nonce_action' => array( \Automattic\Zoninator\Admin\Ajax::NONCE_ACTION, 'Automattic\\Zoninator\\Admin\\Ajax::NONCE_ACTION', null ),
+			'zone_detail_defaults'   => array( $this->zone_detail_defaults, 'Zoninator::get_zone_detail_defaults()', 'the zoninator_zone_detail_defaults filter' ),
+			'zone_lock_period'       => array( $this->zone_lock_period, 'Zoninator::get_zone_lock_period()', 'the zoninator_zone_lock_period filter' ),
+			'zone_max_lock_period'   => array( $this->zone_max_lock_period, 'Zoninator::get_zone_max_lock_period()', 'the zoninator_zone_max_lock_period filter' ),
+			'posts_per_page'         => array( $this->posts_per_page, 'Zoninator::get_posts_per_page()', 'the zoninator_posts_per_page filter' ),
+			'post_types'             => array( $this->taxonomy->get_post_types(), 'Zoninator::get_supported_post_types()', 'Zoninator::register_zone_post_type()' ),
+			'zone_messages'          => array( $this->zone_messages, 'Zoninator::_get_message()', null ),
+		);
+	}
+
+	/**
+	 * Number of seconds a lock is valid for.
+	 *
+	 * @return int
+	 */
+	public function get_zone_lock_period() {
+		return $this->zone_lock_period;
+	}
+
+	/**
+	 * Max number of seconds for all locks in a session.
+	 *
+	 * @return int
+	 */
+	public function get_zone_max_lock_period() {
+		return $this->zone_max_lock_period;
+	}
+
+	/**
+	 * Number of posts shown in zone searches and recent posts.
+	 *
+	 * @return int
+	 */
+	public function get_posts_per_page() {
+		return $this->posts_per_page;
+	}
+
+	/**
+	 * Zone details saved in the zone term, with their default values.
+	 *
+	 * @return array
+	 */
+	public function get_zone_detail_defaults() {
+		/**
+		 * Filters the zone details saved in the zone term, and their default values.
+		 *
+		 * @since 0.12.0
+		 *
+		 * @param array $defaults Detail name => default value. Includes 'description'.
+		 */
+		return (array) apply_filters( 'zoninator_zone_detail_defaults', $this->zone_detail_defaults );
 	}
 
 	public function maybe_add_rest_api() {
@@ -553,7 +696,7 @@ class Zoninator {
 	}
 
 	public function _get_nonce_key( $action ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return sprintf( '%s-%s', $this->zone_nonce_prefix, $action );
+		return sprintf( '%s-%s', self::NONCE_PREFIX, $action );
 	}
 
 	public function _current_user_can_add_zones() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
@@ -582,7 +725,7 @@ class Zoninator {
 	}
 
 	public function _get_zone_page_url( $args = array() ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		$url = menu_page_url( $this->key, false );
+		$url = menu_page_url( \Automattic\Zoninator\Admin\Screen::PAGE_SLUG, false );
 
 		foreach ( $args as $arg_key => $arg_value ) {
 			$url = add_query_arg( $arg_key, $arg_value, $url );

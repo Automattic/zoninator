@@ -21,7 +21,7 @@ final class ZoninatorZoneFeedTest extends TestCase {
 
 		$this->go_to( home_url( '/zones/homepage/feed.json' ) );
 
-		$this->assertSame( 'homepage', get_query_var( \Zoninator()->zone_taxonomy ) );
+		$this->assertSame( 'homepage', get_query_var( \Zoninator::ZONE_TAXONOMY ) );
 	}
 
 	public function test_feed_by_slug_lists_published_posts_in_zone_order(): void {

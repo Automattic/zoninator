@@ -28,6 +28,12 @@ use Zoninator;
 class Zones {
 
 	/**
+	 * Prefix of the post meta key that holds a post's position in a zone. The
+	 * zone's term ID follows it. Zoninator::ZONE_META_PREFIX is its public name.
+	 */
+	public const META_PREFIX = '_zoninator_order_';
+
+	/**
 	 * The Zoninator facade, which holds the settings and shared helpers.
 	 *
 	 * @var Zoninator
@@ -52,7 +58,7 @@ class Zones {
 
 		$name = empty( $name ) ? $slug : $name;
 
-		$details = wp_parse_args( $details, $this->zoninator->zone_detail_defaults );
+		$details = wp_parse_args( $details, $this->zoninator->get_zone_detail_defaults() );
 		$details = maybe_serialize( $details );
 
 		$args = array(
@@ -64,7 +70,7 @@ class Zones {
 		$args = apply_filters( 'zoninator_insert_zone', $args );
 
 		// wp_insert_term() expects slashed data, as it unslashes the name and description.
-		return wp_insert_term( wp_slash( $name ), $this->zoninator->zone_taxonomy, wp_slash( $args ) );
+		return wp_insert_term( wp_slash( $name ), Taxonomy::NAME, wp_slash( $args ) );
 	}
 
 	public function update( $zone, $data = array() ) {
@@ -78,9 +84,10 @@ class Zones {
 			$details = $this->zoninator->_get_value_or_default( 'details', $data, array() );
 
 			// Keep the zone's current value for any detail the caller didn't send.
-			$current = array_intersect_key( get_object_vars( $zone ), $this->zoninator->zone_detail_defaults );
-			$details = wp_parse_args( $details, wp_parse_args( $current, $this->zoninator->zone_detail_defaults ) );
-			$details = maybe_serialize( $details );
+			$defaults = $this->zoninator->get_zone_detail_defaults();
+			$current  = array_intersect_key( get_object_vars( $zone ), $defaults );
+			$details  = wp_parse_args( $details, wp_parse_args( $current, $defaults ) );
+			$details  = maybe_serialize( $details );
 
 			$args = array(
 				'name'        => $name,
@@ -92,7 +99,7 @@ class Zones {
 			$args = apply_filters( 'zoninator_update_zone', $args, $zone_id, $zone );
 
 			// wp_update_term() expects slashed data, as it unslashes the name and description.
-			return wp_update_term( $zone_id, $this->zoninator->zone_taxonomy, wp_slash( $args ) );
+			return wp_update_term( $zone_id, Taxonomy::NAME, wp_slash( $args ) );
 		}
 
 		return new WP_Error( 'invalid-zone', __( "Sorry, that zone doesn't exist.", 'zoninator' ) );
@@ -106,7 +113,7 @@ class Zones {
 			$this->remove_posts( $zone_id );
 
 			// Delete the term
-			$delete = wp_delete_term( $zone_id, $this->zoninator->zone_taxonomy );
+			$delete = wp_delete_term( $zone_id, Taxonomy::NAME );
 
 			if ( ! $delete ) {
 				return new WP_Error( 'delete-zone', __( "Sorry, we couldn't delete the zone.", 'zoninator' ) );
@@ -148,7 +155,7 @@ class Zones {
 			// TODO: remove_object_terms -- but need remove object terms function :(
 		}
 
-		clean_term_cache( $this->get_id( $zone ), $this->zoninator->zone_taxonomy ); // flush cache for our zone term and related APC caches
+		clean_term_cache( $this->get_id( $zone ), Taxonomy::NAME ); // flush cache for our zone term and related APC caches
 
 		do_action( 'zoninator_add_zone_posts', $posts, $zone );
 
@@ -177,7 +184,7 @@ class Zones {
 			}
 		}
 
-		clean_term_cache( $this->get_id( $zone ), $this->zoninator->zone_taxonomy ); // flush cache for our zone term and related APC caches
+		clean_term_cache( $this->get_id( $zone ), Taxonomy::NAME ); // flush cache for our zone term and related APC caches
 
 		do_action( 'zoninator_remove_zone_posts', $posts, $zone );
 	}
@@ -298,7 +305,7 @@ class Zones {
 		);
 
 		// Always the zone taxonomy, as the old get_terms( $taxonomy, $args ) call ensured.
-		$args['taxonomy'] = $this->zoninator->zone_taxonomy;
+		$args['taxonomy'] = Taxonomy::NAME;
 
 		$zones = get_terms( $args );
 
@@ -326,7 +333,7 @@ class Zones {
 			return false;
 		}
 
-		$zone = get_term_by( $field, $zone, $this->zoninator->zone_taxonomy );
+		$zone = get_term_by( $field, $zone, Taxonomy::NAME );
 
 		if ( ! $zone ) {
 			return false;
@@ -337,7 +344,7 @@ class Zones {
 
 	public function exists( $zone ) {
 		$zone_id = $this->get_id( $zone );
-		return (bool) term_exists( $zone_id, $this->zoninator->zone_taxonomy );
+		return (bool) term_exists( $zone_id, Taxonomy::NAME );
 	}
 
 	public function get_id( $zone ) {
@@ -355,7 +362,7 @@ class Zones {
 
 	public function get_meta_key( $zone ) {
 		$zone_id = $this->get_id( $zone );
-		return $this->zoninator->zone_meta_prefix . $zone_id;
+		return self::META_PREFIX . $zone_id;
 	}
 
 	public function get_slug( $zone ) {
@@ -417,7 +424,7 @@ class Zones {
 			}
 		}
 
-		$details = wp_parse_args( $details, $this->zoninator->zone_detail_defaults );
+		$details = wp_parse_args( $details, $this->zoninator->get_zone_detail_defaults() );
 
 		foreach ( $details as $detail_key => $detail_value ) {
 			$zone->$detail_key = $detail_value;
@@ -454,7 +461,7 @@ class Zones {
 
 	// Handle 4.2 term-splitting
 	public function split_shared_term( $old_term_id, $new_term_id, $term_taxonomy_id, $taxonomy ) {
-		if ( $this->zoninator->zone_taxonomy === $taxonomy ) {
+		if ( Taxonomy::NAME === $taxonomy ) {
 			do_action( 'zoninator_split_shared_term', $old_term_id, $new_term_id, $term_taxonomy_id );
 
 			// Quick, easy switcheroo; add posts to new zone id and remove from the old one.

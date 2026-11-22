@@ -52,7 +52,7 @@ class ZoninatorZoneLocksTest extends TestCase {
 		Zoninator()->lock_zone( $this->zone_id, $this->other_id );
 
 		$timeout = (int) get_option( '_transient_timeout_' . Zoninator()->get_zone_meta_key( $this->zone_id ) );
-		$this->assertEqualsWithDelta( time() + Zoninator()->zone_lock_period + 1, $timeout, 2 );
+		$this->assertEqualsWithDelta( time() + Zoninator()->get_zone_lock_period() + 1, $timeout, 2 );
 	}
 
 	public function test_unlock_zone_releases_the_lock(): void {
