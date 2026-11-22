@@ -75,7 +75,7 @@ Treat anything in the table below as a public contract. Renaming, removing, or c
 | Template tag functions (`z_*`) | `functions.php` |
 | Hooks (`zoninator_*` filters and actions) | See [docs/hooks.md](docs/hooks.md) |
 | REST namespace `zoninator/v1` | See [docs/rest-api.md](docs/rest-api.md) |
-| JSON feed at `/zones/{slug}/feed.json` | `src/class-zoninator.php` |
+| JSON feed at `/zones/{slug}/feed.json` | `src/class-feed.php` |
 | Zone Posts widget | `src/class-zoninator-zoneposts-widget.php` |
 
 ## Repository layout and architecture

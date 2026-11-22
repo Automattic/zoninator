@@ -70,8 +70,24 @@ class Zoninator {
 	 */
 	private $zones;
 
+	/**
+	 * Zone locks. The lock methods here delegate to it.
+	 *
+	 * @var \Automattic\Zoninator\Locks
+	 */
+	private $locks;
+
+	/**
+	 * The JSON feed. The feed methods here delegate to it.
+	 *
+	 * @var \Automattic\Zoninator\Feed
+	 */
+	private $feed;
+
 	public function __construct() {
 		$this->zones        = new \Automattic\Zoninator\Zones( $this );
+		$this->locks        = new \Automattic\Zoninator\Locks( $this );
+		$this->feed         = new \Automattic\Zoninator\Feed( $this );
 		$this->admin_screen = new \Automattic\Zoninator\Admin\Screen( $this );
 		$this->admin_ajax   = new \Automattic\Zoninator\Admin\Ajax( $this );
 
@@ -102,8 +118,7 @@ class Zoninator {
 	}
 
 	public function add_zone_feed() {
-		add_rewrite_tag( '%' . $this->zone_taxonomy . '%', '([^&]+)' );
-		add_rewrite_rule( '^zones/([^/]+)/feed.json/?$', 'index.php?' . $this->zone_taxonomy . '=$matches[1]', 'top' );
+		return $this->feed->add_rewrite_rule();
 	}
 
 	public function init() {
@@ -433,55 +448,16 @@ class Zoninator {
 	}
 
 	public function lock_zone( $zone, $user_id = 0 ) {
-		$zone_id = $this->get_zone_id( $zone );
-
-		if ( ! $zone_id ) {
-			return false;
-		}
-
-		if ( ! $user_id ) {
-			$user_id = get_current_user_id();
-		}
-
-		$lock_key = $this->get_zone_meta_key( $zone );
-		$expiry   = $this->zone_lock_period + 1; // Add a one to avoid most race condition issues between lock expiry and ajax call
-		set_transient( $lock_key, $user_id, $expiry );
-
-		// Possible alternative: set zone lock as property with time and user
-		return null;
+		return $this->locks->lock( $zone, $user_id );
 	}
 
 	// Not really needed with transients...
 	public function unlock_zone( $zone ) {
-		$zone_id = $this->get_zone_id( $zone );
-
-		if ( ! $zone_id ) {
-			return false;
-		}
-
-		$lock_key = $this->get_zone_meta_key( $zone );
-
-		delete_transient( $lock_key );
-		return null;
+		return $this->locks->unlock( $zone );
 	}
 
 	public function is_zone_locked( $zone ) {
-		$zone_id = $this->get_zone_id( $zone );
-		if ( ! $zone_id ) {
-			return false;
-		}
-
-		$user     = wp_get_current_user();
-		$lock_key = $this->get_zone_meta_key( $zone );
-
-		$lock = get_transient( $lock_key );
-
-		// If lock doesn't exist, or check if current user same as lock user
-		if ( ! $lock || absint( $lock ) === absint( $user->ID ) ) {
-			return false;
-		} else {          // return user_id of locking user
-			return absint( $lock );
-		}
+		return $this->locks->is_locked( $zone );
 	}
 
 	public function zone_exists( $zone ) {
@@ -578,92 +554,7 @@ class Zoninator {
 	}
 
 	public function do_zoninator_feeds() {
-		$query_var = get_query_var( $this->zone_taxonomy );
-
-		if ( ! empty( $query_var ) ) {
-			$zone_slug = get_query_var( $this->zone_taxonomy );
-			$results   = $this->get_zone_feed( $zone_slug );
-			if ( is_wp_error( $results ) ) {
-				$this->send_user_error( $results->get_error_message() );
-			}
-
-			$this->json_return( $results );
-		}
-	}
-
-	private function filter_zone_feed_fields( $results ) {
-		$filtered_results   = array();
-		$whitelisted_fields = apply_filters(
-			'zoninator_zone_feed_fields',
-			array( 'ID', 'post_date', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'guid' )
-		);
-
-		$filtered_results = array();
-		$i                = 0;
-		foreach ( $results as $result ) {
-			if ( ! isset( $filtered_results[ $i ] ) ) {
-				$filtered_results[ $i ] = new stdClass();
-			}
-
-			foreach ( $whitelisted_fields as $field ) {
-				if ( ! isset( $filtered_results[ $i ] ) ) {
-					$filtered_results[ $i ] = new stdClass();
-				}
-
-				// Don't expose content or excerpt for password-protected posts
-				if ( ( 'post_content' === $field || 'post_excerpt' === $field ) && ! empty( $result->post_password ) ) {
-					$filtered_results[ $i ]->$field = '';
-				} else {
-					// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found -- see https://github.com/PHPCSStandards/PHP_CodeSniffer/issues/598
-					$filtered_results[ $i ]->$field = $result->$field;
-				}
-			}
-
-			++$i;
-		}
-
-		return $filtered_results;
-	}
-
-	/**
-	 * Encode some data and echo it (possibly without cached headers)
-	 *
-	 * @param array $data
-	 */
-	private function json_return( $data ) {
-
-		if ( null == $data ) {
-			return false;
-		}
-
-		header( 'Content-Type: application/json' );
-		echo wp_json_encode( $data );
-		exit();
-	}
-
-	private function send_user_error( $message ) {
-		$this->status_header_with_message( 406, $message );
-		exit();
-	}
-
-	/**
-	 * Modify the header and description in the global array
-	 *
-	 * @global array $wp_header_to_desc
-	 * @param int    $status
-	 * @param string $message
-	 */
-	private function status_header_with_message( $status, $message ) {
-		global $wp_header_to_desc;
-
-		$status                       = absint( $status );
-		$official_message             = $wp_header_to_desc[ $status ] ?? '';
-		$wp_header_to_desc[ $status ] = $message; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-
-		status_header( $status );
-
-		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-		$wp_header_to_desc[ $status ] = $official_message;
+		return $this->feed->serve();
 	}
 
 	/*
@@ -851,16 +742,7 @@ class Zoninator {
 	 * @return array|WP_Error
 	 */
 	public function get_zone_feed( $zone_slug_or_id ) {
-		$zone_id = $this->get_zone( $zone_slug_or_id );
-
-		if ( empty( $zone_id ) ) {
-			return new WP_Error( 'invalid-zone-supplied', __( 'Invalid zone supplied', 'zoninator' ) );
-		}
-
-		$results          = $this->get_zone_posts( $zone_id, apply_filters( 'zoninator_json_feed_fields', array(), $zone_slug_or_id ) );
-		$filtered_results = $this->filter_zone_feed_fields( $results );
-
-		return apply_filters( 'zoninator_json_feed_results', $filtered_results, $zone_slug_or_id );
+		return $this->feed->get( $zone_slug_or_id );
 	}
 
 	public function check( $action = '', $zone_id = null ) {
