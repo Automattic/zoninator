@@ -161,10 +161,11 @@ class Zones_Controller extends WP_REST_Controller {
 	public function get_zones( $request ) {
 		$results = $this->instance->get_zones();
 
-		if ( is_wp_error( $results ) ) {
+		// Zoninator::get_zones() returns false, not a WP_Error, when the zones can't be read.
+		if ( ! is_array( $results ) ) {
 			return $this->bad_request(
 				array(
-					'message' => $results->get_error_message(),
+					'message' => __( 'Zones could not be read.', 'zoninator' ),
 				)
 			);
 		}
@@ -431,7 +432,7 @@ class Zones_Controller extends WP_REST_Controller {
 	}
 
 	public function is_numeric_array( $items ) {
-		return count( $items ) === count( array_filter( $items, 'is_numeric' ) );
+		return is_array( $items ) && count( $items ) === count( array_filter( $items, 'is_numeric' ) );
 	}
 
 	public function sanitize_string( $item ) {
