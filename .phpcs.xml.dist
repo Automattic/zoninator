@@ -60,6 +60,7 @@
 		<properties>
 			<property name="prefixes" type="array">
 				<element value="zoninator"/>
+				<element value="Automattic\Zoninator"/>
 			</property>
 		</properties>
 	</rule>
@@ -68,6 +69,7 @@
 		<properties>
 			<property name="text_domain" type="array">
 				<element value="zoninator"/>
+				<element value="Automattic\Zoninator"/>
 			</property>
 		</properties>
 	</rule>

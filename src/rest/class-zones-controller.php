@@ -1,12 +1,23 @@
 <?php
 /**
- * @package Zoninator/Rest
+ * REST controller for the zoninator/v1 namespace.
+ *
+ * @package Automattic\Zoninator
  */
 
+namespace Automattic\Zoninator\REST;
+
+use WP_Error;
+use WP_REST_Controller;
+use WP_REST_Request;
+use WP_REST_Response;
+use WP_REST_Server;
+use Zoninator;
+
 /**
- * Class Zoninator_Api_Controller
+ * Zones, their posts and their locks.
  */
-class Zoninator_Api_Controller extends Zoninator_REST_Controller {
+class Zones_Controller extends WP_REST_Controller {
 	public const ZONE_ITEM_URL_REGEX = '/zones/(?P<zone_id>[\d]+)';
 
 	public const ZONE_ITEM_POSTS_URL_REGEX = '/zones/(?P<zone_id>[\d]+)/posts';
@@ -50,20 +61,19 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 	private $translations;
 
 	/**
-	 * Zoninator_Api_Controller constructor.
+	 * Constructor.
 	 *
-	 * @param string    $base Base.
-	 * @param Zoninator $instance Instance.
+	 * @param Zoninator $instance The Zoninator.
 	 */
 	public function __construct( $instance ) {
-		$this->instance = $instance;
-		$this->base     = '/';
+		$this->instance  = $instance;
+		$this->namespace = 'zoninator/v1';
 	}
 
 	/**
-	 * Set up this controller
+	 * Register the routes.
 	 */
-	public function setup() {
+	public function register_routes() {
 		$this->translations = array(
 			self::ZONE_NOT_FOUND           => __( 'Zone not found', 'zoninator' ),
 			self::INVALID_POST_ID          => __( 'Invalid post id', 'zoninator' ),
@@ -71,46 +81,75 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 			self::ZONE_ID_POST_ID_REQUIRED => __( 'post id and zone id required', 'zoninator' ),
 		);
 
-		$this->add_route( 'zones' )
-			->add_action(
-				$this->action( 'index', 'get_zones' )
-					->permissions( 'get_zones_permissions_check' )
+		register_rest_route(
+			$this->namespace,
+			'/zones',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_zones' ),
+					'permission_callback' => array( $this, 'get_zones_permissions_check' ),
+					'args'                => array(),
+				),
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'create_zone' ),
+					'permission_callback' => array( $this, 'add_zone_permissions_check' ),
+					'args'                => $this->_params_for_create_zone(),
+				),
 			)
-			->add_action(
-				$this->action( 'create', 'create_zone' )
-					->permissions( 'add_zone_permissions_check' )
-					->args( '_params_for_create_zone' )
-			);
+		);
 
-		$this->add_route( 'zones/(?P<zone_id>[\d]+)' )
-			->add_action(
-				$this->action( 'update', 'update_zone' )
-					->permissions( 'update_zone_permissions_check' )
-					->args( '_params_for_update_zone' )
+		register_rest_route(
+			$this->namespace,
+			'/zones/(?P<zone_id>[\d]+)',
+			array(
+				array(
+					'methods'             => WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'update_zone' ),
+					'permission_callback' => array( $this, 'update_zone_permissions_check' ),
+					'args'                => $this->_params_for_update_zone(),
+				),
+				array(
+					'methods'             => WP_REST_Server::DELETABLE,
+					'callback'            => array( $this, 'delete_zone' ),
+					'permission_callback' => array( $this, 'update_zone_permissions_check' ),
+					'args'                => array(),
+				),
 			)
-			->add_action(
-				$this->action( 'delete', 'delete_zone' )
-					->permissions( 'update_zone_permissions_check' )
-			);
+		);
 
-		$this->add_route( 'zones/(?P<zone_id>[\d]+)/posts' )
-			->add_action(
-				$this->action( 'index', 'get_zone_posts' )
-					->permissions( 'get_zone_posts_permissions_check' )
-					->args( '_get_zone_id_param' )
+		register_rest_route(
+			$this->namespace,
+			'/zones/(?P<zone_id>[\d]+)/posts',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_zone_posts' ),
+					'permission_callback' => array( $this, 'get_zone_posts_permissions_check' ),
+					'args'                => $this->_get_zone_id_param(),
+				),
+				array(
+					'methods'             => WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'update_zone_posts' ),
+					'permission_callback' => array( $this, 'update_zone_permissions_check' ),
+					'args'                => $this->_get_zone_post_rest_route_params(),
+				),
 			)
-			->add_action(
-				$this->action( 'update', 'update_zone_posts' )
-					->permissions( 'update_zone_permissions_check' )
-					->args( '_get_zone_post_rest_route_params' )
-			);
+		);
 
-		$this->add_route( 'zones/(?P<zone_id>[\d]+)/lock' )
-			->add_action(
-				$this->action( 'update', 'zone_update_lock' )
-					->permissions( 'update_zone_permissions_check' )
-					->args( '_get_zone_id_param' )
-			);
+		register_rest_route(
+			$this->namespace,
+			'/zones/(?P<zone_id>[\d]+)/lock',
+			array(
+				array(
+					'methods'             => WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'zone_update_lock' ),
+					'permission_callback' => array( $this, 'update_zone_permissions_check' ),
+					'args'                => $this->_get_zone_id_param(),
+				),
+			)
+		);
 	}
 
 	/**
@@ -496,6 +535,61 @@ class Zoninator_Api_Controller extends Zoninator_REST_Controller {
 			'name'        => $data['name'],
 			'description' => $data['description'],
 		);
+	}
+
+	/**
+	 * Respond with a 200.
+	 *
+	 * @param mixed $data Body.
+	 * @return WP_REST_Response
+	 */
+	private function ok( $data ) {
+		return $this->respond( $data, 200 );
+	}
+
+	/**
+	 * Respond with a 201.
+	 *
+	 * @param mixed $data Body.
+	 * @return WP_REST_Response
+	 */
+	private function created( $data ) {
+		return $this->respond( $data, 201 );
+	}
+
+	/**
+	 * Respond with a 400. The body is the data as given, not a WP_Error.
+	 *
+	 * @param mixed $data Body.
+	 * @return WP_REST_Response
+	 */
+	private function bad_request( $data ) {
+		return $this->respond( $data, 400 );
+	}
+
+	/**
+	 * Respond with a 404 and a body of just the message.
+	 *
+	 * @param string $message Message.
+	 * @return WP_REST_Response
+	 */
+	private function not_found( $message ) {
+		return $this->respond( array( 'message' => $message ), 404 );
+	}
+
+	/**
+	 * Wrap data in a response, unless it's already one.
+	 *
+	 * @param mixed $data   Body.
+	 * @param int   $status HTTP status.
+	 * @return WP_REST_Response
+	 */
+	private function respond( $data, $status ) {
+		if ( $data instanceof WP_REST_Response ) {
+			return $data;
+		}
+
+		return new WP_REST_Response( $data, $status );
 	}
 
 	private function _bad_request( $code, $message ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
