@@ -435,7 +435,8 @@ class Zones_Controller extends WP_REST_Controller {
 	}
 
 	public function sanitize_string( $item ) {
-		return htmlentities( stripslashes( $item ) );
+		// Core has already unslashed REST input, so don't unslash it again.
+		return htmlentities( $item );
 	}
 
 	/**

@@ -219,18 +219,41 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertNotEmpty( $response->get_data()['message'] );
 	}
 
-	public function test_create_zone_strips_backslashes_from_input(): void {
+	public function test_create_zone_keeps_backslashes(): void {
 		$response = $this->dispatch(
 			'POST',
 			'/zones',
 			array(
-				'name' => 'Back\\slash',
-				'slug' => 'backslash',
+				'name'        => 'Back\\slash',
+				'slug'        => 'backslash',
+				'description' => 'C:\\path',
 			)
 		);
+		$zone     = Zoninator()->get_zone( 'backslash' );
 
 		$this->assertSame( 201, $response->get_status() );
-		$this->assertSame( 'Backslash', $response->get_data()['name'] );
+		$this->assertSame( 'Back\\slash', $response->get_data()['name'] );
+		$this->assertSame( 'C:\\path', $response->get_data()['description'] );
+		$this->assertSame( 'Back\\slash', $zone->name );
+		$this->assertSame( 'C:\\path', $zone->description );
+	}
+
+	public function test_update_zone_keeps_backslashes(): void {
+		$zone_id = $this->create_zone( 'update-backslash' );
+
+		$response = $this->dispatch(
+			'PUT',
+			"/zones/$zone_id",
+			array(
+				'name'        => 'Back\\slash',
+				'description' => 'C:\\path',
+			)
+		);
+		$zone     = Zoninator()->get_zone( $zone_id );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'Back\\slash', $zone->name );
+		$this->assertSame( 'C:\\path', $zone->description );
 	}
 
 	public function test_update_zone_changes_the_zone(): void {
