@@ -52,7 +52,7 @@ class Zones {
 
 		$name = empty( $name ) ? $slug : $name;
 
-		$details = wp_parse_args( $details, Zoninator::ZONE_DETAIL_DEFAULTS );
+		$details = wp_parse_args( $details, $this->zoninator->get_zone_detail_defaults() );
 		$details = maybe_serialize( $details );
 
 		$args = array(
@@ -78,9 +78,10 @@ class Zones {
 			$details = $this->zoninator->_get_value_or_default( 'details', $data, array() );
 
 			// Keep the zone's current value for any detail the caller didn't send.
-			$current = array_intersect_key( get_object_vars( $zone ), Zoninator::ZONE_DETAIL_DEFAULTS );
-			$details = wp_parse_args( $details, wp_parse_args( $current, Zoninator::ZONE_DETAIL_DEFAULTS ) );
-			$details = maybe_serialize( $details );
+			$defaults = $this->zoninator->get_zone_detail_defaults();
+			$current  = array_intersect_key( get_object_vars( $zone ), $defaults );
+			$details  = wp_parse_args( $details, wp_parse_args( $current, $defaults ) );
+			$details  = maybe_serialize( $details );
 
 			$args = array(
 				'name'        => $name,
@@ -417,7 +418,7 @@ class Zones {
 			}
 		}
 
-		$details = wp_parse_args( $details, Zoninator::ZONE_DETAIL_DEFAULTS );
+		$details = wp_parse_args( $details, $this->zoninator->get_zone_detail_defaults() );
 
 		foreach ( $details as $detail_key => $detail_value ) {
 			$zone->$detail_key = $detail_value;

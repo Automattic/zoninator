@@ -18,12 +18,6 @@ class Zoninator {
 
 	public const ZONE_AJAX_NONCE_ACTION = 'ajax-action';
 
-	// Zone fields saved in the term, with their default values. This is a
-	// constant, so code outside the plugin can no longer add fields to it.
-	public const ZONE_DETAIL_DEFAULTS = array(
-		'description' => '',
-	);
-
 	// Number of seconds a lock is valid for.
 	private $zone_lock_period = 30;
 
@@ -33,6 +27,12 @@ class Zoninator {
 	private $zone_messages;
 
 	private $posts_per_page = 10;
+
+	// Zone details saved in the zone term, with their default values. Add
+	// your own with the zoninator_zone_detail_defaults filter.
+	private $zone_detail_defaults = array(
+		'description' => '',
+	);
 
 	/**
 	* The REST controller, set on rest_api_init.
@@ -135,10 +135,14 @@ class Zoninator {
 	}
 
 	/**
-	 * Ignores writes to the old public properties, with a notice, instead of a fatal error.
+	 * Keeps writes to the old public properties working, with a notice, until 1.0.0.
+	 *
+	 * A write to a property that is now private still takes effect. A write to
+	 * one that is now a constant is ignored, as those values name the
+	 * taxonomy, meta keys and nonces the stored data depends on.
 	 *
 	 * @param string $name  Property name.
-	 * @param mixed  $value Value that would have been set.
+	 * @param mixed  $value New value.
 	 */
 	public function __set( $name, $value ) {
 		$properties = $this->get_old_properties();
@@ -149,9 +153,19 @@ class Zoninator {
 			return;
 		}
 
-		if ( isset( $properties[ $name ][2] ) ) {
-			/* translators: %s: Filter or method to use instead. */
-			$message = sprintf( esc_html__( 'This property is no longer public and the new value is ignored. Use %s instead.', 'zoninator' ), esc_html( $properties[ $name ][2] ) );
+		if ( 'post_types' === $name || property_exists( $this, $name ) ) {
+			if ( 'post_types' === $name ) {
+				$this->taxonomy->set_post_types( $value );
+			} else {
+				$this->$name = $value;
+			}
+
+			if ( isset( $properties[ $name ][2] ) ) {
+				/* translators: %s: Filter or method to use instead. */
+				$message = sprintf( esc_html__( 'This property is no longer public. The new value is used for now, but will be ignored from 1.0.0. Use %s instead.', 'zoninator' ), esc_html( $properties[ $name ][2] ) );
+			} else {
+				$message = esc_html__( 'This property is no longer public. The new value is used for now, but will be ignored from 1.0.0.', 'zoninator' );
+			}
 		} else {
 			$message = esc_html__( 'This property is no longer public and the new value is ignored. This value can not be changed.', 'zoninator' );
 		}
@@ -171,6 +185,8 @@ class Zoninator {
 	/**
 	 * Old public property name => array( value, replacement to read it, way to change it or null ).
 	 *
+	 * The ones still backed by a private property keep honouring writes until 1.0.0.
+	 *
 	 * @return array
 	 */
 	private function get_old_properties() {
@@ -181,7 +197,7 @@ class Zoninator {
 			'zone_meta_prefix'       => array( self::ZONE_META_PREFIX, 'Zoninator::ZONE_META_PREFIX', null ),
 			'zone_nonce_prefix'      => array( self::ZONE_NONCE_PREFIX, 'Zoninator::ZONE_NONCE_PREFIX', null ),
 			'zone_ajax_nonce_action' => array( self::ZONE_AJAX_NONCE_ACTION, 'Zoninator::ZONE_AJAX_NONCE_ACTION', null ),
-			'zone_detail_defaults'   => array( self::ZONE_DETAIL_DEFAULTS, 'Zoninator::ZONE_DETAIL_DEFAULTS', null ),
+			'zone_detail_defaults'   => array( $this->zone_detail_defaults, 'Zoninator::get_zone_detail_defaults()', 'the zoninator_zone_detail_defaults filter' ),
 			'zone_lock_period'       => array( $this->zone_lock_period, 'Zoninator::get_zone_lock_period()', 'the zoninator_zone_lock_period filter' ),
 			'zone_max_lock_period'   => array( $this->zone_max_lock_period, 'Zoninator::get_zone_max_lock_period()', 'the zoninator_zone_max_lock_period filter' ),
 			'posts_per_page'         => array( $this->posts_per_page, 'Zoninator::get_posts_per_page()', 'the zoninator_posts_per_page filter' ),
@@ -215,6 +231,22 @@ class Zoninator {
 	 */
 	public function get_posts_per_page() {
 		return $this->posts_per_page;
+	}
+
+	/**
+	 * Zone details saved in the zone term, with their default values.
+	 *
+	 * @return array
+	 */
+	public function get_zone_detail_defaults() {
+		/**
+		 * Filters the zone details saved in the zone term, and their default values.
+		 *
+		 * @since 0.12.0
+		 *
+		 * @param array $defaults Detail name => default value. Includes 'description'.
+		 */
+		return (array) apply_filters( 'zoninator_zone_detail_defaults', $this->zone_detail_defaults );
 	}
 
 	public function maybe_add_rest_api() {
