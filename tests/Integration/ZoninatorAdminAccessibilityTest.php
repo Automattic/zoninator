@@ -58,4 +58,28 @@ class Zoninator_Admin_Accessibility_Test extends TestCase {
 	public function test_save_status_is_a_live_region(): void {
 		$this->assertStringContainsString( '<p id="zone-posts-save-info" class="zone-posts-save-info" role="status">', $this->render_zone_edit() );
 	}
+
+	public function test_zone_content_controls_are_labelled(): void {
+		add_action( 'zoninator_advanced_search_fields', array( Zoninator(), 'zone_advanced_search_date_filter' ) );
+
+		$output = $this->render_zone_edit();
+
+		$this->assertStringContainsString( '<label for="zone-post-latest">', $output );
+		$this->assertStringContainsString( 'id="zone-post-latest"', $output );
+		$this->assertStringContainsString( '<label for="zone_advanced_filter_date" class="screen-reader-text">', $output );
+		$this->assertStringContainsString( 'aria-describedby="zone-post-search-description"', $output );
+		$this->assertStringContainsString( 'id="zone-post-search-description"', $output );
+		$this->assertMatchesRegularExpression( '#<input type="text" id="zone-name" name="name" value="[^"]*" required />#', $output );
+	}
+
+	public function test_filter_toggle_is_a_button_that_reports_its_state(): void {
+		$output = $this->capture(
+			static function () {
+				Zoninator()->zone_advanced_search_filters();
+			}
+		);
+
+		$this->assertStringContainsString( '<button type="button" class="button-link zone-toggle-advanced-search" aria-expanded="false" aria-controls="zone-advanced-search-filters"', $output );
+		$this->assertStringContainsString( 'id="zone-advanced-search-filters"', $output );
+	}
 }

@@ -411,7 +411,7 @@ class Zoninator {
 
 							<div class="form-field zone-field">
 								<label for="zone-name"><?php esc_html_e( 'Name', 'zoninator' ); ?></label>
-								<input type="text" id="zone-name" name="name" value="<?php echo esc_attr( $zone_name ); ?>" />
+								<input type="text" id="zone-name" name="name" value="<?php echo esc_attr( $zone_name ); ?>" required />
 							</div>
 
 							<?php if ( $zone_id ) : ?>
@@ -459,7 +459,7 @@ class Zoninator {
 							<?php do_action( 'zoninator_pre_zone_readonly', $zone ); ?>
 
 							<div class="form-field zone-field">
-								<label for="zone-name"><?php esc_html_e( 'Name', 'zoninator' ); ?></label>
+								<strong><?php esc_html_e( 'Name', 'zoninator' ); ?></strong>
 								<span><?php echo esc_html( $zone_name ); ?></span>
 							</div>
 
@@ -471,7 +471,7 @@ class Zoninator {
 							-->
 
 							<div class="form-field zone-field">
-								<label for="zone-description"><?php esc_html_e( 'Description', 'zoninator' ); ?></label>
+								<strong><?php esc_html_e( 'Description', 'zoninator' ); ?></strong>
 								<span><?php echo esc_html( $zone_description ); ?></span>
 							</div>
 
@@ -589,9 +589,9 @@ class Zoninator {
 	public function zone_advanced_search_filters() {
 		?>
 	<div class="zone-advanced-search-filters-heading">
-		<span class="zone-toggle-advanced-search" data-alt-label="<?php esc_attr_e( 'Hide', 'zoninator' ); ?>"><?php esc_html_e( 'Show Filters', 'zoninator' ); ?></span>
+		<button type="button" class="button-link zone-toggle-advanced-search" aria-expanded="false" aria-controls="zone-advanced-search-filters" data-alt-label="<?php esc_attr_e( 'Hide', 'zoninator' ); ?>"><?php esc_html_e( 'Show Filters', 'zoninator' ); ?></button>
 	</div>
-	<div class="zone-advanced-search-filters-wrapper">
+	<div class="zone-advanced-search-filters-wrapper" id="zone-advanced-search-filters">
 		<?php do_action( 'zoninator_advanced_search_fields' ); ?>
 	</div>
 		<?php
@@ -620,6 +620,7 @@ class Zoninator {
 		$current_date = $this->_get_post_var( 'zone_advanced_filter_date', apply_filters( 'zoninator_advanced_filter_date_default', '' ), 'striptags' );
 		$date_filters = apply_filters( 'zoninator_advanced_filter_date', array( 'all', 'today', 'yesterday' ) );
 		?>
+	<label for="zone_advanced_filter_date" class="screen-reader-text"><?php esc_html_e( 'Filter by date', 'zoninator' ); ?></label>
 	<select name="zone_advanced_filter_date" id="zone_advanced_filter_date">
 		<?php
 		// Convert string dates into actual dates
@@ -732,7 +733,7 @@ class Zoninator {
 		$recent_posts = $this->get_posts_excluding( $args, $zone_post_ids );
 		?>
 	<div class="zone-search-wrapper">
-		<label for="zone-post-search-latest"><?php esc_html_e( 'Add Recent Content', 'zoninator' ); ?></label><br />
+		<label for="zone-post-latest"><?php esc_html_e( 'Add Recent Content', 'zoninator' ); ?></label><br />
 		<select name="search-posts" id="zone-post-latest">
 			<option value=""><?php esc_html_e( 'Choose a post', 'zoninator' ); ?></option>
 			<?php
@@ -751,8 +752,8 @@ class Zoninator {
 		?>
 	<div class="zone-search-wrapper">
 		<label for="zone-post-search"><?php esc_html_e( 'Search for content', 'zoninator' ); ?></label>
-		<input type="text" id="zone-post-search" name="search" />
-		<p class="description"><?php esc_html_e( 'Enter a term or phrase in the text box above to search for and add content to this zone.', 'zoninator' ); ?></p>
+		<input type="text" id="zone-post-search" name="search" aria-describedby="zone-post-search-description" />
+		<p class="description" id="zone-post-search-description"><?php esc_html_e( 'Enter a term or phrase in the text box above to search for and add content to this zone.', 'zoninator' ); ?></p>
 	</div>
 		<?php
 	}

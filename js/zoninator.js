@@ -58,16 +58,13 @@ var zoninator = {};
 				zoninator.$zoneSubmit.attr("disabled", false);
 			});
 
-		// Validate form
-		// TODO: This is really simplistic validation; beef it up a bit.
+		// The name field is required; a name of only spaces is empty too, so let the browser report it.
 		$('#zone-info').submit(function(e) {
-			var $form = $(this);
-			var $name = $form.find('input[name="name"]');
+			var $name = $(this).find('input[name="name"]');
 			if (!$name.val().trim()) {
-				$name.closest('.zone-field').addClass('error');
+				$name.val('');
+				this.reportValidity();
 				return false;
-			} else {
-				$name.closest('.zone-field').removeClass('error');
 			}
 		});
 
@@ -562,7 +559,8 @@ var zoninator = {};
 
 		$('.zone-advanced-search-filters-wrapper').toggle();
 
-		$this.text(altLabel).data('alt-label', currentLabel);
+		$this.text(altLabel).data('alt-label', currentLabel)
+			.attr('aria-expanded', $this.attr('aria-expanded') !== 'true');
 	});
 
 	// TODO: fix this

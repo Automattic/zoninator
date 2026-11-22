@@ -65,10 +65,6 @@
 	padding: 0;
 }
 
-#zone-edit-wrapper .form-field.error {
-	padding: 0 10px 5px;
-}
-
 #zone-edit-wrapper .form-field input,
 #zone-edit-wrapper .form-field textarea {
 	width: 98%;
@@ -80,10 +76,6 @@
 
 #zone-edit-wrapper .submit-field .submitdelete {
 	float: right;
-}
-
-#zone-info-readonly label {
-	font-weight: bold;
 }
 
 #zone-info-readonly span {
@@ -323,9 +315,9 @@
 
 .zone-advanced-search-filters-heading {
 	float: right;
-	font-weight: bold;
 }
 
-.zone-toggle-advanced-search {
-	cursor: pointer;
+.zone-toggle-advanced-search.button-link {
+	font-weight: bold;
+	text-decoration: none;
 }
