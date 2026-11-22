@@ -1244,29 +1244,37 @@ class Zoninator {
 	}
 
 	public function get_prev_post_in_zone( $zone, $post_id ) {
-		// TODO: test this works
-		$order = $this->get_post_order_in_zone( $zone, $post_id );
-
-		return $this->get_single_post_in_zone(
-			$zone,
-			array(
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-				'meta_value'   => $order,
-				'meta_compare' => '<=',
-			)
-		);
+		return $this->get_adjacent_post_in_zone( $zone, $post_id, '<', 'DESC' );
 	}
 
 	public function get_next_post_in_zone( $zone, $post_id ) {
-		// TODO: test this works
-		$order = $this->get_post_order_in_zone( $zone, $post_id );
+		return $this->get_adjacent_post_in_zone( $zone, $post_id, '>', 'ASC' );
+	}
+
+	/**
+	 * Get the post just before or after a post in a zone.
+	 *
+	 * @param int|string|WP_Term $zone    Zone.
+	 * @param int|WP_Post        $post_id Post in the zone.
+	 * @param string             $compare '<' for the post before, '>' for the post after.
+	 * @param string             $order   'DESC' for the post before, 'ASC' for the post after.
+	 * @return WP_Post|false The adjacent post, or false if there's none or the post isn't in the zone.
+	 */
+	private function get_adjacent_post_in_zone( $zone, $post_id, $compare, $order ) {
+		$position = $this->get_post_order( $post_id, $zone );
+
+		if ( '' === $position || false === $position ) {
+			return false;
+		}
 
 		return $this->get_single_post_in_zone(
 			$zone,
 			array(
+				'order'        => $order,
 				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-				'meta_value'   => $order,
-				'meta_compare' => '>=',
+				'meta_value'   => (int) $position,
+				'meta_compare' => $compare,
+				'meta_type'    => 'NUMERIC',
 			)
 		);
 	}
