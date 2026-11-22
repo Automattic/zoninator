@@ -367,7 +367,7 @@ class Zoninator {
 			register_taxonomy_for_object_type( $this->zone_taxonomy, $post_type );
 
 			// Clear Zoninator supported post types cache
-			unset( $this->post_types );
+			$this->post_types = null;
 
 			$did_register_post_types = true;
 		}
