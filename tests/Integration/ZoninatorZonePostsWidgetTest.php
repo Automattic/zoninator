@@ -67,6 +67,54 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 		$this->assertStringNotContainsString( 'Draft post', $this->render( array( 'show_description' => 0 ) ) );
 	}
 
+	/**
+	 * The widget caches its output, so a change to the zone must clear it.
+	 *
+	 * @dataProvider data_zone_changes
+	 *
+	 * @param string $change Which change to make.
+	 */
+	public function test_widget_shows_a_zone_change_straight_away( string $change ): void {
+		$first  = self::factory()->post->create( array( 'post_title' => 'First post' ) );
+		$second = self::factory()->post->create( array( 'post_title' => 'Second post' ) );
+		\Zoninator()->add_zone_posts( $this->zone_id, array( $first ) );
+
+		// Creating posts briefly blocks the cache from being saved. Let it save.
+		wp_cache_delete( 'widget-zone-posts-save_blocked', 'widget' );
+		$this->render( array( 'show_description' => 0 ) );
+
+		switch ( $change ) {
+			case 'add':
+				\Zoninator()->add_zone_posts( $this->zone_id, array( $second ), true );
+				$this->assertStringContainsString( 'Second post', $this->render( array( 'show_description' => 0 ) ) );
+				break;
+			case 'remove':
+				\Zoninator()->remove_zone_posts( $this->zone_id, array( $first ) );
+				$this->assertStringNotContainsString( 'First post', $this->render( array( 'show_description' => 0 ) ) );
+				break;
+			case 'rename':
+				\Zoninator()->update_zone( $this->zone_id, array( 'name' => 'Renamed zone' ) );
+				$this->assertStringContainsString( '<h2>Renamed zone</h2>', $this->render( array( 'show_description' => 0 ) ) );
+				break;
+			case 'delete':
+				\Zoninator()->delete_zone( $this->zone_id );
+				$this->assertSame( '', $this->render( array( 'show_description' => 0 ) ) );
+				break;
+		}
+	}
+
+	/**
+	 * @return array<string, array{string}>
+	 */
+	public function data_zone_changes(): array {
+		return array(
+			'post added'   => array( 'add' ),
+			'post removed' => array( 'remove' ),
+			'zone renamed' => array( 'rename' ),
+			'zone deleted' => array( 'delete' ),
+		);
+	}
+
 	public function test_widget_for_an_empty_zone_outputs_nothing(): void {
 		$this->assertSame( '', $this->render( array( 'show_description' => 0 ) ) );
 	}
