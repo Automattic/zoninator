@@ -1,4 +1,6 @@
 <?php
+declare( strict_types = 1 );
+
 /**
  * Integration tests for the ajax_search_posts admin-ajax handler.
  *
@@ -19,7 +21,7 @@ use Zoninator;
 /**
  * @group ajax
  */
-class Zoninator_Ajax_Search_Posts_Test extends WP_Ajax_UnitTestCase {
+class ZoninatorAjaxSearchPostsTest extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @var int
@@ -36,8 +38,8 @@ class Zoninator_Ajax_Search_Posts_Test extends WP_Ajax_UnitTestCase {
 	 */
 	private $future_post_id;
 
-	public function set_up(): void {
-		parent::set_up();
+	public function setUp(): void {
+		parent::setUp();
 
 		$this->subscriber_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		$this->admin_id      = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -53,35 +55,35 @@ class Zoninator_Ajax_Search_Posts_Test extends WP_Ajax_UnitTestCase {
 		$_GET     = array();
 	}
 
-	public function tear_down(): void {
+	public function tearDown(): void {
 		$_REQUEST = array();
 		$_POST    = array();
 		$_GET     = array();
-		parent::tear_down();
+		parent::tearDown();
 	}
 
 	/**
-	 * A subscriber must not be able to reach the search handler, even when
-	 * authenticated. This guards against authenticated enumeration of
+	 * A subscriber must not be able to reach the search handler, even with a
+	 * valid nonce. This guards against authenticated enumeration of
 	 * scheduled posts via the search oracle.
 	 */
-	public function test_subscriber_is_blocked_without_json_output(): void {
+	public function test_subscriber_with_valid_nonce_is_blocked_without_json_output(): void {
 		wp_set_current_user( $this->subscriber_id );
 
-		$_POST['action'] = 'zoninator_search_posts';
-		$_POST['term']   = 'zoninator_future_leak';
+		$zoninator = Zoninator();
 
-		$this->expectException( WPAjaxDieStopException::class );
+		$_POST['action']   = 'zoninator_search_posts';
+		$_POST['term']     = 'zoninator_future_leak';
+		$_POST['_wpnonce'] = wp_create_nonce( $zoninator->_get_nonce_key( $zoninator->zone_ajax_nonce_action ) );
 
 		try {
 			$this->_handleAjax( 'zoninator_search_posts' );
-		} finally {
-			$this->assertStringNotContainsString(
-				'zoninator_future_leak_canary',
-				$this->_last_response,
-				'Subscriber must not receive search results for future posts.'
-			);
+			$this->fail( 'Expected the handler to stop the request.' );
+		} catch ( WPAjaxDieStopException $e ) {
+			$this->assertSame( esc_html( "Sorry, you're not supposed to do that..." ), $e->getMessage() );
 		}
+
+		$this->assertSame( '', $this->_last_response );
 	}
 
 	/**

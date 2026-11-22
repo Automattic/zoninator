@@ -1,4 +1,6 @@
 <?php
+declare( strict_types = 1 );
+
 /**
  * Integration tests for which zone posts each user sees.
  *
@@ -7,7 +9,7 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
-class Zoninator_Zone_Post_Status_Test extends TestCase {
+class ZoninatorZonePostStatusTest extends TestCase {
 
 	/**
 	 * @var int
@@ -19,8 +21,8 @@ class Zoninator_Zone_Post_Status_Test extends TestCase {
 	 */
 	private $post_ids;
 
-	public function set_up(): void {
-		parent::set_up();
+	public function setUp(): void {
+		parent::setUp();
 
 		$zone          = Zoninator()->insert_zone( 'status-zone', 'Status zone' );
 		$this->zone_id = (int) $zone['term_id'];
@@ -42,9 +44,9 @@ class Zoninator_Zone_Post_Status_Test extends TestCase {
 		set_current_screen( 'dashboard' );
 	}
 
-	public function tear_down(): void {
+	public function tearDown(): void {
 		$GLOBALS['current_screen'] = null;
-		parent::tear_down();
+		parent::tearDown();
 	}
 
 	public function test_logged_out_admin_request_gets_only_published_posts(): void {

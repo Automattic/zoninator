@@ -1,4 +1,6 @@
 <?php
+declare( strict_types = 1 );
+
 /**
  * Integration tests for zone posts caching.
  *
@@ -13,7 +15,7 @@ namespace Automattic\Zoninator\Tests\Integration;
 /**
  * @group cache
  */
-class Zoninator_Zone_Posts_Cache_Test extends TestCase {
+class ZoninatorZonePostsCacheTest extends TestCase {
 
 	/**
 	 * @var int
@@ -25,8 +27,8 @@ class Zoninator_Zone_Posts_Cache_Test extends TestCase {
 	 */
 	private $post_ids;
 
-	public function set_up(): void {
-		parent::set_up();
+	public function setUp(): void {
+		parent::setUp();
 
 		$zone          = \Zoninator()->insert_zone( 'cache-zone', 'Cache Zone' );
 		$this->zone_id = $zone['term_id'];

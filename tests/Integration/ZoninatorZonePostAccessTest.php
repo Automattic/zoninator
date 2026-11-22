@@ -1,4 +1,6 @@
 <?php
+declare( strict_types = 1 );
+
 /**
  * Integration tests for which posts can be put in a zone.
  *
@@ -15,7 +17,7 @@ use WPAjaxDieStopException;
 /**
  * @group ajax
  */
-class Zoninator_Zone_Post_Access_Test extends WP_Ajax_UnitTestCase {
+class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @var int
@@ -34,8 +36,8 @@ class Zoninator_Zone_Post_Access_Test extends WP_Ajax_UnitTestCase {
 	 */
 	private $request_id;
 
-	public function set_up(): void {
-		parent::set_up();
+	public function setUp(): void {
+		parent::setUp();
 
 		$this->editor_id  = self::factory()->user->create( array( 'role' => 'editor' ) );
 		$zone             = Zoninator()->insert_zone( 'access-zone', 'Access zone' );
@@ -47,11 +49,11 @@ class Zoninator_Zone_Post_Access_Test extends WP_Ajax_UnitTestCase {
 		$_GET     = array();
 	}
 
-	public function tear_down(): void {
+	public function tearDown(): void {
 		$_REQUEST = array();
 		$_POST    = array();
 		$_GET     = array();
-		parent::tear_down();
+		parent::tearDown();
 	}
 
 	public function test_add_post_rejects_a_post_the_user_cannot_read(): void {
@@ -78,6 +80,52 @@ class Zoninator_Zone_Post_Access_Test extends WP_Ajax_UnitTestCase {
 		$this->assertSame( '', $this->zone_order( $this->request_id ) );
 	}
 
+	/**
+	 * An author lacks the default zone management capability, so each zone
+	 * handler must stop them even when they send a valid nonce.
+	 *
+	 * @dataProvider data_zone_ajax_actions
+	 *
+	 * @param string $action AJAX action.
+	 */
+	public function test_zone_action_refuses_a_user_who_cannot_manage_zones( string $action ): void {
+		$post_id = self::factory()->post->create();
+		Zoninator()->add_zone_posts( $this->zone_id, array( $post_id ) );
+
+		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
+
+		try {
+			$this->ajax(
+				$action,
+				array(
+					'post_id' => $post_id,
+					'posts'   => array( $post_id ),
+				),
+				$author_id
+			);
+			$this->fail( 'Expected the handler to stop the request.' );
+		} catch ( WPAjaxDieStopException $e ) {
+			$this->assertSame( esc_html( "Sorry, you're not supposed to do that..." ), $e->getMessage() );
+		}
+
+		$this->assertSame( '', $this->_last_response );
+		$this->assertSame( '1', $this->zone_order( $post_id ) );
+		$this->assertFalse( Zoninator()->is_zone_locked( $this->zone_id ) );
+	}
+
+	/**
+	 * @return array<string, array{string}>
+	 */
+	public function data_zone_ajax_actions(): array {
+		return array(
+			'add post'      => array( 'zoninator_add_post' ),
+			'remove post'   => array( 'zoninator_remove_post' ),
+			'reorder posts' => array( 'zoninator_reorder_posts' ),
+			'update lock'   => array( 'zoninator_update_lock' ),
+			'recent posts'  => array( 'zoninator_update_recent' ),
+		);
+	}
+
 	public function test_rest_update_rejects_a_post_the_user_cannot_read(): void {
 		wp_set_current_user( $this->editor_id );
 
@@ -90,14 +138,15 @@ class Zoninator_Zone_Post_Access_Test extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Run a Zoninator AJAX action as the editor and decode the response.
+	 * Run a Zoninator AJAX action with a valid nonce and decode the response.
 	 *
-	 * @param string $action AJAX action.
-	 * @param array  $data   Request data.
-	 * @return array
+	 * @param string   $action  AJAX action.
+	 * @param array    $data    Request data.
+	 * @param int|null $user_id User to run as. Defaults to the editor.
+	 * @return array|null
 	 */
-	private function ajax( $action, $data ) {
-		wp_set_current_user( $this->editor_id );
+	private function ajax( $action, $data, $user_id = null ) {
+		wp_set_current_user( $user_id ?? $this->editor_id );
 
 		$zoninator = Zoninator();
 		$_POST     = array_merge(
@@ -111,7 +160,7 @@ class Zoninator_Zone_Post_Access_Test extends WP_Ajax_UnitTestCase {
 
 		try {
 			$this->_handleAjax( $action );
-		} catch ( WPAjaxDieStopException | WPAjaxDieContinueException $e ) {
+		} catch ( WPAjaxDieContinueException $e ) {
 			// Expected. wp_send_json() dies after echoing JSON.
 		}
 
