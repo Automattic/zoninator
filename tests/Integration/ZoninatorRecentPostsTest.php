@@ -47,7 +47,7 @@ class ZoninatorRecentPostsTest extends WP_Ajax_UnitTestCase {
 		$_POST['action']   = 'zoninator_search_posts';
 		$_POST['term']     = '';
 		$_POST['exclude']  = $zone_post_ids;
-		$_POST['_wpnonce'] = wp_create_nonce( $zoninator->_get_nonce_key( \Zoninator::ZONE_AJAX_NONCE_ACTION ) );
+		$_POST['_wpnonce'] = wp_create_nonce( $zoninator->_get_nonce_key( \Automattic\Zoninator\Admin\Ajax::NONCE_ACTION ) );
 		$_REQUEST          = $_POST;
 
 		$queries = array();

@@ -153,7 +153,7 @@ class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 			array(
 				'action'   => $action,
 				'zone_id'  => $this->zone_id,
-				'_wpnonce' => wp_create_nonce( $zoninator->_get_nonce_key( \Zoninator::ZONE_AJAX_NONCE_ACTION ) ),
+				'_wpnonce' => wp_create_nonce( $zoninator->_get_nonce_key( \Automattic\Zoninator\Admin\Ajax::NONCE_ACTION ) ),
 			),
 			$data
 		);

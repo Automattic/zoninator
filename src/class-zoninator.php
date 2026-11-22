@@ -8,15 +8,21 @@
  */
 class Zoninator {
 
-	public const KEY = 'zoninator';
+	/**
+	 * The zone taxonomy's name. Taxonomy owns it; this is its public name.
+	 */
+	public const ZONE_TAXONOMY = \Automattic\Zoninator\Taxonomy::NAME;
 
-	public const ZONE_TAXONOMY = 'zoninator_zones';
+	/**
+	 * Prefix of the post meta key that holds a post's position in a zone. The
+	 * zone's term ID follows it. Zones owns it; this is its public name.
+	 */
+	public const ZONE_META_PREFIX = \Automattic\Zoninator\Zones::META_PREFIX;
 
-	public const ZONE_META_PREFIX = '_zoninator_order_';
-
-	public const ZONE_NONCE_PREFIX = 'zone-nonce';
-
-	public const ZONE_AJAX_NONCE_ACTION = 'ajax-action';
+	/**
+	 * Prefix of every nonce action, used by _get_nonce_key().
+	 */
+	private const NONCE_PREFIX = 'zone-nonce';
 
 	// Number of seconds a lock is valid for.
 	private $zone_lock_period = 30;
@@ -191,12 +197,12 @@ class Zoninator {
 	 */
 	private function get_old_properties() {
 		return array(
-			'key'                    => array( self::KEY, 'Zoninator::KEY', null ),
+			'key'                    => array( \Automattic\Zoninator\Admin\Screen::PAGE_SLUG, 'Automattic\\Zoninator\\Admin\\Screen::PAGE_SLUG', null ),
 			'zone_taxonomy'          => array( self::ZONE_TAXONOMY, 'Zoninator::ZONE_TAXONOMY', null ),
 			'zone_term_prefix'       => array( 'zone-', 'your own value (Zoninator never used it)', null ),
 			'zone_meta_prefix'       => array( self::ZONE_META_PREFIX, 'Zoninator::ZONE_META_PREFIX', null ),
-			'zone_nonce_prefix'      => array( self::ZONE_NONCE_PREFIX, 'Zoninator::ZONE_NONCE_PREFIX', null ),
-			'zone_ajax_nonce_action' => array( self::ZONE_AJAX_NONCE_ACTION, 'Zoninator::ZONE_AJAX_NONCE_ACTION', null ),
+			'zone_nonce_prefix'      => array( self::NONCE_PREFIX, 'Zoninator::_get_nonce_key()', null ),
+			'zone_ajax_nonce_action' => array( \Automattic\Zoninator\Admin\Ajax::NONCE_ACTION, 'Automattic\\Zoninator\\Admin\\Ajax::NONCE_ACTION', null ),
 			'zone_detail_defaults'   => array( $this->zone_detail_defaults, 'Zoninator::get_zone_detail_defaults()', 'the zoninator_zone_detail_defaults filter' ),
 			'zone_lock_period'       => array( $this->zone_lock_period, 'Zoninator::get_zone_lock_period()', 'the zoninator_zone_lock_period filter' ),
 			'zone_max_lock_period'   => array( $this->zone_max_lock_period, 'Zoninator::get_zone_max_lock_period()', 'the zoninator_zone_max_lock_period filter' ),
@@ -690,7 +696,7 @@ class Zoninator {
 	}
 
 	public function _get_nonce_key( $action ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return sprintf( '%s-%s', self::ZONE_NONCE_PREFIX, $action );
+		return sprintf( '%s-%s', self::NONCE_PREFIX, $action );
 	}
 
 	public function _current_user_can_add_zones() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
@@ -719,7 +725,7 @@ class Zoninator {
 	}
 
 	public function _get_zone_page_url( $args = array() ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		$url = menu_page_url( self::KEY, false );
+		$url = menu_page_url( \Automattic\Zoninator\Admin\Screen::PAGE_SLUG, false );
 
 		foreach ( $args as $arg_key => $arg_value ) {
 			$url = add_query_arg( $arg_key, $arg_value, $url );

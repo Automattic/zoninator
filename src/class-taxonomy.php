@@ -20,6 +20,11 @@ use Zoninator;
 final class Taxonomy {
 
 	/**
+	 * The taxonomy's name. Zoninator::ZONE_TAXONOMY is its public name.
+	 */
+	public const NAME = 'zoninator_zones';
+
+	/**
 	 * The Zoninator facade, which holds the settings and shared helpers.
 	 *
 	 * @var Zoninator
@@ -48,13 +53,13 @@ final class Taxonomy {
 	public function register() {
 		// Default post type support
 		foreach ( $this->zoninator->default_post_types as $post_type ) {
-			add_post_type_support( $post_type, Zoninator::ZONE_TAXONOMY );
+			add_post_type_support( $post_type, self::NAME );
 		}
 
 		// Register taxonomy
-		if ( ! taxonomy_exists( Zoninator::ZONE_TAXONOMY ) ) {
+		if ( ! taxonomy_exists( self::NAME ) ) {
 			register_taxonomy(
-				Zoninator::ZONE_TAXONOMY,
+				self::NAME,
 				$this->get_post_types(),
 				array(
 					'label'        => __( 'Zones', 'zoninator' ),
@@ -76,7 +81,7 @@ final class Taxonomy {
 		$this->post_types = array();
 
 		foreach ( get_post_types() as $post_type ) {
-			if ( post_type_supports( $post_type, Zoninator::ZONE_TAXONOMY ) ) {
+			if ( post_type_supports( $post_type, self::NAME ) ) {
 				$this->post_types[] = $post_type;
 			}
 		}
@@ -115,8 +120,8 @@ final class Taxonomy {
 				continue;
 			}
 
-			add_post_type_support( $post_type, Zoninator::ZONE_TAXONOMY );
-			register_taxonomy_for_object_type( Zoninator::ZONE_TAXONOMY, $post_type );
+			add_post_type_support( $post_type, self::NAME );
+			register_taxonomy_for_object_type( self::NAME, $post_type );
 
 			// Clear Zoninator supported post types cache
 			$this->post_types = null;

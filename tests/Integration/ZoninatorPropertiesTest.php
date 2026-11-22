@@ -37,6 +37,38 @@ class ZoninatorPropertiesTest extends TestCase {
 		$this->assertSame( Zoninator()->get_posts_per_page(), Zoninator()->posts_per_page );
 	}
 
+	/**
+	 * Stored zones, post meta, nonces and admin links depend on these values.
+	 *
+	 * @dataProvider data_old_fixed_properties
+	 *
+	 * @param string $property Old property name.
+	 * @param string $value    Its value, which must not change.
+	 * @param string $constant Constant that now holds it.
+	 */
+	public function test_old_fixed_properties_keep_their_values( string $property, string $value, string $constant ): void {
+		$this->setExpectedIncorrectUsage( 'Zoninator::$' . $property );
+
+		$this->assertSame( $value, Zoninator()->$property );
+		$this->assertSame( $value, constant( $constant ) );
+	}
+
+	/**
+	 * @return array<string, array{string, string, string}>
+	 */
+	public function data_old_fixed_properties(): array {
+		return array(
+			'taxonomy'          => array( 'zone_taxonomy', 'zoninator_zones', '\\Zoninator::ZONE_TAXONOMY' ),
+			'meta prefix'       => array( 'zone_meta_prefix', '_zoninator_order_', '\\Zoninator::ZONE_META_PREFIX' ),
+			'admin page'        => array( 'key', 'zoninator', '\\Automattic\\Zoninator\\Admin\\Screen::PAGE_SLUG' ),
+			'AJAX nonce action' => array( 'zone_ajax_nonce_action', 'ajax-action', '\\Automattic\\Zoninator\\Admin\\Ajax::NONCE_ACTION' ),
+		);
+	}
+
+	public function test_nonce_keys_keep_their_prefix(): void {
+		$this->assertSame( 'zone-nonce-ajax-action', Zoninator()->_get_nonce_key( 'ajax-action' ) );
+	}
+
 	public function test_isset_on_old_property(): void {
 		$zoninator = Zoninator();
 

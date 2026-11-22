@@ -22,6 +22,11 @@ use Zoninator;
 class Ajax {
 
 	/**
+	 * The nonce action every handler checks, passed through Zoninator::_get_nonce_key().
+	 */
+	public const NONCE_ACTION = 'ajax-action';
+
+	/**
 	 * The Zoninator facade, which holds the zone data and request helpers.
 	 *
 	 * @var Zoninator
@@ -38,7 +43,7 @@ class Ajax {
 	}
 
 	public function respond( $status, $content = '', $action = '' ) {
-		$action = empty( $action ) ? Zoninator::ZONE_AJAX_NONCE_ACTION : $action;
+		$action = empty( $action ) ? self::NONCE_ACTION : $action;
 		$nonce  = wp_create_nonce( $this->zoninator->_get_nonce_key( $action ) );
 
 		wp_send_json(
@@ -55,7 +60,7 @@ class Ajax {
 		$post_id = $this->zoninator->_get_post_var( 'post_id', 0, 'absint' );
 
 		// Verify nonce
-		$this->zoninator->verify_nonce( Zoninator::ZONE_AJAX_NONCE_ACTION );
+		$this->zoninator->verify_nonce( self::NONCE_ACTION );
 		$this->zoninator->verify_access( '', $zone_id );
 
 		// Validate
@@ -88,7 +93,7 @@ class Ajax {
 		$post_id = $this->zoninator->_get_post_var( 'post_id', 0, 'absint' );
 
 		// Verify nonce
-		$this->zoninator->verify_nonce( Zoninator::ZONE_AJAX_NONCE_ACTION );
+		$this->zoninator->verify_nonce( self::NONCE_ACTION );
 		$this->zoninator->verify_access( '', $zone_id );
 
 		// Validate
@@ -114,7 +119,7 @@ class Ajax {
 		$post_ids = (array) $this->zoninator->_get_post_var( 'posts', array(), 'absint' );
 
 		// Verify nonce
-		$this->zoninator->verify_nonce( Zoninator::ZONE_AJAX_NONCE_ACTION );
+		$this->zoninator->verify_nonce( self::NONCE_ACTION );
 		$this->zoninator->verify_access( '', $zone_id );
 
 		// validate
@@ -140,7 +145,7 @@ class Ajax {
 		$from_zone_id = $this->zoninator->_get_post_var( 'from_zone_id', 0, 'absint' );
 		$to_zone_id   = $this->zoninator->_get_post_var( 'to_zone_id', 0, 'absint' );
 
-		$this->zoninator->verify_nonce( Zoninator::ZONE_AJAX_NONCE_ACTION );
+		$this->zoninator->verify_nonce( self::NONCE_ACTION );
 
 		// TODO: validate both zones exist, post exists
 
@@ -153,7 +158,7 @@ class Ajax {
 
 	public function search_posts() {
 
-		$this->zoninator->verify_nonce( Zoninator::ZONE_AJAX_NONCE_ACTION );
+		$this->zoninator->verify_nonce( self::NONCE_ACTION );
 		$this->zoninator->verify_access();
 
 		$q           = $this->zoninator->_get_request_var( 'term', '', 'stripslashes' );
@@ -232,7 +237,7 @@ class Ajax {
 	public function update_lock() {
 		$zone_id = $this->zoninator->_get_post_var( 'zone_id', 0, 'absint' );
 
-		$this->zoninator->verify_nonce( Zoninator::ZONE_AJAX_NONCE_ACTION );
+		$this->zoninator->verify_nonce( self::NONCE_ACTION );
 		$this->zoninator->verify_access( '', $zone_id );
 
 		if ( ! $zone_id ) {

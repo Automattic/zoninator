@@ -21,6 +21,11 @@ use Zoninator;
 class Screen {
 
 	/**
+	 * The admin page's slug, as in admin.php?page=zoninator.
+	 */
+	public const PAGE_SLUG = 'zoninator';
+
+	/**
 	 * The Zoninator facade, which holds the zone data and request helpers.
 	 *
 	 * @var Zoninator
@@ -38,7 +43,7 @@ class Screen {
 
 	public function register_menu_page() {
 		// Set up page
-		add_menu_page( __( 'Zones', 'zoninator' ), __( 'Zones', 'zoninator' ), $this->zoninator->_get_manage_zones_cap(), Zoninator::KEY, array( $this->zoninator, 'admin_page' ), 'dashicons-layout', 11 );
+		add_menu_page( __( 'Zones', 'zoninator' ), __( 'Zones', 'zoninator' ), $this->zoninator->_get_manage_zones_cap(), self::PAGE_SLUG, array( $this->zoninator, 'admin_page' ), 'dashicons-layout', 11 );
 	}
 
 	public function enqueue_scripts() {
@@ -48,7 +53,7 @@ class Screen {
 			$options = array(
 				'baseUrl'           => $this->zoninator->_get_zone_page_url(),
 				'adminUrl'          => admin_url(),
-				'ajaxNonceAction'   => $this->zoninator->_get_nonce_key( Zoninator::ZONE_AJAX_NONCE_ACTION ),
+				'ajaxNonceAction'   => $this->zoninator->_get_nonce_key( Ajax::NONCE_ACTION ),
 				'errorGeneral'      => $this->zoninator->_get_message( 'error-general' ),
 				'errorZoneLock'     => sprintf( $this->zoninator->_get_message( 'error-zone-lock' ), __( 'another user', 'zoninator' ) ),
 				'errorSave'         => __( 'The order of the zone could not be saved.', 'zoninator' ),
@@ -289,7 +294,7 @@ class Screen {
 			endif;
 
 			// Ideally, we should separate nonces for each action. But this will do for simplicity.
-			wp_nonce_field( $this->zoninator->_get_nonce_key( Zoninator::ZONE_AJAX_NONCE_ACTION ), $this->zoninator->_get_nonce_key( Zoninator::ZONE_AJAX_NONCE_ACTION ), false );
+			wp_nonce_field( $this->zoninator->_get_nonce_key( Ajax::NONCE_ACTION ), $this->zoninator->_get_nonce_key( Ajax::NONCE_ACTION ), false );
 
 			if ( $zone_id ) {
 				// Curating content is the main task, so it comes before the zone's details.
@@ -381,7 +386,7 @@ class Screen {
 				<?php endif; ?>
 
 				<input type="hidden" name="action" value="<?php echo $zone_id ? 'update' : 'insert'; ?>">
-				<input type="hidden" name="page" value="<?php echo esc_attr( Zoninator::KEY ); ?>">
+				<input type="hidden" name="page" value="<?php echo esc_attr( self::PAGE_SLUG ); ?>">
 
 			</form>
 		<?php else : ?>
@@ -584,9 +589,9 @@ class Screen {
 
 		if ( empty( $screen ) ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			return ! empty( $_REQUEST['page'] ) && sanitize_key( $_REQUEST['page'] ) == Zoninator::KEY;
+			return ! empty( $_REQUEST['page'] ) && sanitize_key( $_REQUEST['page'] ) == self::PAGE_SLUG;
 		} else {
-			return ! empty( $screen->id ) && strstr( $screen->id, (string) Zoninator::KEY );
+			return ! empty( $screen->id ) && strstr( $screen->id, (string) self::PAGE_SLUG );
 		}
 	}
 }
