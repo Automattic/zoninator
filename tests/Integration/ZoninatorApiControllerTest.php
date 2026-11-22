@@ -68,33 +68,6 @@ class Zoninator_Api_Controller_Test extends TestCase {
 	}
 
 	/**
-	 * Assert Status 200
-	 *
-	 * @param \WP_REST_Response $response Response.
-	 */
-	public function assert_http_response_status_success( $response ) {
-		$this->assert_response_status( $response, \MT_Controller::HTTP_OK );
-	}
-
-	/**
-	 * Assert Status 201
-	 *
-	 * @param \WP_REST_Response $response Response.
-	 */
-	public function assert_http_response_status_created( $response ) {
-		$this->assert_response_status( $response, \MT_Controller::HTTP_CREATED );
-	}
-
-	/**
-	 * Assert Status 404
-	 *
-	 * @param \WP_REST_Response $response Response.
-	 */
-	public function assert_http_response_status_not_found( $response ) {
-		$this->assert_response_status( $response, \MT_Controller::HTTP_NOT_FOUND );
-	}
-
-	/**
 	 * Ensure we got a certain response code
 	 *
 	 * @param \WP_REST_Response $response The Response.
