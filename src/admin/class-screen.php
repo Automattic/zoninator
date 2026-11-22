@@ -18,7 +18,7 @@ use Zoninator;
  * array( Zoninator(), 'method' ) keeps working as a callback. Callbacks this
  * class hands to WordPress point at Zoninator too, for the same reason.
  */
-class Screen {
+final class Screen {
 
 	/**
 	 * The admin page's slug, as in admin.php?page=zoninator.

@@ -17,7 +17,7 @@ use Zoninator;
 /**
  * Zones, their posts and their locks.
  */
-class Zones_Controller extends WP_REST_Controller {
+final class Zones_Controller extends WP_REST_Controller {
 	public const ZONE_ITEM_URL_REGEX = '/zones/(?P<zone_id>[\d]+)';
 
 	public const ZONE_ITEM_POSTS_URL_REGEX = '/zones/(?P<zone_id>[\d]+)/posts';

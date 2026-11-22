@@ -25,7 +25,7 @@ use Zoninator;
  * and meta key prefix, stay the source of truth, so sites that change them
  * keep working.
  */
-class Zones {
+final class Zones {
 
 	/**
 	 * Prefix of the post meta key that holds a post's position in a zone. The

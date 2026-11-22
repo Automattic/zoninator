@@ -17,7 +17,7 @@ use Zoninator;
  * Zoninator keeps a public method for each of these under its original name
  * (lock_zone() for lock(), and so on), which delegates here.
  */
-class Locks {
+final class Locks {
 
 	/**
 	 * The Zoninator facade, which holds the settings and shared helpers.
