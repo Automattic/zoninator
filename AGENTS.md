@@ -22,7 +22,10 @@ zoninator/
 ├── zoninator.php                    # Main plugin file (header, bootstrap)
 ├── functions.php                    # Template tag functions (z_*)
 ├── src/
-│   ├── class-zoninator.php          # Main Zoninator class (zone CRUD, admin UI, AJAX)
+│   ├── class-zoninator.php          # Main Zoninator class (zone CRUD, locks, feed; facade for admin and AJAX)
+│   ├── admin/
+│   │   ├── class-screen.php         # Zones admin screen (markup, form handling, assets)
+│   │   └── class-ajax.php           # Zones screen admin-ajax handlers
 │   ├── class-zoninator-zoneposts-widget.php  # Zone Posts widget
 │   └── rest/
 │       └── class-zones-controller.php # REST endpoints (/zoninator/v1/zones)
@@ -40,7 +43,9 @@ zoninator/
 
 ### Key Classes and Files
 
-- `src/class-zoninator.php` — `Zoninator` class: registers the `zoninator_zones` taxonomy, owns the admin screen, handles AJAX (search, lock, ordering), and exposes the JSON feed at `/zones/{slug}/feed.json`.
+- `src/class-zoninator.php` — `Zoninator` class: registers the `zoninator_zones` taxonomy and every hook, owns zone data, locks and the request helpers, and exposes the JSON feed at `/zones/{slug}/feed.json`. Its admin screen and `ajax_*` methods are thin delegates, kept so `array( Zoninator(), 'method' )` callbacks keep working.
+- `src/admin/class-screen.php` — `Automattic\Zoninator\Admin\Screen`: renders the Zones screen, saves its zone form and loads its assets.
+- `src/admin/class-ajax.php` — `Automattic\Zoninator\Admin\Ajax`: the screen's admin-ajax handlers (add, remove, reorder, search, lock).
 - `functions.php` — Public template tags: `z_get_zones()`, `z_get_zone()`, `z_get_posts_in_zone()`, `z_get_zone_query()`, `z_get_next_post_in_zone()`, `z_get_prev_post_in_zone()`, `z_get_post_zones()`. Used by themes in production.
 - `src/class-zoninator-zoneposts-widget.php` — Classic widget (`Zoninator_ZonePosts_Widget`).
 - `src/rest/class-zones-controller.php` — `Automattic\Zoninator\REST\Zones_Controller`, a `WP_REST_Controller` that registers the `zoninator/v1` routes. `Zoninator::register_rest_routes()` loads it on `rest_api_init`.
@@ -91,6 +96,7 @@ See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key point
 - **Template tags in `functions.php`**: Theme developers consume zones through these functions. They are part of the public API — do not rename or change signatures without a deprecation cycle.
 - **Namespaces**: Legacy classes and functions are in the global namespace; keep their names, as themes and integrations use them. New classes go under `Automattic\Zoninator\`, in WordPress-style `class-*.php` files loaded with `require_once` (the release package has no Composer autoloader).
 - **REST controller on core**: The REST API extends core's `WP_REST_Controller` directly. `ZoninatorRestContractTest` pins its routes, methods, args and response bodies; change them only on purpose.
+- **`Zoninator` is the facade**: register hooks, and any callback handed to WordPress, as `array( $zoninator, 'method' )`, never on `Admin\Screen` or `Admin\Ajax`. Sites unhook with `array( Zoninator(), 'method' )`, which silently does nothing if the callback lives on another object. `ZoninatorAdminAjaxTest` pins this and the AJAX response shapes `js/zoninator.js` depends on.
 - **REST `/zones` index requires auth**: Since 0.11.0 the `GET /zoninator/v1/zones` endpoint requires `is_user_logged_in()` by default. Sites needing the historical anonymous behaviour must opt in via the `zoninator_rest_get_zones_permissions_check` filter.
 - **WordPress.org deployment**: Releases push to the WP.org SVN via `.github/workflows/deploy.yml` on GitHub release. Do not manually modify SVN assets.
 
