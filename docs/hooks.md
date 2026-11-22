@@ -122,23 +122,23 @@ Default selected date filter.
 
 - **Parameters:** `string $default`
 
-## Post search and recent-posts dropdown
+## Content search
 
 ### `zoninator_recent_posts_args` (filter)
 
-`WP_Query` args used to populate the "recent posts" dropdown in the zone editor. Two call sites (the AJAX handler and the initial render).
+`WP_Query` args for the latest content, which the zone editor's "Add content" field offers before anything is typed.
 
 - **Parameters:** `array $args`
 
 ### `zoninator_search_args` (filter)
 
-`WP_Query` args used by the AJAX post search.
+`WP_Query` args used by the AJAX post search once something is typed.
 
 - **Parameters:** `array $args`
 
 ### `zoninator_search_results_post` (filter)
 
-Each search result is passed through this filter before being JSON-encoded.
+Each search result, including the latest content offered before anything is typed, is passed through this filter before being JSON-encoded. The result has `title`, `post_id`, `date`, `post_type`, `post_type_label`, `post_status` and `post_status_label`; the editor shows the labels when they're present.
 
 - **Parameters:** `array $result`, `WP_Post $post`
 

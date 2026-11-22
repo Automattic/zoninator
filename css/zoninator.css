@@ -1,9 +1,13 @@
 /* Zones screen. Layout, forms, buttons and boxes come from core; these rules cover only what core doesn't. */
 
-/* Line the zone's details up with the top of the zone list. */
+/* Line the right-hand column up with the top of the zone list. */
 #zone-info > :first-child,
 #zone-info-readonly > :first-child {
 	margin-top: 0;
+}
+
+#zone-edit-wrapper > .metabox-holder {
+	padding-top: 0;
 }
 
 #zone-edit-wrapper .submit .submitdelete {
@@ -18,10 +22,6 @@
 .zone-posts-save-input {
 	margin: 0 12px;
 	white-space: nowrap;
-}
-
-.zone-advanced-search-filters-heading {
-	float: right;
 }
 
 .zone-advanced-search-filters-wrapper {

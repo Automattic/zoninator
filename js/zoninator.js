@@ -8,20 +8,14 @@ var zoninator = {};
 		zoninator.$zonePostsList = $('.zone-posts-list');
 		zoninator.$zonePostsWrap = $('.zone-posts-wrapper');
 		zoninator.$zonePostSearch = $('#zone-post-search');
-		zoninator.$zonePostLatest = $('#zone-post-latest');
 		zoninator.$zoneAdvancedCat = $('#zone_advanced_filter_taxonomy');
 		zoninator.$zoneAdvancedDate = $('#zone_advanced_filter_date');
 		zoninator.$zoneSubmit = $('#zone-info input[type="submit"]');
 		zoninator.$zonePostsSaveInfo = $('#zone-posts-save-info');
 
-		zoninator.$zoneAdvancedDate.change(function() {
+		// The filters narrow both the latest content and search results, so drop results fetched without them.
+		zoninator.$zoneAdvancedDate.add(zoninator.$zoneAdvancedCat).change(function() {
 			zoninator.autocompleteCache = {};
-			zoninator.updateLatest();
-		});
-
-		zoninator.$zoneAdvancedCat.change(function() {
-			zoninator.autocompleteCache = {};
-			zoninator.updateLatest();
 		});
 
 		// Update the currentPostOrder property which keeps track of the list order internally
@@ -67,29 +61,16 @@ var zoninator = {};
 			}
 		});
 
-		// Add the post chosen from the latest posts list. This waits for the button, rather than adding on change,
-		// because moving through a closed list with the arrow keys changes its value at every step in some browsers.
-		$('#zone-post-latest-add').on('click', function() {
-			var post_id = zoninator.$zonePostLatest.val();
-			if (post_id) {
-				zoninator.addPost(post_id);
-				zoninator.$zonePostLatest.find('[value="' + post_id + '"]').remove();
-				zoninator.$zonePostLatest.val('');
-			}
-		});
-
-
-		// Initialize autocomplete
+		// Initialize autocomplete. With nothing typed, it offers the latest content; typing searches.
 		if (zoninator.$zonePostSearch.length) {
 			zoninator.$zonePostSearch
-				.bind('loading.start', function(e) {
-					$(this).addClass('loading');
-				})
-				.bind('loading.end', function(e) {
-					$(this).removeClass('loading');
+				.on('focus click', function() {
+					if (!this.value) {
+						$(this).autocomplete('search', '');
+					}
 				})
 				.autocomplete({
-					minLength: 3
+					minLength: 0
 					// the default timeout (300ms) doesn't allow much time between keystrokes, increasing it to avoid request flooding
 					, delay: 600
 					// Remote source with caching
@@ -171,16 +152,6 @@ var zoninator = {};
 		// TODO: move / copy posts to zones
 	}
 
-	zoninator.updateLatest = function() {
-
-		zoninator.$zonePostSearch.trigger('loading.start');
-		zoninator.ajax('update_recent', {
-			zone_id: zoninator.getZoneId(),
-			cat    : zoninator.getAdvancedCat(),
-			date   : zoninator.getAdvancedDate()
-		}, zoninator.addUpdateLatestSuccessCallback);
-	}
-
 	zoninator.addPost = function(postId) {
 
 		zoninator.$zonePostSearch.trigger('loading.start');
@@ -204,6 +175,9 @@ var zoninator = {};
 		;
 
 		zoninator.initZonePost($post);
+
+		// The post is now excluded from suggestions, so fetch them afresh.
+		zoninator.autocompleteCache = {};
 
 		// Reorder Posts
 		zoninator.updatePostOrder(true);
@@ -268,6 +242,7 @@ var zoninator = {};
 
 		$post.fadeOut('slow', function() {
 			$(this).remove();
+			zoninator.autocompleteCache = {};
 			if (zoninator.getZonePostIds().length)
 				zoninator.updatePostOrder(true);
 			zoninator.$zonePostsWrap.trigger('loading.end');

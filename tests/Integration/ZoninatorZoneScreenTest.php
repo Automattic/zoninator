@@ -20,12 +20,44 @@ class Zoninator_Zone_Screen_Test extends TestCase {
 		$zone = Zoninator()->insert_zone( 'screen-zone', 'Screen zone' );
 		return Zoninator()->get_zone( (int) $zone['term_id'] );
 	}
+
+	public function test_zone_content_comes_before_the_zone_details(): void {
+		$output = $this->render_zone_edit( $this->create_zone() );
+
+		$content = strpos( $output, 'Zone content</h2>' );
+		$details = strpos( $output, 'Zone details</h2>' );
+
+		$this->assertIsInt( $content );
+		$this->assertIsInt( $details );
+		$this->assertLessThan( $details, $content );
+	}
+
 	public function test_content_saves_without_a_save_button(): void {
 		$output = $this->render_zone_edit( $this->create_zone() );
 
 		$this->assertStringNotContainsString( 'id="zone-posts-save"', $output );
 		$this->assertStringContainsString( '<div id="zone-posts-notices"></div>', $output );
 		$this->assertStringContainsString( '<span class="spinner"></span>', $output );
+	}
+
+	public function test_one_field_adds_content(): void {
+		$output = $this->render_zone_edit( $this->create_zone() );
+
+		$this->assertStringNotContainsString( 'zone-post-latest', $output );
+		$this->assertStringContainsString( '<label for="zone-post-search">Add content</label>', $output );
+	}
+
+	public function test_new_zone_screen_has_only_the_form(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
+		$output = $this->render_zone_edit();
+
+		$this->assertStringNotContainsString( 'postbox', $output );
+		$this->assertStringContainsString( 'value="Add New Zone"', $output );
+	}
+
+	public function test_existing_zone_is_updated_with_update(): void {
+		$this->assertStringContainsString( 'value="Update"', $this->render_zone_edit( $this->create_zone() ) );
 	}
 
 	public function test_items_show_the_status_label(): void {

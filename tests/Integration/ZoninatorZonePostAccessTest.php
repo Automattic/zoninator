@@ -122,7 +122,7 @@ class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 			'remove post'   => array( 'zoninator_remove_post' ),
 			'reorder posts' => array( 'zoninator_reorder_posts' ),
 			'update lock'   => array( 'zoninator_update_lock' ),
-			'recent posts'  => array( 'zoninator_update_recent' ),
+			'search posts'  => array( 'zoninator_search_posts' ),
 		);
 	}
 

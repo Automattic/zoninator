@@ -60,20 +60,17 @@ class Zoninator_Admin_Accessibility_Test extends TestCase {
 	}
 
 	public function test_zone_content_controls_are_labelled(): void {
+		add_action( 'zoninator_advanced_search_fields', array( Zoninator(), 'zone_advanced_search_cat_filter' ) );
 		add_action( 'zoninator_advanced_search_fields', array( Zoninator(), 'zone_advanced_search_date_filter' ) );
 
 		$output = $this->render_zone_edit();
 
-		$this->assertStringContainsString( '<label for="zone-post-latest">', $output );
-		$this->assertStringContainsString( 'id="zone-post-latest"', $output );
+		$this->assertStringContainsString( '<label for="zone-post-search">', $output );
+		$this->assertStringContainsString( '<label for="zone_advanced_filter_taxonomy" class="screen-reader-text">', $output );
 		$this->assertStringContainsString( '<label for="zone_advanced_filter_date" class="screen-reader-text">', $output );
 		$this->assertStringContainsString( 'aria-describedby="zone-post-search-description"', $output );
 		$this->assertStringContainsString( 'id="zone-post-search-description"', $output );
 		$this->assertMatchesRegularExpression( '#<input type="text" id="zone-name" name="name" value="[^"]*" required />#', $output );
-	}
-
-	public function test_recent_content_is_added_with_a_button(): void {
-		$this->assertMatchesRegularExpression( '#</select>\s*<button type="button" class="button" id="zone-post-latest-add">Add</button>#', $this->render_zone_edit() );
 	}
 
 	public function test_filter_toggle_is_a_button_that_reports_its_state(): void {
@@ -112,7 +109,7 @@ class Zoninator_Admin_Accessibility_Test extends TestCase {
 		unset( $_GET['zone_id'], $_REQUEST['zone_id'] );
 
 		$this->assertSame( 1, substr_count( $output, '<h1' ) );
-		$this->assertStringContainsString( '<h2 class="hndle">Zone Content</h2>', $output );
+		$this->assertStringContainsString( '<h2 class="hndle">Zone content</h2>', $output );
 		$this->assertStringNotContainsString( '<h3>', $output );
 	}
 }
