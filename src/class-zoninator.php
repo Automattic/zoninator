@@ -63,7 +63,15 @@ class Zoninator {
 	 */
 	private $admin_ajax;
 
+	/**
+	 * Zones and the posts in them. The zone data methods here delegate to it.
+	 *
+	 * @var \Automattic\Zoninator\Zones
+	 */
+	private $zones;
+
 	public function __construct() {
+		$this->zones        = new \Automattic\Zoninator\Zones( $this );
 		$this->admin_screen = new \Automattic\Zoninator\Admin\Screen( $this );
 		$this->admin_ajax   = new \Automattic\Zoninator\Admin\Ajax( $this );
 
@@ -353,83 +361,15 @@ class Zoninator {
 	}
 
 	public function insert_zone( $slug, $name = '', $details = array() ) {
-
-		// slug cannot be empty
-		if ( empty( $slug ) ) {
-			return new WP_Error( 'zone-empty-slug', __( 'Slug is a required field.', 'zoninator' ) );
-		}
-
-		$slug = $this->get_formatted_zone_slug( $slug );
-		$name = empty( $name ) ? $slug : $name;
-
-		$details = wp_parse_args( $details, $this->zone_detail_defaults );
-		$details = maybe_serialize( $details );
-
-		$args = array(
-			'slug'        => $slug,
-			'description' => $details,
-		);
-
-		// Filterize to allow other inputs
-		$args = apply_filters( 'zoninator_insert_zone', $args );
-
-		// wp_insert_term() expects slashed data, as it unslashes the name and description.
-		return wp_insert_term( wp_slash( $name ), $this->zone_taxonomy, wp_slash( $args ) );
+		return $this->zones->insert( $slug, $name, $details );
 	}
 
 	public function update_zone( $zone, $data = array() ) {
-		$zone_id = $this->get_zone_id( $zone );
-
-		if ( $this->zone_exists( $zone_id ) ) {
-			$zone = $this->get_zone( $zone );
-
-			$name    = $this->_get_value_or_default( 'name', $data, $zone->name );
-			$slug    = $this->_get_value_or_default( 'slug', $data, $zone->slug, array( $this, 'get_formatted_zone_slug' ) );
-			$details = $this->_get_value_or_default( 'details', $data, array() );
-
-			// Keep the zone's current value for any detail the caller didn't send.
-			$current = array_intersect_key( get_object_vars( $zone ), $this->zone_detail_defaults );
-			$details = wp_parse_args( $details, wp_parse_args( $current, $this->zone_detail_defaults ) );
-			$details = maybe_serialize( $details );
-
-			$args = array(
-				'name'        => $name,
-				'slug'        => $slug,
-				'description' => $details,
-			);
-
-			// Filterize to allow other inputs
-			$args = apply_filters( 'zoninator_update_zone', $args, $zone_id, $zone );
-
-			// wp_update_term() expects slashed data, as it unslashes the name and description.
-			return wp_update_term( $zone_id, $this->zone_taxonomy, wp_slash( $args ) );
-		}
-
-		return new WP_Error( 'invalid-zone', __( "Sorry, that zone doesn't exist.", 'zoninator' ) );
+		return $this->zones->update( $zone, $data );
 	}
 
 	public function delete_zone( $zone ) {
-		$zone_id  = $this->get_zone_id( $zone );
-		$meta_key = $this->get_zone_meta_key( $zone );
-
-		$this->_empty_zone_posts_cache( $meta_key );
-
-		if ( $this->zone_exists( $zone_id ) ) {
-			// Delete all post associations for the zone
-			$this->remove_zone_posts( $zone_id );
-
-			// Delete the term
-			$delete = wp_delete_term( $zone_id, $this->zone_taxonomy );
-
-			if ( ! $delete ) {
-				return new WP_Error( 'delete-zone', __( "Sorry, we couldn't delete the zone.", 'zoninator' ) );
-			} else {
-				do_action( 'zoninator_delete_zone', $zone_id );
-				return $delete;
-			}
-		}
-
-		return new WP_Error( 'invalid-zone', __( "Sorry, that zone doesn't exist.", 'zoninator' ) );
+		return $this->zones->delete( $zone );
 	}
 
 	/**
@@ -439,35 +379,7 @@ class Zoninator {
 	 * @return bool|WP_Error
 	 */
 	public function add_zone_posts( $zone, $posts, $append = false ) {
-		$zone     = $this->get_zone( $zone );
-		$meta_key = $this->get_zone_meta_key( $zone );
-
-		$this->_empty_zone_posts_cache( $meta_key );
-
-		if ( $append ) {
-			// Order should be the highest post order
-			$last_post = $this->get_last_post_in_zone( $zone );
-			$order     = $last_post ? $this->get_post_order( $last_post, $zone ) : 0;
-		} else {
-			$order = 0;
-			$this->remove_zone_posts( $zone );
-		}
-
-		foreach ( (array) $posts as $post ) {
-			$post_id = $this->get_post_id( $post );
-			if ( $post_id ) {
-				++$order;
-				update_metadata( 'post', $post_id, $meta_key, $order, true );
-			}
-
-			// TODO: remove_object_terms -- but need remove object terms function :(
-		}
-
-		clean_term_cache( $this->get_zone_id( $zone ), $this->zone_taxonomy ); // flush cache for our zone term and related APC caches
-
-		do_action( 'zoninator_add_zone_posts', $posts, $zone );
-
-		return true;
+		return $this->zones->add_posts( $zone, $posts, $append );
 	}
 
 	/**
@@ -477,142 +389,35 @@ class Zoninator {
 	 * @return bool|WP_Error
 	 */
 	public function remove_zone_posts( $zone, $posts = null ) {
-		$zone     = $this->get_zone( $zone );
-		$meta_key = $this->get_zone_meta_key( $zone );
-
-		$this->_empty_zone_posts_cache( $meta_key );
-
-		// if null, delete all
-		if ( ! $posts ) {
-			$posts = $this->get_zone_posts( $zone );
-		}
-
-		foreach ( (array) $posts as $post ) {
-			$post_id = $this->get_post_id( $post );
-			if ( $post_id ) {
-				delete_metadata( 'post', $post_id, $meta_key );
-			}
-		}
-
-		clean_term_cache( $this->get_zone_id( $zone ), $this->zone_taxonomy ); // flush cache for our zone term and related APC caches
-
-		do_action( 'zoninator_remove_zone_posts', $posts, $zone );
+		return $this->zones->remove_posts( $zone, $posts );
 	}
 
 	public function get_zone_posts( $zone, $args = array() ) {
-		// Check cache first
-		$posts = $this->get_zone_posts_from_cache( $zone, $args );
-		if ( $posts ) {
-			return $posts;
-		}
-
-		$query = $this->get_zone_query( $zone, $args );
-		$posts = $query->posts;
-
-		// Add posts to cache
-		$this->add_zone_posts_to_cache( $posts, $zone, $args );
-
-		return $posts;
+		return $this->zones->get_posts( $zone, $args );
 	}
 
 	public function get_zone_query( $zone, $args = array() ) {
-		$meta_key = $this->get_zone_meta_key( $zone );
-
-		$defaults = array(
-			'order'               => 'ASC',
-			// phpcs:ignore WordPressVIPMinimum.Performance.NoPaging.posts_per_page_posts_per_page -- Zones are hand-curated and small; callers expect every post in the zone, and can pass their own limit.
-			'posts_per_page'      => -1,
-			'post_type'           => $this->get_supported_post_types(),
-			'ignore_sticky_posts' => '1', // don't want sticky posts messing up our order
-		);
-
-		// Default to published posts, except for zone managers in the admin.
-		// is_admin() alone is true for every admin-ajax.php and admin-post.php
-		// request, including logged-out ones.
-		if ( ! is_admin() || ! $this->_current_user_can_manage_zones() ) {
-			$defaults['post_status'] = array( 'publish' );
-		}
-
-		if ( is_admin() ) { // skip APC in the admin
-			// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters
-			$defaults['suppress_filters'] = true;
-		}
-
-		$args = wp_parse_args( $args, $defaults );
-
-		// Un-overridable args
-		$args['orderby']  = 'meta_value_num';
-		$args['meta_key'] = $meta_key;
-
-		return new WP_Query( $args );
+		return $this->zones->get_query( $zone, $args );
 	}
 
 	public function get_last_post_in_zone( $zone ) {
-		return $this->get_single_post_in_zone(
-			$zone,
-			array(
-				'order' => 'DESC',
-			)
-		);
+		return $this->zones->get_last_post( $zone );
 	}
 
 	public function get_first_post_in_zone( $zone ) {
-		return $this->get_single_post_in_zone( $zone );
+		return $this->zones->get_first_post( $zone );
 	}
 
 	public function get_prev_post_in_zone( $zone, $post_id ) {
-		return $this->get_adjacent_post_in_zone( $zone, $post_id, '<', 'DESC' );
+		return $this->zones->get_prev_post( $zone, $post_id );
 	}
 
 	public function get_next_post_in_zone( $zone, $post_id ) {
-		return $this->get_adjacent_post_in_zone( $zone, $post_id, '>', 'ASC' );
-	}
-
-	/**
-	 * Get the post just before or after a post in a zone.
-	 *
-	 * @param int|string|WP_Term $zone    Zone.
-	 * @param int|WP_Post        $post_id Post in the zone.
-	 * @param string             $compare '<' for the post before, '>' for the post after.
-	 * @param string             $order   'DESC' for the post before, 'ASC' for the post after.
-	 * @return WP_Post|false The adjacent post, or false if there's none or the post isn't in the zone.
-	 */
-	private function get_adjacent_post_in_zone( $zone, $post_id, $compare, $order ) {
-		$position = $this->get_post_order( $post_id, $zone );
-
-		if ( '' === $position || false === $position ) {
-			return false;
-		}
-
-		return $this->get_single_post_in_zone(
-			$zone,
-			array(
-				'order'        => $order,
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-				'meta_value'   => (int) $position,
-				'meta_compare' => $compare,
-				'meta_type'    => 'NUMERIC',
-			)
-		);
+		return $this->zones->get_next_post( $zone, $post_id );
 	}
 
 	public function get_single_post_in_zone( $zone, $args = array() ) {
-
-		$args = wp_parse_args(
-			$args,
-			array(
-				'posts_per_page' => 1,
-				'showposts'      => 1,
-			)
-		);
-
-		$post = $this->get_zone_posts( $zone, $args );
-
-		if ( is_array( $post ) && array() !== $post ) {
-			return array_pop( $post );
-		}
-
-		return false;
+		return $this->zones->get_single_post( $zone, $args );
 	}
 
 	public function get_zones_for_post( $post_id ) {
@@ -620,52 +425,11 @@ class Zoninator {
 	}
 
 	public function get_zones( $args = array() ) {
-
-		$args = wp_parse_args(
-			$args,
-			array(
-				'orderby'    => 'id',
-				'order'      => 'ASC',
-				'hide_empty' => 0,
-			)
-		);
-
-		// Always the zone taxonomy, as the old get_terms( $taxonomy, $args ) call ensured.
-		$args['taxonomy'] = $this->zone_taxonomy;
-
-		$zones = get_terms( $args );
-
-		if ( ! is_wp_error( $zones ) ) {
-			// Add extra fields in description as properties
-			foreach ( $zones as $key => $zone ) {
-				$zones[ $key ] = $this->_fill_zone_details( $zone );
-			}
-
-			return $zones;
-		}
-
-		return false;
+		return $this->zones->get_all( $args );
 	}
 
 	public function get_zone( $zone ) {
-		if ( is_int( $zone ) ) {
-			$field = 'id';
-		} elseif ( is_string( $zone ) ) {
-			$field = 'slug';
-			$zone  = $this->get_zone_slug( $zone );
-		} elseif ( is_object( $zone ) ) {
-			return $zone;
-		} else {
-			return false;
-		}
-
-		$zone = get_term_by( $field, $zone, $this->zone_taxonomy );
-
-		if ( ! $zone ) {
-			return false;
-		}
-
-		return $this->_fill_zone_details( $zone );
+		return $this->zones->get( $zone );
 	}
 
 	public function lock_zone( $zone, $user_id = 0 ) {
@@ -721,38 +485,19 @@ class Zoninator {
 	}
 
 	public function zone_exists( $zone ) {
-		$zone_id = $this->get_zone_id( $zone );
-		return (bool) term_exists( $zone_id, $this->zone_taxonomy );
+		return $this->zones->exists( $zone );
 	}
 
 	public function get_zone_id( $zone ) {
-		if ( is_int( $zone ) ) {
-			return $zone;
-		}
-
-		$zone = $this->get_zone( $zone );
-		if ( is_object( $zone ) ) {
-			$zone = $zone->term_id;
-		}
-
-		return (int) $zone;
+		return $this->zones->get_id( $zone );
 	}
 
 	public function get_zone_meta_key( $zone ) {
-		$zone_id = $this->get_zone_id( $zone );
-		return $this->zone_meta_prefix . $zone_id;
+		return $this->zones->get_meta_key( $zone );
 	}
 
 	public function get_zone_slug( $zone ) {
-		if ( is_int( $zone ) ) {
-			$zone = $this->get_zone( $zone );
-		}
-
-		if ( is_object( $zone ) ) {
-			$zone = $zone->slug;
-		}
-
-		return $this->get_formatted_zone_slug( $zone );
+		return $this->zones->get_slug( $zone );
 	}
 
 	public function get_formatted_zone_slug( $slug ) {
@@ -764,15 +509,7 @@ class Zoninator {
 	}
 
 	public function get_post_id( $post ) {
-		if ( is_int( $post ) ) {
-			return $post;
-		} elseif ( is_array( $post ) ) {
-			return absint( $post['ID'] );
-		} elseif ( is_object( $post ) ) {
-			return $post->ID;
-		}
-
-		return false;
+		return $this->zones->get_post_id( $post );
 	}
 
 	/**
@@ -794,10 +531,7 @@ class Zoninator {
 	}
 
 	public function get_post_order( $post, $zone ) {
-		$post_id  = $this->get_post_id( $post );
-		$meta_key = $this->get_zone_meta_key( $zone );
-
-		return get_metadata( 'post', $post_id, $meta_key, true );
+		return $this->zones->get_post_order( $post, $zone );
 	}
 
 	public function verify_nonce( $action ) {
@@ -839,67 +573,8 @@ class Zoninator {
 		wp_die( esc_html__( "Sorry, you're not supposed to do that...", 'zoninator' ) );
 	}
 
-	/**
-	 * Recount the string lengths in a serialised value.
-	 *
-	 * Earlier versions stored a description with non-ASCII characters with its
-	 * length counted before core decoded its HTML entities, so it no longer
-	 * unserialised. The text is intact, so recounting recovers it.
-	 *
-	 * Limitation: this assumes no stored string contains `";`. The sanitisers
-	 * encode `"`, so saved zone details don't; if one does, unserialize() still
-	 * fails safely and the description reads as empty, as before.
-	 *
-	 * @param string $serialized Serialised value.
-	 * @return string
-	 */
-	private function repair_serialized_lengths( $serialized ) {
-		return preg_replace_callback(
-			'/s:\d+:"(.*?)";/s',
-			static function ( $matches ) {
-				return 's:' . strlen( $matches[1] ) . ':"' . $matches[1] . '";';
-			},
-			$serialized
-		);
-	}
-
 	public function _fill_zone_details( $zone ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		// get_terms() gives ids or names instead of terms when the fields arg is set.
-		if ( ! is_object( $zone ) ) {
-			return $zone;
-		}
-
-		if ( ! empty( $zone->zoninator_parsed ) && $zone->zoninator_parsed ) {
-			return $zone;
-		}
-
-		$details = array();
-
-		if ( ! empty( $zone->description ) && is_serialized( $zone->description ) ) {
-			// Disallow object instantiation to prevent PHP object injection if a
-			// crafted serialized payload reaches the term description via any path.
-			// Silenced because unserialize() can still emit notices on truncated or
-			// malformed payloads that pass is_serialized().
-			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
-			$unserialized = @unserialize( trim( $zone->description ), array( 'allowed_classes' => false ) );
-			if ( false === $unserialized ) {
-				// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
-				$unserialized = @unserialize( $this->repair_serialized_lengths( trim( $zone->description ) ), array( 'allowed_classes' => false ) );
-			}
-			if ( is_array( $unserialized ) ) {
-				$details = $unserialized;
-			}
-		}
-
-		$details = wp_parse_args( $details, $this->zone_detail_defaults );
-
-		foreach ( $details as $detail_key => $detail_value ) {
-			$zone->$detail_key = $detail_value;
-		}
-
-		$zone->zoninator_parsed = true;
-
-		return $zone;
+		return $this->zones->fill_details( $zone );
 	}
 
 	public function do_zoninator_feeds() {
@@ -1009,18 +684,7 @@ class Zoninator {
 
 	// Handle 4.2 term-splitting
 	public function split_shared_term( $old_term_id, $new_term_id, $term_taxonomy_id, $taxonomy ) {
-		if ( $this->zone_taxonomy === $taxonomy ) {
-			do_action( 'zoninator_split_shared_term', $old_term_id, $new_term_id, $term_taxonomy_id );
-
-			// Quick, easy switcheroo; add posts to new zone id and remove from the old one.
-			$posts = $this->get_zone_posts( $old_term_id );
-			if ( ! empty( $posts ) ) {
-				$this->add_zone_posts( $new_term_id, $posts );
-				$this->remove_zone_posts( $old_term_id );
-			}
-
-			do_action( 'zoninator_did_split_shared_term', $old_term_id, $new_term_id, $term_taxonomy_id );
-		}
+		return $this->zones->split_shared_term( $old_term_id, $new_term_id, $term_taxonomy_id, $taxonomy );
 	}
 
 	public function _empty_zone_posts_cache( $meta_key ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
