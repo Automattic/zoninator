@@ -198,6 +198,8 @@ Fires after the copy is complete.
 
 ## JSON feed at `/zones/{slug}/feed.json`
 
+These fire from `src/class-feed.php`.
+
 ### `zoninator_zone_feed_fields` (filter)
 
 Fields included in each post in the JSON feed. Defaults to `[ 'ID', 'post_date', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'guid' ]`.
