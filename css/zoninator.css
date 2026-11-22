@@ -269,6 +269,17 @@
 	line-height: 17px;
 }
 
+.ui-autocomplete .ui-menu-item-wrapper {
+	overflow: hidden;
+}
+
+.ui-autocomplete .ui-menu-item-wrapper.ui-state-active {
+	background: #f0f0f1;
+	color: #1d2327;
+	outline: 2px solid #2271b1;
+	outline-offset: -2px;
+}
+
 .ui-autocomplete .ui-corner-all {
 	padding-top: 5px;
 	padding-bottom: 5px;

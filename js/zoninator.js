@@ -117,6 +117,10 @@ var zoninator = {};
 						zoninator.$zonePostSearch.trigger('search.request', request);
 
 						zoninator.autocompleteAjax = $.getJSON(ajaxurl, request, function(data, status, xhr) {
+							// Give each result a value, so moving through them with the arrow keys shows and announces its title.
+							data = $.map(data, function(item) {
+								return $.extend({ value: item.title }, item);
+							});
 							zoninator.autocompleteCache[term] = data;
 							if (xhr === zoninator.autocompleteAjax) {
 								response(data);
@@ -126,6 +130,8 @@ var zoninator = {};
 					}
 					, select : function(e, ui) {
 						zoninator.addPost(ui.item.post_id);
+						$(this).val('');
+						return false;
 					}
 					, search : function(e, ui) {
 						zoninator.$zonePostSearch.trigger('loading.start');
@@ -142,6 +148,7 @@ var zoninator = {};
 					.append($('<span class="date"></span>').text(item.date))
 					.append($('<span class="status"></span>').text(item.post_status));
 				return $('<li></li>')
+					.attr('aria-label', [item.title, item.post_type, item.date, item.post_status].join(', '))
 					.data('item.autocomplete', item)
 					.append($anchor)
 					.appendTo(ul)
