@@ -51,7 +51,7 @@ Creates a new zone.
 
 Send `name`, `slug` or both: with neither, the zone isn't created.
 
-**Response:** the created zone, with status `201`. `400` with a `message` if the zone couldn't be created, such as when neither `name` nor `slug` was sent.
+**Response:** the created zone, with status `201`. `400` if the zone couldn't be created, such as when neither `name` nor `slug` was sent.
 
 ### `PUT /zoninator/v1/zones/{zone_id}`
 
@@ -185,18 +185,30 @@ Look up the holder via the WordPress users API if you need to display them.
 
 ## Errors
 
-Most errors are a JSON object with a `message` describing the problem in the site's language:
+Errors use core's REST error shape, with a `code`, a `message` in the site's language, and the status:
 
-| Status | When |
-|---|---|
-| `400` | The request can't be carried out, such as a post that isn't of a zone post type the user can read, or a zone that couldn't be saved. The body is just `{ "message": "…" }`. |
-| `400` | A parameter fails validation, such as a non-numeric `post_ids` entry. Core returns these, with the code `rest_invalid_param`. |
-| `401` / `403` | The capability check failed: `401` when logged out, `403` when logged in. The code is `permission-denied`. Before 0.12.0, refused writes returned `500`. |
-| `404` | The zone in the path doesn't exist. The body is just `{ "message": "…" }`. |
+```json
+{
+  "code": "zone-not-found",
+  "message": "Zone not found",
+  "data": { "status": 404 }
+}
+```
 
-The lock endpoint's `400`, when someone else holds the lock, has the body shown above instead. A feed error on `GET /zones/{zone_id}/posts` has the code `zone-feed-error`.
+| Status | Code | When |
+|---|---|---|
+| `400` | `invalid-post-id` | A post isn't of a zone post type that the user can read. |
+| `400` | `rest_invalid_param` | A parameter fails validation, such as a non-numeric `post_ids` entry. |
+| `400` | from WordPress, such as `term_exists` | A zone couldn't be created, updated or deleted. Creating a zone with neither `name` nor `slug` gives `zone-empty-slug`. |
+| `400` | `zone-id-required` | `PUT /zones/0/lock`: the lock endpoint needs a zone ID. |
+| `400` | `zones-read-error` | `GET /zones` couldn't read the zones. |
+| `400` | `zone-feed-error` | `GET /zones/{zone_id}/posts` couldn't assemble the zone's posts. |
+| `401` / `403` | `permission-denied` | The capability check failed: `401` when logged out, `403` when logged in. |
+| `404` | `zone-not-found` | The zone in the path doesn't exist. |
 
-`Automattic\Zoninator\REST\Zones_Controller` defines more error code constants, such as `INVALID_ZONE_ID` and `POST_NOT_FOUND`, but the endpoints don't return them as codes. Match on the status, not the code.
+The codes are constants on `Automattic\Zoninator\REST\Zones_Controller`, such as `Zones_Controller::ZONE_NOT_FOUND`. Since 0.12.0 every error has a code; before, the `400` and `404` responses had only a `message`, and refused requests got `500`.
+
+The lock endpoint's `400`, when someone else holds the lock, isn't an error in this shape: it has the body shown above.
 
 ## Implementation notes
 
