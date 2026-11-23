@@ -24,6 +24,8 @@ use Automattic\Zoninator\Zones;
  *
  * Since 0.12.0 the screen uses the zoninator/v1 REST API instead, so every
  * action here is deprecated, and this class goes in 1.0.0.
+ *
+ * @since 0.12.0
  */
 final class Ajax {
 

@@ -14,6 +14,8 @@ namespace Automattic\Zoninator;
  *
  * Zoninator keeps a public method for each of these under its original name
  * (lock_zone() for lock(), and so on), which delegates here.
+ *
+ * @since 0.12.0
  */
 final class Locks {
 

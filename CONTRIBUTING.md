@@ -17,7 +17,7 @@ The more specific you are, the easier it is to fix the bug. A good report includ
 
 1. **Versions** — Zoninator, WordPress, PHP, single-site or multisite.
 2. **Reproduction steps** — start from a known state ("with all other plugins disabled and a default theme active…").
-3. **Expected vs actual behaviour** — even when it feels obvious, write it down.
+3. **Expected vs actual behavior** — even when it feels obvious, write it down.
 4. **A screenshot or short clip** if it's a UI issue.
 
 Before opening an issue, please check the [existing issues](https://github.com/Automattic/zoninator/issues) and the [WordPress.org support forum](https://wordpress.org/support/plugin/zoninator/) — your report might already be there.
@@ -25,9 +25,9 @@ Before opening an issue, please check the [existing issues](https://github.com/A
 ## Pull requests
 
 - Branch from `develop`. Releases are merged into `main` and tagged from there.
-- Use a descriptive branch name: `fix/zone-lock-race`, `feature/cli-zone-create`, etc.
+- Use a descriptive branch name: `fix/zone-lock-race`, `feature/zone-post-search`, etc.
 - Keep the change focused. If you spot a separate issue while working on a fix, open a separate PR.
-- Include tests for behaviour changes. See [tests/README.md](tests/README.md) for how to run them.
+- Include tests for behavior changes. See [tests/README.md](tests/README.md) for how to run them.
 - Make sure `composer cs` and `composer test:integration` pass locally before pushing.
 - Write a clear commit message — the "why" matters more than the "what". The first line is a summary; details go below.
 - **Sign your commits.** `develop` and `main` only accept commits with a verified signature, so a pull request with an unsigned commit cannot be merged until it is re-signed and force-pushed. See GitHub's guide to [signing commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits).

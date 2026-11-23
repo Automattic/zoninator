@@ -16,6 +16,8 @@ use WP_Error;
  * Zoninator keeps a public method for each of these under its original name
  * (do_zoninator_feeds() for serve(), get_zone_feed() for get(), and so on),
  * which delegates here. Its hooks stay registered on Zoninator.
+ *
+ * @since 0.12.0
  */
 final class Feed {
 

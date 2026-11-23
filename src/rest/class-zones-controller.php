@@ -23,6 +23,8 @@ use Automattic\Zoninator\Zones;
 
 /**
  * Zones, their posts and their locks.
+ *
+ * @since 0.12.0
  */
 final class Zones_Controller extends WP_REST_Controller {
 	public const ZONE_ITEM_URL_REGEX = '/zones/(?P<zone_id>[\d]+)';
@@ -686,7 +688,7 @@ final class Zones_Controller extends WP_REST_Controller {
 		/**
 		 * Filter whether the GET /zones REST endpoint authorises the request.
 		 *
-		 * @param bool            $authorised Whether the caller may list zones.
+		 * @param bool            $authorized Whether the caller may list zones.
 		 * @param WP_REST_Request $request    The current REST request.
 		 */
 		return (bool) apply_filters( 'zoninator_rest_get_zones_permissions_check', is_user_logged_in(), $request );

@@ -14,6 +14,8 @@ namespace Automattic\Zoninator;
  * Zoninator keeps a public method for each of these under its original name
  * (get_supported_post_types() for get_post_types(), and
  * register_zone_post_type() for add_post_types()), which delegates here.
+ *
+ * @since 0.12.0
  */
 final class Taxonomy {
 
