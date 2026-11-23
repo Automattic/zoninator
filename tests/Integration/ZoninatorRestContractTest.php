@@ -235,7 +235,7 @@ final class ZoninatorRestContractTest extends TestCase {
 			)
 		);
 
-		$this->assert_rest_error( $response, 400, 'term_exists' );
+		$this->assert_rest_error( $response, 400, 'term_exists', 'A term with the name provided already exists in this taxonomy.' );
 	}
 
 	public function test_create_zone_keeps_backslashes(): void {
@@ -421,6 +421,7 @@ final class ZoninatorRestContractTest extends TestCase {
 		$row = ob_get_clean();
 
 		$this->assertSame( 201, $response->get_status() );
+		$this->assertStringContainsString( 'data-post-id="' . $post_id . '"', $row );
 		$this->assertSame( array( 'html' => $row ), $response->get_data() );
 		$this->assertSame( array( $first_id, $post_id ), wp_list_pluck( Zoninator()->get_zone_posts( $zone_id ), 'ID' ) );
 	}

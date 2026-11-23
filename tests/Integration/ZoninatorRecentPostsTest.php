@@ -73,15 +73,14 @@ class ZoninatorRecentPostsTest extends WP_Ajax_UnitTestCase {
 		remove_filter( 'query', $logger );
 
 		// The slow NOT IN clause from issue #75 must not be used.
+		$this->assertNotEmpty( $queries );
 		foreach ( $queries as $query ) {
 			$this->assertDoesNotMatchRegularExpression( '/\.ID NOT IN/', $query );
 		}
 
 		$listed = array_map( 'intval', wp_list_pluck( json_decode( $this->_last_response, true ), 'post_id' ) );
 
-		$this->assertCount( $limit, $listed );
-		foreach ( $zone_post_ids as $zone_post_id ) {
-			$this->assertNotContains( $zone_post_id, $listed );
-		}
+		// A full page of the newest posts that aren't in the zone, newest first.
+		$this->assertSame( array_reverse( array_slice( $post_ids, 0, $limit ) ), $listed );
 	}
 }

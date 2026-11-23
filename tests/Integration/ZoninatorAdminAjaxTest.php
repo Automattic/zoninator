@@ -62,6 +62,7 @@ class ZoninatorAdminAjaxTest extends WP_Ajax_UnitTestCase {
 
 		$this->assertSame( array( 'status', 'content', 'nonce' ), array_keys( $response ) );
 		$this->assertSame( 1, $response['status'] );
+		$this->assertStringContainsString( 'data-post-id="' . $post_id . '"', $response['content'] );
 		$this->assertSame( $this->render_zone_post( $post_id ), $response['content'] );
 		$this->assertNotFalse( wp_verify_nonce( $response['nonce'], $this->ajax_nonce_action() ) );
 		$this->assertSame( '2', $this->zone_order( $post_id ) );
