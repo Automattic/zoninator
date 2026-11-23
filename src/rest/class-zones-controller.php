@@ -509,6 +509,21 @@ final class Zones_Controller extends WP_REST_Controller {
 	public function find_posts( $term, $cat, $date, $exclude, $limit = 0 ) {
 		$post_types = $this->taxonomy->get_post_types();
 
+		// A post ID finds that post directly, which skips the slow LIKE search. If
+		// it isn't a post that could go in the zone, search the text as usual, so a
+		// number in a title, such as "1984", still matches.
+		if ( ctype_digit( $term ) ) {
+			$post = get_post( (int) $term );
+
+			if ( $post
+				&& $this->capabilities->current_user_can_add_post_to_zone( $post )
+				&& in_array( $post->post_status, array( 'publish', 'future' ), true )
+				&& ! in_array( $post->ID, array_map( 'absint', (array) $exclude ), true )
+			) {
+				return array( $this->format_search_result( $post ) );
+			}
+		}
+
 		if ( '' === $term ) {
 			// With nothing typed yet, offer the latest content.
 			$args = apply_filters(
@@ -553,24 +568,29 @@ final class Zones_Controller extends WP_REST_Controller {
 			$args['day']      = $date_parts[2];
 		}
 
-		$results = array();
-		foreach ( $this->get_posts_excluding( $args, $exclude ) as $post ) {
-			$results[] = apply_filters(
-				'zoninator_search_results_post',
-				array(
-					'title'             => empty( $post->post_title ) ? __( '(no title)', 'zoninator' ) : $post->post_title,
-					'post_id'           => $post->ID,
-					'date'              => get_the_time( get_option( 'date_format' ), $post ),
-					'post_type'         => $post->post_type,
-					'post_type_label'   => $this->zones->get_post_type_label( $post ),
-					'post_status'       => $post->post_status,
-					'post_status_label' => $this->zones->get_post_status_label( $post ),
-				),
-				$post
-			);
-		}
+		return array_map( array( $this, 'format_search_result' ), $this->get_posts_excluding( $args, $exclude ) );
+	}
 
-		return $results;
+	/**
+	 * Formats a post as a search result.
+	 *
+	 * @param \WP_Post $post Post.
+	 * @return array The result, passed through the zoninator_search_results_post filter.
+	 */
+	private function format_search_result( $post ) {
+		return apply_filters(
+			'zoninator_search_results_post',
+			array(
+				'title'             => empty( $post->post_title ) ? __( '(no title)', 'zoninator' ) : $post->post_title,
+				'post_id'           => $post->ID,
+				'date'              => get_the_time( get_option( 'date_format' ), $post ),
+				'post_type'         => $post->post_type,
+				'post_type_label'   => $this->zones->get_post_type_label( $post ),
+				'post_status'       => $post->post_status,
+				'post_status_label' => $this->zones->get_post_status_label( $post ),
+			),
+			$post
+		);
 	}
 
 	/**

@@ -638,7 +638,7 @@ final class Screen {
 	<div class="zone-search-wrapper">
 		<label for="zone-post-search"><?php esc_html_e( 'Add content', 'zoninator' ); ?></label>
 		<input type="text" id="zone-post-search" name="search" class="large-text" aria-describedby="zone-post-search-description" />
-		<p class="description" id="zone-post-search-description"><?php esc_html_e( 'Type to search, or choose from the latest content.', 'zoninator' ); ?></p>
+		<p class="description" id="zone-post-search-description"><?php esc_html_e( 'Type a title or post ID to search, or choose from the latest content.', 'zoninator' ); ?></p>
 		<?php $this->render_search_filters(); ?>
 	</div>
 		<?php

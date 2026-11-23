@@ -586,6 +586,52 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( 'added', $response->get_data()[0]['extra'] );
 	}
 
+	public function test_search_by_post_id_returns_that_post_without_a_text_search(): void {
+		$post_id = self::factory()->post->create( array( 'post_title' => 'Found by ID' ) );
+		$queries = array();
+		$logger  = static function ( $query ) use ( &$queries ) {
+			$queries[] = $query;
+			return $query;
+		};
+		add_filter( 'query', $logger );
+
+		$response = $this->dispatch( 'GET', '/search', array( 'term' => (string) $post_id ) );
+
+		remove_filter( 'query', $logger );
+		$this->assertSame( array( $post_id ), wp_list_pluck( $response->get_data(), 'post_id' ) );
+		$this->assertSame( 'Found by ID', $response->get_data()[0]['title'] );
+		foreach ( $queries as $query ) {
+			$this->assertStringNotContainsString( 'LIKE', $query );
+		}
+	}
+
+	/**
+	 * Factory post titles hold sequence numbers that can contain an ID, so
+	 * these check which posts come back rather than the whole list.
+	 */
+	public function test_search_by_post_id_falls_back_to_text_for_a_post_it_cannot_offer(): void {
+		$draft_id    = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		$excluded_id = self::factory()->post->create();
+		$page_id     = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$titled_id   = self::factory()->post->create( array( 'post_title' => "Number $draft_id" ) );
+
+		$draft_ids = wp_list_pluck( $this->dispatch( 'GET', '/search', array( 'term' => (string) $draft_id ) )->get_data(), 'post_id' );
+		$this->assertContains( $titled_id, $draft_ids );
+		$this->assertNotContains( $draft_id, $draft_ids );
+
+		$excluded = $this->dispatch(
+			'GET',
+			'/search',
+			array(
+				'term'    => (string) $excluded_id,
+				'exclude' => array( $excluded_id ),
+			)
+		);
+		$this->assertNotContains( $excluded_id, wp_list_pluck( $excluded->get_data(), 'post_id' ) );
+
+		$this->assertNotContains( $page_id, wp_list_pluck( $this->dispatch( 'GET', '/search', array( 'term' => (string) $page_id ) )->get_data(), 'post_id' ) );
+	}
+
 	public function test_search_rejects_a_limit_over_100(): void {
 		$response = $this->dispatch(
 			'GET',
