@@ -18,6 +18,10 @@ use Zoninator;
  * delegates here. Hooks are registered on it, so array( Zoninator(), 'method' )
  * keeps working as a callback. Callbacks this class hands to WordPress point
  * at Zoninator too, for the same reason.
+ *
+ * Since 0.12.0 the screen adds, removes, reorders and searches through the
+ * zoninator/v1 REST API instead. Those four actions are deprecated and go in
+ * 1.0.0. Only the lock still uses admin-ajax.
  */
 final class Ajax {
 
@@ -161,77 +165,19 @@ final class Ajax {
 		$this->zoninator->verify_nonce( self::NONCE_ACTION );
 		$this->zoninator->verify_access();
 
-		$q           = $this->zoninator->_get_request_var( 'term', '', 'stripslashes' );
-		$filter_cat  = $this->zoninator->_get_request_var( 'cat', '', 'absint' );
-		$filter_date = $this->zoninator->_get_request_var( 'date', '', 'striptags' );
-		$exclude     = (array) $this->zoninator->_get_request_var( 'exclude', array(), 'absint' );
-		$post_types  = $this->zoninator->get_supported_post_types();
+		// The REST search route does the work, so both apply the same filters.
+		require_once dirname( __DIR__ ) . '/rest/class-zones-controller.php';
+		$controller = new \Automattic\Zoninator\REST\Zones_Controller( $this->zoninator );
 
-		if ( '' === $q ) {
-			// With nothing typed yet, offer the latest content.
-			$args = apply_filters(
-				'zoninator_recent_posts_args',
-				array(
-					'posts_per_page'      => $this->zoninator->get_posts_per_page(),
-					'order'               => 'DESC',
-					'orderby'             => 'post_date',
-					'post_type'           => $post_types,
-					'ignore_sticky_posts' => true,
-					'post_status'         => array( 'publish', 'future' ),
-					'suppress_filters'    => false,
-				)
-			);
-		} else {
-			$limit = $this->zoninator->_get_request_var( 'limit', $this->zoninator->get_posts_per_page() );
-			if ( $limit <= 0 ) {
-				$limit = $this->zoninator->get_posts_per_page();
-			}
-
-			$args = apply_filters(
-				'zoninator_search_args',
-				array(
-					's'                => $q,
-					'posts_per_page'   => $limit,
-					'post_type'        => $post_types,
-					'post_status'      => array( 'publish', 'future' ),
-					'order'            => 'DESC',
-					'orderby'          => 'post_date',
-					// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters
-					'suppress_filters' => true,
-					'no_found_rows'    => true,
-				)
-			);
-		}
-
-		if ( $this->zoninator->_validate_category_filter( $filter_cat ) ) {
-			$args['cat'] = $filter_cat;
-		}
-
-		if ( $this->zoninator->_validate_date_filter( $filter_date ) ) {
-			$filter_date_parts = explode( '-', $filter_date );
-			$args['year']      = $filter_date_parts[0];
-			$args['monthnum']  = $filter_date_parts[1];
-			$args['day']       = $filter_date_parts[2];
-		}
-
-		$stripped_posts = array();
-		foreach ( $this->get_posts_excluding( $args, $exclude ) as $post ) {
-			$stripped_posts[] = apply_filters(
-				'zoninator_search_results_post',
-				array(
-					'title'             => empty( $post->post_title ) ? __( '(no title)', 'zoninator' ) : $post->post_title,
-					'post_id'           => $post->ID,
-					'date'              => get_the_time( get_option( 'date_format' ), $post ),
-					'post_type'         => $post->post_type,
-					'post_type_label'   => $this->zoninator->get_post_type_label( $post ),
-					'post_status'       => $post->post_status,
-					'post_status_label' => $this->zoninator->get_post_status_label( $post ),
-				),
-				$post
-			);
-		}
-
-		wp_send_json( $stripped_posts );
+		wp_send_json(
+			$controller->find_posts(
+				$this->zoninator->_get_request_var( 'term', '', 'stripslashes' ),
+				$this->zoninator->_get_request_var( 'cat', '', 'absint' ),
+				$this->zoninator->_get_request_var( 'date', '', 'striptags' ),
+				(array) $this->zoninator->_get_request_var( 'exclude', array(), 'absint' ),
+				absint( $this->zoninator->_get_request_var( 'limit', 0 ) )
+			)
+		);
 	}
 
 	public function update_lock() {
@@ -248,40 +194,5 @@ final class Ajax {
 			$this->zoninator->lock_zone( $zone_id );
 			$this->respond( 1, '' );
 		}
-	}
-
-	/**
-	 * Get posts but leave out the given IDs, without a NOT IN clause.
-	 *
-	 * NOT IN gets slow on big posts tables, so we fetch a few more rows
-	 * and drop the excluded ones in PHP.
-	 *
-	 * The search sends the IDs to exclude in the request, so at most 100 extra
-	 * rows are fetched, whatever the request holds. Zones are hand-curated and
-	 * small, so this only shortens the list when over 100 excluded posts are
-	 * among the newest matches.
-	 *
-	 * @param array $args    WP_Query args.
-	 * @param array $exclude Post IDs to leave out.
-	 * @return WP_Post[]
-	 */
-	private function get_posts_excluding( $args, $exclude ) {
-		$exclude = array_unique( array_map( 'absint', (array) $exclude ) );
-		$limit   = isset( $args['posts_per_page'] ) ? (int) $args['posts_per_page'] : 0;
-
-		if ( $limit > 0 ) {
-			$args['posts_per_page'] = $limit + min( count( $exclude ), 100 );
-		}
-
-		$posts = array_values(
-			array_filter(
-				get_posts( $args ),
-				static function ( $post ) use ( $exclude ) {
-					return ! in_array( $post->ID, $exclude, true );
-				}
-			)
-		);
-
-		return $limit > 0 ? array_slice( $posts, 0, $limit ) : $posts;
 	}
 }

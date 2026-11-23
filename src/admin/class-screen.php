@@ -48,7 +48,7 @@ final class Screen {
 
 	public function enqueue_scripts() {
 		if ( $this->is_current() ) {
-			wp_enqueue_script( 'zoninator-js', plugin_dir_url( ZONINATOR_FILE ) . 'js/zoninator.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse', 'jquery-ui-position', 'jquery-ui-sortable', 'jquery-ui-autocomplete', 'wp-a11y' ), ZONINATOR_VERSION, true );
+			wp_enqueue_script( 'zoninator-js', plugin_dir_url( ZONINATOR_FILE ) . 'js/zoninator.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse', 'jquery-ui-position', 'jquery-ui-sortable', 'jquery-ui-autocomplete', 'wp-a11y', 'wp-api-fetch' ), ZONINATOR_VERSION, true );
 
 			$options = array(
 				'baseUrl'           => $this->zoninator->_get_zone_page_url(),

@@ -41,6 +41,9 @@ class ZoninatorAjaxSearchPostsTest extends WP_Ajax_UnitTestCase {
 	public function setUp(): void {
 		parent::setUp();
 
+		// The action is deprecated, but still has to work until 1.0.0.
+		$this->setExpectedDeprecated( 'Zoninator::ajax_search_posts' );
+
 		$this->subscriber_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		$this->admin_id      = self::factory()->user->create( array( 'role' => 'administrator' ) );
 
@@ -192,6 +195,23 @@ class ZoninatorAjaxSearchPostsTest extends WP_Ajax_UnitTestCase {
 
 		$this->assertNotEmpty( $limits );
 		$this->assertLessThanOrEqual( 102, max( $limits ) );
+	}
+
+	/**
+	 * The limit comes from the request, so a large one must be capped.
+	 */
+	public function test_large_limit_is_capped_at_100(): void {
+		$limits = array();
+		$spy    = static function ( $query ) use ( &$limits ) {
+			$limits[] = $query->get( 'posts_per_page' );
+		};
+		add_action( 'pre_get_posts', $spy );
+
+		$this->search( 'zoninator_limit_canary', 100000, array() );
+
+		remove_action( 'pre_get_posts', $spy );
+
+		$this->assertSame( array( 100 ), $limits );
 	}
 
 	/**

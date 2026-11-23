@@ -435,15 +435,33 @@ class Zoninator {
 		return $this->admin_ajax->respond( $status, $content, $action );
 	}
 
+	/**
+	 * Handles the zoninator_add_post admin-ajax action.
+	 *
+	 * @deprecated 0.12.0 The Zones screen uses POST /zoninator/v1/zones/{zone_id}/posts/{post_id}. The action goes in 1.0.0.
+	 */
 	public function ajax_add_post() {
+		_deprecated_function( __METHOD__, '0.12.0', 'POST /zoninator/v1/zones/{zone_id}/posts/{post_id}' );
 		return $this->admin_ajax->add_post();
 	}
 
+	/**
+	 * Handles the zoninator_remove_post admin-ajax action.
+	 *
+	 * @deprecated 0.12.0 The Zones screen uses DELETE /zoninator/v1/zones/{zone_id}/posts/{post_id}. The action goes in 1.0.0.
+	 */
 	public function ajax_remove_post() {
+		_deprecated_function( __METHOD__, '0.12.0', 'DELETE /zoninator/v1/zones/{zone_id}/posts/{post_id}' );
 		return $this->admin_ajax->remove_post();
 	}
 
+	/**
+	 * Handles the zoninator_reorder_posts admin-ajax action.
+	 *
+	 * @deprecated 0.12.0 The Zones screen uses PUT /zoninator/v1/zones/{zone_id}/posts. The action goes in 1.0.0.
+	 */
 	public function ajax_reorder_posts() {
+		_deprecated_function( __METHOD__, '0.12.0', 'PUT /zoninator/v1/zones/{zone_id}/posts' );
 		return $this->admin_ajax->reorder_posts();
 	}
 
@@ -452,7 +470,13 @@ class Zoninator {
 		return $this->admin_ajax->move_zone_post( $from_zone, $to_zone, $post_id );
 	}
 
+	/**
+	 * Handles the zoninator_search_posts admin-ajax action.
+	 *
+	 * @deprecated 0.12.0 The Zones screen uses GET /zoninator/v1/search. The action goes in 1.0.0.
+	 */
 	public function ajax_search_posts() {
+		_deprecated_function( __METHOD__, '0.12.0', 'GET /zoninator/v1/search' );
 		return $this->admin_ajax->search_posts();
 	}
 

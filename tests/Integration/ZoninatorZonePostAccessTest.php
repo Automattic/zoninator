@@ -126,6 +126,43 @@ class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @dataProvider data_rest_zone_post_methods
+	 *
+	 * @param string $method HTTP method.
+	 */
+	public function test_rest_zone_post_route_rejects_a_post_the_user_cannot_read( string $method ): void {
+		wp_set_current_user( $this->editor_id );
+		Zoninator()->add_zone_posts( $this->zone_id, array( $this->request_id ) );
+
+		$response = rest_do_request( new WP_REST_Request( $method, '/zoninator/v1/zones/' . $this->zone_id . '/posts/' . $this->request_id ) );
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertStringNotContainsString( 'zoninator-canary@example.com', wp_json_encode( $response->get_data() ) );
+		$this->assertSame( '1', $this->zone_order( $this->request_id ) );
+	}
+
+	/**
+	 * @return array<string, array{string}>
+	 */
+	public function data_rest_zone_post_methods(): array {
+		return array(
+			'add'    => array( 'POST' ),
+			'remove' => array( 'DELETE' ),
+		);
+	}
+
+	public function test_rest_search_leaves_out_posts_the_user_cannot_read(): void {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/zoninator/v1/search' );
+		$request->set_param( 'term', 'zoninator-canary' );
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertStringNotContainsString( 'zoninator-canary@example.com', wp_json_encode( $response->get_data() ) );
+	}
+
 	public function test_rest_update_rejects_a_post_the_user_cannot_read(): void {
 		wp_set_current_user( $this->editor_id );
 
@@ -157,6 +194,11 @@ class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 			),
 			$data
 		);
+
+		// The action is deprecated, but still has to work until 1.0.0.
+		if ( 'zoninator_update_lock' !== $action ) {
+			$this->setExpectedDeprecated( 'Zoninator::ajax_' . substr( $action, strlen( 'zoninator_' ) ) );
+		}
 
 		try {
 			$this->_handleAjax( $action );
