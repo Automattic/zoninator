@@ -7,6 +7,7 @@ Audience-targeted reference material. The top-level [README](../README.md) is th
 | A theme developer rendering zones in templates | [theme-developers.md](theme-developers.md) |
 | A plugin author extending Zoninator's behavior | [hooks.md](hooks.md) |
 | Building a headless / decoupled integration | [rest-api.md](rest-api.md) |
+| Updating from an earlier version | [upgrades.md](upgrades.md) |
 | A contributor to the plugin itself | [../CONTRIBUTING.md](../CONTRIBUTING.md) |
 | An LLM or coding agent | [../AGENTS.md](../AGENTS.md) |
 
