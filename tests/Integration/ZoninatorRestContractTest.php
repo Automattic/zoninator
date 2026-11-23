@@ -144,13 +144,12 @@ final class ZoninatorRestContractTest extends TestCase {
 	 * @param string $path   Route, with %d for the zone ID.
 	 * @param bool   $post   Whether to send a valid post_ids param.
 	 */
-	public function test_zone_routes_return_a_message_only_body_for_a_missing_zone( $method, $path, $post ): void {
+	public function test_zone_routes_return_an_error_code_for_a_missing_zone( $method, $path, $post ): void {
 		$params = $post ? array( 'post_ids' => array( self::factory()->post->create() ) ) : array();
 
 		$response = $this->dispatch( $method, sprintf( $path, 999999 ), $params );
 
-		$this->assertSame( 404, $response->get_status() );
-		$this->assertSame( array( 'message' => 'Zone not found' ), $response->get_data() );
+		$this->assert_rest_error( $response, 404, 'zone-not-found', 'Zone not found' );
 	}
 
 	public static function data_zone_routes(): array {
@@ -218,14 +217,13 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( 'sidebar', $response->get_data()['slug'] );
 	}
 
-	public function test_create_zone_without_slug_or_name_returns_a_message_only_body(): void {
+	public function test_create_zone_without_slug_or_name_returns_an_error_code(): void {
 		$response = $this->dispatch( 'POST', '/zones' );
 
-		$this->assertSame( 400, $response->get_status() );
-		$this->assertSame( array( 'message' => 'Slug is a required field.' ), $response->get_data() );
+		$this->assert_rest_error( $response, 400, 'zone-empty-slug', 'Slug is a required field.' );
 	}
 
-	public function test_create_zone_with_a_duplicate_returns_a_message_only_body(): void {
+	public function test_create_zone_with_a_duplicate_returns_an_error_code(): void {
 		$this->create_zone( 'taken', 'Taken' );
 
 		$response = $this->dispatch(
@@ -237,9 +235,7 @@ final class ZoninatorRestContractTest extends TestCase {
 			)
 		);
 
-		$this->assertSame( 400, $response->get_status() );
-		$this->assertSame( array( 'message' ), array_keys( $response->get_data() ) );
-		$this->assertNotEmpty( $response->get_data()['message'] );
+		$this->assert_rest_error( $response, 400, 'term_exists' );
 	}
 
 	public function test_create_zone_keeps_backslashes(): void {
@@ -438,13 +434,12 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( '3', get_post_meta( $post_id, $meta_key, true ) );
 	}
 
-	public function test_add_zone_post_with_a_missing_post_returns_a_message_only_body(): void {
+	public function test_add_zone_post_with_a_missing_post_returns_an_error_code(): void {
 		$zone_id = $this->create_zone( 'add-missing' );
 
 		$response = $this->dispatch( 'POST', "/zones/$zone_id/posts/999999" );
 
-		$this->assertSame( 400, $response->get_status() );
-		$this->assertSame( array( 'message' => 'Invalid post id' ), $response->get_data() );
+		$this->assert_rest_error( $response, 400, 'invalid-post-id', 'Invalid post id' );
 	}
 
 	public function test_remove_zone_post_removes_only_that_post(): void {
@@ -460,13 +455,12 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( array( $kept_id ), wp_list_pluck( Zoninator()->get_zone_posts( $zone_id ), 'ID' ) );
 	}
 
-	public function test_remove_zone_post_with_a_missing_post_returns_a_message_only_body(): void {
+	public function test_remove_zone_post_with_a_missing_post_returns_an_error_code(): void {
 		$zone_id = $this->create_zone( 'remove-missing' );
 
 		$response = $this->dispatch( 'DELETE', "/zones/$zone_id/posts/999999" );
 
-		$this->assertSame( 400, $response->get_status() );
-		$this->assertSame( array( 'message' => 'Invalid post id' ), $response->get_data() );
+		$this->assert_rest_error( $response, 400, 'invalid-post-id', 'Invalid post id' );
 	}
 
 	/**
@@ -715,7 +709,7 @@ final class ZoninatorRestContractTest extends TestCase {
 		);
 	}
 
-	public function test_get_zones_returns_a_message_only_body_when_zones_cannot_be_read(): void {
+	public function test_get_zones_returns_an_error_code_when_zones_cannot_be_read(): void {
 		$taxonomy = $GLOBALS['wp_taxonomies'][ \Zoninator::ZONE_TAXONOMY ];
 		unset( $GLOBALS['wp_taxonomies'][ \Zoninator::ZONE_TAXONOMY ] );
 
@@ -725,17 +719,15 @@ final class ZoninatorRestContractTest extends TestCase {
 			$GLOBALS['wp_taxonomies'][ \Zoninator::ZONE_TAXONOMY ] = $taxonomy;
 		}
 
-		$this->assertSame( 400, $response->get_status() );
-		$this->assertSame( array( 'message' => 'Zones could not be read.' ), $response->get_data() );
+		$this->assert_rest_error( $response, 400, 'zones-read-error', 'Zones could not be read.' );
 	}
 
-	public function test_update_zone_posts_with_a_missing_post_returns_a_message_only_body(): void {
+	public function test_update_zone_posts_with_a_missing_post_returns_an_error_code(): void {
 		$zone_id = $this->create_zone( 'missing-post' );
 
 		$response = $this->dispatch( 'PUT', "/zones/$zone_id/posts", array( 'post_ids' => array( 999999 ) ) );
 
-		$this->assertSame( 400, $response->get_status() );
-		$this->assertSame( array( 'message' => 'Invalid post id' ), $response->get_data() );
+		$this->assert_rest_error( $response, 400, 'invalid-post-id', 'Invalid post id' );
 	}
 
 	public function test_lock_zone_locks_an_unlocked_zone(): void {
@@ -951,5 +943,27 @@ final class ZoninatorRestContractTest extends TestCase {
 				),
 			),
 		);
+	}
+
+	/**
+	 * Asserts a response is a REST error with this status, code and, if given, message.
+	 *
+	 * @param WP_REST_Response $response Response.
+	 * @param int              $status   Expected HTTP status.
+	 * @param string           $code     Expected error code.
+	 * @param string|null      $message  Expected message, or null to require any message.
+	 */
+	private function assert_rest_error( $response, $status, $code, $message = null ): void {
+		$data = $response->get_data();
+
+		$this->assertSame( $status, $response->get_status() );
+		$this->assertSame( $code, $data['code'] ?? null );
+		$this->assertSame( $status, $data['data']['status'] ?? null );
+
+		if ( null === $message ) {
+			$this->assertNotEmpty( $data['message'] ?? '' );
+		} else {
+			$this->assertSame( $message, $data['message'] ?? null );
+		}
 	}
 }

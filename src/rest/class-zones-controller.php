@@ -33,27 +33,17 @@ final class Zones_Controller extends WP_REST_Controller {
 
 	public const ZONE_ITEM_POSTS_POST_REGEX = '/zones/(?P<zone_id>[\d]+)/posts/(?P<post_id>\d+)';
 
-	public const INVALID_ZONE_ID = 'invalid-zone-id';
-
 	public const INVALID_POST_ID = 'invalid-post-id';
-
-	public const ZONE_ID_POST_ID_REQUIRED = 'zone-id-post-id-required';
-
-	public const ZONE_ID_POST_IDS_REQUIRED = 'zone-id-post-ids-required';
 
 	public const ZONE_ID_REQUIRED = 'zone-id-required';
 
 	public const ZONE_FEED_ERROR = 'zone-feed-error';
 
-	public const TERM_REQUIRED = 'term-required';
+	public const ZONES_READ_ERROR = 'zones-read-error';
 
 	public const PERMISSION_DENIED = 'permission-denied';
 
 	public const ZONE_NOT_FOUND = 'zone-not-found';
-
-	public const POST_NOT_FOUND = 'post-not-found';
-
-	public const INVALID_ZONE_SETTINGS = 'invalid-zone-settings';
 
 	/**
 	 * Zones and the posts in them.
@@ -140,7 +130,6 @@ final class Zones_Controller extends WP_REST_Controller {
 		$this->translations = array(
 			self::ZONE_NOT_FOUND  => __( 'Zone not found', 'zoninator' ),
 			self::INVALID_POST_ID => __( 'Invalid post id', 'zoninator' ),
-			self::INVALID_ZONE_ID => __( 'Zone not found', 'zoninator' ),
 		);
 
 		register_rest_route(
@@ -257,11 +246,7 @@ final class Zones_Controller extends WP_REST_Controller {
 
 		// Zoninator::get_zones() returns false, not a WP_Error, when the zones can't be read.
 		if ( ! is_array( $results ) ) {
-			return $this->bad_request(
-				array(
-					'message' => __( 'Zones could not be read.', 'zoninator' ),
-				)
-			);
+			return $this->bad_request( self::ZONES_READ_ERROR, __( 'Zones could not be read.', 'zoninator' ) );
 		}
 
 		$zones = array_map( array( $this, '_filter_zone_properties' ), $results );
@@ -289,11 +274,7 @@ final class Zones_Controller extends WP_REST_Controller {
 		);
 
 		if ( is_wp_error( $result ) ) {
-			return $this->bad_request(
-				array(
-					'message' => $result->get_error_message(),
-				)
-			);
+			return $this->bad_request( $result->get_error_code(), $result->get_error_message() );
 		}
 
 		$zone = $this->zones->get( $result['term_id'] );
@@ -317,7 +298,7 @@ final class Zones_Controller extends WP_REST_Controller {
 		$update_params = array();
 
 		if ( ! $zone ) {
-			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
+			return $this->zone_not_found();
 		}
 
 		if ( $name ) {
@@ -335,11 +316,7 @@ final class Zones_Controller extends WP_REST_Controller {
 		$result = $this->zones->update( $zone, $update_params );
 
 		if ( is_wp_error( $result ) ) {
-			return $this->bad_request(
-				array(
-					'message' => $result->get_error_message(),
-				)
-			);
+			return $this->bad_request( $result->get_error_code(), $result->get_error_message() );
 		}
 
 		return $this->ok( array( 'success' => true ) );
@@ -357,17 +334,13 @@ final class Zones_Controller extends WP_REST_Controller {
 		$zone = $this->zones->get( $zone_id );
 
 		if ( ! $zone ) {
-			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
+			return $this->zone_not_found();
 		}
 
 		$result = $this->zones->delete( $zone );
 
 		if ( is_wp_error( $result ) ) {
-			return $this->bad_request(
-				array(
-					'message' => $result->get_error_message(),
-				)
-			);
+			return $this->bad_request( $result->get_error_code(), $result->get_error_message() );
 		}
 
 		return $this->ok( array( 'success' => true ) );
@@ -383,13 +356,13 @@ final class Zones_Controller extends WP_REST_Controller {
 		$zone_id = $this->get_param( $request, 'zone_id', 0, 'absint' );
 
 		if ( empty( $zone_id ) || false === $this->zones->get( $zone_id ) ) {
-			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
+			return $this->zone_not_found();
 		}
 
 		$results = $this->feed->get( $zone_id );
 
 		if ( is_wp_error( $results ) ) {
-			return $this->_bad_request( self::ZONE_FEED_ERROR, $results->get_error_message() );
+			return $this->bad_request( self::ZONE_FEED_ERROR, $results->get_error_message() );
 		}
 
 		return new WP_REST_Response( $results, 200 );
@@ -406,17 +379,13 @@ final class Zones_Controller extends WP_REST_Controller {
 		$post_ids = $this->get_param( $request, 'post_ids', array() );
 
 		if ( ! $this->zones->get( $zone_id ) ) {
-			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
+			return $this->zone_not_found();
 		}
 
 		$posts = array_map( 'get_post', $post_ids );
 
 		if ( count( $posts ) !== count( array_filter( $posts, array( $this->capabilities, 'current_user_can_add_post_to_zone' ) ) ) ) {
-			return $this->bad_request(
-				array(
-					'message' => $this->translations[ self::INVALID_POST_ID ],
-				)
-			);
+			return $this->bad_request( self::INVALID_POST_ID, $this->translations[ self::INVALID_POST_ID ] );
 		}
 
 		$result = $this->zones->add_posts( $zone_id, $posts );
@@ -439,11 +408,11 @@ final class Zones_Controller extends WP_REST_Controller {
 		$post_id = (int) $request['post_id'];
 
 		if ( ! $zone ) {
-			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
+			return $this->zone_not_found();
 		}
 
 		if ( ! $this->capabilities->current_user_can_add_post_to_zone( $post_id ) ) {
-			return $this->bad_request( array( 'message' => $this->translations[ self::INVALID_POST_ID ] ) );
+			return $this->bad_request( self::INVALID_POST_ID, $this->translations[ self::INVALID_POST_ID ] );
 		}
 
 		$this->zones->add_posts( $zone, $post_id, true );
@@ -466,11 +435,11 @@ final class Zones_Controller extends WP_REST_Controller {
 		$post_id = (int) $request['post_id'];
 
 		if ( ! $zone ) {
-			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
+			return $this->zone_not_found();
 		}
 
 		if ( ! $this->capabilities->current_user_can_add_post_to_zone( $post_id ) ) {
-			return $this->bad_request( array( 'message' => $this->translations[ self::INVALID_POST_ID ] ) );
+			return $this->bad_request( self::INVALID_POST_ID, $this->translations[ self::INVALID_POST_ID ] );
 		}
 
 		$this->zones->remove_posts( $zone, $post_id );
@@ -642,12 +611,12 @@ final class Zones_Controller extends WP_REST_Controller {
 	public function zone_update_lock( $request ) {
 		$zone_id = $this->get_param( $request, 'zone_id', 0, 'absint' );
 		if ( ! $zone_id ) {
-			return $this->_bad_request( self::ZONE_ID_REQUIRED, __( 'zone id required', 'zoninator' ) );
+			return $this->bad_request( self::ZONE_ID_REQUIRED, __( 'zone id required', 'zoninator' ) );
 		}
 
 		$zone = $this->zones->get( $zone_id );
 		if ( ! $zone ) {
-			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
+			return $this->zone_not_found();
 		}
 
 		$zone_locked = $this->locks->is_locked( $zone );
@@ -935,23 +904,23 @@ final class Zones_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Respond with a 400. The body is the data as given, not a WP_Error.
+	 * An error with a code and a 400 status.
 	 *
-	 * @param mixed $data Body.
-	 * @return WP_REST_Response
+	 * @param string $code    Error code.
+	 * @param string $message Message.
+	 * @return WP_Error
 	 */
-	private function bad_request( $data ) {
-		return $this->respond( $data, 400 );
+	private function bad_request( $code, $message ) {
+		return new WP_Error( $code, $message, array( 'status' => 400 ) );
 	}
 
 	/**
-	 * Respond with a 404 and a body of just the message.
+	 * The error for a zone that doesn't exist.
 	 *
-	 * @param string $message Message.
-	 * @return WP_REST_Response
+	 * @return WP_Error
 	 */
-	private function not_found( $message ) {
-		return $this->respond( array( 'message' => $message ), 404 );
+	private function zone_not_found() {
+		return new WP_Error( self::ZONE_NOT_FOUND, $this->translations[ self::ZONE_NOT_FOUND ], array( 'status' => 404 ) );
 	}
 
 	/**
@@ -967,10 +936,6 @@ final class Zones_Controller extends WP_REST_Controller {
 		}
 
 		return new WP_REST_Response( $data, $status );
-	}
-
-	private function _bad_request( $code, $message ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
-		return new WP_Error( $code, $message, array( 'status' => 400 ) );
 	}
 
 	/**

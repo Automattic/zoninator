@@ -40,6 +40,7 @@ Zoninator no longer bundles the Mixtape REST library. The routes, their argument
 What changes for REST clients:
 
 - A request refused by a capability check gets `401` when logged out and `403` when logged in, with the code `permission-denied`. It used to get `500`.
+- Every error has a `code` alongside its `message`, in core's REST error shape. The `400` and `404` responses used to have only a `message`. Clients that read `message` keep working; see [Errors](rest-api.md#errors) for the codes.
 - `PUT /zones/{zone_id}/posts` and `PUT /zones/{zone_id}/lock` check `zoninator_manage_zone_cap`, the capability the Zones screen has always needed to curate a zone. They used to check `zoninator_edit_zone_cap` and the `zoninator_current_user_can_edit_zone` filter. If you used that filter to stop some users changing a zone's posts over REST, it no longer does; the Zones screen never honored it for that either.
 - Malformed input, such as a non-numeric post ID, gets a `400` instead of a PHP fatal error.
 
