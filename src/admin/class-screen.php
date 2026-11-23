@@ -165,7 +165,8 @@ final class Screen {
 						'description' => $this->request->get_post_var( 'description', '', array( Request::class, 'sanitize_value' ) ),
 					);
 
-					if ( $zone_id ) {
+					// Go by the action that was checked, not by whether a zone ID was sent.
+					if ( 'update' === $action ) {
 						$result = $this->zones->update(
 							$zone_id,
 							array(
@@ -182,7 +183,7 @@ final class Screen {
 						wp_safe_redirect( add_query_arg( 'message', 'error-general' ) );
 						exit;
 					} else {
-						if ( ! $zone_id && isset( $result['term_id'] ) ) {
+						if ( 'insert' === $action && isset( $result['term_id'] ) ) {
 							$zone_id = $result['term_id'];
 						}
 

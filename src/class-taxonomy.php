@@ -51,7 +51,15 @@ final class Taxonomy {
 					'query_var'    => false,
 					'rewrite'      => false,
 					'public'       => false,
-
+					// Zoninator's own capability checks decide who changes zones, and
+					// zone posts are post meta, not terms. These keep core's term
+					// screens, admin-ajax actions, XML-RPC methods and tax_input out.
+					'capabilities' => array(
+						'manage_terms' => 'do_not_allow',
+						'edit_terms'   => 'do_not_allow',
+						'delete_terms' => 'do_not_allow',
+						'assign_terms' => 'do_not_allow',
+					),
 				)
 			);
 		}
