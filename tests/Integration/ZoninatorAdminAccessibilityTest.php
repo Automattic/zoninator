@@ -7,7 +7,7 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
-class Zoninator_Admin_Accessibility_Test extends TestCase {
+class ZoninatorAdminAccessibilityTest extends TestCase {
 
 	public function tearDown(): void {
 		$_GET     = array();

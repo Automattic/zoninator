@@ -7,7 +7,7 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
-class Zoninator_Zone_Screen_Test extends TestCase {
+class ZoninatorZoneScreenTest extends TestCase {
 
 	private function render_zone_edit( $zone = null ): string {
 		ob_start();
