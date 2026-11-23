@@ -109,6 +109,45 @@ final class ZoninatorTemplateTagsTest extends TestCase {
 		$this->assertSame( $this->post_ids[1], $next->ID );
 	}
 
+	public function test_z_get_post_zones_lists_each_zone_the_post_is_in(): void {
+		$other = \Zoninator()->insert_zone( 'other-zone', 'Other zone' );
+		\Zoninator()->add_zone_posts( (int) $other['term_id'], $this->post_ids[1] );
+
+		$zones = z_get_post_zones( $this->post_ids[1] );
+
+		$this->assertSame( array( $this->zone_id, (int) $other['term_id'] ), wp_list_pluck( $zones, 'term_id' ) );
+		$this->assertInstanceOf( \WP_Term::class, $zones[0] );
+		$this->assertSame( array( $this->zone_id ), wp_list_pluck( z_get_post_zones( $this->post_ids[0] ), 'term_id' ) );
+	}
+
+	public function test_z_get_post_zones_defaults_to_the_loop_post(): void {
+		$GLOBALS['post'] = get_post( $this->post_ids[2] );
+
+		$this->assertSame( array( $this->zone_id ), wp_list_pluck( z_get_post_zones(), 'term_id' ) );
+	}
+
+	public function test_z_get_post_zones_returns_an_empty_array_for_a_post_in_no_zone(): void {
+		$this->assertSame( array(), z_get_post_zones( self::factory()->post->create() ) );
+		$this->assertSame( array(), z_get_post_zones( 999999 ) );
+	}
+
+	public function test_z_get_post_zones_leaves_out_a_draft_on_the_front_end(): void {
+		wp_update_post(
+			array(
+				'ID'          => $this->post_ids[0],
+				'post_status' => 'draft',
+			)
+		);
+
+		$this->assertSame( array(), z_get_post_zones( $this->post_ids[0] ) );
+	}
+
+	public function test_z_get_post_zones_ignores_order_meta_for_a_deleted_zone(): void {
+		add_post_meta( $this->post_ids[0], \Zoninator::ZONE_META_PREFIX . '999999', 1 );
+
+		$this->assertSame( array( $this->zone_id ), wp_list_pluck( z_get_post_zones( $this->post_ids[0] ), 'term_id' ) );
+	}
+
 	/**
 	 * @param \WP_Post[] $posts Posts.
 	 * @return int[]

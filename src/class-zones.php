@@ -200,6 +200,38 @@ final class Zones {
 		return $this->get_query( $zone, $args )->posts;
 	}
 
+	/**
+	 * Gets every zone a post is in.
+	 *
+	 * Reads the post's meta once, rather than querying each zone, so the cost
+	 * doesn't grow with the number of zones. A post only counts as in a zone
+	 * where get_posts() would list it: a supported post type, and published
+	 * unless a zone manager is in the admin.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return \WP_Term[] The zones, by zone ID.
+	 */
+	public function get_for_post( $post_id ) {
+		$post = get_post( $post_id );
+		if ( ! $post || ! in_array( $post->post_type, $this->zoninator->get_supported_post_types(), true ) ) {
+			return array();
+		}
+
+		if ( 'publish' !== $post->post_status && ( ! is_admin() || ! $this->zoninator->_current_user_can_manage_zones() ) ) {
+			return array();
+		}
+
+		$zone_ids = array();
+		foreach ( array_keys( get_post_meta( $post->ID ) ) as $meta_key ) {
+			if ( 0 === strpos( $meta_key, self::META_PREFIX ) ) {
+				$zone_ids[] = absint( substr( $meta_key, strlen( self::META_PREFIX ) ) );
+			}
+		}
+		sort( $zone_ids );
+
+		return array_values( array_filter( array_map( array( $this, 'get' ), $zone_ids ) ) );
+	}
+
 	public function get_query( $zone, $args = array() ) {
 		$meta_key = $this->get_meta_key( $zone );
 

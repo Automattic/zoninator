@@ -85,6 +85,8 @@ foreach ( $zones as $zone ) {
 }
 ```
 
+The zones come back in zone ID order. As with `z_get_posts_in_zone()`, a post only counts as in a zone where it would be listed: outside the admin, a scheduled or draft post isn't in any zone yet. The function returns an empty array when the post isn't in a zone.
+
 ## Customising the underlying query
 
 `z_get_posts_in_zone()` and `z_get_zone_query()` both accept a `$args` array that's merged into the underlying `WP_Query` arguments. For example, to fetch the first three posts only:

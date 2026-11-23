@@ -61,8 +61,11 @@ function z_get_prev_post_in_zone( $zone, $post_id = 0 ) {
 }
 
 /**
- * @param $post_id int ID of the post (or, null if in The Loop)
- * @return array List of of zones that the given post is in
+ * Gets every zone a post is in.
+ *
+ * @param int $post_id Post ID. Defaults to the current post in the loop.
+ * @return WP_Term[] The zones, by zone ID. Empty if the post isn't in any, or
+ *                   wouldn't be listed in them (for example, a draft on the front end).
  */
 function z_get_post_zones( $post_id = 0 ) {
 	$post_id = z_get_loop_post_id_or_default( $post_id );
