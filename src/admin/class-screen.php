@@ -257,7 +257,7 @@ final class Screen {
 	<div class="wrap zoninator-page">
 		<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
 		<?php if ( $active_zone_id && $this->capabilities->current_user_can_add_zones() ) : ?>
-			<a href="<?php echo esc_url( $this->get_page_url( array( 'action' => 'new' ) ) ); ?>" class="page-title-action zone-button-add-new"><?php esc_html_e( 'Add New', 'zoninator' ); ?></a>
+			<a href="<?php echo esc_url( $this->get_page_url( array( 'action' => 'new' ) ) ); ?>" class="page-title-action zone-button-add-new"><?php echo esc_html_x( 'Add New', 'zone', 'zoninator' ); ?></a>
 		<?php endif; ?>
 		<hr class="wp-header-end">
 
