@@ -285,7 +285,7 @@ var zoninator = {};
 	}
 
 	zoninator.updateLock = function() {
-		zoninator.ajax('update_lock', {
+		zoninator.rest('update_lock', 'PUT', '/zoninator/v1/zones/' + zoninator.getZoneId() + '/lock', {
 			zone_id: zoninator.getZoneId()
 		}, function(returnData, originalData) {
 			// We want to set a max to avoid people leaving their tabs open and then running away for long periods.
@@ -305,7 +305,7 @@ var zoninator = {};
 
 			zoninator.currentLockPeriod += zoninator.heartbeatInterval;
 			setTimeout(zoninator.updateLock, zoninator.heartbeatInterval);
-		}, function(returnData, originalData) {
+		}, undefined, function(returnData, originalData) {
 			// Someone else has the zone. Reloading shows who, and the zone read only.
 			location.reload();
 		});
@@ -327,16 +327,16 @@ var zoninator = {};
 	}
 
 	// Sends a request to the zoninator/v1 REST API, and handles the response as zoninator.ajax() does.
-	zoninator.rest = function(action, method, path, values, successCallback, body) {
+	zoninator.rest = function(action, method, path, values, successCallback, body, errorCallback) {
 		var data = $.extend({ action: zoninator.getAjaxAction(action) }, values);
 
 		// Still fired for code that watched these requests when they went through admin-ajax.
 		zoninator.$zonePostSearch.trigger('zoninator.ajax', [action, data]);
 
 		wp.apiFetch({ path: path, method: method, data: body }).then(function(returnData) {
-			zoninator.ajaxSuccessCallback($.extend({ status: 1 }, returnData), data, successCallback);
+			zoninator.ajaxSuccessCallback($.extend({ status: 1 }, returnData), data, successCallback, errorCallback);
 		}, function(error) {
-			zoninator.ajaxErrorCallback({ status: 0, content: error && error.message }, data, successCallback);
+			zoninator.ajaxErrorCallback({ status: 0, content: error && error.message }, data, successCallback, errorCallback);
 		});
 	}
 

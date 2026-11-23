@@ -196,9 +196,7 @@ class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 		);
 
 		// The action is deprecated, but still has to work until 1.0.0.
-		if ( 'zoninator_update_lock' !== $action ) {
-			$this->setExpectedDeprecated( 'Zoninator::ajax_' . substr( $action, strlen( 'zoninator_' ) ) );
-		}
+		$this->setExpectedDeprecated( 'Zoninator::ajax_' . substr( $action, strlen( 'zoninator_' ) ) );
 
 		try {
 			$this->_handleAjax( $action );

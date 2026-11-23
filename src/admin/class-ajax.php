@@ -19,9 +19,8 @@ use Zoninator;
  * keeps working as a callback. Callbacks this class hands to WordPress point
  * at Zoninator too, for the same reason.
  *
- * Since 0.12.0 the screen adds, removes, reorders and searches through the
- * zoninator/v1 REST API instead. Those four actions are deprecated and go in
- * 1.0.0. Only the lock still uses admin-ajax.
+ * Since 0.12.0 the screen uses the zoninator/v1 REST API instead, so every
+ * action here is deprecated, and this class goes in 1.0.0.
  */
 final class Ajax {
 

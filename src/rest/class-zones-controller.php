@@ -132,7 +132,7 @@ final class Zones_Controller extends WP_REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'update_zone_posts' ),
-					'permission_callback' => array( $this, 'manage_zone_posts_permissions_check' ),
+					'permission_callback' => array( $this, 'manage_zone_permissions_check' ),
 					'args'                => $this->_get_zone_post_rest_route_params(),
 				),
 			)
@@ -145,13 +145,13 @@ final class Zones_Controller extends WP_REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'add_zone_post' ),
-					'permission_callback' => array( $this, 'manage_zone_posts_permissions_check' ),
+					'permission_callback' => array( $this, 'manage_zone_permissions_check' ),
 					'args'                => $this->get_zone_post_item_params(),
 				),
 				array(
 					'methods'             => WP_REST_Server::DELETABLE,
 					'callback'            => array( $this, 'remove_zone_post' ),
-					'permission_callback' => array( $this, 'manage_zone_posts_permissions_check' ),
+					'permission_callback' => array( $this, 'manage_zone_permissions_check' ),
 					'args'                => $this->get_zone_post_item_params(),
 				),
 			)
@@ -164,7 +164,7 @@ final class Zones_Controller extends WP_REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'search_posts' ),
-					'permission_callback' => array( $this, 'manage_zone_posts_permissions_check' ),
+					'permission_callback' => array( $this, 'manage_zone_permissions_check' ),
 					'args'                => $this->get_search_params(),
 				),
 			)
@@ -177,7 +177,7 @@ final class Zones_Controller extends WP_REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'zone_update_lock' ),
-					'permission_callback' => array( $this, 'update_zone_permissions_check' ),
+					'permission_callback' => array( $this, 'manage_zone_permissions_check' ),
 					'args'                => $this->_get_zone_id_param(),
 				),
 			)
@@ -640,15 +640,16 @@ final class Zones_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Check if a given request may change a zone's posts or search for posts to add.
+	 * Check if a given request may curate a zone: change its posts, search for
+	 * posts to add, or take its lock.
 	 *
-	 * This is the capability the Zones screen needs to curate a zone, not the
-	 * one for editing its name and description.
+	 * This is the capability the Zones screen needs to open and curate a zone,
+	 * not the one for editing its name and description.
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|bool
 	 */
-	public function manage_zone_posts_permissions_check( $request ) {
+	public function manage_zone_permissions_check( $request ) {
 		return $this->_permissions_check( 'manage' );
 	}
 
