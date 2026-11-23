@@ -129,7 +129,7 @@ final class Zones_Controller extends WP_REST_Controller {
 	public function register_routes() {
 		$this->translations = array(
 			self::ZONE_NOT_FOUND  => __( 'Zone not found', 'zoninator' ),
-			self::INVALID_POST_ID => __( 'Invalid post id', 'zoninator' ),
+			self::INVALID_POST_ID => __( 'Invalid post ID.', 'zoninator' ),
 		);
 
 		register_rest_route(
@@ -611,7 +611,7 @@ final class Zones_Controller extends WP_REST_Controller {
 	public function zone_update_lock( $request ) {
 		$zone_id = $this->get_param( $request, 'zone_id', 0, 'absint' );
 		if ( ! $zone_id ) {
-			return $this->bad_request( self::ZONE_ID_REQUIRED, __( 'zone id required', 'zoninator' ) );
+			return $this->bad_request( self::ZONE_ID_REQUIRED, __( 'Zone ID is required.', 'zoninator' ) );
 		}
 
 		$zone = $this->zones->get( $zone_id );
