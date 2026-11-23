@@ -123,6 +123,7 @@ class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 			'reorder posts' => array( 'zoninator_reorder_posts' ),
 			'update lock'   => array( 'zoninator_update_lock' ),
 			'search posts'  => array( 'zoninator_search_posts' ),
+			'recent posts'  => array( 'zoninator_update_recent' ),
 		);
 	}
 
@@ -196,7 +197,8 @@ class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 		);
 
 		// The action is deprecated, but still has to work until 1.0.0.
-		$this->setExpectedDeprecated( 'Zoninator::ajax_' . substr( $action, strlen( 'zoninator_' ) ) );
+		$method = 'zoninator_update_recent' === $action ? 'recent_posts' : substr( $action, strlen( 'zoninator_' ) );
+		$this->setExpectedDeprecated( 'Zoninator::ajax_' . $method );
 
 		try {
 			$this->_handleAjax( $action );
