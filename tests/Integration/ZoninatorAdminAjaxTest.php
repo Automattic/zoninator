@@ -123,6 +123,38 @@ class ZoninatorAdminAjaxTest extends WP_Ajax_UnitTestCase {
 		$this->assertSame( array( $newer_id, $older_id ), array_column( $response, 'post_id' ) );
 	}
 
+	public function test_recent_posts_lists_the_latest_content_not_in_the_zone(): void {
+		$older_id = self::factory()->post->create( array( 'post_title' => 'Older', 'post_date' => gmdate( 'Y-m-d H:i:s', time() - 3 * HOUR_IN_SECONDS ) ) );
+		$zoned_id = self::factory()->post->create( array( 'post_date' => gmdate( 'Y-m-d H:i:s', time() - 2 * HOUR_IN_SECONDS ) ) );
+		$newer_id = self::factory()->post->create( array( 'post_title' => 'Newer', 'post_date' => gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS ) ) );
+		Zoninator()->add_zone_posts( $this->zone_id, $zoned_id );
+
+		$response = $this->ajax( 'zoninator_update_recent', array() );
+
+		$this->assertSame( 1, $response['status'] );
+		$this->assertSame(
+			'<option value="">Choose a post</option>'
+			. '<option value="' . $newer_id . '">Newer (publish)</option>'
+			. '<option value="' . $older_id . '">Older (publish)</option>',
+			$response['content']
+		);
+	}
+
+	public function test_recent_posts_dropdown_prints_the_latest_content_not_in_the_zone(): void {
+		$post_id  = self::factory()->post->create( array( 'post_title' => 'Not in the zone' ) );
+		$zoned_id = self::factory()->post->create();
+		Zoninator()->add_zone_posts( $this->zone_id, $zoned_id );
+		wp_set_current_user( $this->editor_id );
+		$this->setExpectedDeprecated( 'Zoninator::zone_admin_recent_posts_dropdown' );
+
+		ob_start();
+		Zoninator()->zone_admin_recent_posts_dropdown( $this->zone_id );
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( '<option value="' . $post_id . '">Not in the zone (publish)</option>', $html );
+		$this->assertStringNotContainsString( 'value="' . $zoned_id . '"', $html );
+	}
+
 	public function test_update_lock_locks_an_unlocked_zone(): void {
 		$response = $this->ajax( 'zoninator_update_lock', array() );
 
@@ -188,6 +220,7 @@ class ZoninatorAdminAjaxTest extends WP_Ajax_UnitTestCase {
 			'remove post'           => array( 'wp_ajax_zoninator_remove_post', 'ajax_remove_post', 10 ),
 			'search posts'          => array( 'wp_ajax_zoninator_search_posts', 'ajax_search_posts', 10 ),
 			'update lock'           => array( 'wp_ajax_zoninator_update_lock', 'ajax_update_lock', 10 ),
+			'recent posts'          => array( 'wp_ajax_zoninator_update_recent', 'ajax_recent_posts', 10 ),
 			'category search field' => array( 'zoninator_advanced_search_fields', 'zone_advanced_search_cat_filter', 10 ),
 			'date search field'     => array( 'zoninator_advanced_search_fields', 'zone_advanced_search_date_filter', 20 ),
 		);
@@ -262,7 +295,8 @@ class ZoninatorAdminAjaxTest extends WP_Ajax_UnitTestCase {
 		);
 
 		// The action is deprecated, but still has to work until 1.0.0.
-		$this->setExpectedDeprecated( 'Zoninator::ajax_' . substr( $action, strlen( 'zoninator_' ) ) );
+		$method = 'zoninator_update_recent' === $action ? 'recent_posts' : substr( $action, strlen( 'zoninator_' ) );
+		$this->setExpectedDeprecated( 'Zoninator::ajax_' . $method );
 
 		try {
 			$this->_handleAjax( $action );
