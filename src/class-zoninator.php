@@ -830,7 +830,7 @@ class Zoninator {
 				'post_id'  => $post->ID,
 				'position' => array(
 					'current_position'        => intval( $this->get_post_order( $post->ID, $zone ) ),
-					'change_position_message' => esc_attr__( 'Click and drag to change the position of this item.', 'zoninator' ),
+					'change_position_message' => esc_attr__( 'Drag to change the position of this item.', 'zoninator' ),
 					'key'                     => 'position',
 				),
 				'info'     => array(
@@ -843,7 +843,7 @@ class Zoninator {
 						array(
 							'action' => 'edit',
 							'anchor' => get_edit_post_link( $post->ID ),
-							'title'  => __( 'Opens in new window', 'zoninator' ),
+							'title'  => __( 'Opens in a new tab', 'zoninator' ),
 							'text'   => __( 'Edit', 'zoninator' ),
 							'target' => '_blank',
 						),
@@ -856,7 +856,7 @@ class Zoninator {
 						array(
 							'action' => 'view',
 							'anchor' => get_permalink( $post->ID ),
-							'title'  => __( 'Opens in new window', 'zoninator' ),
+							'title'  => __( 'Opens in a new tab', 'zoninator' ),
 							'text'   => __( 'View', 'zoninator' ),
 							'target' => '_blank',
 						),
