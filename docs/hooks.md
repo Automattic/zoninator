@@ -132,13 +132,25 @@ These fire from `src/rest/class-zones-controller.php`, for the `GET /zoninator/v
 
 `WP_Query` args for the latest content, which the zone editor's "Add content" field offers before anything is typed.
 
-- **Parameters:** `array $args`
+- **Parameters:** `array $args`, `int $zone_id` (the zone being edited, or `0`; since 0.12.0)
 
 ### `zoninator_search_args` (filter)
 
 `WP_Query` args used by the post search once something is typed.
 
-- **Parameters:** `array $args`
+- **Parameters:** `array $args`, `int $zone_id` (the zone being edited, or `0`; since 0.12.0)
+
+Use `$zone_id` to focus the search on what suits a zone, for example only posts in a matching category:
+
+```php
+add_filter( 'zoninator_search_args', function ( $args, $zone_id ) {
+	$sport_zone = z_get_zone( 'sport' );
+	if ( $sport_zone && $zone_id === $sport_zone->term_id ) {
+		$args['category_name'] = 'sport';
+	}
+	return $args;
+}, 10, 2 );
+```
 
 ### `zoninator_search_results_post` (filter)
 

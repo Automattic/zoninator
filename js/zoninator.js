@@ -88,6 +88,7 @@ var zoninator = {};
 						}
 
 						request.exclude = zoninator.getZonePostIds();
+						request.zone_id = zoninator.getZoneId();
 
 						// Allow developers to hook onto the request
 						zoninator.$zonePostSearch.trigger('search.request', request);
