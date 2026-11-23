@@ -133,6 +133,45 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->assertStringContainsString( 'message=delete-success', $location );
 	}
 
+	public function test_update_without_a_zone_does_not_add_one(): void {
+		// The user may edit zones, but not add them.
+		add_filter( 'zoninator_add_zone_cap', static fn() => 'manage_options' );
+
+		$this->attempt(
+			'update',
+			array(
+				'name' => 'Added zone',
+				'slug' => 'added-zone',
+			)
+		);
+
+		$this->assertFalse( \Zoninator()->get_zone( 'added-zone' ) );
+	}
+
+	public function test_insert_with_a_zone_does_not_change_it(): void {
+		// The user may add zones, but not edit this one.
+		$zone_id = $this->zone_id;
+		add_filter(
+			'zoninator_current_user_can_edit_zone',
+			static fn( $can, $id ) => (int) $id === $zone_id ? false : $can,
+			10,
+			2
+		);
+
+		$this->attempt(
+			'insert',
+			array(
+				'zone_id'     => $this->zone_id,
+				'name'        => 'Changed zone',
+				'description' => 'Changed',
+			)
+		);
+
+		$zone = \Zoninator()->get_zone( $this->zone_id );
+		$this->assertSame( 'Form zone', $zone->name );
+		$this->assertSame( 'Before', $zone->description );
+	}
+
 	/**
 	 * @dataProvider data_actions
 	 *
@@ -184,6 +223,23 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		}
 
 		$this->fail( 'Expected the handler to redirect.' );
+	}
+
+	/**
+	 * Submit the form as an editor, whether the handler redirects or stops the request.
+	 *
+	 * @param string $action Form action.
+	 * @param array  $fields Form fields.
+	 */
+	private function attempt( string $action, array $fields ): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		$this->set_request( $action, $fields, true );
+
+		try {
+			\Zoninator()->admin_controller();
+		} catch ( RuntimeException | WPDieException $e ) {
+			return;
+		}
 	}
 
 	/**
