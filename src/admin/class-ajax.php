@@ -143,14 +143,11 @@ final class Ajax {
 		$this->respond( $status, $content );
 	}
 
-	// TODO: implement in front-end
 	public function move_zone_post( $from_zone, $to_zone, $post_id ) {
 		$from_zone_id = $this->zoninator->_get_post_var( 'from_zone_id', 0, 'absint' );
 		$to_zone_id   = $this->zoninator->_get_post_var( 'to_zone_id', 0, 'absint' );
 
 		$this->zoninator->verify_nonce( self::NONCE_ACTION );
-
-		// TODO: validate both zones exist, post exists
 
 		// Add to new zone
 		$this->zoninator->add_zone_posts( $to_zone_id, $post_id, true );

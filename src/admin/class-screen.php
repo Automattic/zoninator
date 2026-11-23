@@ -100,7 +100,6 @@ final class Screen {
 						'description' => $this->zoninator->_get_post_var( 'description', '', array( $this->zoninator, '_sanitize_value' ) ),
 					);
 
-					// TODO: handle additional properties
 					if ( $zone_id ) {
 						$result = $this->zoninator->update_zone(
 							$zone_id,
