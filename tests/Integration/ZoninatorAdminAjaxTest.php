@@ -15,6 +15,7 @@ namespace Automattic\Zoninator\Tests\Integration;
 
 use WP_Ajax_UnitTestCase;
 use WPAjaxDieContinueException;
+use WPAjaxDieStopException;
 
 /**
  * @group ajax
@@ -190,6 +191,53 @@ class ZoninatorAdminAjaxTest extends WP_Ajax_UnitTestCase {
 		$this->expected_deprecated = array();
 		$this->assertNull( $response );
 		$this->assertSame( '', $this->zone_order( $post_id ) );
+	}
+
+	/**
+	 * The editor may use every action, so only the nonce check can stop these requests.
+	 *
+	 * @dataProvider data_ajax_actions
+	 *
+	 * @param string $action AJAX action.
+	 */
+	public function test_action_refuses_a_request_without_a_valid_nonce( string $action ): void {
+		$zoned_id = self::factory()->post->create( array( 'post_title' => 'Nonce zoned' ) );
+		$other_id = self::factory()->post->create( array( 'post_title' => 'Nonce other' ) );
+		Zoninator()->add_zone_posts( $this->zone_id, array( $zoned_id ) );
+
+		try {
+			$this->ajax(
+				$action,
+				array(
+					'_wpnonce' => 'invalid',
+					'post_id'  => 'zoninator_remove_post' === $action ? $zoned_id : $other_id,
+					'posts'    => array( $other_id, $zoned_id ),
+					'term'     => 'Nonce',
+				)
+			);
+			$this->fail( 'Expected the handler to stop the request.' );
+		} catch ( WPAjaxDieStopException $e ) {
+			$this->assertSame( esc_html( "Sorry, you're not supposed to do that..." ), $e->getMessage() );
+		}
+
+		$this->assertSame( '', (string) $this->_last_response );
+		$this->assertSame( '1', $this->zone_order( $zoned_id ) );
+		$this->assertSame( '', $this->zone_order( $other_id ) );
+		$this->assertFalse( get_transient( Zoninator()->get_zone_meta_key( $this->zone_id ) ) );
+	}
+
+	/**
+	 * @return array<string, array{string}>
+	 */
+	public function data_ajax_actions(): array {
+		return array(
+			'add post'      => array( 'zoninator_add_post' ),
+			'remove post'   => array( 'zoninator_remove_post' ),
+			'reorder posts' => array( 'zoninator_reorder_posts' ),
+			'search posts'  => array( 'zoninator_search_posts' ),
+			'update lock'   => array( 'zoninator_update_lock' ),
+			'recent posts'  => array( 'zoninator_update_recent' ),
+		);
 	}
 
 	/**
