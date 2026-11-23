@@ -431,7 +431,13 @@ class Zoninator {
 		return $this->admin_screen->is_current();
 	}
 
+	/**
+	 * Sends a response from a Zones screen admin-ajax handler.
+	 *
+	 * @deprecated 0.12.0 The Zones screen uses the zoninator/v1 REST API. This goes in 1.0.0.
+	 */
 	public function ajax_return( $status, $content = '', $action = '' ) {
+		_deprecated_function( __METHOD__, '0.12.0' );
 		return $this->admin_ajax->respond( $status, $content, $action );
 	}
 
@@ -465,8 +471,13 @@ class Zoninator {
 		return $this->admin_ajax->reorder_posts();
 	}
 
-	// TODO: implement in front-end
+	/**
+	 * Never used by the Zones screen.
+	 *
+	 * @deprecated 0.12.0 Use Zoninator::add_zone_posts() and Zoninator::remove_zone_posts(). This goes in 1.0.0.
+	 */
 	public function ajax_move_zone_post( $from_zone, $to_zone, $post_id ) {
+		_deprecated_function( __METHOD__, '0.12.0', 'Zoninator::add_zone_posts() and Zoninator::remove_zone_posts()' );
 		return $this->admin_ajax->move_zone_post( $from_zone, $to_zone, $post_id );
 	}
 
@@ -480,7 +491,13 @@ class Zoninator {
 		return $this->admin_ajax->search_posts();
 	}
 
+	/**
+	 * Handles the zoninator_update_lock admin-ajax action.
+	 *
+	 * @deprecated 0.12.0 The Zones screen uses PUT /zoninator/v1/zones/{zone_id}/lock. The action goes in 1.0.0.
+	 */
 	public function ajax_update_lock() {
+		_deprecated_function( __METHOD__, '0.12.0', 'PUT /zoninator/v1/zones/{zone_id}/lock' );
 		return $this->admin_ajax->update_lock();
 	}
 

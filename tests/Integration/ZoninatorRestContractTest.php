@@ -490,10 +490,11 @@ final class ZoninatorRestContractTest extends TestCase {
 	}
 
 	/**
-	 * Curating a zone needs the zone management capability, as on the Zones
-	 * screen, not the one for editing the zone's details.
+	 * Curating a zone, and taking its lock, needs the zone management
+	 * capability, as on the Zones screen, not the one for editing the zone's
+	 * details. Otherwise the screen would reload for ever when the lock fails.
 	 */
-	public function test_zone_post_routes_need_only_the_manage_capability(): void {
+	public function test_curating_routes_need_only_the_manage_capability(): void {
 		$zone_id   = $this->create_zone( 'curated-by-author' );
 		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
 		$post_id   = self::factory()->post->create( array( 'post_author' => $author_id ) );
@@ -509,6 +510,7 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( 200, $this->dispatch( 'PUT', "/zones/$zone_id/posts", array( 'post_ids' => array( $post_id ) ) )->get_status() );
 		$this->assertSame( 200, $this->dispatch( 'GET', '/search' )->get_status() );
 		$this->assertSame( 200, $this->dispatch( 'DELETE', "/zones/$zone_id/posts/$post_id" )->get_status() );
+		$this->assertSame( 200, $this->dispatch( 'PUT', "/zones/$zone_id/lock" )->get_status() );
 		$this->assertSame( 403, $this->dispatch( 'PUT', "/zones/$zone_id", array( 'name' => 'Renamed' ) )->get_status() );
 	}
 
