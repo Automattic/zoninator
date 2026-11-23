@@ -576,7 +576,7 @@ class Zoninator {
 	}
 
 	public function get_zones_for_post( $post_id ) {
-		// TODO: build this out - see https://github.com/Automattic/zoninator/pull/19
+		return $this->zones->get_for_post( $post_id );
 	}
 
 	public function get_zones( $args = array() ) {
