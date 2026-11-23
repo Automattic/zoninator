@@ -152,8 +152,6 @@ var zoninator = {};
 				zoninator.updateLock();
 			}
 		}
-
-		// TODO: move / copy posts to zones
 	}
 
 	zoninator.addPost = function(postId) {
@@ -559,13 +557,6 @@ var zoninator = {};
 		$this.text(altLabel).data('alt-label', currentLabel)
 			.attr('aria-expanded', $this.attr('aria-expanded') !== 'true');
 	});
-
-	// TODO: fix this
-	function parseIntOrZero(str) {
-		var parsed = parseInt(str);
-		if (isNaN(parsed) || !parsed) parsed = 0;
-		return parsed;
-	}
 
 	$(document).ready(function() {
 		zoninator.init();

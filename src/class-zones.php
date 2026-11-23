@@ -158,8 +158,6 @@ final class Zones {
 				++$order;
 				update_metadata( 'post', $post_id, $meta_key, $order, true );
 			}
-
-			// TODO: remove_object_terms -- but need remove object terms function :(
 		}
 
 		clean_term_cache( $this->get_id( $zone ), Taxonomy::NAME ); // flush cache for our zone term and related APC caches
