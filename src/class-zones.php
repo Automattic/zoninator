@@ -335,6 +335,8 @@ final class Zones {
 			array(
 				'posts_per_page' => 1,
 				'showposts'      => 1,
+				// One post is returned, so counting every match is wasted work.
+				'no_found_rows'  => true,
 			)
 		);
 
