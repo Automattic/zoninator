@@ -190,7 +190,7 @@ Errors use core's REST error shape, with a `code`, a `message` in the site's lan
 ```json
 {
   "code": "zone-not-found",
-  "message": "Zone not found",
+  "message": "Zone not found.",
   "data": { "status": 404 }
 }
 ```

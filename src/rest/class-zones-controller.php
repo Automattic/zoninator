@@ -128,7 +128,7 @@ final class Zones_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 		$this->translations = array(
-			self::ZONE_NOT_FOUND  => __( 'Zone not found', 'zoninator' ),
+			self::ZONE_NOT_FOUND  => __( 'Zone not found.', 'zoninator' ),
 			self::INVALID_POST_ID => __( 'Invalid post ID.', 'zoninator' ),
 		);
 

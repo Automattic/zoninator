@@ -149,7 +149,7 @@ final class ZoninatorRestContractTest extends TestCase {
 
 		$response = $this->dispatch( $method, sprintf( $path, 999999 ), $params );
 
-		$this->assert_rest_error( $response, 404, 'zone-not-found', 'Zone not found' );
+		$this->assert_rest_error( $response, 404, 'zone-not-found', 'Zone not found.' );
 	}
 
 	public static function data_zone_routes(): array {
