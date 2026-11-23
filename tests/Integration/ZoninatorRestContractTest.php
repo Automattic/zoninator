@@ -257,6 +257,26 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( 'C:\\path', $zone->description );
 	}
 
+	public function test_create_zone_stores_a_valid_description_with_accented_letters(): void {
+		$response = $this->dispatch(
+			'POST',
+			'/zones',
+			array(
+				'name'        => 'Crème',
+				'slug'        => 'creme',
+				'description' => 'Crème brûlée',
+			)
+		);
+		$zone     = Zoninator()->get_zone( 'creme' );
+
+		$this->assertSame( 201, $response->get_status() );
+		// The zone reader repairs damaged descriptions, so check what was stored is valid as it is.
+		$this->assertSame(
+			array( 'description' => 'Crème brûlée' ),
+			unserialize( get_term_field( 'description', $zone->term_id, \Zoninator::ZONE_TAXONOMY, 'raw' ), array( 'allowed_classes' => false ) ) // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
+		);
+	}
+
 	public function test_update_zone_keeps_backslashes(): void {
 		$zone_id = $this->create_zone( 'update-backslash' );
 
