@@ -48,7 +48,7 @@ final class Settings {
 			'error-general'       => __( 'Sorry, something went wrong! Please try again?', 'zoninator' ),
 			'error-delete-zone'   => __( "Sorry, we couldn't delete the zone.", 'zoninator' ),
 			'error-invalid-zone'  => __( "Sorry, that zone doesn't exist.", 'zoninator' ),
-			/* translators: User's display name, or "another user" */
+			/* translators: %s: the locking user's display name, or "another user". */
 			'error-zone-lock'     => __( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
 			'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard.', 'zoninator' ),
 		);

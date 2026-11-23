@@ -257,7 +257,7 @@ final class Screen {
 	<div class="wrap zoninator-page">
 		<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
 		<?php if ( $active_zone_id && $this->capabilities->current_user_can_add_zones() ) : ?>
-			<a href="<?php echo esc_url( $this->get_page_url( array( 'action' => 'new' ) ) ); ?>" class="page-title-action zone-button-add-new"><?php esc_html_e( 'Add New', 'zoninator' ); ?></a>
+			<a href="<?php echo esc_url( $this->get_page_url( array( 'action' => 'new' ) ) ); ?>" class="page-title-action zone-button-add-new"><?php echo esc_html_x( 'Add New', 'zone', 'zoninator' ); ?></a>
 		<?php endif; ?>
 		<hr class="wp-header-end">
 
@@ -550,18 +550,29 @@ final class Screen {
 	}
 
 	public function render_info_column( $post, $zone ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
-		/* translators: %s: post title. */
-		$title = sprintf( __( '“%s”', 'zoninator' ), $post->post_title );
-		/* translators: %s: post title. */
-		$title_new_tab   = sprintf( __( '“%s” (opens in a new tab)', 'zoninator' ), $post->post_title );
-		$sr_title        = '<span class="screen-reader-text"> ' . esc_html( $title ) . '</span>';
-		$sr_title_newtab = '<span class="screen-reader-text"> ' . esc_html( $title_new_tab ) . '</span>';
-		$action_links    = array(
-			sprintf( '<a href="%s" class="edit" target="_blank">%s%s</a>', esc_url( get_edit_post_link( $post->ID ) ), esc_html__( 'Edit', 'zoninator' ), $sr_title_newtab ),
-			sprintf( '<button type="button" class="button-link move-up">%s%s</button>', esc_html__( 'Move up', 'zoninator' ), $sr_title ),
-			sprintf( '<button type="button" class="button-link move-down">%s%s</button>', esc_html__( 'Move down', 'zoninator' ), $sr_title ),
-			sprintf( '<button type="button" class="button-link button-link-delete delete">%s%s</button>', esc_html__( 'Remove', 'zoninator' ), $sr_title ),
-			sprintf( '<a href="%s" class="view" target="_blank">%s%s</a>', esc_url( get_permalink( $post->ID ) ), esc_html__( 'View', 'zoninator' ), $sr_title_newtab ),
+		// Each accessible name is one string, so translators can put the title where their language needs it.
+		$labels = array(
+			/* translators: %s: post title. */
+			'edit'      => __( 'Edit “%s” (opens in a new tab)', 'zoninator' ),
+			/* translators: %s: post title. */
+			'move-up'   => __( 'Move up “%s”', 'zoninator' ),
+			/* translators: %s: post title. */
+			'move-down' => __( 'Move down “%s”', 'zoninator' ),
+			/* translators: %s: post title. */
+			'remove'    => __( 'Remove “%s”', 'zoninator' ),
+			/* translators: %s: post title. */
+			'view'      => __( 'View “%s” (opens in a new tab)', 'zoninator' ),
+		);
+		foreach ( $labels as $action => $label ) {
+			$labels[ $action ] = esc_attr( sprintf( $label, $post->post_title ) );
+		}
+
+		$action_links = array(
+			sprintf( '<a href="%s" class="edit" target="_blank" aria-label="%s">%s</a>', esc_url( get_edit_post_link( $post->ID ) ), $labels['edit'], esc_html__( 'Edit', 'zoninator' ) ),
+			sprintf( '<button type="button" class="button-link move-up" aria-label="%s">%s</button>', $labels['move-up'], esc_html__( 'Move up', 'zoninator' ) ),
+			sprintf( '<button type="button" class="button-link move-down" aria-label="%s">%s</button>', $labels['move-down'], esc_html__( 'Move down', 'zoninator' ) ),
+			sprintf( '<button type="button" class="button-link button-link-delete delete" aria-label="%s">%s</button>', $labels['remove'], esc_html__( 'Remove', 'zoninator' ) ),
+			sprintf( '<a href="%s" class="view" target="_blank" aria-label="%s">%s</a>', esc_url( get_permalink( $post->ID ) ), $labels['view'], esc_html__( 'View', 'zoninator' ) ),
 		);
 		?>
 		<?php printf( '%s <span class="zone-post-status">(%s)</span>', esc_html( $post->post_title ), esc_html( $this->zones->get_post_status_label( $post ) ) ); ?>

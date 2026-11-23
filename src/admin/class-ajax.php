@@ -241,7 +241,7 @@ final class Ajax {
 		if ( ! $content ) {
 			$empty_label = __( 'No results found', 'zoninator' );
 		} elseif ( $cat ) {
-			/* translators: Category name */
+			/* translators: %s: category name. */
 			$empty_label = sprintf( __( 'Choose post from %s', 'zoninator' ), get_the_category_by_ID( $cat ) );
 		} else {
 			$empty_label = __( 'Choose a post', 'zoninator' );

@@ -50,7 +50,7 @@ class Zoninator_Admin_Accessibility_Test extends TestCase {
 		$output = $this->render_zone_post();
 
 		foreach ( array( 'move-up' => 'Move up', 'move-down' => 'Move down', 'button-link-delete delete' => 'Remove' ) as $class => $text ) {
-			$this->assertMatchesRegularExpression( '#<button (?=[^>]*type="button")[^>]*class="button-link ' . $class . '"[^>]*>' . $text . '<span class="screen-reader-text"> “Zoned story”</span></button>#u', $output );
+			$this->assertMatchesRegularExpression( '#<button (?=[^>]*type="button")(?=[^>]*aria-label="' . $text . ' “Zoned story”")[^>]*class="button-link ' . $class . '"[^>]*>' . $text . '</button>#u', $output );
 		}
 		$this->assertStringNotContainsString( 'href="#"', $output );
 	}
@@ -88,7 +88,19 @@ class Zoninator_Admin_Accessibility_Test extends TestCase {
 		$output = $this->render_zone_post();
 
 		$this->assertSame( 2, substr_count( $output, 'target="_blank"' ) );
-		$this->assertSame( 2, substr_count( $output, '<span class="screen-reader-text"> “Zoned story” (opens in a new tab)</span>' ) );
+		$this->assertStringContainsString( 'aria-label="Edit “Zoned story” (opens in a new tab)"', $output );
+		$this->assertStringContainsString( 'aria-label="View “Zoned story” (opens in a new tab)"', $output );
+	}
+
+	public function test_zone_item_action_names_are_whole_translatable_strings(): void {
+		$translate = static function ( $translation, $text, $domain ) {
+			return 'zoninator' === $domain && 'Move up “%s”' === $text ? '„%s“ nach oben verschieben' : $translation;
+		};
+		add_filter( 'gettext', $translate, 10, 3 );
+		$output = $this->render_zone_post();
+		remove_filter( 'gettext', $translate, 10 );
+
+		$this->assertStringContainsString( 'aria-label="„Zoned story“ nach oben verschieben"', $output );
 	}
 
 	public function test_zone_item_layout_table_is_presentational(): void {

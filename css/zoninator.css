@@ -11,7 +11,7 @@
 }
 
 #zone-edit-wrapper .submit .submitdelete {
-	margin-left: 1em;
+	margin-inline-start: 1em;
 }
 
 /** Zone content **/
@@ -31,7 +31,8 @@
 
 .zone-posts-save-input .spinner {
 	float: none;
-	margin: 0 4px 0 0;
+	margin: 0;
+	margin-inline-end: 4px;
 }
 
 .zone-posts-save-info {
