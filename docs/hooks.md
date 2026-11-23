@@ -126,7 +126,7 @@ Default selected date filter.
 
 ## Content search
 
-These fire from `src/admin/class-ajax.php`.
+These fire from `src/rest/class-zones-controller.php`, for the `GET /zoninator/v1/search` route and the deprecated `zoninator_search_posts` AJAX action alike.
 
 ### `zoninator_recent_posts_args` (filter)
 
@@ -136,7 +136,7 @@ These fire from `src/admin/class-ajax.php`.
 
 ### `zoninator_search_args` (filter)
 
-`WP_Query` args used by the AJAX post search once something is typed.
+`WP_Query` args used by the post search once something is typed.
 
 - **Parameters:** `array $args`
 

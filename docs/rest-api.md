@@ -1,6 +1,6 @@
 # REST API
 
-Zoninator registers a single namespace, `zoninator/v1`, in `src/class-zoninator-api-controller.php`. All endpoints sit under `/wp-json/zoninator/v1/`.
+Zoninator registers a single namespace, `zoninator/v1`, in `src/rest/class-zones-controller.php`. All endpoints sit under `/wp-json/zoninator/v1/`.
 
 There is also a non-REST JSON feed at `/zones/{slug}/feed.json` — see the [theme developer guide](theme-developers.md) for that.
 
@@ -75,11 +75,11 @@ Returns the posts assigned to a zone, in zone order.
 
 **Response:** array of post objects, with the fields whitelisted by the `zoninator_zone_feed_fields` filter (by default: `ID`, `post_date`, `post_title`, `post_content`, `post_excerpt`, `post_status`, `guid`). Content and excerpt are blanked for password-protected posts.
 
-### `POST /zoninator/v1/zones/{zone_id}/posts`
+### `PUT /zoninator/v1/zones/{zone_id}/posts`
 
-Replaces the post list for a zone with the supplied IDs.
+Replaces the post list for a zone with the supplied IDs. The Zones screen saves the order this way.
 
-**Permission:** `zoninator_edit_zone_cap`.
+**Permission:** `zoninator_manage_zone_cap`. Before 0.12.0 it was `zoninator_edit_zone_cap`, with the `zoninator_current_user_can_edit_zone` filter.
 
 **Body**
 
@@ -87,7 +87,65 @@ Replaces the post list for a zone with the supplied IDs.
 |------|------|----------|-------------|
 | `post_ids` | int[] | yes | Ordered list of post IDs to assign to the zone. |
 
-**Response:** `{ "success": true }` on success, `400` if any ID does not resolve to a post, `404` if the zone does not exist.
+**Response:** `{ "success": true }` on success, `400` if any ID is not a post of a zone post type that the user can read, `404` if the zone does not exist.
+
+### `POST /zoninator/v1/zones/{zone_id}/posts/{post_id}`
+
+Adds a post to the end of a zone. Since 0.12.0.
+
+**Permission:** `zoninator_manage_zone_cap`.
+
+**Response:** `201` with the post's row for the Zones screen, rendered by the [`zoninator_zone_post_columns`](hooks.md) callbacks:
+
+```json
+{
+  "html": "<div id=\"zone-post-42\" class=\"zone-post\" …>…</div>"
+}
+```
+
+`400` if the post isn't of a zone post type that the user can read, `404` if the zone does not exist.
+
+### `DELETE /zoninator/v1/zones/{zone_id}/posts/{post_id}`
+
+Removes a post from a zone. Since 0.12.0.
+
+**Permission:** `zoninator_manage_zone_cap`.
+
+**Response:** `{ "success": true }` on success, `400` if the post isn't of a zone post type that the user can read, `404` if the zone does not exist.
+
+### `GET /zoninator/v1/search`
+
+Finds posts to add to a zone. With no `term`, lists the latest content. Since 0.12.0.
+
+**Permission:** `zoninator_manage_zone_cap`.
+
+**Query**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `term` | string | no | Search term. Leave it out for the latest content. |
+| `cat` | int | no | Category ID to filter by. |
+| `date` | string | no | Date to filter by, as `Y-m-d`. |
+| `exclude` | int[] | no | Post IDs to leave out, usually those already in the zone. |
+| `limit` | int | no | Number of search results, from 1 to 100. Defaults to the `zoninator_posts_per_page` value. The latest content ignores it. |
+
+The search applies the [content search filters](hooks.md#content-search). Published and scheduled posts are included.
+
+**Response:** an array of results.
+
+```json
+[
+  {
+    "title": "Hello world",
+    "post_id": 42,
+    "date": "November 22, 2026",
+    "post_type": "post",
+    "post_type_label": "Post",
+    "post_status": "publish",
+    "post_status_label": "Published"
+  }
+]
+```
 
 ### `PUT /zoninator/v1/zones/{zone_id}/lock`
 
@@ -135,6 +193,7 @@ Errors follow the standard `WP_REST_Response` shape with a top-level `message` f
 
 - The endpoints are registered by `Automattic\Zoninator\REST\Zones_Controller` (`src/rest/class-zones-controller.php`), which extends core's `WP_REST_Controller`. The file loads only on `rest_api_init`.
 - The update routes (`/zones/{zone_id}`, `/zones/{zone_id}/posts` and `/zones/{zone_id}/lock`) accept `POST`, `PUT` and `PATCH`.
+- The Zones screen uses these routes through `wp.apiFetch()`. Its `zoninator_add_post`, `zoninator_remove_post`, `zoninator_reorder_posts` and `zoninator_search_posts` admin-ajax actions are deprecated since 0.12.0, and go in 1.0.0.
 - Lock state is persisted in user meta keyed against the zone term, so locks survive page reloads but expire automatically when `zoninator_zone_lock_period` lapses.
 
 ## See also

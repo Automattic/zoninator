@@ -130,6 +130,9 @@ final class ZoninatorRestContractTest extends TestCase {
 			'update zone'       => array( 'PUT', '/zones/%d', false ),
 			'delete zone'       => array( 'DELETE', '/zones/%d', false ),
 			'update zone posts' => array( 'PUT', '/zones/%d/posts', true ),
+			'add zone post'     => array( 'POST', '/zones/%d/posts/1', false ),
+			'remove zone post'  => array( 'DELETE', '/zones/%d/posts/1', false ),
+			'search posts'      => array( 'GET', '/search', false ),
 			'lock zone'         => array( 'PUT', '/zones/%d/lock', false ),
 		);
 	}
@@ -156,6 +159,8 @@ final class ZoninatorRestContractTest extends TestCase {
 			'delete zone'       => array( 'DELETE', '/zones/%d', false ),
 			'get zone posts'    => array( 'GET', '/zones/%d/posts', false ),
 			'update zone posts' => array( 'PUT', '/zones/%d/posts', true ),
+			'add zone post'     => array( 'POST', '/zones/%d/posts/1', false ),
+			'remove zone post'  => array( 'DELETE', '/zones/%d/posts/1', false ),
 			'lock zone'         => array( 'PUT', '/zones/%d/lock', false ),
 		);
 	}
@@ -376,6 +381,223 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( array(), Zoninator()->get_zone_posts( $zone_id ) );
 	}
 
+	public function test_add_zone_post_appends_the_post_and_returns_its_row(): void {
+		$zone_id  = $this->create_zone( 'appended' );
+		$first_id = self::factory()->post->create();
+		$post_id  = self::factory()->post->create();
+		Zoninator()->add_zone_posts( $zone_id, array( $first_id ) );
+
+		$response = $this->dispatch( 'POST', "/zones/$zone_id/posts/$post_id" );
+
+		ob_start();
+		Zoninator()->admin_page_zone_post( get_post( $post_id ), Zoninator()->get_zone( $zone_id ) );
+		$row = ob_get_clean();
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( array( 'html' => $row ), $response->get_data() );
+		$this->assertSame( array( $first_id, $post_id ), wp_list_pluck( Zoninator()->get_zone_posts( $zone_id ), 'ID' ) );
+	}
+
+	public function test_add_zone_post_renders_columns_sites_add(): void {
+		$zone_id = $this->create_zone( 'columns' );
+		$post_id = self::factory()->post->create();
+		add_filter(
+			'zoninator_zone_post_columns',
+			static function ( $columns ) {
+				$columns['custom'] = static function () {
+					echo 'zoninator-custom-column';
+				};
+				return $columns;
+			}
+		);
+
+		$response = $this->dispatch( 'POST', "/zones/$zone_id/posts/$post_id" );
+
+		$this->assertStringContainsString( 'zoninator-custom-column', $response->get_data()['html'] );
+	}
+
+	/**
+	 * In a REST request the zone query sees only published posts, so the new
+	 * post must still go after a scheduled one at the end of the zone.
+	 */
+	public function test_add_zone_post_goes_after_a_scheduled_post(): void {
+		$zone_id      = $this->create_zone( 'after-scheduled' );
+		$scheduled_id = self::factory()->post->create(
+			array(
+				'post_status' => 'future',
+				'post_date'   => gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ),
+			)
+		);
+		$post_id      = self::factory()->post->create();
+		Zoninator()->add_zone_posts( $zone_id, array( self::factory()->post->create(), $scheduled_id ) );
+
+		$this->dispatch( 'POST', "/zones/$zone_id/posts/$post_id" );
+
+		$meta_key = Zoninator()->get_zone_meta_key( $zone_id );
+		$this->assertSame( '2', get_post_meta( $scheduled_id, $meta_key, true ) );
+		$this->assertSame( '3', get_post_meta( $post_id, $meta_key, true ) );
+	}
+
+	public function test_add_zone_post_with_a_missing_post_returns_a_message_only_body(): void {
+		$zone_id = $this->create_zone( 'add-missing' );
+
+		$response = $this->dispatch( 'POST', "/zones/$zone_id/posts/999999" );
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( array( 'message' => 'Invalid post id' ), $response->get_data() );
+	}
+
+	public function test_remove_zone_post_removes_only_that_post(): void {
+		$zone_id    = $this->create_zone( 'removed' );
+		$kept_id    = self::factory()->post->create();
+		$removed_id = self::factory()->post->create();
+		Zoninator()->add_zone_posts( $zone_id, array( $kept_id, $removed_id ) );
+
+		$response = $this->dispatch( 'DELETE', "/zones/$zone_id/posts/$removed_id" );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( 'success' => true ), $response->get_data() );
+		$this->assertSame( array( $kept_id ), wp_list_pluck( Zoninator()->get_zone_posts( $zone_id ), 'ID' ) );
+	}
+
+	public function test_remove_zone_post_with_a_missing_post_returns_a_message_only_body(): void {
+		$zone_id = $this->create_zone( 'remove-missing' );
+
+		$response = $this->dispatch( 'DELETE', "/zones/$zone_id/posts/999999" );
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( array( 'message' => 'Invalid post id' ), $response->get_data() );
+	}
+
+	/**
+	 * In a REST request the zone query sees only published posts, so
+	 * replacing the list must still take out a scheduled post left off it.
+	 */
+	public function test_update_zone_posts_removes_a_scheduled_post_left_off_the_list(): void {
+		$zone_id      = $this->create_zone( 'replace-scheduled' );
+		$post_id      = self::factory()->post->create();
+		$scheduled_id = self::factory()->post->create(
+			array(
+				'post_status' => 'future',
+				'post_date'   => gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ),
+			)
+		);
+		Zoninator()->add_zone_posts( $zone_id, array( $scheduled_id, $post_id ) );
+
+		$this->dispatch( 'PUT', "/zones/$zone_id/posts", array( 'post_ids' => array( $post_id ) ) );
+
+		$this->assertSame( '', get_post_meta( $scheduled_id, Zoninator()->get_zone_meta_key( $zone_id ), true ) );
+	}
+
+	/**
+	 * Curating a zone needs the zone management capability, as on the Zones
+	 * screen, not the one for editing the zone's details.
+	 */
+	public function test_zone_post_routes_need_only_the_manage_capability(): void {
+		$zone_id   = $this->create_zone( 'curated-by-author' );
+		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		$post_id   = self::factory()->post->create( array( 'post_author' => $author_id ) );
+		add_filter(
+			'zoninator_manage_zone_cap',
+			static function () {
+				return 'edit_posts';
+			}
+		);
+		wp_set_current_user( $author_id );
+
+		$this->assertSame( 201, $this->dispatch( 'POST', "/zones/$zone_id/posts/$post_id" )->get_status() );
+		$this->assertSame( 200, $this->dispatch( 'PUT', "/zones/$zone_id/posts", array( 'post_ids' => array( $post_id ) ) )->get_status() );
+		$this->assertSame( 200, $this->dispatch( 'GET', '/search' )->get_status() );
+		$this->assertSame( 200, $this->dispatch( 'DELETE', "/zones/$zone_id/posts/$post_id" )->get_status() );
+		$this->assertSame( 403, $this->dispatch( 'PUT', "/zones/$zone_id", array( 'name' => 'Renamed' ) )->get_status() );
+	}
+
+	public function test_search_returns_each_match_with_its_labels(): void {
+		$post_id = self::factory()->post->create( array( 'post_title' => 'zoninator_rest_search_canary' ) );
+
+		$response = $this->dispatch( 'GET', '/search', array( 'term' => 'zoninator_rest_search_canary' ) );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame(
+			array(
+				array(
+					'title'             => 'zoninator_rest_search_canary',
+					'post_id'           => $post_id,
+					'date'              => get_the_time( get_option( 'date_format' ), $post_id ),
+					'post_type'         => 'post',
+					'post_type_label'   => 'Post',
+					'post_status'       => 'publish',
+					'post_status_label' => 'Published',
+				),
+			),
+			$response->get_data()
+		);
+	}
+
+	public function test_search_without_a_term_lists_the_latest_content_without_excluded_posts(): void {
+		$post_ids = self::factory()->post->create_many( 3 );
+
+		$response = $this->dispatch( 'GET', '/search', array( 'exclude' => array( $post_ids[1] ) ) );
+		$ids      = wp_list_pluck( $response->get_data(), 'post_id' );
+
+		$this->assertContains( $post_ids[0], $ids );
+		$this->assertNotContains( $post_ids[1], $ids );
+	}
+
+	/**
+	 * Sites change the search with these filters, so they must get the same
+	 * arguments as from the AJAX action.
+	 */
+	public function test_search_applies_the_search_filters(): void {
+		$args = null;
+		add_filter(
+			'zoninator_search_args',
+			static function ( $query_args ) use ( &$args ) {
+				$args = $query_args;
+				return $query_args;
+			}
+		);
+		add_filter(
+			'zoninator_search_results_post',
+			static function ( $result ) {
+				$result['extra'] = 'added';
+				return $result;
+			}
+		);
+		self::factory()->post->create( array( 'post_title' => 'zoninator_rest_filter_canary' ) );
+
+		$response = $this->dispatch( 'GET', '/search', array( 'term' => 'zoninator_rest_filter_canary' ) );
+
+		$this->assertSame(
+			array(
+				's'                => 'zoninator_rest_filter_canary',
+				'posts_per_page'   => Zoninator()->get_posts_per_page(),
+				'post_type'        => Zoninator()->get_supported_post_types(),
+				'post_status'      => array( 'publish', 'future' ),
+				'order'            => 'DESC',
+				'orderby'          => 'post_date',
+				'suppress_filters' => true,
+				'no_found_rows'    => true,
+			),
+			$args
+		);
+		$this->assertSame( 'added', $response->get_data()[0]['extra'] );
+	}
+
+	public function test_search_rejects_a_limit_over_100(): void {
+		$response = $this->dispatch(
+			'GET',
+			'/search',
+			array(
+				'term'  => 'anything',
+				'limit' => 101,
+			)
+		);
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( 'rest_invalid_param', $response->get_data()['code'] );
+	}
+
 	public function test_update_zone_posts_requires_post_ids(): void {
 		$zone_id = $this->create_zone( 'required' );
 
@@ -559,6 +781,10 @@ final class ZoninatorRestContractTest extends TestCase {
 			'required' => true,
 			'type'     => 'integer',
 		);
+		$zone_post   = array(
+			'post_id' => $zone_id,
+			'zone_id' => $zone_id,
+		);
 
 		return array(
 			'/zoninator/v1'                                => array(
@@ -604,6 +830,38 @@ final class ZoninatorRestContractTest extends TestCase {
 							'type'     => 'array',
 						),
 						'zone_id'  => $zone_id,
+					),
+				),
+			),
+			'/zoninator/v1/zones/(?P<zone_id>[\d]+)/posts/(?P<post_id>\d+)' => array(
+				array(
+					'methods' => array( 'POST' ),
+					'args'    => $zone_post,
+				),
+				array(
+					'methods' => array( 'DELETE' ),
+					'args'    => $zone_post,
+				),
+			),
+			'/zoninator/v1/search'                         => array(
+				array(
+					'methods' => array( 'GET' ),
+					'args'    => array(
+						'cat'     => array( 'default' => 0 ),
+						'date'    => array(
+							'default' => '',
+							'type'    => 'string',
+						),
+						'exclude' => array(
+							'default' => array(),
+							'items'   => array( 'type' => 'integer' ),
+							'type'    => 'array',
+						),
+						'limit'   => array( 'type' => 'integer' ),
+						'term'    => array(
+							'default' => '',
+							'type'    => 'string',
+						),
 					),
 				),
 			),

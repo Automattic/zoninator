@@ -17,6 +17,13 @@ use WPAjaxDieContinueException;
  */
 class ZoninatorRecentPostsTest extends WP_Ajax_UnitTestCase {
 
+	public function setUp(): void {
+		parent::setUp();
+
+		// The action is deprecated, but still has to work until 1.0.0.
+		$this->setExpectedDeprecated( 'Zoninator::ajax_search_posts' );
+	}
+
 	public function tearDown(): void {
 		$_REQUEST = array();
 		$_POST    = array();

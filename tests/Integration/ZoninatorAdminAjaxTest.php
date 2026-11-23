@@ -154,6 +154,8 @@ class ZoninatorAdminAjaxTest extends WP_Ajax_UnitTestCase {
 		$response = $this->ajax( 'zoninator_add_post', array( 'post_id' => $post_id ) );
 
 		remove_action( 'admin_init', $remover, 11 );
+		// The handler didn't run, so it didn't call _deprecated_function() either.
+		$this->expected_deprecated = array();
 		$this->assertNull( $response );
 		$this->assertSame( '', $this->zone_order( $post_id ) );
 	}
@@ -258,6 +260,11 @@ class ZoninatorAdminAjaxTest extends WP_Ajax_UnitTestCase {
 			),
 			$data
 		);
+
+		// The action is deprecated, but still has to work until 1.0.0.
+		if ( 'zoninator_update_lock' !== $action ) {
+			$this->setExpectedDeprecated( 'Zoninator::ajax_' . substr( $action, strlen( 'zoninator_' ) ) );
+		}
 
 		try {
 			$this->_handleAjax( $action );

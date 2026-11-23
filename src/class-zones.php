@@ -137,8 +137,15 @@ final class Zones {
 		$meta_key = $this->get_meta_key( $zone );
 
 		if ( $append ) {
-			// Order should be the highest post order
-			$last_post = $this->get_last_post( $zone );
+			// Order should be the highest post order, counting scheduled and draft posts
+			// whoever is asking, so a REST request doesn't give two posts the same position.
+			$last_post = $this->get_single_post(
+				$zone,
+				array(
+					'order'       => 'DESC',
+					'post_status' => 'any',
+				)
+			);
 			$order     = $last_post ? $this->get_post_order( $last_post, $zone ) : 0;
 		} else {
 			$order = 0;
@@ -172,9 +179,9 @@ final class Zones {
 		$zone     = $this->get( $zone );
 		$meta_key = $this->get_meta_key( $zone );
 
-		// if null, delete all
+		// If null, remove all, including scheduled and draft posts, whoever is asking.
 		if ( ! $posts ) {
-			$posts = $this->get_posts( $zone );
+			$posts = $this->get_posts( $zone, array( 'post_status' => 'any' ) );
 		}
 
 		foreach ( (array) $posts as $post ) {
@@ -465,7 +472,7 @@ final class Zones {
 			do_action( 'zoninator_split_shared_term', $old_term_id, $new_term_id, $term_taxonomy_id );
 
 			// Quick, easy switcheroo; add posts to new zone id and remove from the old one.
-			$posts = $this->get_posts( $old_term_id );
+			$posts = $this->get_posts( $old_term_id, array( 'post_status' => 'any' ) );
 			if ( ! empty( $posts ) ) {
 				$this->add_posts( $new_term_id, $posts );
 				$this->remove_posts( $old_term_id );
