@@ -7,18 +7,34 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Automattic\Zoninator\Settings;
+
 /**
  * Tests for the class constants, getters and the old public properties.
  */
 class ZoninatorPropertiesTest extends TestCase {
 
-	public function test_getters_return_filtered_values(): void {
+	public function test_getters_return_the_defaults(): void {
 		$zoninator = Zoninator();
 
 		$this->assertSame( 30, $zoninator->get_zone_lock_period() );
 		$this->assertSame( 600, $zoninator->get_zone_max_lock_period() );
 		$this->assertSame( 10, $zoninator->get_posts_per_page() );
 		$this->assertSame( array( 'description' => '' ), $zoninator->get_zone_detail_defaults() );
+	}
+
+	public function test_settings_filters_change_the_values_on_init(): void {
+		add_filter( 'zoninator_zone_lock_period', static fn() => 45 );
+		add_filter( 'zoninator_zone_max_lock_period', static fn() => 900 );
+		add_filter( 'zoninator_posts_per_page', static fn() => 25 );
+
+		// A fresh instance, so the plugin's own settings are left alone.
+		$settings = new Settings();
+		$settings->init();
+
+		$this->assertSame( 45, $settings->get_lock_period() );
+		$this->assertSame( 900, $settings->get_max_lock_period() );
+		$this->assertSame( 25, $settings->get_posts_per_page() );
 	}
 
 	public function test_taxonomy_is_registered_with_constant(): void {

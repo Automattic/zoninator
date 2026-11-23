@@ -45,14 +45,18 @@ class ZoninatorZoneLocksTest extends TestCase {
 	}
 
 	public function test_a_lock_lasts_one_second_longer_than_the_lock_period(): void {
-		if ( wp_using_ext_object_cache() ) {
-			$this->markTestSkipped( 'The transient timeout is only readable without an object cache.' );
-		}
+		$expiration = null;
+		add_filter(
+			'expiration_of_transient_' . Zoninator()->get_zone_meta_key( $this->zone_id ),
+			static function ( $value ) use ( &$expiration ) {
+				$expiration = $value;
+				return $value;
+			}
+		);
 
 		Zoninator()->lock_zone( $this->zone_id, $this->other_id );
 
-		$timeout = (int) get_option( '_transient_timeout_' . Zoninator()->get_zone_meta_key( $this->zone_id ) );
-		$this->assertEqualsWithDelta( time() + Zoninator()->get_zone_lock_period() + 1, $timeout, 2 );
+		$this->assertSame( Zoninator()->get_zone_lock_period() + 1, $expiration );
 	}
 
 	public function test_unlock_zone_releases_the_lock(): void {
