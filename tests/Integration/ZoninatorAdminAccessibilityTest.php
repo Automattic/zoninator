@@ -9,6 +9,12 @@ namespace Automattic\Zoninator\Tests\Integration;
 
 class Zoninator_Admin_Accessibility_Test extends TestCase {
 
+	public function tearDown(): void {
+		$_GET     = array();
+		$_REQUEST = array();
+		parent::tearDown();
+	}
+
 	private function capture( callable $callback ): string {
 		ob_start();
 		$callback();
@@ -117,8 +123,6 @@ class Zoninator_Admin_Accessibility_Test extends TestCase {
 				Zoninator()->admin_page();
 			}
 		);
-
-		unset( $_GET['zone_id'], $_REQUEST['zone_id'] );
 
 		$this->assertSame( 1, substr_count( $output, '<h1' ) );
 		$this->assertStringContainsString( '<h2 class="hndle">Zone content</h2>', $output );

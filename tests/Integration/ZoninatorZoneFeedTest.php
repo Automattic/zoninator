@@ -14,6 +14,12 @@ namespace Automattic\Zoninator\Tests\Integration;
 
 final class ZoninatorZoneFeedTest extends TestCase {
 
+	public function tearDown(): void {
+		// The rollback restores the option, but not the rewrite rules held in memory.
+		$this->set_permalink_structure( '' );
+		parent::tearDown();
+	}
+
 	public function test_feed_url_sets_the_zone_query_var(): void {
 		$this->set_permalink_structure( '/%postname%/' );
 		\Zoninator()->add_zone_feed();
