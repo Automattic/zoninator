@@ -82,7 +82,7 @@ final class Capabilities {
 	 * @return bool
 	 */
 	public function check( $action = '', $zone_id = null ) {
-		// TODO: should check if zone locked
+		// Zone locks aren't checked on writes yet. See https://github.com/Automattic/zoninator/issues/215.
 		if ( 'insert' === $action ) {
 			return $this->current_user_can_add_zones();
 		}
