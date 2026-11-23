@@ -5,11 +5,11 @@ Audience-targeted reference material. The top-level [README](../README.md) is th
 | If you are… | Read |
 |---|---|
 | A theme developer rendering zones in templates | [theme-developers.md](theme-developers.md) |
-| A plugin author extending Zoninator's behaviour | [hooks.md](hooks.md) |
+| A plugin author extending Zoninator's behavior | [hooks.md](hooks.md) |
 | Building a headless / decoupled integration | [rest-api.md](rest-api.md) |
 | A contributor to the plugin itself | [../CONTRIBUTING.md](../CONTRIBUTING.md) |
 | An LLM or coding agent | [../AGENTS.md](../AGENTS.md) |
 
 Looking for what changed in a release? See the [CHANGELOG](../CHANGELOG.md).
 
-Found a security issue? See [SECURITY.md](../SECURITY.md).
+Found a security issue? See [SECURITY.md](../.github/SECURITY.md).

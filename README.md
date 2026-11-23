@@ -30,7 +30,7 @@ This plugin was originally built by [Mohammad Jangda](http://digitalize.ca) in c
 
 1. Unzip contents and upload to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Go to Dashboard > Zones to create and manage your zones, and easily search for and add existing posts.
+3. Go to Zones in the admin menu to create and manage your zones, and easily search for and add existing posts.
 4. Use the plugin's handy API functions to add zones to your theme that retrieve and display your content. Or, for those who are a bit code-averse, go to Appearance-Widgets and add Zone Posts widgets to display your zone posts in your sidebar or footer. The widget will pull the posts from the chosen zone.
 
 ### Usage examples
@@ -89,7 +89,7 @@ Filter the following and change according to your needs:
 
 ### Can anonymous users still read zones over the REST API?
 
-Not by default since version 0.11.0. The `GET /wp-json/zoninator/v1/zones` endpoint now requires an authenticated user. If your integration relied on anonymous access, you can restore the previous behaviour with the `zoninator_rest_get_zones_permissions_check` filter:
+Not by default since version 0.11.0. The `GET /wp-json/zoninator/v1/zones` endpoint now requires an authenticated user. If your integration relied on anonymous access, you can restore the previous behavior with the `zoninator_rest_get_zones_permissions_check` filter:
 
 ~~~php
 add_filter( 'zoninator_rest_get_zones_permissions_check', '__return_true' );
