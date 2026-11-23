@@ -315,6 +315,9 @@ class ZoninatorAdminAjaxTest extends WP_Ajax_UnitTestCase {
 		$GLOBALS['current_screen'] = $screen; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		$this->assertTrue( wp_script_is( 'zoninator-js', 'enqueued' ) );
 		$this->assertTrue( wp_script_is( 'jquery-ui-touch-punch', 'enqueued' ) );
+		// js/zoninator.js calls wp.a11y.speak() and wp.apiFetch().
+		$this->assertContains( 'wp-a11y', wp_scripts()->registered['zoninator-js']->deps );
+		$this->assertContains( 'wp-api-fetch', wp_scripts()->registered['zoninator-js']->deps );
 
 		$data = (string) wp_scripts()->get_data( 'zoninator-js', 'data' );
 		$this->assertSame( 1, preg_match( '/var zoninatorOptions = (\{.*\});/s', $data, $matches ) );
