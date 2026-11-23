@@ -347,7 +347,7 @@ class ZoninatorApiControllerTest extends TestCase {
 
 		$response = $this->get( '/zoninator/v1/zones/' . ( $zone_id + 3 ) . '/posts' );
 		$this->assertResponseStatus( $response, 404 );
-		$this->assertSame( 'Zone not found', $response->get_data()['message'] );
+		$this->assertSame( 'Zone not found.', $response->get_data()['message'] );
 	}
 
 

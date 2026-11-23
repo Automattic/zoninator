@@ -149,7 +149,7 @@ final class ZoninatorRestContractTest extends TestCase {
 
 		$response = $this->dispatch( $method, sprintf( $path, 999999 ), $params );
 
-		$this->assert_rest_error( $response, 404, 'zone-not-found', 'Zone not found' );
+		$this->assert_rest_error( $response, 404, 'zone-not-found', 'Zone not found.' );
 	}
 
 	public static function data_zone_routes(): array {
@@ -439,7 +439,7 @@ final class ZoninatorRestContractTest extends TestCase {
 
 		$response = $this->dispatch( 'POST', "/zones/$zone_id/posts/999999" );
 
-		$this->assert_rest_error( $response, 400, 'invalid-post-id', 'Invalid post id' );
+		$this->assert_rest_error( $response, 400, 'invalid-post-id', 'Invalid post ID.' );
 	}
 
 	public function test_remove_zone_post_removes_only_that_post(): void {
@@ -460,7 +460,7 @@ final class ZoninatorRestContractTest extends TestCase {
 
 		$response = $this->dispatch( 'DELETE', "/zones/$zone_id/posts/999999" );
 
-		$this->assert_rest_error( $response, 400, 'invalid-post-id', 'Invalid post id' );
+		$this->assert_rest_error( $response, 400, 'invalid-post-id', 'Invalid post ID.' );
 	}
 
 	/**
@@ -727,7 +727,7 @@ final class ZoninatorRestContractTest extends TestCase {
 
 		$response = $this->dispatch( 'PUT', "/zones/$zone_id/posts", array( 'post_ids' => array( 999999 ) ) );
 
-		$this->assert_rest_error( $response, 400, 'invalid-post-id', 'Invalid post id' );
+		$this->assert_rest_error( $response, 400, 'invalid-post-id', 'Invalid post ID.' );
 	}
 
 	public function test_lock_zone_locks_an_unlocked_zone(): void {
@@ -768,7 +768,7 @@ final class ZoninatorRestContractTest extends TestCase {
 
 		$this->assertSame( 400, $response->get_status() );
 		$this->assertSame( 'zone-id-required', $response->get_data()['code'] );
-		$this->assertSame( 'zone id required', $response->get_data()['message'] );
+		$this->assertSame( 'Zone ID is required.', $response->get_data()['message'] );
 	}
 
 	/**
