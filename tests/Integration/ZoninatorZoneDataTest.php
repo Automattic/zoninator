@@ -270,6 +270,23 @@ class ZoninatorZoneDataTest extends TestCase {
 		$this->assertSame( $this->post_ids, wp_list_pluck( Zoninator()->get_zone_posts( $new_id ), 'ID' ) );
 	}
 
+	public function test_split_shared_term_moves_a_scheduled_post_too(): void {
+		$scheduled_id = self::factory()->post->create(
+			array(
+				'post_status' => 'future',
+				'post_date'   => gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
+			)
+		);
+		Zoninator()->add_zone_posts( $this->zone_id, array( $scheduled_id ), true );
+		$new_zone = Zoninator()->insert_zone( 'split-scheduled-zone' );
+		$new_id   = (int) $new_zone['term_id'];
+
+		Zoninator()->split_shared_term( $this->zone_id, $new_id, 123, 'zoninator_zones' );
+
+		$this->assertSame( '', get_post_meta( $scheduled_id, Zoninator()->get_zone_meta_key( $this->zone_id ), true ) );
+		$this->assertSame( '4', get_post_meta( $scheduled_id, Zoninator()->get_zone_meta_key( $new_id ), true ) );
+	}
+
 	public function test_split_shared_term_ignores_other_taxonomies(): void {
 		$new_zone = Zoninator()->insert_zone( 'split-zone' );
 
