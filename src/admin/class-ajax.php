@@ -216,7 +216,8 @@ final class Ajax {
 				$this->request->get_request_var( 'cat', '', 'absint' ),
 				$this->request->get_request_var( 'date', '', 'striptags' ),
 				(array) $this->request->get_request_var( 'exclude', array(), 'absint' ),
-				absint( $this->request->get_request_var( 'limit', 0 ) )
+				absint( $this->request->get_request_var( 'limit', 0 ) ),
+				absint( $this->request->get_request_var( 'zone_id', 0 ) )
 			)
 		);
 	}
@@ -297,7 +298,7 @@ final class Ajax {
 		$zone_posts = $this->zones->get_posts( $zone_id );
 		$exclude    = is_wp_error( $zone_posts ) ? array() : wp_list_pluck( $zone_posts, 'ID' );
 
-		return ( $this->search_controller )()->find_posts( '', $cat, $date, $exclude );
+		return ( $this->search_controller )()->find_posts( '', $cat, $date, $exclude, 0, absint( $zone_id ) );
 	}
 
 	/**

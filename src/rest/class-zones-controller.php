@@ -490,7 +490,8 @@ final class Zones_Controller extends WP_REST_Controller {
 				$request['cat'],
 				$request['date'],
 				$request['exclude'],
-				(int) $request['limit']
+				(int) $request['limit'],
+				(int) $request['zone_id']
 			)
 		);
 	}
@@ -504,9 +505,10 @@ final class Zones_Controller extends WP_REST_Controller {
 	 * @param string $date    Date to filter by, as Y-m-d, or ''.
 	 * @param int[]  $exclude Post IDs to leave out, usually those already in the zone.
 	 * @param int    $limit   Number of search results, up to 100. 0 for the default. The latest content ignores it.
+	 * @param int    $zone_id Zone being edited, or 0. Passed to the query args filters.
 	 * @return array[] Results, each passed through the zoninator_search_results_post filter.
 	 */
-	public function find_posts( $term, $cat, $date, $exclude, $limit = 0 ) {
+	public function find_posts( $term, $cat, $date, $exclude, $limit = 0, $zone_id = 0 ) {
 		$post_types = $this->taxonomy->get_post_types();
 
 		// A post ID finds that post directly, which skips the slow LIKE search. If
@@ -536,7 +538,8 @@ final class Zones_Controller extends WP_REST_Controller {
 					'ignore_sticky_posts' => true,
 					'post_status'         => array( 'publish', 'future' ),
 					'suppress_filters'    => false,
-				)
+				),
+				$zone_id
 			);
 		} else {
 			$limit = $limit > 0 ? min( $limit, 100 ) : $this->settings->get_posts_per_page();
@@ -553,7 +556,8 @@ final class Zones_Controller extends WP_REST_Controller {
 					// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters
 					'suppress_filters' => true,
 					'no_found_rows'    => true,
-				)
+				),
+				$zone_id
 			);
 		}
 
@@ -887,6 +891,13 @@ final class Zones_Controller extends WP_REST_Controller {
 				'type'    => 'integer',
 				'minimum' => 1,
 				'maximum' => 100,
+			),
+			// The zone being edited, for sites that focus the search on it. Not checked
+			// against the zones: it only reaches the query args filters.
+			'zone_id' => array(
+				'type'    => 'integer',
+				'minimum' => 0,
+				'default' => 0,
 			),
 		);
 	}

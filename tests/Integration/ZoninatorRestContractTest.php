@@ -632,6 +632,33 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertNotContains( $page_id, wp_list_pluck( $this->dispatch( 'GET', '/search', array( 'term' => (string) $page_id ) )->get_data(), 'post_id' ) );
 	}
 
+	/**
+	 * Sites focus the search on the zone being edited, so both query args
+	 * filters get its ID.
+	 */
+	public function test_search_passes_the_zone_id_to_the_query_args_filters(): void {
+		$zone_ids = array();
+		$spy      = static function ( $args, $zone_id = null ) use ( &$zone_ids ) {
+			$zone_ids[] = $zone_id;
+			return $args;
+		};
+		add_filter( 'zoninator_search_args', $spy, 10, 2 );
+		add_filter( 'zoninator_recent_posts_args', $spy, 10, 2 );
+
+		$this->dispatch(
+			'GET',
+			'/search',
+			array(
+				'term'    => 'anything',
+				'zone_id' => 42,
+			)
+		);
+		$this->dispatch( 'GET', '/search', array( 'zone_id' => 42 ) );
+		$this->dispatch( 'GET', '/search' );
+
+		$this->assertSame( array( 42, 42, 0 ), $zone_ids );
+	}
+
 	public function test_search_rejects_a_limit_over_100(): void {
 		$response = $this->dispatch(
 			'GET',
@@ -909,6 +936,10 @@ final class ZoninatorRestContractTest extends TestCase {
 						'term'    => array(
 							'default' => '',
 							'type'    => 'string',
+						),
+						'zone_id' => array(
+							'default' => 0,
+							'type'    => 'integer',
 						),
 					),
 				),
