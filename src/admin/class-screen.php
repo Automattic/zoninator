@@ -136,8 +136,7 @@ final class Screen {
 			wp_localize_script( 'zoninator-js', 'zoninatorOptions', $options );
 
 			// For mobile support: https://github.com/furf/jquery-ui-touch-punch
-			// phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter, WordPress.WP.EnqueuedResourceParameters.MissingVersion
-			wp_enqueue_script( 'jquery-ui-touch-punch', plugin_dir_url( ZONINATOR_FILE ) . 'js/jquery.ui.touch-punch.min.js', array( 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse' ) );
+			wp_enqueue_script( 'jquery-ui-touch-punch', plugin_dir_url( ZONINATOR_FILE ) . 'js/jquery.ui.touch-punch.min.js', array( 'jquery-ui-core', 'jquery-ui-widget', 'jquery-ui-mouse' ), ZONINATOR_VERSION, true );
 		}
 	}
 
