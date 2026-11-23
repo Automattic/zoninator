@@ -222,6 +222,54 @@ class ZoninatorZoneDataTest extends TestCase {
 		);
 	}
 
+	/**
+	 * Hides a post from every query that runs the posts_where filter, as a
+	 * plugin that filters posts by language or access might.
+	 *
+	 * @param int $post_id Post to hide.
+	 * @return callable The filter, to remove afterwards.
+	 */
+	private function hide_post_from_query_filters( int $post_id ): callable {
+		$filter = static function ( $where ) use ( $post_id ) {
+			global $wpdb;
+			return $where . " AND {$wpdb->posts}.ID != {$post_id}";
+		};
+		add_filter( 'posts_where', $filter );
+
+		return $filter;
+	}
+
+	public function test_setting_zone_posts_clears_a_post_that_query_filters_hide(): void {
+		$filter = $this->hide_post_from_query_filters( $this->post_ids[2] );
+
+		Zoninator()->add_zone_posts( $this->zone_id, array( $this->post_ids[1], $this->post_ids[0] ) );
+
+		remove_filter( 'posts_where', $filter );
+		$this->assertSame( array( $this->post_ids[1], $this->post_ids[0] ), $this->zone_post_ids() );
+	}
+
+	public function test_appending_a_post_counts_a_post_that_query_filters_hide(): void {
+		$filter = $this->hide_post_from_query_filters( $this->post_ids[2] );
+		$new_id = self::factory()->post->create();
+
+		Zoninator()->add_zone_posts( $this->zone_id, array( $new_id ), true );
+
+		remove_filter( 'posts_where', $filter );
+		$this->assertSame( '4', Zoninator()->get_post_order( $new_id, $this->zone_id ) );
+	}
+
+	public function test_split_shared_term_moves_a_post_that_query_filters_hide(): void {
+		$new_zone = Zoninator()->insert_zone( 'split-zone' );
+		$new_id   = (int) $new_zone['term_id'];
+		$filter   = $this->hide_post_from_query_filters( $this->post_ids[2] );
+
+		Zoninator()->split_shared_term( $this->zone_id, $new_id, 123, 'zoninator_zones' );
+
+		remove_filter( 'posts_where', $filter );
+		$this->assertSame( array(), $this->zone_post_ids() );
+		$this->assertSame( $this->post_ids, wp_list_pluck( Zoninator()->get_zone_posts( $new_id ), 'ID' ) );
+	}
+
 	public function test_split_shared_term_ignores_other_taxonomies(): void {
 		$new_zone = Zoninator()->insert_zone( 'split-zone' );
 
