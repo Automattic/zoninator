@@ -184,13 +184,19 @@ Fires after a zone has been deleted.
 
 Fires after one or more posts have been added to a zone.
 
-- **Parameters:** `WP_Post[] $posts`, `WP_Term $zone`
+- **Parameters:** `int|int[]|WP_Post[] $posts`, `WP_Term $zone`
+
+`$posts` is whatever was passed to `Zoninator::add_zone_posts()`, so its type depends on the caller. Adding one post, through the REST API or the deprecated admin-ajax action, passes its ID as an `int`. Reordering through admin-ajax passes an array of IDs. Replacing the zone's posts with `PUT /zoninator/v1/zones/{zone_id}/posts` passes `WP_Post` objects. Your own calls pass whatever you gave. To get IDs whatever the type, use `array_map( fn( $post ) => is_object( $post ) ? $post->ID : (int) $post, (array) $posts )`.
+
+Replacing the zone's posts, rather than appending, first removes every post in the zone, so `zoninator_remove_zone_posts` fires before this.
 
 ### `zoninator_remove_zone_posts` (action)
 
 Fires after one or more posts have been removed from a zone.
 
-- **Parameters:** `WP_Post[] $posts`, `WP_Term $zone`
+- **Parameters:** `int|int[]|WP_Post[] $posts`, `WP_Term $zone`
+
+As with `zoninator_add_zone_posts`, `$posts` is whatever was passed to `Zoninator::remove_zone_posts()`. Removing one post passes its ID as an `int`. When the whole zone is cleared (replacing its posts, deleting the zone, or splitting a shared term), it's every post in the zone, whatever its status, as `WP_Post` objects.
 
 ## Term splitting (WordPress 4.2 carry-over)
 
