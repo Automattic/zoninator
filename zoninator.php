@@ -37,7 +37,10 @@ define( 'ZONINATOR_FILE', __FILE__ );
 
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/src/class-zoninator-zoneposts-widget.php';
+require_once __DIR__ . '/src/class-settings.php';
 require_once __DIR__ . '/src/class-taxonomy.php';
+require_once __DIR__ . '/src/class-capabilities.php';
+require_once __DIR__ . '/src/class-request.php';
 require_once __DIR__ . '/src/class-zones.php';
 require_once __DIR__ . '/src/class-locks.php';
 require_once __DIR__ . '/src/class-feed.php';

@@ -20,27 +20,6 @@ class Zoninator {
 	public const ZONE_META_PREFIX = \Automattic\Zoninator\Zones::META_PREFIX;
 
 	/**
-	 * Prefix of every nonce action, used by _get_nonce_key().
-	 */
-	private const NONCE_PREFIX = 'zone-nonce';
-
-	// Number of seconds a lock is valid for.
-	private $zone_lock_period = 30;
-
-	// Max number of seconds for all locks in a session.
-	private $zone_max_lock_period = 600;
-
-	private $zone_messages;
-
-	private $posts_per_page = 10;
-
-	// Zone details saved in the zone term, with their default values. Add
-	// your own with the zoninator_zone_detail_defaults filter.
-	private $zone_detail_defaults = array(
-		'description' => '',
-	);
-
-	/**
 	* The REST controller, set on rest_api_init.
 	*
 	* @var \Automattic\Zoninator\REST\Zones_Controller|null
@@ -94,13 +73,63 @@ class Zoninator {
 	 */
 	private $feed;
 
+	/**
+	 * The settings sites tune with filters, and the screen's messages.
+	 *
+	 * @var \Automattic\Zoninator\Settings
+	 */
+	private $settings;
+
+	/**
+	 * The capability checks. The _current_user_can_* and _get_*_cap methods here delegate to it.
+	 *
+	 * @var \Automattic\Zoninator\Capabilities
+	 */
+	private $capabilities;
+
+	/**
+	 * Reads and checks requests. The _get_*_var and verify_* methods here delegate to it.
+	 *
+	 * @var \Automattic\Zoninator\Request
+	 */
+	private $request;
+
+	/**
+	 * Builds each part of the plugin and hands it what it needs. Nothing but
+	 * this class depends on Zoninator, so the parts can be used and tested on
+	 * their own.
+	 */
 	public function __construct() {
-		$this->taxonomy     = new \Automattic\Zoninator\Taxonomy( $this );
-		$this->zones        = new \Automattic\Zoninator\Zones( $this );
-		$this->locks        = new \Automattic\Zoninator\Locks( $this );
-		$this->feed         = new \Automattic\Zoninator\Feed( $this );
-		$this->admin_screen = new \Automattic\Zoninator\Admin\Screen( $this );
-		$this->admin_ajax   = new \Automattic\Zoninator\Admin\Ajax( $this );
+		$this->settings     = new \Automattic\Zoninator\Settings();
+		$this->taxonomy     = new \Automattic\Zoninator\Taxonomy();
+		$this->capabilities = new \Automattic\Zoninator\Capabilities( $this->taxonomy );
+		$this->request      = new \Automattic\Zoninator\Request( $this->capabilities );
+		$this->zones        = new \Automattic\Zoninator\Zones( $this->settings, $this->taxonomy, $this->capabilities );
+		$this->locks        = new \Automattic\Zoninator\Locks( $this->zones, $this->settings );
+		$this->feed         = new \Automattic\Zoninator\Feed( $this->zones );
+		$this->admin_screen = new \Automattic\Zoninator\Admin\Screen(
+			$this->zones,
+			$this->locks,
+			$this->settings,
+			$this->capabilities,
+			$this->request,
+			// Sites unhook and replace these, so they stay pointed at Zoninator().
+			array(
+				'page'     => array( $this, 'admin_page' ),
+				'position' => array( $this, 'admin_page_zone_post_col_position' ),
+				'info'     => array( $this, 'admin_page_zone_post_col_info' ),
+			)
+		);
+		$this->admin_ajax = new \Automattic\Zoninator\Admin\Ajax(
+			$this->zones,
+			$this->locks,
+			$this->capabilities,
+			$this->request,
+			$this->admin_screen,
+			function () {
+				return $this->make_rest_controller();
+			}
+		);
 
 		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
 
@@ -159,11 +188,11 @@ class Zoninator {
 			return;
 		}
 
-		if ( 'post_types' === $name || property_exists( $this, $name ) ) {
+		if ( 'post_types' === $name || in_array( $name, array( 'zone_detail_defaults', 'zone_lock_period', 'zone_max_lock_period', 'posts_per_page', 'zone_messages' ), true ) ) {
 			if ( 'post_types' === $name ) {
 				$this->taxonomy->set_post_types( $value );
 			} else {
-				$this->$name = $value;
+				$this->settings->set( $name, $value );
 			}
 
 			if ( isset( $properties[ $name ][2] ) ) {
@@ -201,14 +230,14 @@ class Zoninator {
 			'zone_taxonomy'          => array( self::ZONE_TAXONOMY, 'Zoninator::ZONE_TAXONOMY', null ),
 			'zone_term_prefix'       => array( 'zone-', 'your own value (Zoninator never used it)', null ),
 			'zone_meta_prefix'       => array( self::ZONE_META_PREFIX, 'Zoninator::ZONE_META_PREFIX', null ),
-			'zone_nonce_prefix'      => array( self::NONCE_PREFIX, 'Zoninator::_get_nonce_key()', null ),
+			'zone_nonce_prefix'      => array( \Automattic\Zoninator\Request::NONCE_PREFIX, 'Zoninator::_get_nonce_key()', null ),
 			'zone_ajax_nonce_action' => array( \Automattic\Zoninator\Admin\Ajax::NONCE_ACTION, 'Automattic\\Zoninator\\Admin\\Ajax::NONCE_ACTION', null ),
-			'zone_detail_defaults'   => array( $this->zone_detail_defaults, 'Zoninator::get_zone_detail_defaults()', 'the zoninator_zone_detail_defaults filter' ),
-			'zone_lock_period'       => array( $this->zone_lock_period, 'Zoninator::get_zone_lock_period()', 'the zoninator_zone_lock_period filter' ),
-			'zone_max_lock_period'   => array( $this->zone_max_lock_period, 'Zoninator::get_zone_max_lock_period()', 'the zoninator_zone_max_lock_period filter' ),
-			'posts_per_page'         => array( $this->posts_per_page, 'Zoninator::get_posts_per_page()', 'the zoninator_posts_per_page filter' ),
+			'zone_detail_defaults'   => array( $this->settings->get( 'zone_detail_defaults' ), 'Zoninator::get_zone_detail_defaults()', 'the zoninator_zone_detail_defaults filter' ),
+			'zone_lock_period'       => array( $this->settings->get( 'zone_lock_period' ), 'Zoninator::get_zone_lock_period()', 'the zoninator_zone_lock_period filter' ),
+			'zone_max_lock_period'   => array( $this->settings->get( 'zone_max_lock_period' ), 'Zoninator::get_zone_max_lock_period()', 'the zoninator_zone_max_lock_period filter' ),
+			'posts_per_page'         => array( $this->settings->get( 'posts_per_page' ), 'Zoninator::get_posts_per_page()', 'the zoninator_posts_per_page filter' ),
 			'post_types'             => array( $this->taxonomy->get_post_types(), 'Zoninator::get_supported_post_types()', 'Zoninator::register_zone_post_type()' ),
-			'zone_messages'          => array( $this->zone_messages, 'Zoninator::_get_message()', null ),
+			'zone_messages'          => array( $this->settings->get( 'zone_messages' ), 'Zoninator::_get_message()', null ),
 		);
 	}
 
@@ -218,7 +247,7 @@ class Zoninator {
 	 * @return int
 	 */
 	public function get_zone_lock_period() {
-		return $this->zone_lock_period;
+		return $this->settings->get_lock_period();
 	}
 
 	/**
@@ -227,7 +256,7 @@ class Zoninator {
 	 * @return int
 	 */
 	public function get_zone_max_lock_period() {
-		return $this->zone_max_lock_period;
+		return $this->settings->get_max_lock_period();
 	}
 
 	/**
@@ -236,7 +265,7 @@ class Zoninator {
 	 * @return int
 	 */
 	public function get_posts_per_page() {
-		return $this->posts_per_page;
+		return $this->settings->get_posts_per_page();
 	}
 
 	/**
@@ -245,14 +274,7 @@ class Zoninator {
 	 * @return array
 	 */
 	public function get_zone_detail_defaults() {
-		/**
-		 * Filters the zone details saved in the zone term, and their default values.
-		 *
-		 * @since 0.12.0
-		 *
-		 * @param array $defaults Detail name => default value. Includes 'description'.
-		 */
-		return (array) apply_filters( 'zoninator_zone_detail_defaults', $this->zone_detail_defaults );
+		return $this->settings->get_detail_defaults();
 	}
 
 	public function maybe_add_rest_api() {
@@ -263,9 +285,27 @@ class Zoninator {
 	 * Load the REST controller only when the REST API is in use, and register its routes.
 	 */
 	public function register_rest_routes() {
-		require_once __DIR__ . '/rest/class-zones-controller.php';
-		$this->rest_api = new \Automattic\Zoninator\REST\Zones_Controller( $this );
+		$this->rest_api = $this->make_rest_controller();
 		$this->rest_api->register_routes();
+	}
+
+	/**
+	 * Builds the REST controller, loading its class first.
+	 *
+	 * @return \Automattic\Zoninator\REST\Zones_Controller
+	 */
+	private function make_rest_controller() {
+		require_once __DIR__ . '/rest/class-zones-controller.php';
+
+		return new \Automattic\Zoninator\REST\Zones_Controller(
+			$this->zones,
+			$this->taxonomy,
+			$this->locks,
+			$this->feed,
+			$this->settings,
+			$this->capabilities,
+			$this->admin_screen
+		);
 	}
 
 	public function add_zone_feed() {
@@ -273,25 +313,11 @@ class Zoninator {
 	}
 
 	public function init() {
-		$this->zone_messages = array(
-			'insert-success'      => __( 'The zone was successfully created.', 'zoninator' ),
-			'update-success'      => __( 'The zone was successfully updated.', 'zoninator' ),
-			'delete-success'      => __( 'The zone was successfully deleted.', 'zoninator' ),
-			'error-general'       => __( 'Sorry, something went wrong! Please try again?', 'zoninator' ),
-			'error-delete-zone'   => __( "Sorry, we couldn't delete the zone.", 'zoninator' ),
-			'error-invalid-zone'  => __( "Sorry, that zone doesn't exist.", 'zoninator' ),
-			/* translators: User's display name, or "another user" */
-			'error-zone-lock'     => __( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
-			'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard.', 'zoninator' ),
-		);
-
-		$this->zone_lock_period     = apply_filters( 'zoninator_zone_lock_period', $this->zone_lock_period );
-		$this->zone_max_lock_period = apply_filters( 'zoninator_zone_max_lock_period', $this->zone_max_lock_period );
-		$this->posts_per_page       = apply_filters( 'zoninator_posts_per_page', $this->posts_per_page );
+		$this->settings->init();
 
 		do_action( 'zoninator_pre_init' );
 
-		$this->taxonomy->register();
+		$this->taxonomy->register( $this->default_post_types );
 
 		add_action( 'admin_init', array( $this, 'admin_controller' ) );
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
@@ -413,8 +439,7 @@ class Zoninator {
 	 * @return string
 	 */
 	public function get_post_status_label( $post ) {
-		$status = get_post_status_object( $post->post_status );
-		return $status ? $status->label : $post->post_status;
+		return $this->zones->get_post_status_label( $post );
 	}
 
 	/**
@@ -424,8 +449,7 @@ class Zoninator {
 	 * @return string
 	 */
 	public function get_post_type_label( $post ) {
-		$type = get_post_type_object( $post->post_type );
-		return $type ? $type->labels->singular_name : $post->post_type;
+		return $this->zones->get_post_type_label( $post );
 	}
 
 	public function is_zoninator_page() {
@@ -661,12 +685,7 @@ class Zoninator {
 	 * @return bool
 	 */
 	public function current_user_can_add_post_to_zone( $post ) {
-		// get_post() falls back to the global post when given an empty value.
-		$post = empty( $post ) ? null : get_post( $post );
-
-		return $post
-			&& in_array( $post->post_type, $this->get_supported_post_types(), true )
-			&& current_user_can( 'read_post', $post->ID );
+		return $this->capabilities->current_user_can_add_post_to_zone( $post );
 	}
 
 	public function get_post_order( $post, $zone ) {
@@ -674,42 +693,15 @@ class Zoninator {
 	}
 
 	public function verify_nonce( $action ) {
-		$action = $this->_get_nonce_key( $action );
-		$nonce  = $this->_get_request_var( $action );
-
-		if ( empty( $nonce ) ) {
-			$nonce = $this->_get_request_var( '_wpnonce' );
-		}
-
-		if ( ! wp_verify_nonce( $nonce, $action ) ) {
-			$this->_unauthorized_access();
-		}
+		return $this->request->verify_nonce( $action );
 	}
 
 	public function verify_access( $action = '', $zone_id = null ) {
-		// TODO: should check if zone locked
-
-		$verify_function = '';
-		switch ( $action ) {
-			case 'insert':
-				$verify_function = '_current_user_can_add_zones';
-				break;
-			case 'update':
-			case 'delete':
-				$verify_function = '_current_user_can_edit_zones';
-				break;
-			default:
-				$verify_function = '_current_user_can_manage_zones';
-				break;
-		}
-
-		if ( ! call_user_func( array( $this, $verify_function ), $zone_id ) ) {
-			$this->_unauthorized_access();
-		}
+		return $this->request->verify_access( $action, $zone_id );
 	}
 
 	public function _unauthorized_access() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		wp_die( esc_html__( "Sorry, you're not supposed to do that...", 'zoninator' ) );
+		return $this->request->unauthorized_access();
 	}
 
 	public function _fill_zone_details( $zone ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
@@ -746,101 +738,67 @@ class Zoninator {
 	}
 
 	public function _get_message( $message_id, $encode = false ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		$message = '';
-
-		if ( ! empty( $this->zone_messages[ $message_id ] ) ) {
-			$message = $this->zone_messages[ $message_id ];
-		}
-
-		if ( $encode ) {
-			$message = urlencode( $message );
-		}
-
-		return $message;
+		return $this->settings->get_message( $message_id, $encode );
 	}
 
 	public function _get_nonce_key( $action ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return sprintf( '%s-%s', self::NONCE_PREFIX, $action );
+		return \Automattic\Zoninator\Request::get_nonce_key( $action );
 	}
 
 	public function _current_user_can_add_zones() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return current_user_can( $this->_get_add_zones_cap() );
+		return $this->capabilities->current_user_can_add_zones();
 	}
 
 	public function _current_user_can_edit_zones( $zone_id ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		$has_cap = current_user_can( $this->_get_edit_zones_cap() );
-		return apply_filters( 'zoninator_current_user_can_edit_zone', $has_cap, $zone_id );
+		return $this->capabilities->current_user_can_edit_zones( $zone_id );
 	}
 
 	public function _current_user_can_manage_zones() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return current_user_can( $this->_get_manage_zones_cap() );
+		return $this->capabilities->current_user_can_manage_zones();
 	}
 
 	public function _get_add_zones_cap() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return apply_filters( 'zoninator_add_zone_cap', 'edit_others_posts' );
+		return $this->capabilities->get_add_zones_cap();
 	}
 
 	public function _get_edit_zones_cap() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return apply_filters( 'zoninator_edit_zone_cap', 'edit_others_posts' );
+		return $this->capabilities->get_edit_zones_cap();
 	}
 
 	public function _get_manage_zones_cap() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return apply_filters( 'zoninator_manage_zone_cap', 'edit_others_posts' );
+		return $this->capabilities->get_manage_zones_cap();
 	}
 
 	public function _get_zone_page_url( $args = array() ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		$url = menu_page_url( \Automattic\Zoninator\Admin\Screen::PAGE_SLUG, false );
-
-		foreach ( $args as $arg_key => $arg_value ) {
-			$url = add_query_arg( $arg_key, $arg_value, $url );
-		}
-
-		return $url;
+		return $this->admin_screen->get_page_url( $args );
 	}
 
 	public function _validate_date_filter( $date ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return preg_match( '/(\d{4})-(\d{2})-(\d{2})/', $date );
+		return \Automattic\Zoninator\Request::is_valid_date_filter( $date );
 	}
 
 	public function _validate_category_filter( $cat ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return $cat && get_term_by( 'id', $cat, 'category' );
+		return \Automattic\Zoninator\Request::is_valid_category_filter( $cat );
 	}
 
 	public function _sanitize_value( $var ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		// htmlspecialchars(), not htmlentities(): core decodes named entities such as
-		// &eacute; when it saves a term, which broke the serialised zone details.
-		return htmlspecialchars( stripslashes( $var ) );
+		return \Automattic\Zoninator\Request::sanitize_value( $var );
 	}
 
 	public function _get_value_or_default( $var, $object, $default = '', $sanitize_callback = '' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound, Universal.NamingConventions.NoReservedKeywordParameterNames.objectFound, Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		if ( is_object( $object ) ) {
-			$value = empty( $object->$var ) ? $default : $object->$var;
-		} elseif ( is_array( $object ) ) {
-			$value = empty( $object[ $var ] ) ? $default : $object[ $var ];
-		} else {
-			$value = $default;
-		}
-
-		if ( is_callable( $sanitize_callback ) ) {
-			$value = is_array( $value ) ? array_map( $sanitize_callback, $value ) : call_user_func( $sanitize_callback, $value );
-		}
-
-		return $value;
+		return \Automattic\Zoninator\Request::get_value_or_default( $var, $object, $default, $sanitize_callback );
 	}
 
 	public function _get_request_var( $var, $default = '', $sanitize_callback = '' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound, Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		return $this->_get_value_or_default( $var, $_REQUEST, $default, $sanitize_callback );
+		return $this->request->get_request_var( $var, $default, $sanitize_callback );
 	}
 
 	public function _get_get_var( $var, $default = '', $sanitize_callback = '' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound, Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		return $this->_get_value_or_default( $var, $_GET, $default, $sanitize_callback );
+		return $this->request->get_get_var( $var, $default, $sanitize_callback );
 	}
 
 	public function _get_post_var( $var, $default = '', $sanitize_callback = '' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound, Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		return $this->_get_value_or_default( $var, $_POST, $default, $sanitize_callback );
+		return $this->request->get_post_var( $var, $default, $sanitize_callback );
 	}
 
 	public function get_admin_zone_post( $post, $zone ) {
@@ -909,15 +867,6 @@ class Zoninator {
 	}
 
 	public function check( $action = '', $zone_id = null ) {
-		// TODO: should check if zone locked
-		if ( 'insert' == $action ) {
-			return $this->_current_user_can_add_zones();
-		}
-
-		if ( 'update' == $action || 'delete' == $action ) {
-			return $this->_current_user_can_edit_zones( $zone_id );
-		}
-
-		return $this->_current_user_can_manage_zones();
+		return $this->capabilities->check( $action, $zone_id );
 	}
 }

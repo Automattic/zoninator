@@ -7,7 +7,10 @@
 
 namespace Automattic\Zoninator\Admin;
 
-use Zoninator;
+use Automattic\Zoninator\Capabilities;
+use Automattic\Zoninator\Locks;
+use Automattic\Zoninator\Request;
+use Automattic\Zoninator\Zones;
 
 /**
  * Handles the Zones screen's admin-ajax requests: adding, removing and
@@ -30,24 +33,69 @@ final class Ajax {
 	public const NONCE_ACTION = 'ajax-action';
 
 	/**
-	 * The Zoninator facade, which holds the zone data and request helpers.
+	 * Zones and the posts in them.
 	 *
-	 * @var Zoninator
+	 * @var Zones
 	 */
-	private $zoninator;
+	private $zones;
+
+	/**
+	 * Zone locks.
+	 *
+	 * @var Locks
+	 */
+	private $locks;
+
+	/**
+	 * The capability checks.
+	 *
+	 * @var Capabilities
+	 */
+	private $capabilities;
+
+	/**
+	 * Reads and checks requests.
+	 *
+	 * @var Request
+	 */
+	private $request;
+
+	/**
+	 * The Zones screen, which renders a zone post's row.
+	 *
+	 * @var Screen
+	 */
+	private $screen;
+
+	/**
+	 * Returns the REST controller, whose search the old search action uses.
+	 *
+	 * @var callable
+	 */
+	private $search_controller;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param Zoninator $zoninator The Zoninator facade.
+	 * @param Zones $zones Zones and the posts in them.
+	 * @param Locks $locks Zone locks.
+	 * @param Capabilities $capabilities The capability checks.
+	 * @param Request $request Reads and checks requests.
+	 * @param Screen $screen The Zones screen, which renders a zone post's row.
+	 * @param callable $search_controller Returns the REST controller, whose search the old search action uses.
 	 */
-	public function __construct( Zoninator $zoninator ) {
-		$this->zoninator = $zoninator;
+	public function __construct( Zones $zones, Locks $locks, Capabilities $capabilities, Request $request, Screen $screen, callable $search_controller ) {
+		$this->zones             = $zones;
+		$this->locks             = $locks;
+		$this->capabilities      = $capabilities;
+		$this->request           = $request;
+		$this->screen            = $screen;
+		$this->search_controller = $search_controller;
 	}
 
 	public function respond( $status, $content = '', $action = '' ) {
 		$action = empty( $action ) ? self::NONCE_ACTION : $action;
-		$nonce  = wp_create_nonce( $this->zoninator->_get_nonce_key( $action ) );
+		$nonce  = wp_create_nonce( Request::get_nonce_key( $action ) );
 
 		wp_send_json(
 			array(
@@ -59,29 +107,29 @@ final class Ajax {
 	}
 
 	public function add_post() {
-		$zone_id = $this->zoninator->_get_post_var( 'zone_id', 0, 'absint' );
-		$post_id = $this->zoninator->_get_post_var( 'post_id', 0, 'absint' );
+		$zone_id = $this->request->get_post_var( 'zone_id', 0, 'absint' );
+		$post_id = $this->request->get_post_var( 'post_id', 0, 'absint' );
 
 		// Verify nonce
-		$this->zoninator->verify_nonce( self::NONCE_ACTION );
-		$this->zoninator->verify_access( '', $zone_id );
+		$this->request->verify_nonce( self::NONCE_ACTION );
+		$this->request->verify_access( '', $zone_id );
 
 		// Validate
-		if ( ! $zone_id || ! $this->zoninator->current_user_can_add_post_to_zone( $post_id ) ) {
+		if ( ! $zone_id || ! $this->capabilities->current_user_can_add_post_to_zone( $post_id ) ) {
 			$this->respond( 0 );
 		}
 
-		$result = $this->zoninator->add_zone_posts( $zone_id, $post_id, true );
+		$result = $this->zones->add_posts( $zone_id, $post_id, true );
 
 		if ( is_wp_error( $result ) ) {
 			$status  = 0;
 			$content = $result->get_error_message();
 		} else {
 			$post = get_post( $post_id );
-			$zone = $this->zoninator->get_zone( $zone_id );
+			$zone = $this->zones->get( $zone_id );
 
 			ob_start();
-			$this->zoninator->admin_page_zone_post( $post, $zone );
+			$this->screen->render_zone_post( $post, $zone );
 			$content = ob_get_contents();
 			ob_end_clean();
 
@@ -92,19 +140,19 @@ final class Ajax {
 	}
 
 	public function remove_post() {
-		$zone_id = $this->zoninator->_get_post_var( 'zone_id', 0, 'absint' );
-		$post_id = $this->zoninator->_get_post_var( 'post_id', 0, 'absint' );
+		$zone_id = $this->request->get_post_var( 'zone_id', 0, 'absint' );
+		$post_id = $this->request->get_post_var( 'post_id', 0, 'absint' );
 
 		// Verify nonce
-		$this->zoninator->verify_nonce( self::NONCE_ACTION );
-		$this->zoninator->verify_access( '', $zone_id );
+		$this->request->verify_nonce( self::NONCE_ACTION );
+		$this->request->verify_access( '', $zone_id );
 
 		// Validate
 		if ( ! $zone_id || ! $post_id ) {
 			$this->respond( 0 );
 		}
 
-		$result = $this->zoninator->remove_zone_posts( $zone_id, $post_id );
+		$result = $this->zones->remove_posts( $zone_id, $post_id );
 
 		if ( is_wp_error( $result ) ) {
 			$status  = 0;
@@ -118,19 +166,19 @@ final class Ajax {
 	}
 
 	public function reorder_posts() {
-		$zone_id  = $this->zoninator->_get_post_var( 'zone_id', 0, 'absint' );
-		$post_ids = (array) $this->zoninator->_get_post_var( 'posts', array(), 'absint' );
+		$zone_id  = $this->request->get_post_var( 'zone_id', 0, 'absint' );
+		$post_ids = (array) $this->request->get_post_var( 'posts', array(), 'absint' );
 
 		// Verify nonce
-		$this->zoninator->verify_nonce( self::NONCE_ACTION );
-		$this->zoninator->verify_access( '', $zone_id );
+		$this->request->verify_nonce( self::NONCE_ACTION );
+		$this->request->verify_access( '', $zone_id );
 
 		// validate
-		if ( ! $zone_id || array() === $post_ids || count( $post_ids ) !== count( array_filter( $post_ids, array( $this->zoninator, 'current_user_can_add_post_to_zone' ) ) ) ) {
+		if ( ! $zone_id || array() === $post_ids || count( $post_ids ) !== count( array_filter( $post_ids, array( $this->capabilities, 'current_user_can_add_post_to_zone' ) ) ) ) {
 			$this->respond( 0 );
 		}
 
-		$result = $this->zoninator->add_zone_posts( $zone_id, $post_ids, false );
+		$result = $this->zones->add_posts( $zone_id, $post_ids, false );
 
 		if ( is_wp_error( $result ) ) {
 			$status  = 0;
@@ -144,30 +192,31 @@ final class Ajax {
 	}
 
 	public function move_zone_post( $from_zone, $to_zone, $post_id ) {
-		$from_zone_id = $this->zoninator->_get_post_var( 'from_zone_id', 0, 'absint' );
-		$to_zone_id   = $this->zoninator->_get_post_var( 'to_zone_id', 0, 'absint' );
+		$from_zone_id = $this->request->get_post_var( 'from_zone_id', 0, 'absint' );
+		$to_zone_id   = $this->request->get_post_var( 'to_zone_id', 0, 'absint' );
 
-		$this->zoninator->verify_nonce( self::NONCE_ACTION );
+		$this->request->verify_nonce( self::NONCE_ACTION );
 
 		// Add to new zone
-		$this->zoninator->add_zone_posts( $to_zone_id, $post_id, true );
+		$this->zones->add_posts( $to_zone_id, $post_id, true );
 
 		// Remove from old zone
-		$this->zoninator->remove_zone_posts( $from_zone_id, $post_id );
+		$this->zones->remove_posts( $from_zone_id, $post_id );
 	}
 
 	public function search_posts() {
 
-		$this->zoninator->verify_nonce( self::NONCE_ACTION );
-		$this->zoninator->verify_access();
+		$this->request->verify_nonce( self::NONCE_ACTION );
+		$this->request->verify_access();
 
+		// The REST search route does the work, so both apply the same filters.
 		wp_send_json(
-			$this->search_controller()->find_posts(
-				$this->zoninator->_get_request_var( 'term', '', 'stripslashes' ),
-				$this->zoninator->_get_request_var( 'cat', '', 'absint' ),
-				$this->zoninator->_get_request_var( 'date', '', 'striptags' ),
-				(array) $this->zoninator->_get_request_var( 'exclude', array(), 'absint' ),
-				absint( $this->zoninator->_get_request_var( 'limit', 0 ) )
+			( $this->search_controller )()->find_posts(
+				$this->request->get_request_var( 'term', '', 'stripslashes' ),
+				$this->request->get_request_var( 'cat', '', 'absint' ),
+				$this->request->get_request_var( 'date', '', 'striptags' ),
+				(array) $this->request->get_request_var( 'exclude', array(), 'absint' ),
+				absint( $this->request->get_request_var( 'limit', 0 ) )
 			)
 		);
 	}
@@ -176,12 +225,12 @@ final class Ajax {
 	 * Sends the latest content that isn't in the zone, as the options of the old Add Recent Content dropdown.
 	 */
 	public function recent_posts() {
-		$zone_id = $this->zoninator->_get_post_var( 'zone_id', 0, 'absint' );
-		$cat     = $this->zoninator->_get_post_var( 'cat', '', 'absint' );
-		$date    = $this->zoninator->_get_post_var( 'date', '', 'striptags' );
+		$zone_id = $this->request->get_post_var( 'zone_id', 0, 'absint' );
+		$cat     = $this->request->get_post_var( 'cat', '', 'absint' );
+		$date    = $this->request->get_post_var( 'date', '', 'striptags' );
 
-		$this->zoninator->verify_nonce( self::NONCE_ACTION );
-		$this->zoninator->verify_access( '', $zone_id );
+		$this->request->verify_nonce( self::NONCE_ACTION );
+		$this->request->verify_access( '', $zone_id );
 
 		$content = '';
 		foreach ( $this->find_recent_posts( $zone_id, $cat, $date ) as $post ) {
@@ -222,30 +271,21 @@ final class Ajax {
 	}
 
 	public function update_lock() {
-		$zone_id = $this->zoninator->_get_post_var( 'zone_id', 0, 'absint' );
+		$zone_id = $this->request->get_post_var( 'zone_id', 0, 'absint' );
 
-		$this->zoninator->verify_nonce( self::NONCE_ACTION );
-		$this->zoninator->verify_access( '', $zone_id );
+		$this->request->verify_nonce( self::NONCE_ACTION );
+		$this->request->verify_access( '', $zone_id );
 
 		if ( ! $zone_id ) {
 			exit;
 		}
 
-		if ( ! $this->zoninator->is_zone_locked( $zone_id ) ) {
-			$this->zoninator->lock_zone( $zone_id );
+		if ( ! $this->locks->is_locked( $zone_id ) ) {
+			$this->locks->lock( $zone_id );
 			$this->respond( 1, '' );
 		}
 	}
 
-	/**
-	 * The REST search route does the work, so the old actions apply the same filters.
-	 *
-	 * @return \Automattic\Zoninator\REST\Zones_Controller
-	 */
-	private function search_controller() {
-		require_once dirname( __DIR__ ) . '/rest/class-zones-controller.php';
-		return new \Automattic\Zoninator\REST\Zones_Controller( $this->zoninator );
-	}
 
 	/**
 	 * @param int        $zone_id Zone ID.
@@ -254,10 +294,10 @@ final class Ajax {
 	 * @return array[] Search results, newest first.
 	 */
 	private function find_recent_posts( $zone_id, $cat = '', $date = '' ) {
-		$zone_posts = $this->zoninator->get_zone_posts( $zone_id );
+		$zone_posts = $this->zones->get_posts( $zone_id );
 		$exclude    = is_wp_error( $zone_posts ) ? array() : wp_list_pluck( $zone_posts, 'ID' );
 
-		return $this->search_controller()->find_posts( '', $cat, $date, $exclude );
+		return ( $this->search_controller )()->find_posts( '', $cat, $date, $exclude );
 	}
 
 	/**

@@ -9,7 +9,6 @@ namespace Automattic\Zoninator;
 
 use stdClass;
 use WP_Error;
-use Zoninator;
 
 /**
  * Serves each zone's published posts as JSON at /zones/{slug}/feed.json.
@@ -21,19 +20,19 @@ use Zoninator;
 final class Feed {
 
 	/**
-	 * The Zoninator facade, which holds the settings and shared helpers.
+	 * Zones and the posts in them.
 	 *
-	 * @var Zoninator
+	 * @var Zones
 	 */
-	private $zoninator;
+	private $zones;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param Zoninator $zoninator The Zoninator facade.
+	 * @param Zones $zones Zones and the posts in them.
 	 */
-	public function __construct( Zoninator $zoninator ) {
-		$this->zoninator = $zoninator;
+	public function __construct( Zones $zones ) {
+		$this->zones = $zones;
 	}
 
 	public function add_rewrite_rule() {
@@ -60,13 +59,13 @@ final class Feed {
 	 * @return array|WP_Error
 	 */
 	public function get( $zone_slug_or_id ) {
-		$zone_id = $this->zoninator->get_zone( $zone_slug_or_id );
+		$zone_id = $this->zones->get( $zone_slug_or_id );
 
 		if ( empty( $zone_id ) ) {
 			return new WP_Error( 'invalid-zone-supplied', __( 'Invalid zone supplied', 'zoninator' ) );
 		}
 
-		$results          = $this->zoninator->get_zone_posts( $zone_id, apply_filters( 'zoninator_json_feed_fields', array(), $zone_slug_or_id ) );
+		$results          = $this->zones->get_posts( $zone_id, apply_filters( 'zoninator_json_feed_fields', array(), $zone_slug_or_id ) );
 		$filtered_results = $this->filter_fields( $results );
 
 		return apply_filters( 'zoninator_json_feed_results', $filtered_results, $zone_slug_or_id );

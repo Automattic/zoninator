@@ -12,7 +12,14 @@ use WP_REST_Controller;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
-use Zoninator;
+use Automattic\Zoninator\Admin\Screen;
+use Automattic\Zoninator\Capabilities;
+use Automattic\Zoninator\Feed;
+use Automattic\Zoninator\Locks;
+use Automattic\Zoninator\Request;
+use Automattic\Zoninator\Settings;
+use Automattic\Zoninator\Taxonomy;
+use Automattic\Zoninator\Zones;
 
 /**
  * Zones, their posts and their locks.
@@ -47,11 +54,53 @@ final class Zones_Controller extends WP_REST_Controller {
 	public const INVALID_ZONE_SETTINGS = 'invalid-zone-settings';
 
 	/**
-	 * Instance
+	 * Zones and the posts in them.
 	 *
-	 * @var Zoninator
+	 * @var Zones
 	 */
-	private $instance;
+	private $zones;
+
+	/**
+	 * The zone taxonomy.
+	 *
+	 * @var Taxonomy
+	 */
+	private $taxonomy;
+
+	/**
+	 * Zone locks.
+	 *
+	 * @var Locks
+	 */
+	private $locks;
+
+	/**
+	 * The JSON feed.
+	 *
+	 * @var Feed
+	 */
+	private $feed;
+
+	/**
+	 * Zoninator's settings.
+	 *
+	 * @var Settings
+	 */
+	private $settings;
+
+	/**
+	 * The capability checks.
+	 *
+	 * @var Capabilities
+	 */
+	private $capabilities;
+
+	/**
+	 * The Zones screen, which renders a zone post's row for the screen's requests.
+	 *
+	 * @var Screen
+	 */
+	private $screen;
 
 	/**
 	 * Key Value Translation array
@@ -63,11 +112,23 @@ final class Zones_Controller extends WP_REST_Controller {
 	/**
 	 * Constructor.
 	 *
-	 * @param Zoninator $instance The Zoninator.
+	 * @param Zones        $zones        Zones and the posts in them.
+	 * @param Taxonomy     $taxonomy     The zone taxonomy.
+	 * @param Locks        $locks        Zone locks.
+	 * @param Feed         $feed         The JSON feed.
+	 * @param Settings     $settings     Zoninator's settings.
+	 * @param Capabilities $capabilities The capability checks.
+	 * @param Screen       $screen       The Zones screen.
 	 */
-	public function __construct( $instance ) {
-		$this->instance  = $instance;
-		$this->namespace = 'zoninator/v1';
+	public function __construct( Zones $zones, Taxonomy $taxonomy, Locks $locks, Feed $feed, Settings $settings, Capabilities $capabilities, Screen $screen ) {
+		$this->zones        = $zones;
+		$this->taxonomy     = $taxonomy;
+		$this->locks        = $locks;
+		$this->feed         = $feed;
+		$this->settings     = $settings;
+		$this->capabilities = $capabilities;
+		$this->screen       = $screen;
+		$this->namespace    = 'zoninator/v1';
 	}
 
 	/**
@@ -191,7 +252,7 @@ final class Zones_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_zones( $request ) {
-		$results = $this->instance->get_zones();
+		$results = $this->zones->get_all();
 
 		// Zoninator::get_zones() returns false, not a WP_Error, when the zones can't be read.
 		if ( ! is_array( $results ) ) {
@@ -218,7 +279,7 @@ final class Zones_Controller extends WP_REST_Controller {
 		$slug        = $this->get_param( $request, 'slug', $name );
 		$description = $this->get_param( $request, 'description', '' );
 
-		$result = $this->instance->insert_zone(
+		$result = $this->zones->insert(
 			$slug,
 			$name,
 			array(
@@ -234,7 +295,7 @@ final class Zones_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$zone = $this->instance->get_zone( $result['term_id'] );
+		$zone = $this->zones->get( $result['term_id'] );
 
 		return $this->created( $this->_filter_zone_properties( $zone ) );
 	}
@@ -251,7 +312,7 @@ final class Zones_Controller extends WP_REST_Controller {
 		$slug        = $this->get_param( $request, 'slug', '' );
 		$description = $this->get_param( $request, 'description', '' );
 
-		$zone          = $this->instance->get_zone( $zone_id );
+		$zone          = $this->zones->get( $zone_id );
 		$update_params = array();
 
 		if ( ! $zone ) {
@@ -270,7 +331,7 @@ final class Zones_Controller extends WP_REST_Controller {
 			$update_params['details'] = array( 'description' => $description );
 		}
 
-		$result = $this->instance->update_zone( $zone, $update_params );
+		$result = $this->zones->update( $zone, $update_params );
 
 		if ( is_wp_error( $result ) ) {
 			return $this->bad_request(
@@ -292,13 +353,13 @@ final class Zones_Controller extends WP_REST_Controller {
 	public function delete_zone( $request ) {
 		$zone_id = $this->get_param( $request, 'zone_id', 0, 'absint' );
 
-		$zone = $this->instance->get_zone( $zone_id );
+		$zone = $this->zones->get( $zone_id );
 
 		if ( ! $zone ) {
 			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
 		}
 
-		$result = $this->instance->delete_zone( $zone );
+		$result = $this->zones->delete( $zone );
 
 		if ( is_wp_error( $result ) ) {
 			return $this->bad_request(
@@ -320,11 +381,11 @@ final class Zones_Controller extends WP_REST_Controller {
 	public function get_zone_posts( $request ) {
 		$zone_id = $this->get_param( $request, 'zone_id', 0, 'absint' );
 
-		if ( empty( $zone_id ) || false === $this->instance->get_zone( $zone_id ) ) {
+		if ( empty( $zone_id ) || false === $this->zones->get( $zone_id ) ) {
 			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
 		}
 
-		$results = $this->instance->get_zone_feed( $zone_id );
+		$results = $this->feed->get( $zone_id );
 
 		if ( is_wp_error( $results ) ) {
 			return $this->_bad_request( self::ZONE_FEED_ERROR, $results->get_error_message() );
@@ -343,13 +404,13 @@ final class Zones_Controller extends WP_REST_Controller {
 		$zone_id  = $this->get_param( $request, 'zone_id', 0, 'absint' );
 		$post_ids = $this->get_param( $request, 'post_ids', array() );
 
-		if ( ! $this->instance->get_zone( $zone_id ) ) {
+		if ( ! $this->zones->get( $zone_id ) ) {
 			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
 		}
 
 		$posts = array_map( 'get_post', $post_ids );
 
-		if ( count( $posts ) !== count( array_filter( $posts, array( $this->instance, 'current_user_can_add_post_to_zone' ) ) ) ) {
+		if ( count( $posts ) !== count( array_filter( $posts, array( $this->capabilities, 'current_user_can_add_post_to_zone' ) ) ) ) {
 			return $this->bad_request(
 				array(
 					'message' => $this->translations[ self::INVALID_POST_ID ],
@@ -357,7 +418,7 @@ final class Zones_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$result = $this->instance->add_zone_posts( $zone_id, $posts );
+		$result = $this->zones->add_posts( $zone_id, $posts );
 
 		if ( is_wp_error( $result ) ) {
 			return $this->respond( $result, 500 );
@@ -373,22 +434,22 @@ final class Zones_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response 201 with the post's row for the Zones screen, as HTML.
 	 */
 	public function add_zone_post( $request ) {
-		$zone    = $this->instance->get_zone( (int) $request['zone_id'] );
+		$zone    = $this->zones->get( (int) $request['zone_id'] );
 		$post_id = (int) $request['post_id'];
 
 		if ( ! $zone ) {
 			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
 		}
 
-		if ( ! $this->instance->current_user_can_add_post_to_zone( $post_id ) ) {
+		if ( ! $this->capabilities->current_user_can_add_post_to_zone( $post_id ) ) {
 			return $this->bad_request( array( 'message' => $this->translations[ self::INVALID_POST_ID ] ) );
 		}
 
-		$this->instance->add_zone_posts( $zone, $post_id, true );
+		$this->zones->add_posts( $zone, $post_id, true );
 
 		// Render the row with the zoninator_zone_post_columns callbacks, so columns sites add still show.
 		ob_start();
-		$this->instance->admin_page_zone_post( get_post( $post_id ), $zone );
+		$this->screen->render_zone_post( get_post( $post_id ), $zone );
 
 		return $this->created( array( 'html' => ob_get_clean() ) );
 	}
@@ -400,18 +461,18 @@ final class Zones_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response
 	 */
 	public function remove_zone_post( $request ) {
-		$zone    = $this->instance->get_zone( (int) $request['zone_id'] );
+		$zone    = $this->zones->get( (int) $request['zone_id'] );
 		$post_id = (int) $request['post_id'];
 
 		if ( ! $zone ) {
 			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
 		}
 
-		if ( ! $this->instance->current_user_can_add_post_to_zone( $post_id ) ) {
+		if ( ! $this->capabilities->current_user_can_add_post_to_zone( $post_id ) ) {
 			return $this->bad_request( array( 'message' => $this->translations[ self::INVALID_POST_ID ] ) );
 		}
 
-		$this->instance->remove_zone_posts( $zone, $post_id );
+		$this->zones->remove_posts( $zone, $post_id );
 
 		return $this->ok( array( 'success' => true ) );
 	}
@@ -446,14 +507,14 @@ final class Zones_Controller extends WP_REST_Controller {
 	 * @return array[] Results, each passed through the zoninator_search_results_post filter.
 	 */
 	public function find_posts( $term, $cat, $date, $exclude, $limit = 0 ) {
-		$post_types = $this->instance->get_supported_post_types();
+		$post_types = $this->taxonomy->get_post_types();
 
 		if ( '' === $term ) {
 			// With nothing typed yet, offer the latest content.
 			$args = apply_filters(
 				'zoninator_recent_posts_args',
 				array(
-					'posts_per_page'      => $this->instance->get_posts_per_page(),
+					'posts_per_page'      => $this->settings->get_posts_per_page(),
 					'order'               => 'DESC',
 					'orderby'             => 'post_date',
 					'post_type'           => $post_types,
@@ -463,7 +524,7 @@ final class Zones_Controller extends WP_REST_Controller {
 				)
 			);
 		} else {
-			$limit = $limit > 0 ? min( $limit, 100 ) : $this->instance->get_posts_per_page();
+			$limit = $limit > 0 ? min( $limit, 100 ) : $this->settings->get_posts_per_page();
 
 			$args = apply_filters(
 				'zoninator_search_args',
@@ -481,11 +542,11 @@ final class Zones_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( $this->instance->_validate_category_filter( $cat ) ) {
+		if ( Request::is_valid_category_filter( $cat ) ) {
 			$args['cat'] = $cat;
 		}
 
-		if ( $this->instance->_validate_date_filter( $date ) ) {
+		if ( Request::is_valid_date_filter( $date ) ) {
 			$date_parts       = explode( '-', $date );
 			$args['year']     = $date_parts[0];
 			$args['monthnum'] = $date_parts[1];
@@ -501,9 +562,9 @@ final class Zones_Controller extends WP_REST_Controller {
 					'post_id'           => $post->ID,
 					'date'              => get_the_time( get_option( 'date_format' ), $post ),
 					'post_type'         => $post->post_type,
-					'post_type_label'   => $this->instance->get_post_type_label( $post ),
+					'post_type_label'   => $this->zones->get_post_type_label( $post ),
 					'post_status'       => $post->post_status,
-					'post_status_label' => $this->instance->get_post_status_label( $post ),
+					'post_status_label' => $this->zones->get_post_status_label( $post ),
 				),
 				$post
 			);
@@ -559,29 +620,29 @@ final class Zones_Controller extends WP_REST_Controller {
 			return $this->_bad_request( self::ZONE_ID_REQUIRED, __( 'zone id required', 'zoninator' ) );
 		}
 
-		$zone = $this->instance->get_zone( $zone_id );
+		$zone = $this->zones->get( $zone_id );
 		if ( ! $zone ) {
 			return $this->not_found( $this->translations[ self::INVALID_ZONE_ID ] );
 		}
 
-		$zone_locked = $this->instance->is_zone_locked( $zone );
+		$zone_locked = $this->locks->is_locked( $zone );
 		if ( $zone_locked ) {
 			$locking_user = get_userdata( $zone_locked );
 			return new WP_REST_Response(
 				array(
-					'zone_id' => $this->instance->get_zone_id( $zone ),
+					'zone_id' => $this->zones->get_id( $zone ),
 					'blocked' => true,
 				),
 				400
 			);
 		}
 
-		$this->instance->lock_zone( $zone_id );
+		$this->locks->lock( $zone_id );
 		return new WP_REST_Response(
 			array(
-				'zone_id'         => $this->instance->get_zone_id( $zone ),
-				'timeout'         => $this->instance->get_zone_lock_period(),
-				'max_lock_period' => $this->instance->get_zone_max_lock_period(),
+				'zone_id'         => $this->zones->get_id( $zone ),
+				'timeout'         => $this->settings->get_lock_period(),
+				'max_lock_period' => $this->settings->get_max_lock_period(),
 			),
 			200
 		);
@@ -664,7 +725,7 @@ final class Zones_Controller extends WP_REST_Controller {
 
 	public function sanitize_string( $item ) {
 		// Core has already unslashed REST input, so don't unslash it again.
-		// See Zoninator::_sanitize_value() for why this isn't htmlentities().
+		// See Request::sanitize_value() for why this isn't htmlentities().
 		return htmlspecialchars( $item );
 	}
 
@@ -885,7 +946,7 @@ final class Zones_Controller extends WP_REST_Controller {
 	 * @return bool|WP_Error
 	 */
 	private function _permissions_check( $action, $zone_id = null ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
-		if ( ! $this->instance->check( $action, $zone_id ) ) {
+		if ( ! $this->capabilities->check( $action, $zone_id ) ) {
 			return new WP_Error( self::PERMISSION_DENIED, __( "Sorry, you're not supposed to do that...", 'zoninator' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 

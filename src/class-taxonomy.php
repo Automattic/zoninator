@@ -7,8 +7,6 @@
 
 namespace Automattic\Zoninator;
 
-use Zoninator;
-
 /**
  * Registers the zoninator_zones taxonomy, which stores the zones, and
  * tracks which post types can be put in a zone.
@@ -25,13 +23,6 @@ final class Taxonomy {
 	public const NAME = 'zoninator_zones';
 
 	/**
-	 * The Zoninator facade, which holds the settings and shared helpers.
-	 *
-	 * @var Zoninator
-	 */
-	private $zoninator;
-
-	/**
 	 * Cache of the post types that support zones, or null to work it out again.
 	 *
 	 * @var string[]|null
@@ -39,20 +30,13 @@ final class Taxonomy {
 	private $post_types;
 
 	/**
-	 * Constructor.
-	 *
-	 * @param Zoninator $zoninator The Zoninator facade.
-	 */
-	public function __construct( Zoninator $zoninator ) {
-		$this->zoninator = $zoninator;
-	}
-
-	/**
 	 * Adds zone support to the default post types, and registers the taxonomy.
+	 *
+	 * @param string[] $default_post_types Post types that support zones by default.
 	 */
-	public function register() {
+	public function register( array $default_post_types ) {
 		// Default post type support
-		foreach ( $this->zoninator->default_post_types as $post_type ) {
+		foreach ( $default_post_types as $post_type ) {
 			add_post_type_support( $post_type, self::NAME );
 		}
 
