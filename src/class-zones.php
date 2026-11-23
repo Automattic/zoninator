@@ -21,6 +21,8 @@ use WP_Query;
  * Zoninator keeps a public method for each of these under its original name
  * (insert_zone() for insert(), get_zone_posts() for get_posts(), and so on),
  * which delegates here.
+ *
+ * @since 0.12.0
  */
 final class Zones {
 

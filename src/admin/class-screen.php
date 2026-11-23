@@ -21,6 +21,8 @@ use Automattic\Zoninator\Zones;
  * and so on), which delegates here. Hooks are registered on it, so
  * array( Zoninator(), 'method' ) keeps working as a callback. Callbacks this
  * class hands to WordPress point at Zoninator too, for the same reason.
+ *
+ * @since 0.12.0
  */
 final class Screen {
 

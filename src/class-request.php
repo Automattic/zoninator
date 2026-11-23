@@ -10,6 +10,8 @@ namespace Automattic\Zoninator;
 /**
  * Reads request variables, sanitises and validates them, and checks nonces
  * and capabilities before a request handler does any work.
+ *
+ * @since 0.12.0
  */
 final class Request {
 

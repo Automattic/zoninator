@@ -13,6 +13,8 @@ namespace Automattic\Zoninator;
  *
  * The filters apply on init, as they always have. Until 1.0.0, a write to one
  * of the old public Zoninator properties still changes the value here.
+ *
+ * @since 0.12.0
  */
 final class Settings {
 

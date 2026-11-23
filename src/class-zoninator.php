@@ -10,12 +10,16 @@ class Zoninator {
 
 	/**
 	 * The zone taxonomy's name. Taxonomy owns it; this is its public name.
+	 *
+	 * @since 0.12.0
 	 */
 	public const ZONE_TAXONOMY = \Automattic\Zoninator\Taxonomy::NAME;
 
 	/**
 	 * Prefix of the post meta key that holds a post's position in a zone. The
 	 * zone's term ID follows it. Zones owns it; this is its public name.
+	 *
+	 * @since 0.12.0
 	 */
 	public const ZONE_META_PREFIX = \Automattic\Zoninator\Zones::META_PREFIX;
 
@@ -244,6 +248,8 @@ class Zoninator {
 	/**
 	 * Number of seconds a lock is valid for.
 	 *
+	 * @since 0.12.0
+	 *
 	 * @return int
 	 */
 	public function get_zone_lock_period() {
@@ -252,6 +258,8 @@ class Zoninator {
 
 	/**
 	 * Max number of seconds for all locks in a session.
+	 *
+	 * @since 0.12.0
 	 *
 	 * @return int
 	 */
@@ -262,6 +270,8 @@ class Zoninator {
 	/**
 	 * Number of posts shown in zone searches and recent posts.
 	 *
+	 * @since 0.12.0
+	 *
 	 * @return int
 	 */
 	public function get_posts_per_page() {
@@ -270,6 +280,8 @@ class Zoninator {
 
 	/**
 	 * Zone details saved in the zone term, with their default values.
+	 *
+	 * @since 0.12.0
 	 *
 	 * @return array
 	 */
@@ -283,6 +295,8 @@ class Zoninator {
 
 	/**
 	 * Load the REST controller only when the REST API is in use, and register its routes.
+	 *
+	 * @since 0.12.0
 	 */
 	public function register_rest_routes() {
 		$this->rest_api = $this->make_rest_controller();
@@ -385,6 +399,8 @@ class Zoninator {
 	/**
 	 * Renders the zone's name and description, as a form or read only.
 	 *
+	 * @since 0.12.0
+	 *
 	 * @param WP_Term|array $zone        The zone, or an empty array for a new one.
 	 * @param int|false     $zone_locked ID of the user holding the zone's lock, or false.
 	 * @param string        $delete_link URL that deletes the zone.
@@ -395,6 +411,8 @@ class Zoninator {
 
 	/**
 	 * Renders the box for finding, adding and ordering a zone's content.
+	 *
+	 * @since 0.12.0
 	 *
 	 * @param WP_Term   $zone        The zone.
 	 * @param WP_Post[] $zone_posts  Posts in the zone, in order.
@@ -435,6 +453,8 @@ class Zoninator {
 	/**
 	 * Gets the label for a post's status, such as "Published", falling back to the status itself.
 	 *
+	 * @since 0.12.0
+	 *
 	 * @param WP_Post $post Post.
 	 * @return string
 	 */
@@ -444,6 +464,8 @@ class Zoninator {
 
 	/**
 	 * Gets the singular label for a post's type, such as "Post", falling back to the type itself.
+	 *
+	 * @since 0.12.0
 	 *
 	 * @param WP_Post $post Post.
 	 * @return string

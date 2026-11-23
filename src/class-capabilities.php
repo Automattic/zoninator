@@ -12,6 +12,8 @@ namespace Automattic\Zoninator;
  * putting a post in one. Sites change the capabilities with the
  * zoninator_add_zone_cap, zoninator_edit_zone_cap and zoninator_manage_zone_cap
  * filters.
+ *
+ * @since 0.12.0
  */
 final class Capabilities {
 
