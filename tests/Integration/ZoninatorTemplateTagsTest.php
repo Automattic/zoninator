@@ -79,6 +79,25 @@ final class ZoninatorTemplateTagsTest extends TestCase {
 		$this->assertSame( $this->post_ids[1], $prev->ID );
 	}
 
+	public function test_z_get_next_and_prev_post_in_zone_do_not_count_rows(): void {
+		$queries = array();
+		$record  = static function ( $query ) use ( &$queries ) {
+			$queries[] = $query;
+			return $query;
+		};
+		add_filter( 'query', $record );
+
+		z_get_next_post_in_zone( $this->zone_id, $this->post_ids[0] );
+		z_get_prev_post_in_zone( $this->zone_id, $this->post_ids[2] );
+
+		remove_filter( 'query', $record );
+
+		$this->assertNotEmpty( $queries );
+		foreach ( $queries as $query ) {
+			$this->assertStringNotContainsString( 'FOUND_ROWS', $query );
+		}
+	}
+
 	public function test_z_get_next_post_in_zone_returns_false_after_the_last_post(): void {
 		$this->assertFalse( z_get_next_post_in_zone( $this->zone_id, $this->post_ids[2] ) );
 	}
