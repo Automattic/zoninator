@@ -46,19 +46,19 @@ Capability required to create a new zone.
 
 ### `zoninator_edit_zone_cap` (filter)
 
-Capability required to edit an existing zone.
+Capability required to edit an existing zone's name and description, or delete it.
 
 - **Parameters:** `string $capability`
 
 ### `zoninator_manage_zone_cap` (filter)
 
-Capability required to manage the Zones admin screen as a whole.
+Capability required to open the Zones admin screen and curate a zone: add, remove and reorder its posts, search for posts, and take its lock. The REST routes for these check it too.
 
 - **Parameters:** `string $capability`
 
 ### `zoninator_current_user_can_edit_zone` (filter)
 
-Per-zone editing check, run after the user has cleared the global `zoninator_edit_zone_cap`. Use this to lock down individual zones.
+Per-zone editing check, run after the user has cleared the global `zoninator_edit_zone_cap`. Use this to stop some users renaming or deleting individual zones. It doesn't stop them curating a zone's posts, which `zoninator_manage_zone_cap` governs.
 
 - **Parameters:** `bool $has_cap`, `int $zone_id`
 

@@ -149,9 +149,9 @@ The search applies the [content search filters](hooks.md#content-search). Publis
 
 ### `PUT /zoninator/v1/zones/{zone_id}/lock`
 
-Acquires (or extends) the editing lock for a zone. Used by the admin UI to prevent two editors from clobbering each other.
+Acquires (or extends) the editing lock for a zone. The Zones screen calls it every `zoninator_zone_lock_period` seconds, so two people can't curate the same zone at once.
 
-**Permission:** `zoninator_edit_zone_cap`.
+**Permission:** `zoninator_manage_zone_cap`. Before 0.12.0 it was `zoninator_edit_zone_cap`, with the `zoninator_current_user_can_edit_zone` filter.
 
 **Response on success:** `200`
 
@@ -193,8 +193,8 @@ Errors follow the standard `WP_REST_Response` shape with a top-level `message` f
 
 - The endpoints are registered by `Automattic\Zoninator\REST\Zones_Controller` (`src/rest/class-zones-controller.php`), which extends core's `WP_REST_Controller`. The file loads only on `rest_api_init`.
 - The update routes (`/zones/{zone_id}`, `/zones/{zone_id}/posts` and `/zones/{zone_id}/lock`) accept `POST`, `PUT` and `PATCH`.
-- The Zones screen uses these routes through `wp.apiFetch()`. Its `zoninator_add_post`, `zoninator_remove_post`, `zoninator_reorder_posts` and `zoninator_search_posts` admin-ajax actions are deprecated since 0.12.0, and go in 1.0.0.
-- Lock state is persisted in user meta keyed against the zone term, so locks survive page reloads but expire automatically when `zoninator_zone_lock_period` lapses.
+- The Zones screen uses these routes through `wp.apiFetch()`. Its `zoninator_add_post`, `zoninator_remove_post`, `zoninator_reorder_posts`, `zoninator_search_posts` and `zoninator_update_lock` admin-ajax actions are deprecated since 0.12.0, and go in 1.0.0.
+- A lock is a transient keyed against the zone, holding the locking user's ID. It survives page reloads, and expires when `zoninator_zone_lock_period` lapses without a renewal.
 
 ## See also
 
