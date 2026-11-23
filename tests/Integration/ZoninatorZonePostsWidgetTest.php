@@ -47,6 +47,25 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 		$this->assertStringContainsString( 'href="' . get_permalink( $first ) . '"', $html );
 	}
 
+	public function test_widget_html_filter_replaces_the_post_list(): void {
+		$post_id = self::factory()->post->create( array( 'post_title' => 'Filtered post' ) );
+		\Zoninator()->add_zone_posts( $this->zone_id, $post_id );
+		$received = array();
+		$filter   = static function ( $html, $posts, $query ) use ( &$received ) {
+			$received = array( $html, wp_list_pluck( $posts, 'ID' ), $query instanceof \WP_Query );
+			return '<p class="custom-zone">Custom</p>';
+		};
+		add_filter( 'zoninator_zone_posts_widget_html', $filter, 10, 3 );
+
+		$html = $this->render( array() );
+
+		remove_filter( 'zoninator_zone_posts_widget_html', $filter, 10 );
+		$this->assertSame( array( false, array( $post_id ), true ), $received );
+		$this->assertStringContainsString( '<h2>Widget zone</h2>', $html );
+		$this->assertStringContainsString( '<p class="custom-zone">Custom</p>', $html );
+		$this->assertStringNotContainsString( '<ul>', $html );
+	}
+
 	public function test_widget_shows_the_description_when_asked(): void {
 		\Zoninator()->add_zone_posts( $this->zone_id, array( self::factory()->post->create() ) );
 
