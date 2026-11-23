@@ -164,12 +164,8 @@ final class Ajax {
 		$this->zoninator->verify_nonce( self::NONCE_ACTION );
 		$this->zoninator->verify_access();
 
-		// The REST search route does the work, so both apply the same filters.
-		require_once dirname( __DIR__ ) . '/rest/class-zones-controller.php';
-		$controller = new \Automattic\Zoninator\REST\Zones_Controller( $this->zoninator );
-
 		wp_send_json(
-			$controller->find_posts(
+			$this->search_controller()->find_posts(
 				$this->zoninator->_get_request_var( 'term', '', 'stripslashes' ),
 				$this->zoninator->_get_request_var( 'cat', '', 'absint' ),
 				$this->zoninator->_get_request_var( 'date', '', 'striptags' ),
@@ -177,6 +173,55 @@ final class Ajax {
 				absint( $this->zoninator->_get_request_var( 'limit', 0 ) )
 			)
 		);
+	}
+
+	/**
+	 * Sends the latest content that isn't in the zone, as the options of the old Add Recent Content dropdown.
+	 */
+	public function recent_posts() {
+		$zone_id = $this->zoninator->_get_post_var( 'zone_id', 0, 'absint' );
+		$cat     = $this->zoninator->_get_post_var( 'cat', '', 'absint' );
+		$date    = $this->zoninator->_get_post_var( 'date', '', 'striptags' );
+
+		$this->zoninator->verify_nonce( self::NONCE_ACTION );
+		$this->zoninator->verify_access( '', $zone_id );
+
+		$content = '';
+		foreach ( $this->find_recent_posts( $zone_id, $cat, $date ) as $post ) {
+			$content .= $this->recent_post_option( $post );
+		}
+
+		if ( ! $content ) {
+			$empty_label = __( 'No results found', 'zoninator' );
+		} elseif ( $cat ) {
+			/* translators: Category name */
+			$empty_label = sprintf( __( 'Choose post from %s', 'zoninator' ), get_the_category_by_ID( $cat ) );
+		} else {
+			$empty_label = __( 'Choose a post', 'zoninator' );
+		}
+
+		$this->respond( 1, '<option value="">' . esc_html( $empty_label ) . '</option>' . $content );
+	}
+
+	/**
+	 * Prints the old Add Recent Content dropdown: the latest content that isn't in the zone.
+	 *
+	 * @param int $zone_id Zone ID.
+	 */
+	public function recent_posts_dropdown( $zone_id ) {
+		?>
+	<div class="zone-search-wrapper">
+		<label for="zone-post-latest"><?php esc_html_e( 'Add Recent Content', 'zoninator' ); ?></label><br />
+		<select name="search-posts" id="zone-post-latest">
+			<option value=""><?php esc_html_e( 'Choose a post', 'zoninator' ); ?></option>
+			<?php
+			foreach ( $this->find_recent_posts( $zone_id ) as $post ) {
+				echo $this->recent_post_option( $post ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- recent_post_option() escapes it.
+			}
+			?>
+		</select>
+	</div>
+		<?php
 	}
 
 	public function update_lock() {
@@ -193,5 +238,36 @@ final class Ajax {
 			$this->zoninator->lock_zone( $zone_id );
 			$this->respond( 1, '' );
 		}
+	}
+
+	/**
+	 * The REST search route does the work, so the old actions apply the same filters.
+	 *
+	 * @return \Automattic\Zoninator\REST\Zones_Controller
+	 */
+	private function search_controller() {
+		require_once dirname( __DIR__ ) . '/rest/class-zones-controller.php';
+		return new \Automattic\Zoninator\REST\Zones_Controller( $this->zoninator );
+	}
+
+	/**
+	 * @param int        $zone_id Zone ID.
+	 * @param int|string $cat     Category ID to filter by, if any.
+	 * @param string     $date    Date to filter by, as Y-m-d, if any.
+	 * @return array[] Search results, newest first.
+	 */
+	private function find_recent_posts( $zone_id, $cat = '', $date = '' ) {
+		$zone_posts = $this->zoninator->get_zone_posts( $zone_id );
+		$exclude    = is_wp_error( $zone_posts ) ? array() : wp_list_pluck( $zone_posts, 'ID' );
+
+		return $this->search_controller()->find_posts( '', $cat, $date, $exclude );
+	}
+
+	/**
+	 * @param array $post A search result.
+	 * @return string The post as a dropdown option, escaped.
+	 */
+	private function recent_post_option( array $post ) {
+		return sprintf( '<option value="%d">%s</option>', $post['post_id'], esc_html( $post['title'] . ' (' . $post['post_status'] . ')' ) );
 	}
 }

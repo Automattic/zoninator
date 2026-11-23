@@ -316,6 +316,7 @@ class Zoninator {
 		add_action( 'wp_ajax_zoninator_remove_post', array( $this, 'ajax_remove_post' ) );
 		add_action( 'wp_ajax_zoninator_search_posts', array( $this, 'ajax_search_posts' ) );
 		add_action( 'wp_ajax_zoninator_update_lock', array( $this, 'ajax_update_lock' ) );
+		add_action( 'wp_ajax_zoninator_update_recent', array( $this, 'ajax_recent_posts' ) );
 	}
 
 	public function admin_init() {
@@ -499,6 +500,28 @@ class Zoninator {
 	public function ajax_update_lock() {
 		_deprecated_function( __METHOD__, '0.12.0', 'PUT /zoninator/v1/zones/{zone_id}/lock' );
 		return $this->admin_ajax->update_lock();
+	}
+
+	/**
+	 * Handles the zoninator_update_recent admin-ajax action.
+	 *
+	 * @deprecated 0.12.0 The Zones screen lists the latest content with GET /zoninator/v1/search and no term. The action goes in 1.0.0.
+	 */
+	public function ajax_recent_posts() {
+		_deprecated_function( __METHOD__, '0.12.0', 'GET /zoninator/v1/search' );
+		return $this->admin_ajax->recent_posts();
+	}
+
+	/**
+	 * Prints a dropdown of the latest content that isn't in the zone.
+	 *
+	 * @deprecated 0.12.0 The Zones screen lists the latest content with GET /zoninator/v1/search and no term. This goes in 1.0.0.
+	 *
+	 * @param int $zone_id Zone ID.
+	 */
+	public function zone_admin_recent_posts_dropdown( $zone_id ) {
+		_deprecated_function( __METHOD__, '0.12.0', 'GET /zoninator/v1/search' );
+		$this->admin_ajax->recent_posts_dropdown( $zone_id );
 	}
 
 	public function get_supported_post_types() {
