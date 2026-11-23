@@ -70,4 +70,14 @@ class ZoninatorTaxonomyTest extends TestCase {
 		remove_action( 'zoninator_pre_init', $add_page );
 		$this->assertTrue( post_type_supports( 'page', 'zoninator_zones' ) );
 	}
+
+	/**
+	 * The plugin's own instance works out its post types before any test runs,
+	 * so only a fresh one shows whether the cache starts out declared.
+	 */
+	public function test_a_new_taxonomy_works_out_its_post_types(): void {
+		$taxonomy = new \Automattic\Zoninator\Taxonomy();
+
+		$this->assertContains( 'post', $taxonomy->get_post_types() );
+	}
 }

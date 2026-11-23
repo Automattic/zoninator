@@ -9,7 +9,6 @@ namespace Automattic\Zoninator;
 
 use WP_Error;
 use WP_Query;
-use Zoninator;
 
 /**
  * Creates, reads, updates and deletes zones, and stores the posts in each
@@ -21,9 +20,7 @@ use Zoninator;
  *
  * Zoninator keeps a public method for each of these under its original name
  * (insert_zone() for insert(), get_zone_posts() for get_posts(), and so on),
- * which delegates here. Zoninator's public properties, such as the taxonomy
- * and meta key prefix, stay the source of truth, so sites that change them
- * keep working.
+ * which delegates here.
  */
 final class Zones {
 
@@ -34,19 +31,37 @@ final class Zones {
 	public const META_PREFIX = '_zoninator_order_';
 
 	/**
-	 * The Zoninator facade, which holds the settings and shared helpers.
+	 * Zoninator's settings.
 	 *
-	 * @var Zoninator
+	 * @var Settings
 	 */
-	private $zoninator;
+	private $settings;
+
+	/**
+	 * The zone taxonomy.
+	 *
+	 * @var Taxonomy
+	 */
+	private $taxonomy;
+
+	/**
+	 * The capability checks.
+	 *
+	 * @var Capabilities
+	 */
+	private $capabilities;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param Zoninator $zoninator The Zoninator facade.
+	 * @param Settings $settings Zoninator's settings.
+	 * @param Taxonomy $taxonomy The zone taxonomy.
+	 * @param Capabilities $capabilities The capability checks.
 	 */
-	public function __construct( Zoninator $zoninator ) {
-		$this->zoninator = $zoninator;
+	public function __construct( Settings $settings, Taxonomy $taxonomy, Capabilities $capabilities ) {
+		$this->settings     = $settings;
+		$this->taxonomy     = $taxonomy;
+		$this->capabilities = $capabilities;
 	}
 
 	public function insert( $slug, $name = '', $details = array() ) {
@@ -58,7 +73,7 @@ final class Zones {
 
 		$name = empty( $name ) ? $slug : $name;
 
-		$details = wp_parse_args( $details, $this->zoninator->get_zone_detail_defaults() );
+		$details = wp_parse_args( $details, $this->settings->get_detail_defaults() );
 		$details = maybe_serialize( $details );
 
 		$args = array(
@@ -79,12 +94,12 @@ final class Zones {
 		if ( $this->exists( $zone_id ) ) {
 			$zone = $this->get( $zone );
 
-			$name    = $this->zoninator->_get_value_or_default( 'name', $data, $zone->name );
-			$slug    = $this->zoninator->_get_value_or_default( 'slug', $data, $zone->slug );
-			$details = $this->zoninator->_get_value_or_default( 'details', $data, array() );
+			$name    = Request::get_value_or_default( 'name', $data, $zone->name );
+			$slug    = Request::get_value_or_default( 'slug', $data, $zone->slug );
+			$details = Request::get_value_or_default( 'details', $data, array() );
 
 			// Keep the zone's current value for any detail the caller didn't send.
-			$defaults = $this->zoninator->get_zone_detail_defaults();
+			$defaults = $this->settings->get_detail_defaults();
 			$current  = array_intersect_key( get_object_vars( $zone ), $defaults );
 			$details  = wp_parse_args( $details, wp_parse_args( $current, $defaults ) );
 			$details  = maybe_serialize( $details );
@@ -211,11 +226,11 @@ final class Zones {
 	 */
 	public function get_for_post( $post_id ) {
 		$post = get_post( $post_id );
-		if ( ! $post || ! in_array( $post->post_type, $this->zoninator->get_supported_post_types(), true ) ) {
+		if ( ! $post || ! in_array( $post->post_type, $this->taxonomy->get_post_types(), true ) ) {
 			return array();
 		}
 
-		if ( 'publish' !== $post->post_status && ( ! is_admin() || ! $this->zoninator->_current_user_can_manage_zones() ) ) {
+		if ( 'publish' !== $post->post_status && ( ! is_admin() || ! $this->capabilities->current_user_can_manage_zones() ) ) {
 			return array();
 		}
 
@@ -237,14 +252,14 @@ final class Zones {
 			'order'               => 'ASC',
 			// phpcs:ignore WordPressVIPMinimum.Performance.NoPaging.posts_per_page_posts_per_page -- Zones are hand-curated and small; callers expect every post in the zone, and can pass their own limit.
 			'posts_per_page'      => -1,
-			'post_type'           => $this->zoninator->get_supported_post_types(),
+			'post_type'           => $this->taxonomy->get_post_types(),
 			'ignore_sticky_posts' => '1', // don't want sticky posts messing up our order
 		);
 
 		// Default to published posts, except for zone managers in the admin.
 		// is_admin() alone is true for every admin-ajax.php and admin-post.php
 		// request, including logged-out ones.
-		if ( ! is_admin() || ! $this->zoninator->_current_user_can_manage_zones() ) {
+		if ( ! is_admin() || ! $this->capabilities->current_user_can_manage_zones() ) {
 			$defaults['post_status'] = array( 'publish' );
 		}
 
@@ -426,6 +441,28 @@ final class Zones {
 		return false;
 	}
 
+	/**
+	 * Gets the label for a post's status, such as "Published", falling back to the status itself.
+	 *
+	 * @param \WP_Post $post Post.
+	 * @return string
+	 */
+	public function get_post_status_label( $post ) {
+		$status = get_post_status_object( $post->post_status );
+		return $status ? $status->label : $post->post_status;
+	}
+
+	/**
+	 * Gets the singular label for a post's type, such as "Post", falling back to the type itself.
+	 *
+	 * @param \WP_Post $post Post.
+	 * @return string
+	 */
+	public function get_post_type_label( $post ) {
+		$type = get_post_type_object( $post->post_type );
+		return $type ? $type->labels->singular_name : $post->post_type;
+	}
+
 	public function get_post_order( $post, $zone ) {
 		$post_id  = $this->get_post_id( $post );
 		$meta_key = $this->get_meta_key( $zone );
@@ -461,7 +498,7 @@ final class Zones {
 			}
 		}
 
-		$details = wp_parse_args( $details, $this->zoninator->get_zone_detail_defaults() );
+		$details = wp_parse_args( $details, $this->settings->get_detail_defaults() );
 
 		foreach ( $details as $detail_key => $detail_value ) {
 			$zone->$detail_key = $detail_value;
