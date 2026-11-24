@@ -92,6 +92,13 @@ class Zoninator {
 	private $capabilities;
 
 	/**
+	 * The Abilities API abilities, built when the API first asks for them.
+	 *
+	 * @var \Automattic\Zoninator\Abilities|null
+	 */
+	private $abilities;
+
+	/**
 	 * Reads and checks requests. The _get_*_var and verify_* methods here delegate to it.
 	 *
 	 * @var \Automattic\Zoninator\Request
@@ -146,6 +153,12 @@ class Zoninator {
 		add_action( 'split_shared_term', array( $this, 'split_shared_term' ), 10, 4 );
 
 		$this->maybe_add_rest_api();
+
+		// The Abilities API arrived in WordPress 6.9.
+		if ( function_exists( 'wp_register_ability' ) ) {
+			add_action( 'wp_abilities_api_categories_init', array( $this, 'register_ability_categories' ) );
+			add_action( 'wp_abilities_api_init', array( $this, 'register_abilities' ) );
+		}
 	}
 
 	/**
@@ -320,6 +333,46 @@ class Zoninator {
 			$this->capabilities,
 			$this->admin_screen
 		);
+	}
+
+	/**
+	 * Register the zone ability category.
+	 *
+	 * @since 0.12.0
+	 */
+	public function register_ability_categories() {
+		$this->get_abilities()->register_category();
+	}
+
+	/**
+	 * Register the zone abilities.
+	 *
+	 * @since 0.12.0
+	 */
+	public function register_abilities() {
+		$this->get_abilities()->register();
+	}
+
+	/**
+	 * Builds the abilities the first time they're needed, loading their class first.
+	 *
+	 * @return \Automattic\Zoninator\Abilities
+	 */
+	private function get_abilities() {
+		if ( null === $this->abilities ) {
+			require_once __DIR__ . '/class-abilities.php';
+
+			$this->abilities = new \Automattic\Zoninator\Abilities(
+				$this->zones,
+				$this->feed,
+				$this->capabilities,
+				function () {
+					return $this->rest_api ?? $this->make_rest_controller();
+				}
+			);
+		}
+
+		return $this->abilities;
 	}
 
 	public function add_zone_feed() {
