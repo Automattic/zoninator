@@ -61,6 +61,12 @@ class ZoninatorZoneDataTest extends TestCase {
 		$this->assertSame( 'filtered-slug', Zoninator()->get_zone( (int) $zone['term_id'] )->slug );
 	}
 
+	public function test_update_zone_with_an_empty_description_clears_it(): void {
+		Zoninator()->update_zone( $this->zone_id, array( 'details' => array( 'description' => '' ) ) );
+
+		$this->assertSame( '', Zoninator()->get_zone( $this->zone_id )->description );
+	}
+
 	public function test_update_zone_keeps_details_it_was_not_sent(): void {
 		Zoninator()->update_zone( $this->zone_id, array( 'name' => 'Renamed' ) );
 

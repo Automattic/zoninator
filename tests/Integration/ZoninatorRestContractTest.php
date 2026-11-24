@@ -339,14 +339,6 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( 'Kept', $zone->description );
 	}
 
-	public function test_update_zone_with_an_empty_description_clears_it(): void {
-		$zone_id = $this->create_zone( 'cleared', 'Cleared', 'Gone' );
-
-		Zoninator()->update_zone( $zone_id, array( 'details' => array( 'description' => '' ) ) );
-
-		$this->assertSame( '', Zoninator()->get_zone( $zone_id )->description );
-	}
-
 	public function test_update_zone_over_rest_with_an_empty_description_clears_it(): void {
 		$zone_id = $this->create_zone( 'rest-cleared', 'REST cleared', 'Gone' );
 
