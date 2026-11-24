@@ -100,15 +100,14 @@ var zoninator = {};
 								return $.extend({ value: item.title }, item);
 							});
 							zoninator.autocompleteCache[term] = data;
-							if (search === zoninator.autocompleteAjax) {
-								response(data);
-							}
+							// Answer every search, even one a newer search replaced. Autocomplete
+							// shows only the latest answer, but keeps its loading spinner until
+							// each search it started has had one.
+							response(data);
 							zoninator.$zonePostSearch.trigger('loading.end');
 						}, function() {
 							// Autocomplete waits for a response, so give it an empty one.
-							if (search === zoninator.autocompleteAjax) {
-								response([]);
-							}
+							response([]);
 							zoninator.$zonePostSearch.trigger('loading.end');
 						});
 					}

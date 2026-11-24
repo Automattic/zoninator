@@ -576,10 +576,12 @@ final class Screen {
 			sprintf( '<a href="%s" class="view" target="_blank" aria-label="%s">%s</a>', esc_url( get_permalink( $post->ID ) ), $labels['view'], esc_html__( 'View', 'zoninator' ) ),
 		);
 
-		// Zone managers can curate posts they can't edit, and get no edit link for those.
+		// Zone managers can curate posts they can't edit, and get no edit link for those. It goes
+		// after the move buttons, so ordering, this screen's main job, comes first, and the move
+		// buttons stay in the same place in every row.
 		$edit_link = get_edit_post_link( $post->ID );
 		if ( $edit_link ) {
-			array_unshift( $action_links, sprintf( '<a href="%s" class="edit" target="_blank" aria-label="%s">%s</a>', esc_url( $edit_link ), $labels['edit'], esc_html__( 'Edit', 'zoninator' ) ) );
+			array_splice( $action_links, 2, 0, sprintf( '<a href="%s" class="edit" target="_blank" aria-label="%s">%s</a>', esc_url( $edit_link ), $labels['edit'], esc_html__( 'Edit', 'zoninator' ) ) );
 		}
 		?>
 		<?php printf( '%s <span class="zone-post-status">(%s)</span>', esc_html( $post->post_title ), esc_html( $this->zones->get_post_status_label( $post ) ) ); ?>
