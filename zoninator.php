@@ -5,8 +5,8 @@ Description: Create zones of selected posts in a set order, and display them on 
 Author: Mohammad Jangda, Automattic
 Version: 0.12.0
 Author URI: https://wpvip.com
-Requires at least: 6.4
-Requires PHP: 7.4
+Requires at least: 6.9
+Requires PHP: 8.2
 Text Domain: zoninator
 Domain Path: /languages/
 

@@ -11,8 +11,8 @@ Content zone management for WordPress editorial workflows.
 | **Function prefix** | `z_` (template tags), `zoninator_` (hooks) |
 | **Class prefix** | `Zoninator`, `Zoninator_` (legacy, global); `Automattic\Zoninator\` for new classes |
 | **Source directory** | Root level + `src/` |
-| **Requires PHP** | 7.4+ |
-| **Requires WP** | 6.4+ |
+| **Requires PHP** | 8.2+ |
+| **Requires WP** | 6.9+ |
 
 ### Directory Structure
 

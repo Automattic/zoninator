@@ -16,7 +16,7 @@ npm ci
 npx --no wp-env start
 ```
 
-`wp-env start` builds the WordPress containers and mounts this plugin into them, on WordPress trunk and the latest PHP. To test another version, set `WP_ENV_CORE` and `WP_ENV_PHP_VERSION` when you start it (for example `WP_ENV_CORE=WordPress/WordPress#6.4 WP_ENV_PHP_VERSION=7.4 npx --no wp-env start`). The first run takes a minute or two.
+`wp-env start` builds the WordPress containers and mounts this plugin into them, on WordPress trunk and the latest PHP. To test another version, set `WP_ENV_CORE` and `WP_ENV_PHP_VERSION` when you start it (for example `WP_ENV_CORE=WordPress/WordPress#6.9 WP_ENV_PHP_VERSION=8.2 npx --no wp-env start`). The first run takes a minute or two.
 
 ## Running the tests
 
@@ -51,4 +51,4 @@ npx --no wp-env stop
 
 ## Continuous integration
 
-The matrix in `.github/workflows/integration.yml` runs the lowest supported combination (WP 6.4 / PHP 7.4), the "Tested up to" version (WP 7.1 / latest PHP) and the next version (`master` / latest PHP). Both single-site and multisite paths run on every push.
+The matrix in `.github/workflows/integration.yml` runs the lowest supported combination (WP 6.9 / PHP 8.2), the "Tested up to" version (WP 7.1 / latest PHP) and the next version (`master` / latest PHP). Both single-site and multisite paths run on every push.
