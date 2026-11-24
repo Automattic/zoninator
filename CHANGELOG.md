@@ -5,6 +5,68 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-11-24
+
+**This release replaces the bundled Mixtape REST library with core's `WP_REST_Controller`, and moves the Zones screen onto the REST API. Code that uses the `Zoninator_Api*` or `Zoninator_REST_*` classes, the `mixtape_*` or `mt_*` hooks, or `Zoninator()`'s public properties needs updating, and REST clients get new error codes and permission checks. The [upgrade guide](https://github.com/Automattic/zoninator/blob/main/docs/upgrades.md) lists what to check.**
+
+### Added
+
+* Find a post by its ID in the Zones screen's search. A number that's a post the search could offer returns that post straight away, without a text search, and still respects `zoninator_search_args`; otherwise the number is searched as text by @tewariharish and @GaryJones in https://github.com/Automattic/zoninator/pull/91 and https://github.com/Automattic/zoninator/pull/231
+* New REST routes for the Zones screen: `POST` and `DELETE /zoninator/v1/zones/{zone_id}/posts/{post_id}` add or remove one post, and `GET /zoninator/v1/search` searches for posts or lists the latest content by @GaryJones in https://github.com/Automattic/zoninator/pull/207
+* The `zoninator_zone_posts_widget_html` filter replaces the Zone Posts widget's list of links with your own HTML, such as thumbnails or excerpts by @jonathanstegall and @GaryJones in https://github.com/Automattic/zoninator/pull/218
+* The `zoninator_search_args` and `zoninator_recent_posts_args` filters receive the ID of the zone being edited, so a site can focus the search on what suits each zone by @imranglobal and @GaryJones in https://github.com/Automattic/zoninator/pull/219
+* The `zoninator_zone_detail_defaults` filter adds your own zone details, and `Zoninator()->get_zone_lock_period()`, `get_zone_max_lock_period()`, `get_posts_per_page()` and `get_zone_detail_defaults()` read the tunable values by @faisalahammad and @GaryJones in https://github.com/Automattic/zoninator/pull/179
+
+### Changed
+
+* The Zones screen is rebuilt from core's admin styles, with the zones in a list table and the zone's content in a postbox. Its posts can be reordered with Move up and Move down buttons, which come first in each post's actions, as well as by dragging by @GaryJones in https://github.com/Automattic/zoninator/pull/188 and https://github.com/Automattic/zoninator/pull/234
+* The Zones screen has one field for adding content, which offers the latest content before anything is typed, and saves each change as it's made by @GaryJones in https://github.com/Automattic/zoninator/pull/198
+* The Zones screen adds, removes, reorders and searches for posts, and takes the zone lock, through the REST API by @GaryJones in https://github.com/Automattic/zoninator/pull/207 and https://github.com/Automattic/zoninator/pull/209
+* The REST API runs on core's `WP_REST_Controller`. The routes, their arguments and their response bodies are unchanged except as listed here by @GaryJones in https://github.com/Automattic/zoninator/pull/191
+* Every REST error has a `code`, in core's REST error shape, alongside the same `message`, so clients can tell errors apart without matching translated text. A missing zone gives `zone-not-found`, a post the user can't add gives `invalid-post-id`, a zone locked by another user gives `zone-locked` (keeping its `zone_id` and `blocked` fields), and a failed zone save passes on WordPress's own code, such as `term_exists` by @GaryJones in https://github.com/Automattic/zoninator/pull/226 and https://github.com/Automattic/zoninator/pull/231
+* REST error messages read "Invalid post ID.", "Zone ID is required." and "Zone not found.", in place of "Invalid post id", "zone id required" and "Zone not found". Clients should match on the error code rather than the message by @GaryJones in https://github.com/Automattic/zoninator/pull/225
+* A REST request refused by a capability check gets `401` when logged out and `403` when logged in, with the code `permission-denied`, instead of `500` by @GaryJones in https://github.com/Automattic/zoninator/pull/194
+* `PUT /zoninator/v1/zones/{zone_id}/posts` and `PUT /zoninator/v1/zones/{zone_id}/lock` check `zoninator_manage_zone_cap`, the capability the Zones screen needs to curate a zone, instead of `zoninator_edit_zone_cap` and the `zoninator_current_user_can_edit_zone` filter by @GaryJones in https://github.com/Automattic/zoninator/pull/207 and https://github.com/Automattic/zoninator/pull/209
+* Sending an empty `description` to `PUT /zoninator/v1/zones/{zone_id}` clears the zone's description. Before, an empty value was ignored. Leaving `description` out still keeps the current one by @GaryJones in https://github.com/Automattic/zoninator/pull/228
+* `z_get_next_post_in_zone()` and `z_get_prev_post_in_zone()` run one fewer query, and the Zones screen loads jQuery UI Touch Punch in the footer by @GaryJones in https://github.com/Automattic/zoninator/pull/220
+
+### Deprecated
+
+* `Zoninator()`'s public properties. Reading one still works, with a notice that names its replacement, and writing to a tunable value still takes effect until 1.0.0. See the upgrade guide for each replacement by @faisalahammad and @GaryJones in https://github.com/Automattic/zoninator/pull/179
+* The `zoninator_add_post`, `zoninator_remove_post`, `zoninator_reorder_posts`, `zoninator_search_posts`, `zoninator_update_recent` and `zoninator_update_lock` admin-ajax actions, and the `Zoninator::ajax_*()`, `ajax_return()`, `ajax_move_zone_post()` and `zone_admin_recent_posts_dropdown()` methods behind them. They keep working until 1.0.0; use the REST routes instead by @GaryJones in https://github.com/Automattic/zoninator/pull/207, https://github.com/Automattic/zoninator/pull/209, and https://github.com/Automattic/zoninator/pull/210
+
+### Removed
+
+* The bundled Mixtape REST library: the `Zoninator_Api`, `Zoninator_Api_Controller`, `Zoninator_Api_Filter_Search`, `Zoninator_Api_Schema_Converter` and `Zoninator_REST_*` classes, the `mixtape_*`, `mt_*` and `rest_api_schema_properties` hooks, and `Zoninator()->rest_api->bootstrap` by @GaryJones in https://github.com/Automattic/zoninator/pull/191
+* The jQuery UI theme the Zones screen bundled by @GaryJones in https://github.com/Automattic/zoninator/pull/188
+
+### Fixed
+
+* `z_get_next_post_in_zone()` and `z_get_prev_post_in_zone()` no longer cause a fatal error, and the Zone Posts widget shows a zone's changes straight away by @GaryJones in https://github.com/Automattic/zoninator/pull/193
+* `z_get_post_zones()` returns the zones a post is in, instead of `null` by @GaryJones in https://github.com/Automattic/zoninator/pull/212
+* Malformed REST input, such as a non-numeric post ID, gets a `400` instead of a PHP fatal error by @GaryJones in https://github.com/Automattic/zoninator/pull/195
+* Zone names and descriptions keep their backslashes, descriptions with accented letters are no longer lost, and updating a zone without a description keeps the one it has by @GaryJones in https://github.com/Automattic/zoninator/pull/196, https://github.com/Automattic/zoninator/pull/199, and https://github.com/Automattic/zoninator/pull/197
+* The Zones screen can be used by keyboard and screen reader, and announces each change by @GaryJones in https://github.com/Automattic/zoninator/pull/188
+* Zone positions stay right when another plugin filters post queries, for example by language by @GaryJones in https://github.com/Automattic/zoninator/pull/227
+* No PHP warning after `Zoninator()->register_zone_post_type()` adds a post type by @GaryJones in https://github.com/Automattic/zoninator/pull/205
+* The Zones screen leaves out the Edit link for posts the user can't edit, which also removes a PHP 8.1 deprecation notice by @GaryJones in https://github.com/Automattic/zoninator/pull/229
+* Translators can place the post title in the Zones screen's row actions, and the screen's spacing follows the text direction in right-to-left languages by @GaryJones in https://github.com/Automattic/zoninator/pull/221
+* The Add content field's loading spinner clears once its results show by @GaryJones in https://github.com/Automattic/zoninator/pull/234
+* The deprecated recent posts dropdown and its admin-ajax action keep working until 1.0.0 instead of being removed outright by @GaryJones in https://github.com/Automattic/zoninator/pull/210
+
+### Security
+
+* The zone search and the latest content list only posts the user can read, so a zone manager no longer sees the titles of posts an access plugin hides from them by @GaryJones in https://github.com/Automattic/zoninator/pull/230
+* Only Zoninator's own capabilities decide who can change zones. The zone taxonomy grants none of core's term capabilities, so core's term handling, such as `tax_input` on post saves, can no longer change zones, and the Zones screen's form checks the capability for the change it actually makes by @GaryJones in https://github.com/Automattic/zoninator/pull/224
+
+### Maintenance
+
+* Split the `Zoninator` class into `final` classes under `Automattic\Zoninator\` for the taxonomy, zone storage, locks, the JSON feed, settings, capabilities, requests, the admin screen and its AJAX handlers. `Zoninator` builds them and stays the public facade, so its methods, hooks and callbacks keep working by @GaryJones in https://github.com/Automattic/zoninator/pull/201, https://github.com/Automattic/zoninator/pull/202, https://github.com/Automattic/zoninator/pull/203, https://github.com/Automattic/zoninator/pull/204, https://github.com/Automattic/zoninator/pull/206, and https://github.com/Automattic/zoninator/pull/214
+* Pin the REST API contract and the Zones screen's AJAX handlers and hooks with tests before changing them, test the form handler, JSON feed, widget and template tags, and check that the tests catch a missing permission check and each bug fixed since 0.11.1 by @GaryJones in https://github.com/Automattic/zoninator/pull/189, https://github.com/Automattic/zoninator/pull/200, https://github.com/Automattic/zoninator/pull/192, https://github.com/Automattic/zoninator/pull/187, and https://github.com/Automattic/zoninator/pull/223
+* Make the docs match the code, describe what the zone posts hooks pass, and add an upgrade guide by @GaryJones in https://github.com/Automattic/zoninator/pull/222, https://github.com/Automattic/zoninator/pull/211, and https://github.com/Automattic/zoninator/pull/231
+* Remove TODO comments nothing will act on by @GaryJones in https://github.com/Automattic/zoninator/pull/213
+* Update GitHub Actions dependencies by @dependabot
+
 ## [0.11.1] - 2026-11-21
 
 ### Changed
@@ -189,6 +251,7 @@ This release has PHP 7.4 and WordPress 5.9 as the minimum supported versions.
 
 * Initial Release!
 
+[0.12.0]: https://github.com/Automattic/zoninator/compare/0.11.1...0.12.0
 [0.11.1]: https://github.com/Automattic/zoninator/compare/0.11.0...0.11.1
 [0.11.0]: https://github.com/automattic/zoninator/compare/0.10.2..0.11.0
 [0.10.2]: https://github.com/automattic/zoninator/compare/0.10.1..0.10.2
