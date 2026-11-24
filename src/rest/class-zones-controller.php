@@ -289,10 +289,9 @@ final class Zones_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function update_zone( $request ) {
-		$zone_id     = $this->get_param( $request, 'zone_id', 0, 'absint' );
-		$name        = $this->get_param( $request, 'name', '' );
-		$slug        = $this->get_param( $request, 'slug', '' );
-		$description = $this->get_param( $request, 'description', '' );
+		$zone_id = $this->get_param( $request, 'zone_id', 0, 'absint' );
+		$name    = $this->get_param( $request, 'name', '' );
+		$slug    = $this->get_param( $request, 'slug', '' );
 
 		$zone          = $this->zones->get( $zone_id );
 		$update_params = array();
@@ -309,8 +308,9 @@ final class Zones_Controller extends WP_REST_Controller {
 			$update_params['slug'] = $slug;
 		}
 
-		if ( $description ) {
-			$update_params['details'] = array( 'description' => $description );
+		// An empty description clears it. Leave it out to keep the current one.
+		if ( $request->has_param( 'description' ) ) {
+			$update_params['details'] = array( 'description' => (string) $request->get_param( 'description' ) );
 		}
 
 		$result = $this->zones->update( $zone, $update_params );
