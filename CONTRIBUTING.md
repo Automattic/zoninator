@@ -28,7 +28,7 @@ Before opening an issue, please check the [existing issues](https://github.com/A
 - Use a descriptive branch name: `fix/zone-lock-race`, `feature/zone-post-search`, etc.
 - Keep the change focused. If you spot a separate issue while working on a fix, open a separate PR.
 - Include tests for behavior changes. See [tests/README.md](tests/README.md) for how to run them.
-- Make sure `composer cs` and `composer test:integration` pass locally before pushing.
+- Make sure `composer cs` and `composer test:integration` pass locally before pushing. If you change the Zones screen, run `npm run test:e2e` too.
 - Write a clear commit message — the "why" matters more than the "what". The first line is a summary; details go below.
 - **Sign your commits.** `develop` and `main` only accept commits with a verified signature, so a pull request with an unsigned commit cannot be merged until it is re-signed and force-pushed. See GitHub's guide to [signing commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits).
 
@@ -50,6 +50,13 @@ To work on another WordPress or PHP version, set `WP_ENV_CORE` and `WP_ENV_PHP_V
 
 ```bash
 WP_ENV_CORE=WordPress/WordPress#6.9 WP_ENV_PHP_VERSION=8.2 npx --no wp-env start
+```
+
+To run the end-to-end tests against it in a browser (see [tests/README.md](tests/README.md#end-to-end-tests)):
+
+```bash
+npx --no playwright install chromium
+npm run test:e2e
 ```
 
 To stop the environment:
