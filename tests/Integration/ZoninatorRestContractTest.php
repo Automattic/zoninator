@@ -766,6 +766,28 @@ final class ZoninatorRestContractTest extends TestCase {
 	}
 
 	/**
+	 * A site that narrows the search with zoninator_search_args must not be
+	 * bypassed by typing a post ID.
+	 */
+	public function test_search_by_post_id_respects_the_search_args_filter(): void {
+		$sport_cat = self::factory()->category->create( array( 'slug' => 'sport' ) );
+		$sport_id  = self::factory()->post->create( array( 'post_category' => array( $sport_cat ) ) );
+		$other_id  = self::factory()->post->create();
+		$filter    = static function ( $args ) {
+			$args['category_name'] = 'sport';
+			return $args;
+		};
+		add_filter( 'zoninator_search_args', $filter );
+
+		$sport_ids = wp_list_pluck( $this->dispatch( 'GET', '/search', array( 'term' => (string) $sport_id ) )->get_data(), 'post_id' );
+		$other_ids = wp_list_pluck( $this->dispatch( 'GET', '/search', array( 'term' => (string) $other_id ) )->get_data(), 'post_id' );
+
+		remove_filter( 'zoninator_search_args', $filter );
+		$this->assertSame( array( $sport_id ), $sport_ids );
+		$this->assertNotContains( $other_id, $other_ids );
+	}
+
+	/**
 	 * Factory post titles hold sequence numbers that can contain an ID, so
 	 * these check which posts come back rather than the whole list.
 	 */
