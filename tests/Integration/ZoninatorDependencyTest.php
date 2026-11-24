@@ -21,9 +21,9 @@ final class ZoninatorDependencyTest extends TestCase {
 	 * @param string $class_name Class to check.
 	 */
 	public function test_class_does_not_take_zoninator( string $class_name ): void {
-		if ( ! class_exists( $class_name ) ) {
-			require_once dirname( __DIR__, 2 ) . '/src/rest/class-zones-controller.php';
-		}
+		// These two load only when needed.
+		require_once dirname( __DIR__, 2 ) . '/src/rest/class-zones-controller.php';
+		require_once dirname( __DIR__, 2 ) . '/src/class-abilities.php';
 
 		$constructor = ( new ReflectionClass( $class_name ) )->getConstructor();
 		$parameters  = $constructor ? $constructor->getParameters() : array();
@@ -54,6 +54,7 @@ final class ZoninatorDependencyTest extends TestCase {
 			\Automattic\Zoninator\Admin\Screen::class,
 			\Automattic\Zoninator\Admin\Ajax::class,
 			\Automattic\Zoninator\REST\Zones_Controller::class,
+			\Automattic\Zoninator\Abilities::class,
 		);
 
 		return array_combine( $classes, array_map( static fn( $class_name ) => array( $class_name ), $classes ) );
