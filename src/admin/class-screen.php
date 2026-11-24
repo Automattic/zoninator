@@ -570,12 +570,17 @@ final class Screen {
 		}
 
 		$action_links = array(
-			sprintf( '<a href="%s" class="edit" target="_blank" aria-label="%s">%s</a>', esc_url( get_edit_post_link( $post->ID ) ), $labels['edit'], esc_html__( 'Edit', 'zoninator' ) ),
 			sprintf( '<button type="button" class="button-link move-up" aria-label="%s">%s</button>', $labels['move-up'], esc_html__( 'Move up', 'zoninator' ) ),
 			sprintf( '<button type="button" class="button-link move-down" aria-label="%s">%s</button>', $labels['move-down'], esc_html__( 'Move down', 'zoninator' ) ),
 			sprintf( '<button type="button" class="button-link button-link-delete delete" aria-label="%s">%s</button>', $labels['remove'], esc_html__( 'Remove', 'zoninator' ) ),
 			sprintf( '<a href="%s" class="view" target="_blank" aria-label="%s">%s</a>', esc_url( get_permalink( $post->ID ) ), $labels['view'], esc_html__( 'View', 'zoninator' ) ),
 		);
+
+		// Zone managers can curate posts they can't edit, and get no edit link for those.
+		$edit_link = get_edit_post_link( $post->ID );
+		if ( $edit_link ) {
+			array_unshift( $action_links, sprintf( '<a href="%s" class="edit" target="_blank" aria-label="%s">%s</a>', esc_url( $edit_link ), $labels['edit'], esc_html__( 'Edit', 'zoninator' ) ) );
+		}
 		?>
 		<?php printf( '%s <span class="zone-post-status">(%s)</span>', esc_html( $post->post_title ), esc_html( $this->zones->get_post_status_label( $post ) ) ); ?>
 

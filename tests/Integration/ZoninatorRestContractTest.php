@@ -575,24 +575,103 @@ final class ZoninatorRestContractTest extends TestCase {
 	 * capability, as on the Zones screen, not the one for editing the zone's
 	 * details. Otherwise the screen would reload for ever when the lock fails.
 	 */
-	public function test_curating_routes_need_only_the_manage_capability(): void {
-		$zone_id   = $this->create_zone( 'curated-by-author' );
-		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
-		$post_id   = self::factory()->post->create( array( 'post_author' => $author_id ) );
-		add_filter(
-			'zoninator_manage_zone_cap',
-			static function () {
-				return 'edit_posts';
-			}
-		);
-		wp_set_current_user( $author_id );
+	/**
+	 * Each route needs exactly one of the three zone capabilities. They all
+	 * default to edit_others_posts, so give each its own capability and a
+	 * user only that one, which fails if a route checks the wrong one.
+	 *
+	 * @dataProvider data_routes_and_capabilities
+	 *
+	 * @param string $method     HTTP method.
+	 * @param string $path       Route, with %1$d for the zone ID, %2$d for a post in it and %3$d for one that isn't.
+	 * @param array  $params     Request params; post_ids of null means the post.
+	 * @param string $needed     Capability the route needs: add, edit or manage.
+	 * @param int    $status     Status when allowed.
+	 * @param string $capability Capability the user has.
+	 */
+	public function test_each_route_needs_its_own_zone_capability( $method, $path, $params, $needed, $status, $capability ): void {
+		foreach ( array( 'add', 'edit', 'manage' ) as $kind ) {
+			add_filter(
+				"zoninator_{$kind}_zone_cap",
+				static function () use ( $kind ) {
+					return "zoninator_test_{$kind}";
+				}
+			);
+		}
+		$zone_id = $this->create_zone( 'matrix' );
+		$post_id = self::factory()->post->create();
+		Zoninator()->add_zone_posts( $zone_id, array( $post_id ) );
+		if ( array_key_exists( 'post_ids', $params ) ) {
+			$params['post_ids'] = array( $post_id );
+		}
+		$user = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
+		$user->add_cap( "zoninator_test_{$capability}" );
+		wp_set_current_user( $user->ID );
 
-		$this->assertSame( 201, $this->dispatch( 'POST', "/zones/$zone_id/posts/$post_id" )->get_status() );
-		$this->assertSame( 200, $this->dispatch( 'PUT', "/zones/$zone_id/posts", array( 'post_ids' => array( $post_id ) ) )->get_status() );
-		$this->assertSame( 200, $this->dispatch( 'GET', '/search' )->get_status() );
-		$this->assertSame( 200, $this->dispatch( 'DELETE', "/zones/$zone_id/posts/$post_id" )->get_status() );
-		$this->assertSame( 200, $this->dispatch( 'PUT', "/zones/$zone_id/lock" )->get_status() );
-		$this->assertSame( 403, $this->dispatch( 'PUT', "/zones/$zone_id", array( 'name' => 'Renamed' ) )->get_status() );
+		$response = $this->dispatch( $method, sprintf( $path, $zone_id, $post_id, self::factory()->post->create() ), $params );
+
+		$this->assertSame( $needed === $capability ? $status : 403, $response->get_status() );
+	}
+
+	public static function data_routes_and_capabilities(): array {
+		$routes = array(
+			'create zone'       => array( 'POST', '/zones', array( 'slug' => 'matrix-new' ), 'add', 201 ),
+			'update zone'       => array( 'PUT', '/zones/%1$d', array( 'name' => 'Renamed' ), 'edit', 200 ),
+			'delete zone'       => array( 'DELETE', '/zones/%1$d', array(), 'edit', 200 ),
+			'update zone posts' => array( 'PUT', '/zones/%1$d/posts', array( 'post_ids' => null ), 'manage', 200 ),
+			'add zone post'     => array( 'POST', '/zones/%1$d/posts/%3$d', array(), 'manage', 201 ),
+			'remove zone post'  => array( 'DELETE', '/zones/%1$d/posts/%2$d', array(), 'manage', 200 ),
+			'search posts'      => array( 'GET', '/search', array(), 'manage', 200 ),
+			'lock zone'         => array( 'PUT', '/zones/%1$d/lock', array(), 'manage', 200 ),
+		);
+
+		$cases = array();
+		foreach ( $routes as $name => $route ) {
+			foreach ( array( 'add', 'edit', 'manage' ) as $capability ) {
+				$cases[ "$name, $capability capability" ] = array_merge( $route, array( $capability ) );
+			}
+		}
+
+		return $cases;
+	}
+
+	/**
+	 * Sites can limit editing to some zones, so the edit routes must ask about the zone being changed.
+	 *
+	 * @dataProvider data_zone_edit_routes
+	 *
+	 * @param string $method HTTP method.
+	 * @param array  $params Request params.
+	 * @param int    $status Status when allowed.
+	 */
+	public function test_edit_routes_ask_about_the_zone_being_changed( $method, $params, $status ): void {
+		$open_id   = $this->create_zone( 'open', 'Open' );
+		$closed_id = $this->create_zone( 'closed', 'Closed' );
+		$asked     = array();
+		add_filter(
+			'zoninator_current_user_can_edit_zone',
+			static function ( $can, $zone_id ) use ( $closed_id, &$asked ) {
+				$asked[] = (int) $zone_id;
+				return $can && (int) $zone_id !== $closed_id;
+			},
+			10,
+			2
+		);
+
+		$refused = $this->dispatch( $method, "/zones/$closed_id", $params );
+		$allowed = $this->dispatch( $method, "/zones/$open_id", $params );
+
+		$this->assertSame( 403, $refused->get_status() );
+		$this->assertSame( 'Closed', Zoninator()->get_zone( $closed_id )->name );
+		$this->assertSame( $status, $allowed->get_status() );
+		$this->assertSame( array( $closed_id, $open_id ), $asked );
+	}
+
+	public static function data_zone_edit_routes(): array {
+		return array(
+			'update zone' => array( 'PUT', array( 'name' => 'Renamed' ), 200 ),
+			'delete zone' => array( 'DELETE', array(), 200 ),
+		);
 	}
 
 	public function test_search_returns_each_match_with_its_labels(): void {

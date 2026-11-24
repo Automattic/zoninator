@@ -71,6 +71,20 @@ class ZoninatorZoneScreenTest extends TestCase {
 		$this->assertStringContainsString( '<span class="zone-post-status">(Published)</span>', $output );
 	}
 
+	public function test_items_leave_out_the_edit_link_for_a_post_the_user_cannot_edit(): void {
+		$zone    = $this->create_zone();
+		$post_id = self::factory()->post->create( array( 'post_title' => 'Read-only story' ) );
+		// Zone managers need not be able to edit every post they curate.
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+
+		ob_start();
+		Zoninator()->admin_page_zone_post_col_info( get_post( $post_id ), $zone );
+		$output = (string) ob_get_clean();
+
+		$this->assertStringNotContainsString( 'class="edit"', $output );
+		$this->assertStringContainsString( 'class="view"', $output );
+	}
+
 	public function test_date_filter_shows_labels(): void {
 		ob_start();
 		Zoninator()->zone_advanced_search_date_filter();
