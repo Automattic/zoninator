@@ -15,7 +15,6 @@ use Rector\Php81\Rector\FuncCall\NullToStrictStringFuncCallArgRector;
 use Rector\Php82\Rector\Encapsed\VariableInStringInterpolationFixerRector;
 use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
 use Rector\Php84\Rector\Param\ExplicitNullableParamTypeRector;
-use Rector\Strict\Rector\Empty_\DisallowedEmptyRuleFixerRector;
 
 return RectorConfig::configure()
 	->withPaths(
@@ -29,10 +28,6 @@ return RectorConfig::configure()
 	->withSkip(
 		array(
 			LongArrayToShortArrayRector::class,
-			// Need a better understanding of intent in this file before switching out the use of empty().
-			DisallowedEmptyRuleFixerRector::class => array(
-				__DIR__ . '/src/zoninator_rest/type/class-zoninator-rest-type-registry.php',
-			),
 			// Child classes can legitimately relax the visibility of a method, so while this
 			// might not be desirable, changing them from public to the original parent-defined
 			// protected would count as a breaking change.

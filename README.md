@@ -1,6 +1,6 @@
 # Zone Manager (Zoninator)
 
-Stable tag: 0.11.1  
+Stable tag: 0.12.0  
 Requires at least: 6.4  
 Tested up to: 7.1  
 Requires PHP: 7.4  
@@ -21,7 +21,7 @@ This plugin was originally built by [Mohammad Jangda](http://digitalize.ca) in c
 
 * Add, edit, and delete zones.
 * Add and remove posts (or any custom post type) to or from zones.
-* Order posts in any given zone.
+* Order posts in any given zone, by drag and drop or with the keyboard (Move up and Move down).
 * Limit capabilities on who can add, edit, and delete zones vs add content to zones.
 * Locking mechanism, so only one user can edit a zone at a time (to avoid conflicts).
 * Idle control, so people can't keep the zone locked.
@@ -30,7 +30,7 @@ This plugin was originally built by [Mohammad Jangda](http://digitalize.ca) in c
 
 1. Unzip contents and upload to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Go to Dashboard > Zones to create and manage your zones, and easily search for and add existing posts.
+3. Go to Zones in the admin menu to create and manage your zones, and easily search for and add existing posts.
 4. Use the plugin's handy API functions to add zones to your theme that retrieve and display your content. Or, for those who are a bit code-averse, go to Appearance-Widgets and add Zone Posts widgets to display your zone posts in your sidebar or footer. The widget will pull the posts from the chosen zone.
 
 ### Usage examples
@@ -67,6 +67,7 @@ Audience-targeted documentation lives in the GitHub repository:
 * [Theme developer guide](https://github.com/Automattic/zoninator/blob/main/docs/theme-developers.md) — using zones in your theme.
 * [Hooks reference](https://github.com/Automattic/zoninator/blob/main/docs/hooks.md) — every filter and action the plugin exposes.
 * [REST API](https://github.com/Automattic/zoninator/blob/main/docs/rest-api.md) — endpoints under the `zoninator/v1` namespace, for headless integrations.
+* [Upgrading](https://github.com/Automattic/zoninator/blob/main/docs/upgrades.md) — what to check when you update, release by release.
 * [Contributing](https://github.com/Automattic/zoninator/blob/main/CONTRIBUTING.md) — local setup, tests, and PR conventions.
 * [Security](https://github.com/Automattic/zoninator/security/policy) — responsible disclosure.
 
@@ -89,7 +90,7 @@ Filter the following and change according to your needs:
 
 ### Can anonymous users still read zones over the REST API?
 
-Not by default since version 0.11.0. The `GET /wp-json/zoninator/v1/zones` endpoint now requires an authenticated user. If your integration relied on anonymous access, you can restore the previous behaviour with the `zoninator_rest_get_zones_permissions_check` filter:
+Not by default since version 0.11.0. The `GET /wp-json/zoninator/v1/zones` endpoint now requires an authenticated user. If your integration relied on anonymous access, you can restore the previous behavior with the `zoninator_rest_get_zones_permissions_check` filter:
 
 ~~~php
 add_filter( 'zoninator_rest_get_zones_permissions_check', '__return_true' );
@@ -103,17 +104,29 @@ Yes. Call `Zoninator()->register_zone_post_type( 'your_post_type' )` after `init
 
 ## Upgrade Notice
 
+### 0.12.0
+
+Check the upgrade guide if your code reads Zoninator's properties, uses the REST API or its bundled Mixtape classes, or customizes the Zones screen. The REST API now runs on core, and errors carry codes.
+
 ### 0.11.1
 
 Fixes three security issues, so update soon. If you lower `zoninator_manage_zone_cap` so authors can curate zones, they can no longer add posts they can't read, such as another author's scheduled post.
 
-### 0.11.0
-
-The `GET /wp-json/zoninator/v1/zones` REST endpoint now requires an authenticated user. If your site depends on anonymous access, opt back in with the `zoninator_rest_get_zones_permissions_check` filter. Three security fixes are included — review the changelog before upgrading.
-
 ## Changelog
 
 The highlights of recent releases are below. Every change, including older releases, is listed in [CHANGELOG.md](https://github.com/Automattic/zoninator/blob/main/CHANGELOG.md).
+
+### 0.12.0
+
+Developers: the bundled Mixtape REST library is gone, and `Zoninator()`'s public properties are deprecated. See the [upgrade guide](https://github.com/Automattic/zoninator/blob/main/docs/upgrades.md).
+
+- **Changed:** The Zones screen is rebuilt in the style of the rest of wp-admin. One field adds content, offering the latest posts before you type, and changes save as you make them.
+- **New:** Reorder a zone's posts with Move up and Move down, and use the whole screen by keyboard and screen reader.
+- **New:** Find a post by typing its ID in the Add content field.
+- **New:** The `zoninator_zone_posts_widget_html` filter lets themes change how the Zone Posts widget lists its posts.
+- **Fixed:** `z_get_next_post_in_zone()`, `z_get_prev_post_in_zone()` and `z_get_post_zones()` now work.
+- **Fixed:** Zone descriptions keep accented letters and backslashes.
+- **Security:** The Add content field only lists posts you can read, and only Zoninator's own permissions decide who can change zones.
 
 ### 0.11.1
 

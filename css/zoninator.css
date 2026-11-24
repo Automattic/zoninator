@@ -1,121 +1,48 @@
-.wrap.zoninator-page {
-	width: 95%;
+/* Zones screen. Layout, forms, buttons and boxes come from core; these rules cover only what core doesn't. */
+
+/* Line the right-hand column up with the top of the zone list. */
+#zone-info > :first-child,
+#zone-info-readonly > :first-child {
+	margin-top: 0;
 }
 
-#zoninator-wrap {
-	overflow: hidden;
-	clear: both;
-	position: relative;
-	margin-top: 15px;
+#zone-edit-wrapper > .metabox-holder {
+	padding-top: 0;
 }
 
-#zoninator-wrap .delete {
-	color: #BC0B0B;
+#zone-edit-wrapper .submit .submitdelete {
+	margin-inline-start: 1em;
 }
 
-/** Tabs **/
-.zone-tabs-container {
-	width: 30%;
-	float: left;
+/** Zone content **/
+.zone-search-wrapper {
+	margin: 1em 0;
 }
 
-.zone-tabs-wrapper .zone-tab {
-	display: block;
-	background: #fff;
+.zone-posts-save-input {
+	margin: 0 12px;
+	white-space: nowrap;
+}
+
+.zone-advanced-search-filters-wrapper {
+	display: none;
+	margin: 1em 0;
+}
+
+.zone-posts-save-input .spinner {
 	float: none;
-	font-size: 12px;
-	line-height: 16px;
-	padding: 4px 14px 6px;
-	margin: 0px;
-	font-weight: normal;
-}
-
-.zone-tabs-wrapper .zone-tab:hover,
-.zone-tabs-wrapper .zone-tab:active,
-.zone-tabs-wrapper .zone-tab-active {
-	background: #0074a2;
-	color: #fff;
-	margin-bottom: -1px;
-}
-
-.nav-tab-active {
-	float: none;
-}
-
-/** Edit **/
-#zone-edit-wrapper {
-	padding: 10px;
-	overflow: hidden;
-	border: 1px solid #ccc;
-	-moz-border-radius: 4px;
-	-wekbit-border-radius: 4px;
-	-ms-border-radius: 4px;
-	border-radius: 4px;
-	background: url(images/gray-grad.png) repeat-x scroll left top #dfdfdf;
-
-	width: 67%;
-	float: right;
-}
-
-#zone-edit-wrapper .form-wrap {
 	margin: 0;
+	margin-inline-end: 4px;
 }
 
-#zone-edit-wrapper .form-field {
-	padding: 0;
+.zone-posts-save-info {
+	display: inline-block;
+	margin: 0;
+	vertical-align: middle;
 }
 
-#zone-edit-wrapper .form-field.error {
-	padding: 0 10px 5px;
-}
-
-#zone-edit-wrapper .form-field input,
-#zone-edit-wrapper .form-field textarea {
-	width: 98%;
-}
-
-#zone-edit-wrapper .submit-field {
-	width: 95%;
-}
-
-#zone-edit-wrapper .submit-field .submitdelete {
-	float: right;
-}
-
-#zone-info-readonly label {
-	font-weight: bold;
-}
-
-#zone-info-readonly span {
-}
-
-/** Zone Posts **/
-.zone-info-col {
-	border-bottom: 1px dotted #333;
-	padding-bottom: 15px;
-	margin-bottom: 15px;
-}
-
-.zone-posts-col {
-	background: #fff;
-	border: 1px solid #ccc;
-	-moz-border-radius: 4px;
-	-wekbit-border-radius: 4px;
-	-ms-border-radius: 4px;
-	border-radius: 4px;
-
-	padding: 10px;
-}
-
-.zone-posts-col h3 {
-	margin: 3px 0;
-}
-
-.zone-posts-wrapper.loading {
-	background: url(images/wpspin_light.gif) no-repeat right top;
-}
-
-.zone-posts-wrapper.readonly {
+.zone-post.loading {
+	opacity: 0.5;
 }
 
 .zone-posts-wrapper.readonly .zone-search-wrapper,
@@ -123,199 +50,87 @@
 	display: none !important;
 }
 
-.zone-posts-wrapper.readonly .zone-post {
-	cursor: default !important;
-}
-
-.zone-posts-wrapper.readonly .zone-post:hover .zone-post-position {
-	background: none;
-	text-indent: 0;
-}
-
-.zone-posts-list {
-	margin: 10px 0;
-}
-
-.zone-posts-list .ui-state-highlight {
-	margin-bottom: 5px;
-	-moz-border-radius: 4px;
-	-wekbit-border-radius: 4px;
-	-ms-border-radius: 4px;
-	border-radius: 4px;
+/** Zone items: rows like a list table's. **/
+.zone-post {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	margin-top: -1px;
+	padding: 8px 10px;
 }
 
 .zone-posts-list.ui-sortable .zone-post {
 	cursor: move;
 }
 
-.zone-post {
-	padding: 5px 0 5px 10px;
-	margin-bottom: 5px;
-	font-size: 12px;
-	line-height: 15px;
-	font-weight: bold;
-	color: #444;
-	overflow: hidden;
-
-	border: 1px dotted #eee;
-	-moz-border-radius: 4px;
-	-wekbit-border-radius: 4px;
-	-ms-border-radius: 4px;
-	border-radius: 4px;
-
-	background: #f5f5f5;
+.zone-posts-wrapper.readonly .zone-post {
+	cursor: default !important;
 }
 
 .zone-post table {
 	width: 100%;
+	border-collapse: collapse;
 }
 
-.zone-post-col {
-}
-
-.zone-post:hover .zone-post-position {
-	background: url(images/drag.png) no-repeat left center;
-	text-indent: -9999px;
+.zone-post td {
+	padding: 0;
+	vertical-align: top;
 }
 
 .zone-post-position {
-	font-size: 24px;
-	line-height: 32px;
-	font-weight: normal;
-	text-align: center;
-	width: 32px;
+	width: 2.5em;
+	font-weight: 600;
 }
 
-/*
-.zone-post-handle {
-	display: block;
-	background: url(images/drag.png) no-repeat center center;
-	width: 32px;
-	height: 32px;
-
-	float: right;
-	visibility: hidden;
+.zone-post-info {
+	font-weight: 600;
 }
-*/
+
 .zone-post-status {
-	color: #999;
+	color: #646970;
+	font-weight: 400;
+}
+
+/* Core hides row actions off screen until hover; show them while one has keyboard focus. */
+.zone-post:hover .row-actions,
+.zone-post:focus-within .row-actions {
+	position: static;
 }
 
 .zone-post .row-actions {
-	font-size: 11px;
-	font-weight: normal;
+	font-weight: 400;
 }
 
-.zone-post:hover .row-actions,
-.zone-post.loading .row-actions,
-.zone-post:hover .zone-post-handle,
-.zone-post.loading .zone-post-handle {
-	visibility: visible;
+.zone-post .row-actions .button-link {
+	font-size: inherit;
+	vertical-align: baseline;
 }
 
-.zone-post.loading .zone-post-position {
-	background: url(images/wpspin_light.gif) no-repeat center center;
-	text-indent: -9999px;
+/** Content search suggestions, building on core's .ui-autocomplete. **/
+.ui-autocomplete li {
+	padding: 0;
 }
 
-.zone-search-wrapper {
-	padding: 7px 0;
-	border-bottom: 1px dotted #999;
+.ui-autocomplete .ui-menu-item-wrapper {
+	padding: 4px 10px;
 }
 
-.zone-posts-save-input {
-	padding: 7px 0;
-	overflow: hidden;
-}
-
-#zone-posts-save {
-	float: left;
-	width: 125px;
-}
-
-.zone-posts-save-info {
-	float: left;
-	margin: 0 0 0 10px;
-	padding: 0 10px;
-	line-height: 28px;
-	color: #666;
-}
-
-.notice-error { color: #a94442; background-color: #f2dede; }
-
-.notice-success { color: #3c763d; background-color: #dff0d8; }
-
-.notice-info { color: #0f1d79; background-color: #d9edf7; }
-
-#zone-post-search {
-	width: 99%;
-}
-
-#zone-post-latest {
-	width: 98%;
-}
-
-/** Autocomplete **/
-.ui-autocomplete-input.loading {
-	background: url(images/wpspin_light.gif) no-repeat right center;
-}
-
-.ui-autocomplete {
-	min-width: 330px;
-	max-width: 600px;
-	font-size: 13px;
-	line-height: 17px;
-}
-
-.ui-autocomplete .ui-corner-all {
-	padding-top: 5px;
-	padding-bottom: 5px;
-	border-bottom: 1px dotted #eee;
-	cursor: pointer;
-	overflow: hidden;
-}
-
-.ui-autocomplete .title {
+.ui-autocomplete .title,
+.ui-autocomplete .meta {
 	display: block;
-	width: 80%;
-	float: left;
 }
 
-.ui-autocomplete .date {
-	text-transform: uppercase;
-	color: #666;
-	font-size: 11px;
-	clear: both;
-	float: left;
+.ui-autocomplete .meta {
+	color: #646970;
+	font-size: 12px;
 }
 
-.ui-autocomplete .type {
-	text-transform: uppercase;
-	color: #666;
-	font-size: 11px;
-	width: 19%;
-	margin-left: 1%;
-	float: right;
-	text-align: right;
+.ui-autocomplete .ui-state-active {
+	background-color: var(--wp-admin-theme-color, #2271b1);
+	color: #fff;
+	/* Only visible in Windows High Contrast mode. */
+	outline: 2px solid transparent;
 }
 
-.ui-autocomplete .status {
-	font-size: 10px;
-	width: 19%;
-	margin-left: 1%;
-	float: right;
-	text-align: right;
-}
-
-.zone-advanced-search-filters-wrapper {
-	display: none;
-}
-
-.zone-advanced-search-filters-heading {
-	float: right;
-	font-weight: bold;
-}
-
-.zone-toggle-advanced-search {
-	cursor: pointer;
+.ui-autocomplete .ui-state-active .meta {
+	color: inherit;
 }

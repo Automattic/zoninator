@@ -16,6 +16,9 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		add_action( 'save_post', array( &$this, 'flush_widget_cache' ) );
 		add_action( 'deleted_post', array( &$this, 'flush_widget_cache' ) );
 		add_action( 'switch_theme', array( &$this, 'flush_widget_cache' ) );
+		add_action( 'zoninator_add_zone_posts', array( $this, 'flush_widget_cache' ) );
+		add_action( 'zoninator_remove_zone_posts', array( $this, 'flush_widget_cache' ) );
+		add_action( 'edited_' . Zoninator::ZONE_TAXONOMY, array( $this, 'flush_widget_cache' ) );
 
 		parent::__construct(
 			false,
@@ -37,10 +40,8 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 			return;
 		}
 
-		ob_start();
-
-		$zone_id          = $instance['zone_id'] ?: 0;
-		$show_description = $instance['show_description'] ? 1 : 0;
+		$zone_id          = $instance['zone_id'] ?? 0;
+		$show_description = empty( $instance['show_description'] ) ? 0 : 1;
 		if ( ! $zone_id ) {
 			return;
 		}
@@ -50,11 +51,13 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 			return;
 		}
 
-		$posts = z_get_posts_in_zone( $zone_id );
+		$query = z_get_zone_query( $zone_id );
+		$posts = $query->posts;
 		if ( empty( $posts ) ) {
 			return;
 		}
 
+		ob_start();
 		?>
 		<?php echo wp_kses_post( $args['before_widget'] ); ?>
 
@@ -66,17 +69,28 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		endif;
 		?>
 
-		<ul>
-			<?php foreach ( $posts as $post ) : ?>
-				<li>
-					<a href="<?php echo esc_url( get_permalink( $post->ID ) ); ?>">
-						<?php echo esc_html( get_the_title( $post->ID ) ); ?>
-					</a>
-				</li>
-				<?php
-			endforeach;
-			?>
-		</ul>
+		<?php
+		/**
+		 * Filters the HTML for the posts in a Zone Posts widget, so a theme can
+		 * show them its own way, such as with thumbnails or excerpts.
+		 *
+		 * Return false to keep the default list of links. The HTML is cached with
+		 * the rest of the widget, and passed through wp_kses_post().
+		 *
+		 * @since 0.12.0
+		 *
+		 * @param string|false $html  HTML for the posts, or false for the default list.
+		 * @param WP_Post[]    $posts The zone's posts, in order.
+		 * @param WP_Query     $query The zone query that found them.
+		 */
+		$html = apply_filters( 'zoninator_zone_posts_widget_html', false, $posts, $query );
+
+		if ( false !== $html ) {
+			echo wp_kses_post( $html );
+		} else {
+			$this->render_posts( $posts );
+		}
+		?>
 
 		<?php echo wp_kses_post( $args['after_widget'] ); ?>
 		<?php
@@ -89,6 +103,27 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		}
 
 		wp_cache_set( 'widget-zone-posts', $cache, 'widget' );
+	}
+
+	/**
+	 * Prints the default list of links to the zone's posts.
+	 *
+	 * @param WP_Post[] $posts The zone's posts, in order.
+	 */
+	private function render_posts( $posts ) {
+		?>
+		<ul>
+			<?php foreach ( $posts as $post ) : ?>
+				<li>
+					<a href="<?php echo esc_url( get_permalink( $post->ID ) ); ?>">
+						<?php echo esc_html( get_the_title( $post->ID ) ); ?>
+					</a>
+				</li>
+				<?php
+			endforeach;
+			?>
+		</ul>
+		<?php
 	}
 
 	public function update( $new_instance, $old_instance ) {

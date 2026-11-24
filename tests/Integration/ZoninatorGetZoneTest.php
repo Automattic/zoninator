@@ -1,4 +1,6 @@
 <?php
+declare( strict_types = 1 );
+
 /**
  * Integration tests for looking up a zone.
  *
@@ -7,15 +9,15 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
-class Zoninator_Get_Zone_Test extends TestCase {
+class ZoninatorGetZoneTest extends TestCase {
 
 	/**
 	 * @var int
 	 */
 	private $zone_id;
 
-	public function set_up(): void {
-		parent::set_up();
+	public function setUp(): void {
+		parent::setUp();
 
 		$zone          = \Zoninator()->insert_zone( 'get-zone', 'Get Zone' );
 		$this->zone_id = $zone['term_id'];
@@ -55,5 +57,21 @@ class Zoninator_Get_Zone_Test extends TestCase {
 	public function test_get_zone_returns_false_for_invalid_type() {
 		$this->assertFalse( \Zoninator()->get_zone( array( $this->zone_id ) ) );
 		$this->assertFalse( \Zoninator()->get_zone( null ) );
+	}
+
+	public function test_get_zone_does_not_instantiate_objects_from_the_description() {
+		global $wpdb;
+
+		// Write straight to the table, as any path to the description could.
+		$wpdb->update(
+			$wpdb->term_taxonomy,
+			array( 'description' => serialize( array( 'description' => new \ArrayObject() ) ) ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
+			array( 'term_id' => $this->zone_id )
+		);
+		clean_term_cache( $this->zone_id );
+
+		$zone = \Zoninator()->get_zone( $this->zone_id );
+
+		$this->assertInstanceOf( \__PHP_Incomplete_Class::class, $zone->description );
 	}
 }

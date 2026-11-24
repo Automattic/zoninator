@@ -8,8 +8,8 @@ This guide covers the common patterns. For the full hook surface, see [hooks.md]
 
 | Function | Returns | When to use |
 |---|---|---|
-| `z_get_zones()` | `array` of `WP_Term` objects | List every zone (e.g. for an admin dropdown). |
-| `z_get_zone( $zone )` | `WP_Term` | Look up a single zone by ID or slug. |
+| `z_get_zones()` | `array` of `WP_Term` objects, or `false` on error | List every zone (e.g. for an admin dropdown). |
+| `z_get_zone( $zone )` | `WP_Term`, or `false` if there's no such zone | Look up a single zone by ID or slug. |
 | `z_get_posts_in_zone( $zone, $args = [] )` | `array` of `WP_Post` objects | Read zone posts as a plain array. |
 | `z_get_zone_query( $zone, $args = [] )` | `WP_Query` | Read zone posts as a query, so you can use `the_post()` and template tags. |
 | `z_get_next_post_in_zone( $zone, $post_id = 0 )` | `WP_Post` or `false` | Build "next in zone" navigation. |
@@ -72,7 +72,9 @@ if ( $next ) {
 }
 ```
 
-Both functions accept a post ID as a second argument, but default to the current loop post when you don't pass one.
+Both functions accept a post ID as a second argument, but default to the current loop post when you don't pass one. They return `false` when the post isn't in the zone or has no neighbor in that direction.
+
+They work since 0.12.0. In earlier versions, every call caused a fatal error.
 
 ## Listing zones a post belongs to
 
@@ -85,7 +87,9 @@ foreach ( $zones as $zone ) {
 }
 ```
 
-## Customising the underlying query
+The zones come back in zone ID order. As with `z_get_posts_in_zone()`, a post only counts as in a zone where it would be listed: outside the admin, a scheduled or draft post isn't in any zone yet. The function returns an empty array when the post isn't in a zone. It works since 0.12.0; earlier versions always returned `null`.
+
+## Customizing the underlying query
 
 `z_get_posts_in_zone()` and `z_get_zone_query()` both accept a `$args` array that's merged into the underlying `WP_Query` arguments. For example, to fetch the first three posts only:
 
@@ -93,7 +97,9 @@ foreach ( $zones as $zone ) {
 $top = z_get_posts_in_zone( 'homepage', [ 'posts_per_page' => 3 ] );
 ```
 
-For broader changes that should apply everywhere, prefer the `zoninator_recent_posts_args` and `zoninator_search_args` filters in [hooks.md](hooks.md) — they apply consistently across the admin UI as well.
+Zoninator always sets `orderby` and `meta_key`, so the posts stay in zone order; anything else you pass wins over the defaults.
+
+The `zoninator_recent_posts_args` and `zoninator_search_args` filters in [hooks.md](hooks.md) change the post search on the Zones screen, not these queries.
 
 ## Performance notes
 
@@ -103,7 +109,11 @@ For broader changes that should apply everywhere, prefer the `zoninator_recent_p
 
 ## The Zone Posts widget
 
-For sidebars, the bundled Zone Posts widget renders a list without any code. It registers under **Appearance → Widgets** with the title "Zone Posts" and exposes a zone selector and a "show description" toggle. The widget caches its rendered output for 5 seconds via `wp_cache_*`; that interval is filterable via the legacy `zone_posts_widget_block_save_cache_seconds` hook.
+For sidebars, the bundled Zone Posts widget renders a list without any code. It registers under **Appearance → Widgets** with the title "Zone Posts" and exposes a zone selector and a "show description" toggle.
+
+To show the posts your own way, such as with thumbnails, return your HTML from the [`zoninator_zone_posts_widget_html`](hooks.md#zoninator_zone_posts_widget_html-filter) filter, since 0.12.0.
+
+The widget caches its output in the object cache until a post is saved or deleted, the theme changes, or the zone or its posts change. After the cache is cleared, it isn't saved again for 5 seconds, so the clear can reach every server; the legacy `zone_posts_widget_block_save_cache_seconds` hook changes that interval.
 
 ## The JSON feed
 
