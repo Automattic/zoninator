@@ -33,6 +33,17 @@ final class Zones {
 	public const META_PREFIX = '_zoninator_order_';
 
 	/**
+	 * Query args that find every post in a zone, for code that changes a
+	 * zone's posts. Whoever is asking, and whatever query filters other plugins
+	 * add, a post left out here would keep its old position in the zone.
+	 */
+	private const EVERY_POST = array(
+		'post_status'      => 'any',
+		// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters
+		'suppress_filters' => true,
+	);
+
+	/**
 	 * Zoninator's settings.
 	 *
 	 * @var Settings
@@ -154,15 +165,9 @@ final class Zones {
 		$meta_key = $this->get_meta_key( $zone );
 
 		if ( $append ) {
-			// Order should be the highest post order, counting scheduled and draft posts
-			// whoever is asking, so a REST request doesn't give two posts the same position.
-			$last_post = $this->get_single_post(
-				$zone,
-				array(
-					'order'       => 'DESC',
-					'post_status' => 'any',
-				)
-			);
+			// Order should be the highest post order, counting every post in the
+			// zone, so a new post never shares a position with one already there.
+			$last_post = $this->get_single_post( $zone, array( 'order' => 'DESC' ) + self::EVERY_POST );
 			$order     = $last_post ? $this->get_post_order( $last_post, $zone ) : 0;
 		} else {
 			$order = 0;
@@ -194,9 +199,9 @@ final class Zones {
 		$zone     = $this->get( $zone );
 		$meta_key = $this->get_meta_key( $zone );
 
-		// If null, remove all, including scheduled and draft posts, whoever is asking.
+		// If null, remove every post in the zone.
 		if ( ! $posts ) {
-			$posts = $this->get_posts( $zone, array( 'post_status' => 'any' ) );
+			$posts = $this->get_posts( $zone, self::EVERY_POST );
 		}
 
 		foreach ( (array) $posts as $post ) {
@@ -543,7 +548,7 @@ final class Zones {
 			do_action( 'zoninator_split_shared_term', $old_term_id, $new_term_id, $term_taxonomy_id );
 
 			// Quick, easy switcheroo; add posts to new zone id and remove from the old one.
-			$posts = $this->get_posts( $old_term_id, array( 'post_status' => 'any' ) );
+			$posts = $this->get_posts( $old_term_id, self::EVERY_POST );
 			if ( ! empty( $posts ) ) {
 				$this->add_posts( $new_term_id, $posts );
 				$this->remove_posts( $old_term_id );
