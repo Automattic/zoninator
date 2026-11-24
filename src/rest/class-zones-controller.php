@@ -590,11 +590,13 @@ final class Zones_Controller extends WP_REST_Controller {
 			$args['posts_per_page'] = $limit + min( count( $exclude ), 100 );
 		}
 
+		// The query only knows post types and statuses, so leave out posts the user may not read,
+		// such as ones a membership plugin restricts. This can return fewer than the limit.
 		$posts = array_values(
 			array_filter(
 				get_posts( $args ),
-				static function ( $post ) use ( $exclude ) {
-					return ! in_array( $post->ID, $exclude, true );
+				function ( $post ) use ( $exclude ) {
+					return ! in_array( $post->ID, $exclude, true ) && $this->capabilities->current_user_can_add_post_to_zone( $post );
 				}
 			)
 		);
