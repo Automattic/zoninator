@@ -45,6 +45,8 @@ final class Zones_Controller extends WP_REST_Controller {
 
 	public const ZONE_NOT_FOUND = 'zone-not-found';
 
+	public const ZONE_LOCKED = 'zone-locked';
+
 	/**
 	 * Zones and the posts in them.
 	 *
@@ -481,21 +483,6 @@ final class Zones_Controller extends WP_REST_Controller {
 	public function find_posts( $term, $cat, $date, $exclude, $limit = 0, $zone_id = 0 ) {
 		$post_types = $this->taxonomy->get_post_types();
 
-		// A post ID finds that post directly, which skips the slow LIKE search. If
-		// it isn't a post that could go in the zone, search the text as usual, so a
-		// number in a title, such as "1984", still matches.
-		if ( ctype_digit( $term ) ) {
-			$post = get_post( (int) $term );
-
-			if ( $post
-				&& $this->capabilities->current_user_can_add_post_to_zone( $post )
-				&& in_array( $post->post_status, array( 'publish', 'future' ), true )
-				&& ! in_array( $post->ID, array_map( 'absint', (array) $exclude ), true )
-			) {
-				return array( $this->format_search_result( $post ) );
-			}
-		}
-
 		if ( '' === $term ) {
 			// With nothing typed yet, offer the latest content.
 			$args = apply_filters(
@@ -540,6 +527,23 @@ final class Zones_Controller extends WP_REST_Controller {
 			$args['year']     = $date_parts[0];
 			$args['monthnum'] = $date_parts[1];
 			$args['day']      = $date_parts[2];
+		}
+
+		// A post ID finds that post directly, which skips the slow LIKE search. It
+		// uses the filtered search args, so it only finds a post the text search
+		// could offer. If it finds nothing, search the text as usual, so a number
+		// in a title, such as "1984", still matches.
+		if ( ctype_digit( $term ) ) {
+			$by_id = $args;
+			unset( $by_id['s'] );
+			// post__in, not p: p makes a singular query, which ignores taxonomy args.
+			$by_id['post__in']       = array( (int) $term );
+			$by_id['posts_per_page'] = 1;
+
+			$posts = $this->get_posts_excluding( $by_id, $exclude );
+			if ( $posts ) {
+				return array_map( array( $this, 'format_search_result' ), $posts );
+			}
 		}
 
 		return array_map( array( $this, 'format_search_result' ), $this->get_posts_excluding( $args, $exclude ) );
@@ -623,9 +627,17 @@ final class Zones_Controller extends WP_REST_Controller {
 
 		$zone_locked = $this->locks->is_locked( $zone );
 		if ( $zone_locked ) {
+			// Core's REST error shape, keeping zone_id and blocked, which this
+			// response had before it had a code.
 			$locking_user = get_userdata( $zone_locked );
 			return new WP_REST_Response(
 				array(
+					'code'    => self::ZONE_LOCKED,
+					'message' => sprintf(
+						$this->settings->get_message( 'error-zone-lock' ),
+						$locking_user ? $locking_user->display_name : __( 'another user', 'zoninator' )
+					),
+					'data'    => array( 'status' => 400 ),
 					'zone_id' => $this->zones->get_id( $zone ),
 					'blocked' => true,
 				),

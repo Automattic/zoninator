@@ -140,7 +140,7 @@ These fire from `src/rest/class-zones-controller.php`, for the `GET /zoninator/v
 
 ### `zoninator_search_args` (filter)
 
-`WP_Query` args used by the post search once something is typed. It doesn't run when the term is the ID of a post that could go in the zone: since 0.12.0, the search returns that post directly.
+`WP_Query` args used by the post search once something is typed. When the term is a post ID, the search looks that post up with these args, minus `s`, so the lookup only finds a post the text search could offer. Since 0.12.0.
 
 - **Parameters:** `array $args`, `int $zone_id` (the zone being edited, or `0`; since 0.12.0)
 
