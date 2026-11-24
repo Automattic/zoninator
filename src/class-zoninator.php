@@ -338,7 +338,7 @@ class Zoninator {
 	/**
 	 * Register the zone ability category.
 	 *
-	 * @since 0.12.0
+	 * @since 1.0.0
 	 */
 	public function register_ability_categories() {
 		$this->get_abilities()->register_category();
@@ -347,7 +347,7 @@ class Zoninator {
 	/**
 	 * Register the zone abilities.
 	 *
-	 * @since 0.12.0
+	 * @since 1.0.0
 	 */
 	public function register_abilities() {
 		$this->get_abilities()->register();
@@ -364,7 +364,6 @@ class Zoninator {
 
 			$this->abilities = new \Automattic\Zoninator\Abilities(
 				$this->zones,
-				$this->feed,
 				$this->capabilities,
 				function () {
 					return $this->rest_api ?? $this->make_rest_controller();

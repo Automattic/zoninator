@@ -16,7 +16,7 @@ use WP_Error;
  * Zoninator registers these only when the Abilities API exists (WordPress 6.9
  * and later). Its hooks stay registered on Zoninator.
  *
- * @since 0.12.0
+ * @since 1.0.0
  */
 final class Abilities {
 
@@ -31,13 +31,6 @@ final class Abilities {
 	 * @var Zones
 	 */
 	private $zones;
-
-	/**
-	 * The JSON feed, which gives a zone's posts.
-	 *
-	 * @var Feed
-	 */
-	private $feed;
 
 	/**
 	 * The capability checks.
@@ -57,13 +50,11 @@ final class Abilities {
 	 * Constructor.
 	 *
 	 * @param Zones        $zones             Zones and the posts in them.
-	 * @param Feed         $feed              The JSON feed.
 	 * @param Capabilities $capabilities      The capability checks.
 	 * @param callable     $search_controller Returns the REST controller, whose search the search ability uses.
 	 */
-	public function __construct( Zones $zones, Feed $feed, Capabilities $capabilities, callable $search_controller ) {
+	public function __construct( Zones $zones, Capabilities $capabilities, callable $search_controller ) {
 		$this->zones             = $zones;
-		$this->feed              = $feed;
 		$this->capabilities      = $capabilities;
 		$this->search_controller = $search_controller;
 	}
@@ -92,6 +83,8 @@ final class Abilities {
 				'idempotent'  => true,
 			),
 			'show_in_rest' => true,
+			// The MCP adapter's default server lists only public abilities. These stay read-only and capability-gated.
+			'mcp'          => array( 'public' => true ),
 		);
 
 		wp_register_ability(
@@ -114,7 +107,7 @@ final class Abilities {
 			'zoninator/get-zone-posts',
 			array(
 				'label'               => __( 'Get zone posts', 'zoninator' ),
-				'description'         => __( 'Gets the posts in a zone, in their zone order.', 'zoninator' ),
+				'description'         => __( 'Gets the published and scheduled posts in a zone, in their zone order, with their ID, title, date and status.', 'zoninator' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => array(
 					'type'                 => 'object',
@@ -130,7 +123,6 @@ final class Abilities {
 				),
 				'output_schema'       => array(
 					'type'  => 'array',
-					// Sites choose the fields with the zoninator_zone_feed_fields filter.
 					'items' => array(
 						'type'                 => 'object',
 						'properties'           => array(
@@ -139,7 +131,7 @@ final class Abilities {
 							'post_title'  => array( 'type' => 'string' ),
 							'post_status' => array( 'type' => 'string' ),
 						),
-						'additionalProperties' => true,
+						'additionalProperties' => false,
 					),
 				),
 				'execute_callback'    => array( $this, 'get_zone_posts' ),
@@ -272,16 +264,24 @@ final class Abilities {
 			return $this->zone_not_found();
 		}
 
-		$posts = $this->feed->get( $zone_id );
+		// Query the zone directly, not through the JSON feed: the feed's filters can reshape its
+		// output, and outside the admin it gives only published posts.
+		$posts = $this->zones->get_posts(
+			$zone_id,
+			array( 'post_status' => array( 'publish', 'future' ) )
+		);
 
-		if ( is_wp_error( $posts ) ) {
-			return $posts;
-		}
+		// Like the search, leave out posts the user may not read.
+		$posts = array_filter( $posts, array( $this->capabilities, 'current_user_can_add_post_to_zone' ) );
 
-		// The feed gives objects, or arrays if a site filters it; the output schema wants arrays.
 		return array_map(
 			static function ( $post ) {
-				return (array) $post;
+				return array(
+					'ID'          => (int) $post->ID,
+					'post_date'   => $post->post_date,
+					'post_title'  => $post->post_title,
+					'post_status' => $post->post_status,
+				);
 			},
 			array_values( $posts )
 		);

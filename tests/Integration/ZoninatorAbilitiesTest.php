@@ -43,6 +43,7 @@ final class ZoninatorAbilitiesTest extends TestCase {
 		$this->assertSame( 'zoninator', $ability->get_category() );
 		$this->assertTrue( $ability->get_meta_item( 'annotations' )['readonly'] );
 		$this->assertTrue( $ability->get_meta_item( 'show_in_rest' ) );
+		$this->assertTrue( $ability->get_meta_item( 'mcp' )['public'] );
 	}
 
 	/**
@@ -93,6 +94,72 @@ final class ZoninatorAbilitiesTest extends TestCase {
 		$this->assertIsArray( $result );
 		$this->assertSame( array( $second, $first ), array_map( 'intval', wp_list_pluck( $result, 'ID' ) ) );
 		$this->assertSame( 'Second', $result[0]['post_title'] );
+	}
+
+	public function test_get_zone_posts_includes_scheduled_posts(): void {
+		$scheduled = self::factory()->post->create(
+			array(
+				'post_status' => 'future',
+				'post_date'   => gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ),
+			)
+		);
+		$draft     = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		Zoninator()->add_zone_posts( $this->zone_id, array( $scheduled, $draft ) );
+
+		$result = wp_get_ability( 'zoninator/get-zone-posts' )->execute( array( 'zone_id' => $this->zone_id ) );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( array( $scheduled ), wp_list_pluck( $result, 'ID' ) );
+		$this->assertSame( 'future', $result[0]['post_status'] );
+	}
+
+	public function test_get_zone_posts_leaves_out_posts_the_user_cannot_read(): void {
+		$readable   = self::factory()->post->create();
+		$unreadable = self::factory()->post->create(
+			array(
+				'post_status' => 'future',
+				'post_date'   => gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ),
+			)
+		);
+		Zoninator()->add_zone_posts( $this->zone_id, array( $readable, $unreadable ) );
+
+		add_filter(
+			'map_meta_cap',
+			static function ( $caps, $cap, $user_id, $args ) use ( $unreadable ) {
+				return 'read_post' === $cap && isset( $args[0] ) && $unreadable === (int) $args[0] ? array( 'do_not_allow' ) : $caps;
+			},
+			10,
+			4
+		);
+
+		$result = wp_get_ability( 'zoninator/get-zone-posts' )->execute( array( 'zone_id' => $this->zone_id ) );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( array( $readable ), wp_list_pluck( $result, 'ID' ) );
+	}
+
+	public function test_get_zone_posts_returns_only_the_summary_fields(): void {
+		$post_id = self::factory()->post->create( array( 'post_content' => 'Long body' ) );
+		Zoninator()->add_zone_posts( $this->zone_id, array( $post_id ) );
+
+		$result = wp_get_ability( 'zoninator/get-zone-posts' )->execute( array( 'zone_id' => $this->zone_id ) );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( array( 'ID', 'post_date', 'post_title', 'post_status' ), array_keys( $result[0] ) );
+	}
+
+	public function test_get_zone_posts_ignores_the_feed_filters(): void {
+		$post_id = self::factory()->post->create();
+		Zoninator()->add_zone_posts( $this->zone_id, array( $post_id ) );
+
+		$reshape = static fn() => array( array( 'reshaped' => true ) );
+		add_filter( 'zoninator_json_feed_results', $reshape );
+		add_filter( 'zoninator_zone_feed_fields', static fn() => array( 'post_content' ) );
+
+		$result = wp_get_ability( 'zoninator/get-zone-posts' )->execute( array( 'zone_id' => $this->zone_id ) );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( array( $post_id ), wp_list_pluck( $result, 'ID' ) );
 	}
 
 	public function test_get_zone_posts_rejects_an_unknown_zone(): void {
