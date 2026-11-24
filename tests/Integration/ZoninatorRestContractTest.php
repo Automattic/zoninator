@@ -915,13 +915,24 @@ final class ZoninatorRestContractTest extends TestCase {
 
 	public function test_lock_zone_reports_a_zone_locked_by_someone_else(): void {
 		$zone_id = $this->create_zone( 'locked' );
-		Zoninator()->lock_zone( $zone_id, self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		Zoninator()->lock_zone(
+			$zone_id,
+			self::factory()->user->create(
+				array(
+					'role'         => 'editor',
+					'display_name' => 'Lock Holder',
+				)
+			)
+		);
 
 		$response = $this->dispatch( 'PUT', "/zones/$zone_id/lock" );
 
 		$this->assertSame( 400, $response->get_status() );
 		$this->assertSame(
 			array(
+				'code'    => 'zone-locked',
+				'message' => 'Sorry, this zone is in use by Lock Holder and is currently locked. Please try again later.',
+				'data'    => array( 'status' => 400 ),
 				'zone_id' => $zone_id,
 				'blocked' => true,
 			),

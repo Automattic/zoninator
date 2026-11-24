@@ -45,6 +45,8 @@ final class Zones_Controller extends WP_REST_Controller {
 
 	public const ZONE_NOT_FOUND = 'zone-not-found';
 
+	public const ZONE_LOCKED = 'zone-locked';
+
 	/**
 	 * Zones and the posts in them.
 	 *
@@ -623,9 +625,17 @@ final class Zones_Controller extends WP_REST_Controller {
 
 		$zone_locked = $this->locks->is_locked( $zone );
 		if ( $zone_locked ) {
+			// Core's REST error shape, keeping zone_id and blocked, which this
+			// response had before it had a code.
 			$locking_user = get_userdata( $zone_locked );
 			return new WP_REST_Response(
 				array(
+					'code'    => self::ZONE_LOCKED,
+					'message' => sprintf(
+						$this->settings->get_message( 'error-zone-lock' ),
+						$locking_user ? $locking_user->display_name : __( 'another user', 'zoninator' )
+					),
+					'data'    => array( 'status' => 400 ),
 					'zone_id' => $this->zones->get_id( $zone ),
 					'blocked' => true,
 				),
