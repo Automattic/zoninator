@@ -76,9 +76,13 @@ final class ZoninatorRestContractTest extends TestCase {
 
 	public function test_get_zones_allows_anonymous_callers_when_filtered(): void {
 		wp_set_current_user( 0 );
+		$this->create_zone( 'public-zone' );
 		add_filter( 'zoninator_rest_get_zones_permissions_check', '__return_true' );
 
-		$this->assertSame( 200, $this->dispatch( 'GET', '/zones' )->get_status() );
+		$response = $this->dispatch( 'GET', '/zones' );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( 'public-zone' ), wp_list_pluck( $response->get_data(), 'slug' ) );
 	}
 
 	public function test_get_zones_allows_any_logged_in_user(): void {
@@ -95,8 +99,14 @@ final class ZoninatorRestContractTest extends TestCase {
 	 * @param bool   $post   Whether to send a valid post_ids param.
 	 */
 	public function test_write_routes_deny_users_without_the_capability( $method, $path, $post ): void {
-		$zone_id = $this->create_zone( 'denied' );
-		$params  = $post ? array( 'post_ids' => array( self::factory()->post->create() ) ) : array();
+		$zone_id = $this->create_zone( 'denied', 'Denied' );
+		$params  = array(
+			'slug' => 'new-zone',
+			'name' => 'Renamed',
+		);
+		if ( $post ) {
+			$params['post_ids'] = array( self::factory()->post->create() );
+		}
 		wp_set_current_user( $this->subscriber_id );
 
 		$response = $this->dispatch( $method, sprintf( $path, $zone_id ), $params );
@@ -104,6 +114,11 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( 403, $response->get_status() );
 		$this->assertSame( 'permission-denied', $response->get_data()['code'] );
 		$this->assertSame( "Sorry, you're not supposed to do that...", $response->get_data()['message'] );
+		// Refused before the callback runs, so nothing changed.
+		$this->assertSame( 'Denied', Zoninator()->get_zone( $zone_id )->name );
+		$this->assertFalse( Zoninator()->get_zone( 'new-zone' ) );
+		$this->assertSame( array(), Zoninator()->get_zone_posts( $zone_id ) );
+		$this->assertFalse( Zoninator()->is_zone_locked( $zone_id ) );
 	}
 
 	/**
@@ -236,6 +251,22 @@ final class ZoninatorRestContractTest extends TestCase {
 		);
 
 		$this->assert_rest_error( $response, 400, 'term_exists', 'A term with the name provided already exists in this taxonomy.' );
+	}
+
+	public function test_create_zone_escapes_html_in_the_name_and_description(): void {
+		$response = $this->dispatch(
+			'POST',
+			'/zones',
+			array(
+				'name'        => '&<>!@#(',
+				'slug'        => 'special',
+				'description' => '&<>!@#(',
+			)
+		);
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( '&amp;&lt;&gt;!@#(', $response->get_data()['name'] );
+		$this->assertSame( '&amp;&lt;&gt;!@#(', $response->get_data()['description'] );
 	}
 
 	public function test_create_zone_keeps_backslashes(): void {
@@ -375,6 +406,38 @@ final class ZoninatorRestContractTest extends TestCase {
 			array( 'ID', 'post_date', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'guid' ),
 			array_keys( (array) $data[0] )
 		);
+	}
+
+	public function test_get_zone_posts_for_an_empty_zone_returns_an_empty_list(): void {
+		$zone_id = $this->create_zone( 'empty' );
+
+		$response = $this->dispatch( 'GET', "/zones/$zone_id/posts" );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array(), $response->get_data() );
+	}
+
+	public function test_get_zone_posts_hides_the_content_of_a_password_protected_post(): void {
+		$zone_id = $this->create_zone( 'protected' );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'    => 'Protected post',
+				'post_content'  => 'Secret content',
+				'post_excerpt'  => 'Secret excerpt',
+				'post_password' => 'secret123',
+			)
+		);
+		Zoninator()->add_zone_posts( $zone_id, array( $post_id ) );
+		wp_set_current_user( 0 );
+
+		$response = $this->dispatch( 'GET', "/zones/$zone_id/posts" );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( 1, $data );
+		$this->assertSame( 'Protected post', $data[0]->post_title );
+		$this->assertSame( '', $data[0]->post_content );
+		$this->assertSame( '', $data[0]->post_excerpt );
 	}
 
 	public function test_update_zone_posts_sets_the_order(): void {
