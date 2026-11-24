@@ -136,7 +136,9 @@ Finds posts to add to a zone. With no `term`, lists the latest content. Since 0.
 
 The search applies the [content search filters](hooks.md#content-search). Published and scheduled posts are included.
 
-Since 0.12.0, a `term` made only of digits looks that post up by ID. If it's a published or scheduled post of a zone post type, that the user can read and that isn't in `exclude`, the response is just that post, and `zoninator_search_args` doesn't run. Otherwise the term is searched as text, so a number in a title, such as "1984", still matches.
+Results only include posts the user can read, so a page can hold fewer than `limit` when an access plugin hides some.
+
+Since 0.12.0, a `term` made only of digits looks that post up by ID, which skips the slow text search. The lookup uses the same arguments as the text search, after `zoninator_search_args`, so it only finds a post the text search could offer. If it finds that post, the response is just that post. Otherwise the term is searched as text, so a number in a title, such as "1984", still matches.
 
 **Response:** an array of results.
 
@@ -172,16 +174,17 @@ Acquires (or extends) the editing lock for a zone. The Zones screen calls it eve
 
 `timeout` and `max_lock_period` are filterable via [`zoninator_zone_lock_period`](hooks.md#zoninator_zone_lock_period-filter) and [`zoninator_zone_max_lock_period`](hooks.md#zoninator_zone_max_lock_period-filter).
 
-**Response when the zone is already locked:** `400`
+**Response when the zone is already locked:** `400`, in core's REST error shape with the code `zone-locked`. The message names the user holding the lock. `zone_id` and `blocked` stay from earlier versions, which sent only those.
 
 ```json
 {
+  "code": "zone-locked",
+  "message": "Sorry, this zone is in use by Jane Doe and is currently locked. Please try again later.",
+  "data": { "status": 400 },
   "zone_id": 12,
   "blocked": true
 }
 ```
-
-Look up the holder via the WordPress users API if you need to display them.
 
 ## Errors
 
@@ -201,14 +204,13 @@ Errors use core's REST error shape, with a `code`, a `message` in the site's lan
 | `400` | `rest_invalid_param` | A parameter fails validation, such as a non-numeric `post_ids` entry. |
 | `400` | from WordPress, such as `term_exists` | A zone couldn't be created, updated or deleted. Creating a zone with neither `name` nor `slug` gives `zone-empty-slug`. |
 | `400` | `zone-id-required` | `PUT /zones/0/lock`: the lock endpoint needs a zone ID. |
+| `400` | `zone-locked` | `PUT /zones/{zone_id}/lock`: another user holds the zone's lock. |
 | `400` | `zones-read-error` | `GET /zones` couldn't read the zones. |
 | `400` | `zone-feed-error` | `GET /zones/{zone_id}/posts` couldn't assemble the zone's posts. |
 | `401` / `403` | `permission-denied` | The capability check failed: `401` when logged out, `403` when logged in. |
 | `404` | `zone-not-found` | The zone in the path doesn't exist. |
 
 The codes are constants on `Automattic\Zoninator\REST\Zones_Controller`, such as `Zones_Controller::ZONE_NOT_FOUND`. Since 0.12.0 every error has a code; before, the `400` and `404` responses had only a `message`, and refused requests got `500`.
-
-The lock endpoint's `400`, when someone else holds the lock, isn't an error in this shape: it has the body shown above.
 
 ## Implementation notes
 

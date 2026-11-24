@@ -40,11 +40,20 @@ Zoninator no longer bundles the Mixtape REST library. The routes, their argument
 What changes for REST clients:
 
 - A request refused by a capability check gets `401` when logged out and `403` when logged in, with the code `permission-denied`. It used to get `500`.
-- Every error has a `code` alongside its `message`, in core's REST error shape. The `400` and `404` responses used to have only a `message`. Clients that read `message` keep working; see [Errors](rest-api.md#errors) for the codes.
+- Every error has a `code` alongside its `message`, in core's REST error shape. The `400` and `404` responses used to have only a `message`. A zone locked by someone else gives `zone-locked`, and its response keeps the `zone_id` and `blocked` it had before. See [Errors](rest-api.md#errors) for the codes.
+- Three error messages are reworded: "Invalid post id" is now "Invalid post ID.", "zone id required" is now "Zone ID is required.", and "Zone not found" is now "Zone not found.". If your client compares the message text, match on the `code` instead: `invalid-post-id`, `zone-id-required` and `zone-not-found`. Messages are translated, so they were never reliable to match.
+- `PUT /zones/{zone_id}` with an empty `description` now clears the zone's description. It used to ignore an empty value. If your client sends `"description": ""` to mean "leave it alone", leave the field out instead. An empty `name` or `slug` is still ignored.
+- The search (`GET /search`, and the deprecated `zoninator_search_posts` and `zoninator_update_recent` actions) only lists posts the user can read, so a page of results can hold fewer posts than asked for when an access plugin hides some.
 - `PUT /zones/{zone_id}/posts` and `PUT /zones/{zone_id}/lock` check `zoninator_manage_zone_cap`, the capability the Zones screen has always needed to curate a zone. They used to check `zoninator_edit_zone_cap` and the `zoninator_current_user_can_edit_zone` filter. If you used that filter to stop some users changing a zone's posts over REST, it no longer does; the Zones screen never honored it for that either.
 - Malformed input, such as a non-numeric post ID, gets a `400` instead of a PHP fatal error.
 
 See the [REST API reference](rest-api.md) for the new routes the Zones screen uses.
+
+### Zones can only be changed through Zoninator
+
+The `zoninator_zones` taxonomy no longer grants any of core's term capabilities (`manage_terms`, `edit_terms`, `delete_terms` and `assign_terms` all map to `do_not_allow`). Core's own term handling therefore refuses zones: `tax_input` on post saves, the term admin-ajax actions and the XML-RPC term methods. Zoninator never used term relationships, since a post's place in a zone is post meta, so nothing in the plugin changes.
+
+If your code assigned zones through any of those, use Zoninator instead: `Zoninator()->add_zone_posts()`, `Zoninator()->remove_zone_posts()`, or the [REST API](rest-api.md). Who may change zones is decided only by `zoninator_add_zone_cap`, `zoninator_edit_zone_cap`, `zoninator_manage_zone_cap` and the `zoninator_current_user_can_edit_zone` filter.
 
 ### The Zones screen uses the REST API
 
