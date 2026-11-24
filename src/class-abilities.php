@@ -13,8 +13,7 @@ use WP_Error;
  * Registers read-only abilities for what editors do on the Zones screen:
  * list zones, get a zone's posts and search for posts to add.
  *
- * Zoninator registers these only when the Abilities API exists (WordPress 6.9
- * and later). Its hooks stay registered on Zoninator.
+ * Its hooks stay registered on Zoninator.
  *
  * @since 1.0.0
  */
