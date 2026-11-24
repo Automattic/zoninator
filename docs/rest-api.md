@@ -59,7 +59,7 @@ Updates a zone.
 
 **Permission:** `zoninator_edit_zone_cap`, plus the per-zone `zoninator_current_user_can_edit_zone` filter.
 
-**Body** — same fields as `POST /zones`. Only the fields you send are updated. An empty value counts as not sent, so you can't clear a zone's description this way.
+**Body** — same fields as `POST /zones`. Only the fields you send are updated. Send an empty `description` to clear it; since 0.12.0, before which an empty value was ignored. An empty `name` or `slug` is ignored, as a zone needs both.
 
 **Response:** `{ "success": true }` on success, `404` if the zone does not exist.
 
