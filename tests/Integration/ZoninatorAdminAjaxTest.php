@@ -15,6 +15,7 @@ namespace Automattic\Zoninator\Tests\Integration;
 
 use WP_Ajax_UnitTestCase;
 use WPAjaxDieContinueException;
+use WPAjaxDieStopException;
 
 /**
  * @group ajax
@@ -61,6 +62,7 @@ class ZoninatorAdminAjaxTest extends WP_Ajax_UnitTestCase {
 
 		$this->assertSame( array( 'status', 'content', 'nonce' ), array_keys( $response ) );
 		$this->assertSame( 1, $response['status'] );
+		$this->assertStringContainsString( 'data-post-id="' . $post_id . '"', $response['content'] );
 		$this->assertSame( $this->render_zone_post( $post_id ), $response['content'] );
 		$this->assertNotFalse( wp_verify_nonce( $response['nonce'], $this->ajax_nonce_action() ) );
 		$this->assertSame( '2', $this->zone_order( $post_id ) );
@@ -193,6 +195,53 @@ class ZoninatorAdminAjaxTest extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
+	 * The editor may use every action, so only the nonce check can stop these requests.
+	 *
+	 * @dataProvider data_ajax_actions
+	 *
+	 * @param string $action AJAX action.
+	 */
+	public function test_action_refuses_a_request_without_a_valid_nonce( string $action ): void {
+		$zoned_id = self::factory()->post->create( array( 'post_title' => 'Nonce zoned' ) );
+		$other_id = self::factory()->post->create( array( 'post_title' => 'Nonce other' ) );
+		Zoninator()->add_zone_posts( $this->zone_id, array( $zoned_id ) );
+
+		try {
+			$this->ajax(
+				$action,
+				array(
+					'_wpnonce' => 'invalid',
+					'post_id'  => 'zoninator_remove_post' === $action ? $zoned_id : $other_id,
+					'posts'    => array( $other_id, $zoned_id ),
+					'term'     => 'Nonce',
+				)
+			);
+			$this->fail( 'Expected the handler to stop the request.' );
+		} catch ( WPAjaxDieStopException $e ) {
+			$this->assertSame( esc_html( "Sorry, you're not supposed to do that..." ), $e->getMessage() );
+		}
+
+		$this->assertSame( '', (string) $this->_last_response );
+		$this->assertSame( '1', $this->zone_order( $zoned_id ) );
+		$this->assertSame( '', $this->zone_order( $other_id ) );
+		$this->assertFalse( get_transient( Zoninator()->get_zone_meta_key( $this->zone_id ) ) );
+	}
+
+	/**
+	 * @return array<string, array{string}>
+	 */
+	public function data_ajax_actions(): array {
+		return array(
+			'add post'      => array( 'zoninator_add_post' ),
+			'remove post'   => array( 'zoninator_remove_post' ),
+			'reorder posts' => array( 'zoninator_reorder_posts' ),
+			'search posts'  => array( 'zoninator_search_posts' ),
+			'update lock'   => array( 'zoninator_update_lock' ),
+			'recent posts'  => array( 'zoninator_update_recent' ),
+		);
+	}
+
+	/**
 	 * @dataProvider data_facade_hooks
 	 *
 	 * @param string $hook     Hook name.
@@ -266,6 +315,9 @@ class ZoninatorAdminAjaxTest extends WP_Ajax_UnitTestCase {
 		$GLOBALS['current_screen'] = $screen; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		$this->assertTrue( wp_script_is( 'zoninator-js', 'enqueued' ) );
 		$this->assertTrue( wp_script_is( 'jquery-ui-touch-punch', 'enqueued' ) );
+		// js/zoninator.js calls wp.a11y.speak() and wp.apiFetch().
+		$this->assertContains( 'wp-a11y', wp_scripts()->registered['zoninator-js']->deps );
+		$this->assertContains( 'wp-api-fetch', wp_scripts()->registered['zoninator-js']->deps );
 
 		$data = (string) wp_scripts()->get_data( 'zoninator-js', 'data' );
 		$this->assertSame( 1, preg_match( '/var zoninatorOptions = (\{.*\});/s', $data, $matches ) );

@@ -119,6 +119,11 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$zone = \Zoninator()->get_zone( 'creme' );
 		$this->assertSame( 'Crème', $zone->name );
 		$this->assertSame( 'Crème &lt;b&gt;brûlée&lt;/b&gt; — “à la carte”', $zone->description );
+		// The zone reader repairs damaged descriptions, so check what was stored is valid as it is.
+		$this->assertSame(
+			array( 'description' => 'Crème &lt;b&gt;brûlée&lt;/b&gt; — “à la carte”' ),
+			unserialize( get_term_field( 'description', $zone->term_id, \Zoninator::ZONE_TAXONOMY, 'raw' ), array( 'allowed_classes' => false ) ) // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
+		);
 	}
 
 	public function test_delete_removes_the_zone_and_its_posts(): void {
