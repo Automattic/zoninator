@@ -11,8 +11,8 @@ Content zone management for WordPress editorial workflows.
 | **Function prefix** | `z_` (template tags), `zoninator_` (hooks) |
 | **Class prefix** | `Zoninator`, `Zoninator_` (legacy, global); `Automattic\Zoninator\` for new classes |
 | **Source directory** | Root level + `src/` |
-| **Requires PHP** | 7.4+ |
-| **Requires WP** | 6.4+ |
+| **Requires PHP** | 8.2+ |
+| **Requires WP** | 6.9+ |
 
 ### Directory Structure
 
@@ -29,7 +29,7 @@ zoninator/
 │   ├── class-zones.php              # Zones: zone CRUD, zone posts and their order
 │   ├── class-locks.php              # Locks: zone edit locks
 │   ├── class-feed.php               # Feed: the JSON feed at /zones/{slug}/feed.json
-│   ├── class-abilities.php          # Abilities: read-only Abilities API abilities (WP 6.9+)
+│   ├── class-abilities.php          # Abilities: read-only Abilities API abilities
 │   ├── admin/
 │   │   ├── class-screen.php         # Zones admin screen (markup, form handling, assets)
 │   │   └── class-ajax.php           # Zones screen admin-ajax handlers
@@ -57,7 +57,7 @@ zoninator/
 - `src/class-taxonomy.php` — `Automattic\Zoninator\Taxonomy`: registers the `zoninator_zones` taxonomy (`Taxonomy::NAME`) on `init` and tracks which post types support zones.
 - `src/class-zones.php` — `Automattic\Zoninator\Zones`: creates, reads, updates and deletes zones, and stores each zone's posts in order under post meta keys starting `Zones::META_PREFIX`. It reads the detail defaults from `Settings`.
 - `src/class-locks.php` — `Automattic\Zoninator\Locks`: takes, reports and releases the transient that stops two people editing a zone at once.
-- `src/class-abilities.php` — `Automattic\Zoninator\Abilities`: the read-only Abilities API abilities (`zoninator/list-zones`, `zoninator/get-zone-posts`, `zoninator/search-posts`) in the `zoninator` category. `Zoninator` loads it and hooks it on `wp_abilities_api_categories_init` and `wp_abilities_api_init` only when `wp_register_ability()` exists (WordPress 6.9+). Like the REST route callbacks, the ability callbacks live on this class; sites remove an ability with `wp_unregister_ability()`.
+- `src/class-abilities.php` — `Automattic\Zoninator\Abilities`: the read-only Abilities API abilities (`zoninator/list-zones`, `zoninator/get-zone-posts`, `zoninator/search-posts`) in the `zoninator` category. `Zoninator` hooks it on `wp_abilities_api_categories_init` and `wp_abilities_api_init`, and loads it the first time either fires. Like the REST route callbacks, the ability callbacks live on this class; sites remove an ability with `wp_unregister_ability()`.
 - `src/class-feed.php` — `Automattic\Zoninator\Feed`: the rewrite rule and response for the JSON feed at `/zones/{slug}/feed.json`.
 - `src/admin/class-screen.php` — `Automattic\Zoninator\Admin\Screen`: renders the Zones screen (`Screen::PAGE_SLUG`, `admin.php?page=zoninator`), saves its zone form and loads its assets.
 - `src/admin/class-ajax.php` — `Automattic\Zoninator\Admin\Ajax`: the screen's old admin-ajax handlers, which all check `Ajax::NONCE_ACTION`. Since 0.12.0 the screen uses the REST API for everything, so every action here is deprecated and the class goes in 1.0.0.

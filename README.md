@@ -1,9 +1,9 @@
 # Zone Manager (Zoninator)
 
 Stable tag: 0.12.0  
-Requires at least: 6.4  
+Requires at least: 6.9  
 Tested up to: 7.1  
-Requires PHP: 7.4  
+Requires PHP: 8.2  
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 Tags: zones, post order, post list, posts, order, zonination, content curation, curation, content management  

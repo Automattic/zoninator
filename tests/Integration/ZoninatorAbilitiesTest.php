@@ -21,10 +21,6 @@ final class ZoninatorAbilitiesTest extends TestCase {
 	public function set_up(): void {
 		parent::set_up();
 
-		if ( ! function_exists( 'wp_get_ability' ) ) {
-			$this->markTestSkipped( 'The Abilities API needs WordPress 6.9 or later.' );
-		}
-
 		$zone          = Zoninator()->insert_zone( 'abilities-zone', 'Abilities zone', array( 'description' => 'For the abilities tests' ) );
 		$this->zone_id = (int) $zone['term_id'];
 

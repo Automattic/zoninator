@@ -4,6 +4,12 @@ What to check when you update Zoninator, release by release. Stored zones and th
 
 For the full list of changes in each release, see the [CHANGELOG](../CHANGELOG.md).
 
+## To 1.0.0
+
+### WordPress 6.9 and PHP 8.2 are now the minimum
+
+Zoninator 1.0.0 requires WordPress 6.9 or later and PHP 8.2 or later, up from WordPress 6.4 and PHP 7.4. WordPress won't offer 1.0.0 to a site that doesn't meet both, so that site stays on 0.12.x. Update WordPress and PHP first, then update Zoninator.
+
 ## To 0.12.0
 
 Most sites need do nothing. Check this section if your code reads or writes `Zoninator()`'s properties, calls the REST API, uses the REST classes Zoninator used to bundle, or customizes the Zones screen.

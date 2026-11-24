@@ -49,7 +49,7 @@ npx --no wp-env start
 To work on another WordPress or PHP version, set `WP_ENV_CORE` and `WP_ENV_PHP_VERSION` when you start it, as CI does:
 
 ```bash
-WP_ENV_CORE=WordPress/WordPress#6.4 WP_ENV_PHP_VERSION=7.4 npx --no wp-env start
+WP_ENV_CORE=WordPress/WordPress#6.9 WP_ENV_PHP_VERSION=8.2 npx --no wp-env start
 ```
 
 To stop the environment:
