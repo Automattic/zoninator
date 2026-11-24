@@ -1,6 +1,6 @@
 # Zone Manager (Zoninator)
 
-Stable tag: 0.11.1  
+Stable tag: 0.12.0  
 Requires at least: 6.4  
 Tested up to: 7.1  
 Requires PHP: 7.4  
@@ -104,17 +104,29 @@ Yes. Call `Zoninator()->register_zone_post_type( 'your_post_type' )` after `init
 
 ## Upgrade Notice
 
+### 0.12.0
+
+Check the upgrade guide if your code reads Zoninator's properties, uses the REST API or its bundled Mixtape classes, or customizes the Zones screen. The REST API now runs on core, and errors carry codes.
+
 ### 0.11.1
 
 Fixes three security issues, so update soon. If you lower `zoninator_manage_zone_cap` so authors can curate zones, they can no longer add posts they can't read, such as another author's scheduled post.
 
-### 0.11.0
-
-The `GET /wp-json/zoninator/v1/zones` REST endpoint now requires an authenticated user. If your site depends on anonymous access, opt back in with the `zoninator_rest_get_zones_permissions_check` filter. Three security fixes are included — review the changelog before upgrading.
-
 ## Changelog
 
 The highlights of recent releases are below. Every change, including older releases, is listed in [CHANGELOG.md](https://github.com/Automattic/zoninator/blob/main/CHANGELOG.md).
+
+### 0.12.0
+
+Developers: the bundled Mixtape REST library is gone, and `Zoninator()`'s public properties are deprecated. See the [upgrade guide](https://github.com/Automattic/zoninator/blob/main/docs/upgrades.md).
+
+- **Changed:** The Zones screen is rebuilt in the style of the rest of wp-admin. One field adds content, offering the latest posts before you type, and changes save as you make them.
+- **New:** Reorder a zone's posts with Move up and Move down, and use the whole screen by keyboard and screen reader.
+- **New:** Find a post by typing its ID in the Add content field.
+- **New:** The `zoninator_zone_posts_widget_html` filter lets themes change how the Zone Posts widget lists its posts.
+- **Fixed:** `z_get_next_post_in_zone()`, `z_get_prev_post_in_zone()` and `z_get_post_zones()` now work.
+- **Fixed:** Zone descriptions keep accented letters and backslashes.
+- **Security:** The Add content field only lists posts you can read, and only Zoninator's own permissions decide who can change zones.
 
 ### 0.11.1
 

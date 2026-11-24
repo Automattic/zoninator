@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the Zone Manager (Zoninator) plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Zone Manager (Zoninator) 0.11.1\n"
+"Project-Id-Version: Zone Manager (Zoninator) 0.12.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/zoninator\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-21T22:41:44+00:00\n"
+"POT-Creation-Date: 2026-11-24T20:10:34+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: zoninator\n"
@@ -34,263 +34,341 @@ msgstr ""
 msgid "https://wpvip.com"
 msgstr ""
 
-#: src/class-zoninator-api-controller.php:68
-#: src/class-zoninator-api-controller.php:70
-msgid "Zone not found"
+#: src/admin/class-ajax.php:244
+msgid "No results found"
 msgstr ""
 
-#: src/class-zoninator-api-controller.php:69
-msgid "Invalid post id"
+#. translators: %s: category name.
+#: src/admin/class-ajax.php:247
+#, php-format
+msgid "Choose post from %s"
 msgstr ""
 
-#: src/class-zoninator-api-controller.php:71
-msgid "post id and zone id required"
+#: src/admin/class-ajax.php:249
+#: src/admin/class-ajax.php:265
+msgid "Choose a post"
 msgstr ""
 
-#: src/class-zoninator-api-controller.php:306
-msgid "zone id required"
+#: src/admin/class-ajax.php:263
+msgid "Add Recent Content"
 msgstr ""
 
-#: src/class-zoninator-api-controller.php:511
-#: src/class-zoninator.php:1489
+#: src/admin/class-screen.php:113
+#: src/admin/class-screen.php:230
+#: src/admin/class-screen.php:304
+#: src/class-taxonomy.php:51
+msgid "Zones"
+msgstr ""
+
+#: src/admin/class-screen.php:125
+#: src/rest/class-zones-controller.php:638
+msgid "another user"
+msgstr ""
+
+#: src/admin/class-screen.php:126
+msgid "The order of the zone could not be saved."
+msgstr ""
+
+#: src/admin/class-screen.php:127
+msgid "Try again"
+msgstr ""
+
+#. translators: %s: time of day.
+#: src/admin/class-screen.php:129
+#, php-format
+msgid "Saved at %s"
+msgstr ""
+
+#: src/admin/class-screen.php:130
+msgid "You have had this zone open for a while. Select OK to keep editing it, or Cancel to unlock it and go to the Dashboard."
+msgstr ""
+
+#: src/admin/class-screen.php:133
+msgid "Item added to the zone."
+msgstr ""
+
+#: src/admin/class-screen.php:134
+msgid "Item removed from the zone."
+msgstr ""
+
+#. translators: 1: new position of the item in the zone, 2: number of items in the zone.
+#: src/admin/class-screen.php:136
+#, php-format
+msgid "Item moved to position %1$d of %2$d."
+msgstr ""
+
+#: src/admin/class-screen.php:242
+msgid "Edit Zone"
+msgstr ""
+
+#: src/admin/class-screen.php:244
+#: src/admin/class-screen.php:446
+msgid "Add New Zone"
+msgstr ""
+
+#: src/admin/class-screen.php:262
+msgctxt "zone"
+msgid "Add New"
+msgstr ""
+
+#: src/admin/class-screen.php:310
+msgid "No zones found."
+msgstr ""
+
+#: src/admin/class-screen.php:372
+msgid "Zone details"
+msgstr ""
+
+#: src/admin/class-screen.php:415
+#: src/admin/class-screen.php:463
+msgid "Name"
+msgstr ""
+
+#: src/admin/class-screen.php:421
+msgid "Slug"
+msgstr ""
+
+#: src/admin/class-screen.php:428
+#: src/admin/class-screen.php:468
+msgid "Description"
+msgstr ""
+
+#: src/admin/class-screen.php:443
+msgid "Update"
+msgstr ""
+
+#: src/admin/class-screen.php:444
+msgid "Are you sure you want to delete this zone?"
+msgstr ""
+
+#: src/admin/class-screen.php:444
+msgid "Delete"
+msgstr ""
+
+#: src/admin/class-screen.php:451
+msgid "Once the zone is added, you can add content to it."
+msgstr ""
+
+#: src/admin/class-screen.php:492
+msgid "Zone content"
+msgstr ""
+
+#: src/admin/class-screen.php:548
+msgid "Drag to change the position of this item, or use Move up and Move down."
+msgstr ""
+
+#. translators: %s: post title.
+#: src/admin/class-screen.php:558
+#, php-format
+msgid "Edit “%s” (opens in a new tab)"
+msgstr ""
+
+#. translators: %s: post title.
+#: src/admin/class-screen.php:560
+#, php-format
+msgid "Move up “%s”"
+msgstr ""
+
+#. translators: %s: post title.
+#: src/admin/class-screen.php:562
+#, php-format
+msgid "Move down “%s”"
+msgstr ""
+
+#. translators: %s: post title.
+#: src/admin/class-screen.php:564
+#, php-format
+msgid "Remove “%s”"
+msgstr ""
+
+#. translators: %s: post title.
+#: src/admin/class-screen.php:566
+#, php-format
+msgid "View “%s” (opens in a new tab)"
+msgstr ""
+
+#: src/admin/class-screen.php:573
+msgid "Move up"
+msgstr ""
+
+#: src/admin/class-screen.php:574
+msgid "Move down"
+msgstr ""
+
+#: src/admin/class-screen.php:575
+#: src/class-zoninator.php:854
+msgid "Remove"
+msgstr ""
+
+#: src/admin/class-screen.php:576
+#: src/class-zoninator.php:860
+msgid "View"
+msgstr ""
+
+#: src/admin/class-screen.php:584
+#: src/class-zoninator.php:847
+msgid "Edit"
+msgstr ""
+
+#: src/admin/class-screen.php:598
+msgid "Hide filters"
+msgstr ""
+
+#: src/admin/class-screen.php:598
+msgid "Show filters"
+msgstr ""
+
+#: src/admin/class-screen.php:609
+msgid "Filter by category"
+msgstr ""
+
+#: src/admin/class-screen.php:615
+msgid "All categories"
+msgstr ""
+
+#: src/admin/class-screen.php:629
+msgid "All dates"
+msgstr ""
+
+#: src/admin/class-screen.php:630
+msgid "Today"
+msgstr ""
+
+#: src/admin/class-screen.php:631
+msgid "Yesterday"
+msgstr ""
+
+#: src/admin/class-screen.php:634
+msgid "Filter by date"
+msgstr ""
+
+#: src/admin/class-screen.php:659
+msgid "Add content"
+msgstr ""
+
+#: src/admin/class-screen.php:661
+msgid "Type a title or post ID to search, or choose from the latest content."
+msgstr ""
+
+#: src/class-feed.php:67
+msgid "Invalid zone supplied"
+msgstr ""
+
+#: src/class-request.php:141
+#: src/rest/class-zones-controller.php:961
 msgid "Sorry, you're not supposed to do that..."
 msgstr ""
 
-#: src/class-zoninator-api-filter-search.php:26
-msgid "search term"
+#: src/class-settings.php:47
+msgid "The zone was successfully created."
 msgstr ""
 
-#: src/class-zoninator-api-filter-search.php:31
-msgid "filter by category"
+#: src/class-settings.php:48
+msgid "The zone was successfully updated."
 msgstr ""
 
-#: src/class-zoninator-api-filter-search.php:35
-msgid "only get posts after this date (format YYYY-mm-dd)"
+#: src/class-settings.php:49
+msgid "The zone was successfully deleted."
 msgstr ""
 
-#: src/class-zoninator-api-filter-search.php:39
-msgid "limit results"
+#: src/class-settings.php:50
+msgid "Sorry, something went wrong! Please try again?"
 msgstr ""
 
-#: src/class-zoninator-api-filter-search.php:43
-msgid "post_ids to exclude"
+#: src/class-settings.php:51
+#: src/class-zones.php:147
+msgid "Sorry, we couldn't delete the zone."
+msgstr ""
+
+#: src/class-settings.php:52
+#: src/class-zones.php:133
+#: src/class-zones.php:154
+msgid "Sorry, that zone doesn't exist."
+msgstr ""
+
+#. translators: %s: the locking user's display name, or "another user".
+#: src/class-settings.php:54
+#, php-format
+msgid "Sorry, this zone is in use by %s and is currently locked. Please try again later."
+msgstr ""
+
+#: src/class-settings.php:55
+msgid "Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard."
+msgstr ""
+
+#: src/class-zones.php:84
+msgid "Slug is a required field."
 msgstr ""
 
 #: src/class-zoninator-zoneposts-widget.php:12
 msgid "Use this widget to display a list of posts from any zone."
 msgstr ""
 
-#: src/class-zoninator-zoneposts-widget.php:22
+#: src/class-zoninator-zoneposts-widget.php:25
 msgid "Zone Posts"
 msgstr ""
 
-#: src/class-zoninator-zoneposts-widget.php:133
+#: src/class-zoninator-zoneposts-widget.php:168
 msgid "You need to create at least one zone before you use this widget!"
 msgstr ""
 
-#: src/class-zoninator-zoneposts-widget.php:142
+#: src/class-zoninator-zoneposts-widget.php:177
 msgid "Zone:"
 msgstr ""
 
-#: src/class-zoninator-zoneposts-widget.php:145
+#: src/class-zoninator-zoneposts-widget.php:180
 msgid "-- Select a zone --"
 msgstr ""
 
-#: src/class-zoninator-zoneposts-widget.php:161
+#: src/class-zoninator-zoneposts-widget.php:196
 msgid "Show zone description in widget"
 msgstr ""
 
-#: src/class-zoninator.php:82
-msgid "The zone was successfully created."
-msgstr ""
-
-#: src/class-zoninator.php:83
-msgid "The zone was successfully updated."
-msgstr ""
-
-#: src/class-zoninator.php:84
-msgid "The zone was successfully deleted."
-msgstr ""
-
-#: src/class-zoninator.php:85
-msgid "Sorry, something went wrong! Please try again?"
-msgstr ""
-
-#: src/class-zoninator.php:86
-#: src/class-zoninator.php:1083
-msgid "Sorry, we couldn't delete the zone."
-msgstr ""
-
-#: src/class-zoninator.php:87
-#: src/class-zoninator.php:1066
-#: src/class-zoninator.php:1090
-msgid "Sorry, that zone doesn't exist."
-msgstr ""
-
-#. translators: User's display name, or "another user"
-#: src/class-zoninator.php:89
-#, php-format
-msgid "Sorry, this zone is in use by %s and is currently locked. Please try again later."
-msgstr ""
-
-#: src/class-zoninator.php:90
-msgid "Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard."
-msgstr ""
-
-#: src/class-zoninator.php:110
-#: src/class-zoninator.php:157
-#: src/class-zoninator.php:268
-msgid "Zones"
-msgstr ""
-
-#: src/class-zoninator.php:157
-msgid "Zoninator"
-msgstr ""
-
+#. translators: %s: Replacement constant or method.
 #: src/class-zoninator.php:169
-msgid "another user"
-msgstr ""
-
-#: src/class-zoninator.php:280
-msgid "Edit Zone"
-msgstr ""
-
-#: src/class-zoninator.php:304
-#: src/class-zoninator.php:306
-msgid "Add New"
-msgstr ""
-
-#: src/class-zoninator.php:409
-#: src/class-zoninator.php:458
-msgid "Name"
-msgstr ""
-
-#: src/class-zoninator.php:415
-#: src/class-zoninator.php:464
-msgid "Slug"
-msgstr ""
-
-#: src/class-zoninator.php:424
-#: src/class-zoninator.php:470
-msgid "Description"
-msgstr ""
-
-#: src/class-zoninator.php:440
-msgid "Save zone info"
-msgstr ""
-
-#: src/class-zoninator.php:443
-msgid "Are you sure you want to delete this zone?"
-msgstr ""
-
-#: src/class-zoninator.php:443
-msgid "Delete"
-msgstr ""
-
-#: src/class-zoninator.php:491
-msgid "Zone Content"
-msgstr ""
-
-#: src/class-zoninator.php:513
-msgid "To create a zone, enter a name (and optional description) and click \"Save zone info\". You can then choose content items to add to the zone."
-msgstr ""
-
-#: src/class-zoninator.php:559
-#: src/class-zoninator.php:1790
-msgid "Click and drag to change the position of this item."
-msgstr ""
-
-#: src/class-zoninator.php:567
-#: src/class-zoninator.php:569
-#: src/class-zoninator.php:1803
-#: src/class-zoninator.php:1816
-msgid "Opens in new window"
-msgstr ""
-
-#: src/class-zoninator.php:567
-#: src/class-zoninator.php:1804
-msgid "Edit"
-msgstr ""
-
-#: src/class-zoninator.php:568
-msgid "Remove this item from the zone"
-msgstr ""
-
-#: src/class-zoninator.php:568
-#: src/class-zoninator.php:1811
-msgid "Remove"
-msgstr ""
-
-#: src/class-zoninator.php:569
-#: src/class-zoninator.php:1817
-msgid "View"
-msgstr ""
-
-#: src/class-zoninator.php:585
-msgid "Hide"
-msgstr ""
-
-#: src/class-zoninator.php:585
-msgid "Show Filters"
-msgstr ""
-
-#: src/class-zoninator.php:596
-msgid "Filter:"
-msgstr ""
-
-#: src/class-zoninator.php:602
-msgid "Show all Categories"
-msgstr ""
-
-#: src/class-zoninator.php:692
-msgid "No results found"
-msgstr ""
-
-#. translators: Category name
-#: src/class-zoninator.php:695
 #, php-format
-msgid "Choose post from %s"
+msgid "This property is no longer public. Use %s instead."
 msgstr ""
 
-#: src/class-zoninator.php:697
-#: src/class-zoninator.php:730
-msgid "Choose a post"
+#. translators: %s: Filter or method to use instead.
+#: src/class-zoninator.php:204
+#, php-format
+msgid "This property is no longer public. The new value is used for now, but will be ignored from 1.0.0. Use %s instead."
 msgstr ""
 
-#: src/class-zoninator.php:728
-msgid "Add Recent Content"
+#: src/class-zoninator.php:206
+msgid "This property is no longer public. The new value is used for now, but will be ignored from 1.0.0."
 msgstr ""
 
-#: src/class-zoninator.php:746
-msgid "Search for content"
+#: src/class-zoninator.php:209
+msgid "This property is no longer public and the new value is ignored. This value can not be changed."
 msgstr ""
 
-#: src/class-zoninator.php:748
-msgid "Enter a term or phrase in the text box above to search for and add content to this zone."
+#: src/class-zoninator.php:833
+msgid "Drag to change the position of this item."
 msgstr ""
 
-#: src/class-zoninator.php:938
+#: src/class-zoninator.php:846
+#: src/class-zoninator.php:859
+msgid "Opens in a new tab"
+msgstr ""
+
+#: src/rest/class-zones-controller.php:133
+msgid "Zone not found."
+msgstr ""
+
+#: src/rest/class-zones-controller.php:134
+msgid "Invalid post ID."
+msgstr ""
+
+#: src/rest/class-zones-controller.php:251
+msgid "Zones could not be read."
+msgstr ""
+
+#: src/rest/class-zones-controller.php:562
 msgid "(no title)"
 msgstr ""
 
-#: src/class-zoninator.php:1019
-msgid "Slug is a required field."
-msgstr ""
-
-#: src/class-zoninator.php:1848
-msgid "Invalid zone supplied"
-msgstr ""
-
-#. translators: %s is usually a field name.
-#: src/zoninator_rest/class-zoninator-rest-model.php:221
-#, php-format
-msgid "%s cannot be empty"
-msgstr ""
-
-#: src/zoninator_rest/controller/class-zoninator-rest-controller-crud.php:48
-msgid "Model not found"
-msgstr ""
-
-#: src/zoninator_rest/controller/class-zoninator-rest-controller-settings.php:35
-msgid "Settings not found"
+#: src/rest/class-zones-controller.php:620
+msgid "Zone ID is required."
 msgstr ""
