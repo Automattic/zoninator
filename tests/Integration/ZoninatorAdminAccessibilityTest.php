@@ -61,6 +61,16 @@ class ZoninatorAdminAccessibilityTest extends TestCase {
 		$this->assertStringNotContainsString( 'href="#"', $output );
 	}
 
+	/**
+	 * Ordering is this screen's main job, so the move buttons come first, in
+	 * the same place on every row, whether or not the row has an Edit link.
+	 */
+	public function test_zone_item_actions_start_with_the_move_buttons(): void {
+		preg_match_all( '#class="(?:button-link )?(?:button-link-delete )?([a-z-]+)"#', $this->render_zone_post(), $matches );
+
+		$this->assertSame( array( 'move-up', 'move-down', 'edit', 'delete', 'view' ), array_values( array_intersect( $matches[1], array( 'move-up', 'move-down', 'edit', 'delete', 'view' ) ) ) );
+	}
+
 	public function test_save_status_is_a_live_region(): void {
 		$this->assertStringContainsString( '<p id="zone-posts-save-info" class="zone-posts-save-info" role="status">', $this->render_zone_edit() );
 	}
