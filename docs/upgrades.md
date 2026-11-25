@@ -6,6 +6,22 @@ For the full list of changes in each release, see the [CHANGELOG](../CHANGELOG.m
 
 ## To 1.0.0
 
+1.0.0 is a breaking release. Old names are removed outright, so code that still uses one stops with a fatal error instead of a notice. Test the update on a staging site first.
+
+What to check depends on what your site does:
+
+| If your site… | Read |
+|---|---|
+| has a theme or plugin that calls a `z_` function, such as `z_get_posts_in_zone()` | [The template tags have the `zoninator_` prefix](#the-template-tags-have-the-zoninator_-prefix). Most sites that show zones in a theme need this one |
+| calls `Zoninator()`, or uses the `$zoninator` global | [The `Zoninator` class and `Zoninator()` are gone](#the-zoninator-class-and-zoninator-are-gone) |
+| removes one of Zoninator's hooks with `remove_action()` or `remove_filter()` | [Hooks are registered on the objects that handle them](#hooks-are-registered-on-the-objects-that-handle-them) |
+| listens on `zoninator_add_zone_posts` or `zoninator_remove_zone_posts` | [The zone post actions always pass post IDs](#the-zone-post-actions-always-pass-post-ids) |
+| changes zones over the REST API | [Zone locks now stop every change](#zone-locks-now-stop-every-change-not-only-the-zones-screen) and [Adding a post over REST no longer returns its row](#adding-a-post-over-rest-no-longer-returns-its-row) |
+| extends the Zone Posts widget, or filters its cache | [A subclass of the Zone Posts widget must be registered as an object](#a-subclass-of-the-zone-posts-widget-must-be-registered-as-an-object) and [The widget's cache filter has a new name](#the-widgets-cache-filter-has-a-new-name) |
+| still calls the old admin-ajax actions | [The Zones screen's admin-ajax actions are gone](#the-zones-screens-admin-ajax-actions-are-gone) |
+
+A site that only uses the Zones screen, the Zone Posts widget and the Zone Posts block needs none of these, only the minimum versions below.
+
 ### WordPress 6.9 and PHP 8.2 are now the minimum
 
 Zoninator 1.0.0 requires WordPress 6.9 or later and PHP 8.2 or later, up from WordPress 6.4 and PHP 7.4. WordPress won't offer 1.0.0 to a site that doesn't meet both, so that site stays on 0.12.x. Update WordPress and PHP first, then update Zoninator.
@@ -65,7 +81,15 @@ $zone = zoninator_container()->get( ZoneManager::class )->create( 'homepage', 'H
 zoninator_container()->get( ZoneCurator::class )->set_posts( $zone->get_id(), array( 12, 34, 56 ) );
 ```
 
-These classes take a zone's ID, not its slug or term; `zoninator_get_zone( 'homepage' )->term_id` gets the ID. They return an `Automattic\Zoninator\Domain\Zone`, and where the old methods returned a `WP_Error` they throw an exception from `Automattic\Zoninator\Domain\`: `InvalidZoneException`, `ZoneNotFoundException`, `ZoneNotSavedException` or `ZoneLockedException`.
+These classes take a zone's ID, not its slug or term; `zoninator_get_zone( 'homepage' )->term_id` gets the ID. They return an `Automattic\Zoninator\Domain\Zone`, and where the old methods returned a `WP_Error` they throw an exception from `Automattic\Zoninator\Domain\`:
+
+- `InvalidZoneException`: a new zone has no slug.
+- `ZoneNotFoundException`: there's no zone with that ID.
+- `ZoneNotSavedException`: WordPress refused to save or delete the zone, for example because another zone has its name.
+- `ZoneFullException`: the zone would hold more posts than its [limit](hooks.md#zoninator_post_count_limit-filter).
+- `ZoneLockedException`: someone else holds the zone's lock.
+
+The `Guarded` classes, described under [Zone locks now stop every change](#zone-locks-now-stop-every-change-not-only-the-zones-screen), also throw `AccessDeniedException` and `PostNotAllowedException`.
 
 | `Zoninator()->…` | Use instead |
 |---|---|
@@ -80,7 +104,7 @@ These classes take a zone's ID, not its slug or term; `zoninator_get_zone( 'home
 | `is_zone_locked( $zone )` | `ZoneLocker::get_blocker_id( $zone_id, get_current_user_id() )`, which gives the lock holder's ID, or `null` |
 | `get_zone()`, `get_zones()`, `get_zone_posts()` and `get_zone_query()` | `zoninator_get_zone()`, `zoninator_get_zones()`, `zoninator_get_posts_in_zone()` and `zoninator_get_zone_query()` |
 | `get_next_post_in_zone()`, `get_prev_post_in_zone()` and `get_zones_for_post()` | `zoninator_get_next_post_in_zone()`, `zoninator_get_prev_post_in_zone()` and `zoninator_get_post_zones()` |
-| `get_first_post_in_zone()`, `get_last_post_in_zone()` and `get_single_post_in_zone()` | `zoninator_get_posts_in_zone( $zone, array( 'posts_per_page' => 1 ) )`, with `'order' => 'DESC'` for the last post |
+| `get_first_post_in_zone()`, `get_last_post_in_zone()` and `get_single_post_in_zone()` | The first item of `zoninator_get_posts_in_zone( $zone, array( 'posts_per_page' => 1 ) )`, which returns an array. Add `'order' => 'DESC'` for the last post |
 | `zone_exists( $zone )` | `(bool) zoninator_get_zone( $zone )` |
 | `get_zone_id( $zone )` and `get_zone_slug( $zone )` | `zoninator_get_zone( $zone )->term_id` and `->slug` |
 | `get_zone_meta_key( $zone )` | `'_zoninator_order_' . $zone_id` |
@@ -163,7 +187,7 @@ Zoninator used to build itself as soon as WordPress loaded its file. It now buil
 
 - Calling `zoninator_container()` or a template tag before `plugins_loaded`, from a mu-plugin or another plugin's main file, boots Zoninator there and then.
 - If a theme loads Zoninator from its `functions.php`, after `plugins_loaded` has fired, Zoninator boots straight away.
-- The classes under `Automattic\Zoninator\Infrastructure\` are `final` and marked `@internal`. Use the template tags, the classes under `Automattic\Zoninator\Application\` and the hooks.
+- The classes under `Automattic\Zoninator\Infrastructure\` are `final` and marked `@internal`, apart from the container. Get them from the container to unhook their callbacks, and for nothing else. For everything else, use the template tags, the classes under `Automattic\Zoninator\Application\` and the hooks.
 
 The setup that ran on `init` at priority 99 has changed too:
 
@@ -200,7 +224,7 @@ Now every change made for a user is checked in one place: the user may make it, 
 
 - **REST clients:** a write to a zone someone else is editing gets `400` with the code `zone-locked`, and the message names them. Retry later, or have the client take the lock first with `PUT /zoninator/v1/zones/{zone_id}/lock`. Requests made as the lock holder go through.
 - **PHP code:** `GuardedZoneManager` and `GuardedZoneCurator`, under `Automattic\Zoninator\Application\`, make a change for a user with these checks; each method takes the user's ID first. `ZoneManager`, `ZoneRemover` and `ZoneCurator` do the same work with no checks, for code that isn't acting for a user, such as a scheduled job.
-- **Taking a lock:** `ZoneLocker::lock()` no longer replaces a lock another user holds; it throws `ZoneLockedException`. To take a zone over, call `ZoneLocker::unlock()` first.
+- **Taking a lock:** `ZoneLocker::lock()` no longer replaces a lock another user holds; it throws `ZoneLockedException`. To take a zone over, call `ZoneLocker::unlock()` first. It also throws `ZoneNotFoundException` for an ID that isn't a zone, where it used to store a lock for it.
 
 ### The zone post actions always pass post IDs
 
@@ -218,7 +242,7 @@ add_action( 'widgets_init', function () {
 } );
 ```
 
-If your subclass has its own constructor, give it that argument and pass it to `parent::__construct()`.
+If your subclass has its own constructor, give it that argument and pass it to `parent::__construct()`. `Zones` is an internal class, and this is the one place you need to fetch it for something other than unhooking.
 
 Nothing changes for the widget itself. It's in the same sidebars with the same settings, and `the_widget( 'Zoninator_ZonePosts_Widget', ... )` and `unregister_widget( 'Zoninator_ZonePosts_Widget' )` work as before.
 
