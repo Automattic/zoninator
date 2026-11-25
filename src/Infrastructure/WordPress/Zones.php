@@ -313,28 +313,6 @@ final class Zones {
 		return false;
 	}
 
-	/**
-	 * Gets the label for a post's status, such as "Published", falling back to the status itself.
-	 *
-	 * @param WP_Post $post Post.
-	 * @return string
-	 */
-	public function get_post_status_label( $post ) {
-		$status = get_post_status_object( $post->post_status );
-		return $status ? $status->label : $post->post_status;
-	}
-
-	/**
-	 * Gets the singular label for a post's type, such as "Post", falling back to the type itself.
-	 *
-	 * @param WP_Post $post Post.
-	 * @return string
-	 */
-	public function get_post_type_label( $post ) {
-		$type = get_post_type_object( $post->post_type );
-		return $type ? $type->labels->singular_name : $post->post_type;
-	}
-
 	public function get_post_order( $post, $zone ) {
 		$post_id  = $this->get_post_id( $post );
 		$meta_key = $this->get_meta_key( $zone );

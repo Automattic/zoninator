@@ -41,25 +41,16 @@ final class Search {
 	private $capabilities;
 
 	/**
-	 * Zones and the posts in them, for the post labels.
-	 *
-	 * @var Zones
-	 */
-	private $zones;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Taxonomy     $taxonomy     The zone taxonomy.
 	 * @param Settings     $settings     Zoninator's settings.
 	 * @param Capabilities $capabilities The capability checks.
-	 * @param Zones        $zones        Zones and the posts in them.
 	 */
-	public function __construct( Taxonomy $taxonomy, Settings $settings, Capabilities $capabilities, Zones $zones ) {
+	public function __construct( Taxonomy $taxonomy, Settings $settings, Capabilities $capabilities ) {
 		$this->taxonomy     = $taxonomy;
 		$this->settings     = $settings;
 		$this->capabilities = $capabilities;
-		$this->zones        = $zones;
 	}
 
 	/**
@@ -156,9 +147,9 @@ final class Search {
 				'post_id'           => $post->ID,
 				'date'              => get_the_time( get_option( 'date_format' ), $post ),
 				'post_type'         => $post->post_type,
-				'post_type_label'   => $this->zones->get_post_type_label( $post ),
+				'post_type_label'   => $this->get_post_type_label( $post ),
 				'post_status'       => $post->post_status,
-				'post_status_label' => $this->zones->get_post_status_label( $post ),
+				'post_status_label' => $this->get_post_status_label( $post ),
 			),
 			$post
 		);
@@ -199,6 +190,26 @@ final class Search {
 		);
 
 		return $limit > 0 ? array_slice( $posts, 0, $limit ) : $posts;
+	}
+
+	/**
+	 * @param WP_Post $post Post.
+	 * @return string The label for the post's status, such as "Published", or the status itself if it has none.
+	 */
+	private function get_post_status_label( $post ) {
+		$status = get_post_status_object( $post->post_status );
+
+		return $status ? $status->label : $post->post_status;
+	}
+
+	/**
+	 * @param WP_Post $post Post.
+	 * @return string The singular label for the post's type, such as "Post", or the type itself if it has none.
+	 */
+	private function get_post_type_label( $post ) {
+		$type = get_post_type_object( $post->post_type );
+
+		return $type ? $type->labels->singular_name : $post->post_type;
 	}
 
 	/**

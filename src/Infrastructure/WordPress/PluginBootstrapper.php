@@ -110,7 +110,7 @@ final class PluginBootstrapper {
 		$container->add( new Assets( $location, $settings, $messages ) );
 		$container->add( new ZoneForm( $location, $request, $guarded_zones ) );
 
-		$search = $container->add( new Search( $taxonomy, $settings, $capabilities, $zones ) );
+		$search = $container->add( new Search( $taxonomy, $settings, $capabilities ) );
 		$container->add( new FeedEndpoint( $feed ) );
 		$container->add( new Block( $zones ) );
 
