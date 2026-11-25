@@ -6,7 +6,24 @@
  */
 class Zoninator_ZonePosts_Widget extends WP_Widget {
 
-	public function __construct() {
+	/**
+	 * Zones and the posts in them.
+	 *
+	 * @var \Automattic\Zoninator\Infrastructure\WordPress\Zones
+	 */
+	private $zones;
+
+	/**
+	 * Constructor.
+	 *
+	 * WordPress builds widgets itself, with no arguments, so the zones come
+	 * from the container unless a test or a subclass passes them in.
+	 *
+	 * @param \Automattic\Zoninator\Infrastructure\WordPress\Zones|null $zones Zones and the posts in them.
+	 */
+	public function __construct( ?\Automattic\Zoninator\Infrastructure\WordPress\Zones $zones = null ) {
+		$this->zones = $zones ?? zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Zones::class );
+
 		$widget_ops = array(
 			'classname'   => 'widget-zone-posts',
 			'description' => __( 'Use this widget to display a list of posts from any zone.', 'zoninator' ),
@@ -18,7 +35,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		add_action( 'switch_theme', array( &$this, 'flush_widget_cache' ) );
 		add_action( 'zoninator_add_zone_posts', array( $this, 'flush_widget_cache' ) );
 		add_action( 'zoninator_remove_zone_posts', array( $this, 'flush_widget_cache' ) );
-		add_action( 'edited_' . Zoninator::ZONE_TAXONOMY, array( $this, 'flush_widget_cache' ) );
+		add_action( 'edited_' . \Automattic\Zoninator\Infrastructure\WordPress\Taxonomy::NAME, array( $this, 'flush_widget_cache' ) );
 
 		parent::__construct(
 			false,
@@ -64,12 +81,12 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 			return;
 		}
 
-		$zone = z_get_zone( $zone_id );
+		$zone = $this->zones->get( $zone_id );
 		if ( ! $zone ) {
 			return;
 		}
 
-		$query = z_get_zone_query( $zone_id );
+		$query = $this->zones->get_query( $zone_id );
 		$posts = $query->posts;
 		if ( empty( $posts ) ) {
 			return;
@@ -180,7 +197,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 	public function form( $instance ) {
 		// select - zone
 		// checkbox - show description
-		$zones = z_get_zones();
+		$zones = $this->zones->get_all();
 		if ( empty( $zones ) ) {
 			esc_html_e( 'You need to create at least one zone before you use this widget!', 'zoninator' );
 			return;

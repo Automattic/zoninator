@@ -120,7 +120,7 @@ Default selected date filter.
 
 ## Content search
 
-These fire from `src/Infrastructure/WordPress/Rest/ZonesController.php`, for the `GET /zoninator/v1/search` route and the `zoninator/search-posts` ability alike.
+These fire from `src/Infrastructure/WordPress/Search.php`, for the `GET /zoninator/v1/search` route and the `zoninator/search-posts` ability alike.
 
 ### `zoninator_recent_posts_args` (filter)
 

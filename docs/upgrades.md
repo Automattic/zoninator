@@ -71,8 +71,8 @@ Up to 0.12.x, every Zoninator hook was registered on the `Zoninator` object, wit
 | Hook | Old callback | How to unhook it in 1.0.0 |
 |---|---|---|
 | `init` | `array( Zoninator(), 'init' )`, priority 99, which registered the zone taxonomy | `remove_action( 'init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Taxonomy::class ), 'register' ) )`, now at the default priority |
-| `init` | `array( Zoninator(), 'add_zone_feed' )` | `remove_action( 'init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Feed::class ), 'add_rewrite_rule' ) )` |
-| `template_redirect` | `array( Zoninator(), 'do_zoninator_feeds' )` | `remove_action( 'template_redirect', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Feed::class ), 'serve' ) )` |
+| `init` | `array( Zoninator(), 'add_zone_feed' )` | `remove_action( 'init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class ), 'add_rewrite_rule' ) )` |
+| `template_redirect` | `array( Zoninator(), 'do_zoninator_feeds' )` | `remove_action( 'template_redirect', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class ), 'serve' ) )` |
 | `rest_api_init` | `array( Zoninator(), 'register_rest_routes' )` | `remove_action( 'rest_api_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper::class ), 'register_rest_routes' ) )` |
 | `widgets_init` | `array( Zoninator(), 'widgets_init' )` | `remove_action( 'widgets_init', array( 'Zoninator_ZonePosts_Widget', 'register' ) )` |
 | `split_shared_term` | `array( Zoninator(), 'split_shared_term' )` | `remove_action( 'split_shared_term', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Zones::class ), 'split_shared_term' ) )` |

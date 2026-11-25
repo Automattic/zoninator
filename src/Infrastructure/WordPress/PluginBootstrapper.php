@@ -70,26 +70,22 @@ final class PluginBootstrapper {
 		$locks        = $container->add( new Locks( $zones, $settings ) );
 		$feed         = $container->add( new Feed( $zones ) );
 		$screen       = $container->add( new Screen( $zones, $locks, $settings, $capabilities, $request ) );
+		$search       = $container->add( new Search( $taxonomy, $settings, $capabilities, $zones ) );
+		$container->add( new FeedEndpoint( $feed ) );
 		$container->add( new Block( $zones ) );
 		$container->add( new Zoninator( $settings, $taxonomy, $capabilities, $request, $zones, $locks, $feed ) );
 
 		// Only REST and Abilities API requests need these, so they're built, and their files loaded, then.
 		$container->factory(
 			ZonesController::class,
-			static function () use ( $zones, $taxonomy, $locks, $feed, $settings, $capabilities, $screen ) {
-				return new ZonesController( $zones, $taxonomy, $locks, $feed, $settings, $capabilities, $screen );
+			static function () use ( $zones, $locks, $feed, $settings, $capabilities, $screen, $search ) {
+				return new ZonesController( $zones, $locks, $feed, $settings, $capabilities, $screen, $search );
 			}
 		);
 		$container->factory(
 			Abilities::class,
-			static function () use ( $container, $zones, $capabilities ) {
-				return new Abilities(
-					$zones,
-					$capabilities,
-					static function () use ( $container ) {
-						return $container->get( ZonesController::class );
-					}
-				);
+			static function () use ( $zones, $capabilities, $search ) {
+				return new Abilities( $zones, $capabilities, $search );
 			}
 		);
 	}
@@ -103,7 +99,7 @@ final class PluginBootstrapper {
 		Zoninator_ZonePosts_Widget::register_hooks();
 		$this->container->get( Taxonomy::class )->register_hooks();
 		$this->container->get( Zones::class )->register_hooks();
-		$this->container->get( Feed::class )->register_hooks();
+		$this->container->get( FeedEndpoint::class )->register_hooks();
 		$this->container->get( Block::class )->register_hooks();
 		$this->container->get( Screen::class )->register_hooks();
 

@@ -118,9 +118,9 @@ final class Zones {
 		if ( $this->exists( $zone_id ) ) {
 			$zone = $this->get( $zone );
 
-			$name    = Request::get_value_or_default( 'name', $data, $zone->name );
-			$slug    = Request::get_value_or_default( 'slug', $data, $zone->slug );
-			$details = Request::get_value_or_default( 'details', $data, array() );
+			$name    = empty( $data['name'] ) ? $zone->name : $data['name'];
+			$slug    = empty( $data['slug'] ) ? $zone->slug : $data['slug'];
+			$details = empty( $data['details'] ) ? array() : $data['details'];
 
 			// Keep the zone's current value for any detail the caller didn't send.
 			$defaults = $this->settings->get_detail_defaults();
