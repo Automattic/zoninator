@@ -10,6 +10,25 @@ For the full list of changes in each release, see the [CHANGELOG](../CHANGELOG.m
 
 Zoninator 1.0.0 requires WordPress 6.9 or later and PHP 8.2 or later, up from WordPress 6.4 and PHP 7.4. WordPress won't offer 1.0.0 to a site that doesn't meet both, so that site stays on 0.12.x. Update WordPress and PHP first, then update Zoninator.
 
+### The Zones screen's admin-ajax actions are gone
+
+The six admin-ajax actions deprecated in 0.12.0 (`zoninator_add_post`, `zoninator_remove_post`, `zoninator_reorder_posts`, `zoninator_search_posts`, `zoninator_update_recent` and `zoninator_update_lock`) are removed. A request to one of them now gets admin-ajax's `0` response, with a `400` status. Use the REST routes listed under [The Zones screen uses the REST API](#the-zones-screen-uses-the-rest-api) instead.
+
+The code behind them is gone too:
+
+| Removed | Use instead |
+|---|---|
+| `Zoninator::ajax_add_post()`, `ajax_remove_post()`, `ajax_reorder_posts()`, `ajax_search_posts()`, `ajax_recent_posts()` and `ajax_update_lock()` | the REST routes in the table under "To 0.12.0" |
+| `Zoninator::ajax_return()` | nothing; the REST routes send their own responses |
+| `Zoninator::ajax_move_zone_post()` | `Zoninator()->remove_zone_posts()`, then `Zoninator()->add_zone_posts()` |
+| `Zoninator::zone_admin_recent_posts_dropdown()` | `GET /zoninator/v1/search` with no `term` |
+| `Zoninator::admin_ajax_init()` | nothing; it only registered the actions |
+| `Automattic\Zoninator\Admin\Ajax`, its `NONCE_ACTION` constant, and the `Zoninator()->zone_ajax_nonce_action` property | nothing; the REST API checks the `wp_rest` nonce |
+
+If your code unhooked an action with `remove_action( 'wp_ajax_zoninator_add_post', array( Zoninator(), 'ajax_add_post' ) )` or similar, delete that line: there's nothing left to unhook.
+
+On the Zones screen, the hidden `zone-nonce-ajax-action` nonce field and the `ajaxNonceAction` entry in `zoninatorOptions` are gone, and so are the `zoninator.ajax()`, `zoninator.getAjaxNonce()`, `zoninator.getAjaxNonceField()` and `zoninator.updateAjaxNonce()` JavaScript functions. The screen still fires the `zoninator.ajax` jQuery event on `#zone-post-search` before each REST request, with the action name (such as `add_post`) and the request data, so listeners on it keep working.
+
 ## To 0.12.0
 
 Most sites need do nothing. Check this section if your code reads or writes `Zoninator()`'s properties, calls the REST API, uses the REST classes Zoninator used to bundle, or customizes the Zones screen.
@@ -63,7 +82,7 @@ If your code assigned zones through any of those, use Zoninator instead: `Zonina
 
 ### The Zones screen uses the REST API
 
-The Zones screen now adds, removes, reorders and searches for posts, and takes the zone lock, through the REST API with `wp.apiFetch()`. These admin-ajax actions, and the `Zoninator` methods behind them, are deprecated and go in 1.0.0:
+The Zones screen now adds, removes, reorders and searches for posts, and takes the zone lock, through the REST API with `wp.apiFetch()`. These admin-ajax actions, and the `Zoninator` methods behind them, are deprecated, and [1.0.0 removes them](#the-zones-screens-admin-ajax-actions-are-gone):
 
 | admin-ajax action | Use instead |
 |---|---|

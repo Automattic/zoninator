@@ -53,7 +53,6 @@ final class ZoninatorDependencyTest extends TestCase {
 			\Automattic\Zoninator\Feed::class,
 			\Automattic\Zoninator\Block::class,
 			\Automattic\Zoninator\Admin\Screen::class,
-			\Automattic\Zoninator\Admin\Ajax::class,
 			\Automattic\Zoninator\REST\Zones_Controller::class,
 			\Automattic\Zoninator\Abilities::class,
 		);

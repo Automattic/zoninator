@@ -9,15 +9,9 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Tests\Integration;
 
-use WP_Ajax_UnitTestCase;
 use WP_REST_Request;
-use WPAjaxDieContinueException;
-use WPAjaxDieStopException;
 
-/**
- * @group ajax
- */
-class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
+class ZoninatorZonePostAccessTest extends TestCase {
 
 	/**
 	 * @var int
@@ -36,8 +30,8 @@ class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 	 */
 	private $secret_id;
 
-	public function setUp(): void {
-		parent::setUp();
+	public function set_up(): void {
+		parent::set_up();
 
 		$this->editor_id  = self::factory()->user->create( array( 'role' => 'editor' ) );
 		$zone             = Zoninator()->insert_zone( 'access-zone', 'Access zone' );
@@ -52,88 +46,6 @@ class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 			},
 			10,
 			4
-		);
-
-		$_REQUEST = array();
-		$_POST    = array();
-		$_GET     = array();
-	}
-
-	public function tearDown(): void {
-		$_REQUEST = array();
-		$_POST    = array();
-		$_GET     = array();
-		parent::tearDown();
-	}
-
-	public function test_add_post_rejects_a_post_the_user_cannot_read(): void {
-		$response = $this->ajax( 'zoninator_add_post', array( 'post_id' => $this->secret_id ) );
-
-		$this->assertSame( 0, $response['status'] );
-		$this->assertStringNotContainsString( 'zoninator-canary@example.com', $this->_last_response );
-		$this->assertSame( '', $this->zone_order( $this->secret_id ) );
-	}
-
-	public function test_add_post_accepts_a_supported_post(): void {
-		$post_id  = self::factory()->post->create();
-		$response = $this->ajax( 'zoninator_add_post', array( 'post_id' => $post_id ) );
-
-		$this->assertSame( 1, $response['status'] );
-		$this->assertSame( '1', $this->zone_order( $post_id ) );
-	}
-
-	public function test_reorder_rejects_a_post_the_user_cannot_read(): void {
-		$post_id  = self::factory()->post->create();
-		$response = $this->ajax( 'zoninator_reorder_posts', array( 'posts' => array( $post_id, $this->secret_id ) ) );
-
-		$this->assertSame( 0, $response['status'] );
-		$this->assertSame( '', $this->zone_order( $this->secret_id ) );
-	}
-
-	/**
-	 * An author lacks the default zone management capability, so each zone
-	 * handler must stop them even when they send a valid nonce.
-	 *
-	 * @dataProvider data_zone_ajax_actions
-	 *
-	 * @param string $action AJAX action.
-	 */
-	public function test_zone_action_refuses_a_user_who_cannot_manage_zones( string $action ): void {
-		$post_id = self::factory()->post->create();
-		Zoninator()->add_zone_posts( $this->zone_id, array( $post_id ) );
-
-		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
-
-		try {
-			$this->ajax(
-				$action,
-				array(
-					'post_id' => $post_id,
-					'posts'   => array( $post_id ),
-				),
-				$author_id
-			);
-			$this->fail( 'Expected the handler to stop the request.' );
-		} catch ( WPAjaxDieStopException $e ) {
-			$this->assertSame( esc_html( "Sorry, you're not supposed to do that..." ), $e->getMessage() );
-		}
-
-		$this->assertSame( '', $this->_last_response );
-		$this->assertSame( '1', $this->zone_order( $post_id ) );
-		$this->assertFalse( Zoninator()->is_zone_locked( $this->zone_id ) );
-	}
-
-	/**
-	 * @return array<string, array{string}>
-	 */
-	public function data_zone_ajax_actions(): array {
-		return array(
-			'add post'      => array( 'zoninator_add_post' ),
-			'remove post'   => array( 'zoninator_remove_post' ),
-			'reorder posts' => array( 'zoninator_reorder_posts' ),
-			'update lock'   => array( 'zoninator_update_lock' ),
-			'search posts'  => array( 'zoninator_search_posts' ),
-			'recent posts'  => array( 'zoninator_update_recent' ),
 		);
 	}
 
@@ -195,24 +107,6 @@ class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 		);
 	}
 
-	public function test_ajax_search_leaves_out_posts_the_user_cannot_read(): void {
-		$readable_id = self::factory()->post->create( array( 'post_title' => 'zoninator-canary readable' ) );
-
-		$response = $this->ajax( 'zoninator_search_posts', array( 'term' => 'zoninator-canary' ) );
-
-		$this->assertSame( array( $readable_id ), array_map( 'intval', wp_list_pluck( $response, 'post_id' ) ) );
-	}
-
-	public function test_ajax_recent_posts_leave_out_posts_the_user_cannot_read(): void {
-		$readable_id = self::factory()->post->create( array( 'post_title' => 'zoninator-canary readable' ) );
-
-		$response = $this->ajax( 'zoninator_update_recent', array() );
-
-		$this->assertSame( 1, $response['status'] );
-		$this->assertStringContainsString( 'value="' . $readable_id . '"', $response['content'] );
-		$this->assertStringNotContainsString( 'zoninator-canary@example.com', $response['content'] );
-	}
-
 	public function test_rest_update_rejects_a_post_the_user_cannot_read(): void {
 		wp_set_current_user( $this->editor_id );
 
@@ -222,40 +116,6 @@ class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 
 		$this->assertSame( 400, $response->get_status() );
 		$this->assertSame( '', $this->zone_order( $this->secret_id ) );
-	}
-
-	/**
-	 * Run a Zoninator AJAX action with a valid nonce and decode the response.
-	 *
-	 * @param string   $action  AJAX action.
-	 * @param array    $data    Request data.
-	 * @param int|null $user_id User to run as. Defaults to the editor.
-	 * @return array|null
-	 */
-	private function ajax( $action, $data, $user_id = null ) {
-		wp_set_current_user( $user_id ?? $this->editor_id );
-
-		$zoninator = Zoninator();
-		$_POST     = array_merge(
-			array(
-				'action'   => $action,
-				'zone_id'  => $this->zone_id,
-				'_wpnonce' => wp_create_nonce( $zoninator->_get_nonce_key( \Automattic\Zoninator\Admin\Ajax::NONCE_ACTION ) ),
-			),
-			$data
-		);
-
-		// The action is deprecated, but still has to work until 1.0.0.
-		$method = 'zoninator_update_recent' === $action ? 'recent_posts' : substr( $action, strlen( 'zoninator_' ) );
-		$this->setExpectedDeprecated( 'Zoninator::ajax_' . $method );
-
-		try {
-			$this->_handleAjax( $action );
-		} catch ( WPAjaxDieContinueException $e ) {
-			// Expected. wp_send_json() dies after echoing JSON.
-		}
-
-		return json_decode( $this->_last_response, true );
 	}
 
 	/**

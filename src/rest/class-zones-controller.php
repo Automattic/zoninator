@@ -469,8 +469,8 @@ final class Zones_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Find posts to offer for a zone. The search route and the deprecated
-	 * zoninator_search_posts AJAX action both use this.
+	 * Find posts to offer for a zone. The search route and the
+	 * zoninator/search-posts ability both use this.
 	 *
 	 * @param string $term    Search term. Empty for the latest content.
 	 * @param int    $cat     Category ID to filter by, or 0.
@@ -844,8 +844,8 @@ final class Zones_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Args for the post search. They match the deprecated AJAX action's, so the
-	 * Zones screen's filters, and any a site adds, keep working.
+	 * Args for the post search. They keep the names the old admin-ajax action
+	 * used, so the Zones screen's filters, and any a site adds, keep working.
 	 *
 	 * @return array
 	 */

@@ -32,8 +32,7 @@ zoninator/
 │   ├── class-block.php              # Block: the Zone Posts Query Loop variation's queries and editor script
 │   ├── class-abilities.php          # Abilities: read-only Abilities API abilities
 │   ├── admin/
-│   │   ├── class-screen.php         # Zones admin screen (markup, form handling, assets)
-│   │   └── class-ajax.php           # Zones screen admin-ajax handlers
+│   │   └── class-screen.php         # Zones admin screen (markup, form handling, assets)
 │   ├── class-zoninator-zoneposts-widget.php  # Zone Posts widget
 │   └── rest/
 │       └── class-zones-controller.php # REST endpoints (/zoninator/v1/zones)
@@ -53,7 +52,7 @@ zoninator/
 
 ### Key Classes and Files
 
-- `src/class-zoninator.php` — `Zoninator` class: builds every other class, hands each the ones it needs, and registers every hook. Nothing else depends on `Zoninator`. Its settings getters (such as `get_zone_lock_period()`), its underscore request, capability and sanitizing helpers, and its zone data, lock, feed, admin screen and `ajax_*` methods are all thin delegates. `Zoninator::ZONE_TAXONOMY` and `Zoninator::ZONE_META_PREFIX` are public aliases of `Taxonomy::NAME` and `Zones::META_PREFIX`. The old public properties still work through `__get()` and `__set()`, with a notice, until 1.0.0, and writes reach `Settings`. The delegates stay so `array( Zoninator(), 'method' )` callbacks and existing calls keep working.
+- `src/class-zoninator.php` — `Zoninator` class: builds every other class, hands each the ones it needs, and registers every hook. Nothing else depends on `Zoninator`. Its settings getters (such as `get_zone_lock_period()`), its underscore request, capability and sanitizing helpers, and its zone data, lock, feed and admin screen methods are all thin delegates. `Zoninator::ZONE_TAXONOMY` and `Zoninator::ZONE_META_PREFIX` are public aliases of `Taxonomy::NAME` and `Zones::META_PREFIX`. The old public properties still work through `__get()` and `__set()`, with a notice, until 1.0.0, and writes reach `Settings`. The delegates stay so `array( Zoninator(), 'method' )` callbacks and existing calls keep working.
 - `src/class-settings.php` — `Automattic\Zoninator\Settings`: the lock periods, results per page and zone detail defaults, filtered on `init`, and the Zones screen's messages.
 - `src/class-capabilities.php` — `Automattic\Zoninator\Capabilities`: the add, edit and manage capability checks (and their filters), and whether the user may put a given post in a zone.
 - `src/class-request.php` — `Automattic\Zoninator\Request`: reads and sanitizes request variables, validates the search filters, and checks nonces and access, stopping the request if either fails.
@@ -64,10 +63,9 @@ zoninator/
 - `src/class-feed.php` — `Automattic\Zoninator\Feed`: the rewrite rule and response for the JSON feed at `/zones/{slug}/feed.json`.
 - `src/class-block.php` — `Automattic\Zoninator\Block`: the Zone Posts variation of core's Query Loop block. `js/zoninator-block.js` (plain JS, no build step) registers the variation and its zone picker, which saves the zone ID as `zoninatorZone` in the block's query. `Block` turns that into `Zones::get_query_args()` on `query_loop_block_query_vars` for the front end and on `rest_post_query` for the editor preview.
 - `src/admin/class-screen.php` — `Automattic\Zoninator\Admin\Screen`: renders the Zones screen (`Screen::PAGE_SLUG`, `admin.php?page=zoninator`), saves its zone form and loads its assets.
-- `src/admin/class-ajax.php` — `Automattic\Zoninator\Admin\Ajax`: the screen's old admin-ajax handlers, which all check `Ajax::NONCE_ACTION`. Since 0.12.0 the screen uses the REST API for everything, so every action here is deprecated and the class goes in 1.0.0.
 - `functions.php` — Public template tags: `z_get_zones()`, `z_get_zone()`, `z_get_posts_in_zone()`, `z_get_zone_query()`, `z_get_next_post_in_zone()`, `z_get_prev_post_in_zone()`, `z_get_post_zones()`. Used by themes in production.
 - `src/class-zoninator-zoneposts-widget.php` — Classic widget (`Zoninator_ZonePosts_Widget`).
-- `src/rest/class-zones-controller.php` — `Automattic\Zoninator\REST\Zones_Controller`, a `WP_REST_Controller` that registers the `zoninator/v1` routes, including the ones the Zones screen uses. Its `find_posts()` is the post search for both the REST route and the deprecated AJAX action. `Zoninator::register_rest_routes()` loads it on `rest_api_init`.
+- `src/rest/class-zones-controller.php` — `Automattic\Zoninator\REST\Zones_Controller`, a `WP_REST_Controller` that registers the `zoninator/v1` routes, including the ones the Zones screen uses. Its `find_posts()` is the post search for both the REST route and the `zoninator/search-posts` ability. `Zoninator::register_rest_routes()` loads it on `rest_api_init`.
 - `tests/Integration/TestCase.php` — Base class for integration tests.
 
 ### Storage model
@@ -108,7 +106,7 @@ See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key point
 
 - **Commits**: Every commit must be signed; `develop` and `main` reject unsigned commits. Use a [Conventional Commits](https://www.conventionalcommits.org/) prefix (`fix:`, `feat:`, `test:`, `docs:`, `ci:`, `chore:` and so on) with an imperative subject of about 50 characters, and a body that explains why the change was needed rather than what changed. One concern per commit.
 - **PRs**: Open against `develop`. The title describes the outcome in sentence case, without a conventional commit prefix. The description explains the problem first, then how the PR solves it. PRs land as merge commits (squash and rebase merging are disabled), so every commit message reaches `develop` as written.
-- **Testing**: Integration tests run inside `wp-env` against a real WordPress install. Extend `Automattic\Zoninator\Tests\Integration\TestCase`, or `WP_Ajax_UnitTestCase` for admin-ajax handlers. E2E tests in `tests/e2e/` cover only what a browser shows on the Zones screen; they share the development site's database, so create test data with the `zoninator` fixture, which deletes it afterwards, and never empty the site.
+- **Testing**: Integration tests run inside `wp-env` against a real WordPress install. Extend `Automattic\Zoninator\Tests\Integration\TestCase`. E2E tests in `tests/e2e/` cover only what a browser shows on the Zones screen; they share the development site's database, so create test data with the `zoninator` fixture, which deletes it afterwards, and never empty the site.
 - **Code style**: WordPress coding standards via PHPCS (with VIP rules). Tabs for indentation.
 - **i18n**: All user-facing strings must use the `zoninator` text domain.
 
@@ -118,7 +116,7 @@ See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key point
 - **Template tags in `functions.php`**: Theme developers consume zones through these functions. They are part of the public API — do not rename or change signatures without a deprecation cycle.
 - **Namespaces**: Legacy classes and functions are in the global namespace; keep their names, as themes and integrations use them. New classes go under `Automattic\Zoninator\`, are `final` unless a site has a reason to extend them, in WordPress-style `class-*.php` files loaded with `require_once` (the release package has no Composer autoloader).
 - **REST controller on core**: The REST API extends core's `WP_REST_Controller` directly. `ZoninatorRestContractTest` pins its routes, methods, args and response bodies; change them only on purpose.
-- **`Zoninator` is the facade**: register hooks, and any callback handed to WordPress, as `array( $zoninator, 'method' )`, never on `Taxonomy`, `Zones`, `Locks`, `Feed`, `Admin\Screen` or `Admin\Ajax`. Sites unhook with `array( Zoninator(), 'method' )`, which silently does nothing if the callback lives on another object. `ZoninatorAdminAjaxTest` pins this and the AJAX response shapes `js/zoninator.js` depends on.
+- **`Zoninator` is the facade**: register hooks, and any callback handed to WordPress, as `array( $zoninator, 'method' )`, never on `Taxonomy`, `Zones`, `Locks`, `Feed` or `Admin\Screen`. Sites unhook with `array( Zoninator(), 'method' )`, which silently does nothing if the callback lives on another object. `ZoninatorAdminHooksTest` pins this.
 - **Dependencies run one way**: `Zoninator` builds the other classes and passes each the objects it needs in its constructor. No other class takes or calls `Zoninator`, and `ZoninatorDependencyTest` checks the constructors. Callbacks that must stay on the facade, such as the default zone post columns, are passed in as callables.
 - **REST `/zones` index requires auth**: Since 0.11.0 the `GET /zoninator/v1/zones` endpoint requires `is_user_logged_in()` by default. Sites needing the historical anonymous behavior must opt in via the `zoninator_rest_get_zones_permissions_check` filter.
 - **WordPress.org deployment**: Releases push to the WP.org SVN via `.github/workflows/deploy.yml` on GitHub release. Do not manually modify SVN assets.
