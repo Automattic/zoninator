@@ -14,7 +14,6 @@ use Automattic\Zoninator\Application\ZoneRemover;
 use Automattic\Zoninator\Infrastructure\DI\Container;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
 use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
-use Zoninator;
 use Zoninator_ZonePosts_Widget;
 
 /**
@@ -47,13 +46,10 @@ final class PluginBootstrapper {
 	}
 
 	/**
-	 * Builds the classes, sets the global older code reads, and registers the hooks.
+	 * Builds the classes and registers the hooks.
 	 */
 	public function boot() {
 		$this->build();
-
-		$GLOBALS['zoninator'] = $this->container->get( Zoninator::class ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-
 		$this->register_hooks();
 	}
 
@@ -82,7 +78,6 @@ final class PluginBootstrapper {
 		$search       = $container->add( new Search( $taxonomy, $settings, $capabilities, $zones ) );
 		$container->add( new FeedEndpoint( $feed ) );
 		$container->add( new Block( $zones ) );
-		$container->add( new Zoninator( $settings, $taxonomy, $capabilities, $request, $zones, $locker, $feed ) );
 
 		// Only REST and Abilities API requests need these, so they're built, and their files loaded, then.
 		$container->factory(
@@ -121,10 +116,7 @@ final class PluginBootstrapper {
 	 * Registers the zoninator/v1 REST routes. Hooked on rest_api_init.
 	 */
 	public function register_rest_routes() {
-		$controller = $this->container->get( ZonesController::class );
-
-		$this->container->get( Zoninator::class )->rest_api = $controller;
-		$controller->register_routes();
+		$this->container->get( ZonesController::class )->register_routes();
 	}
 
 	/**

@@ -11,17 +11,14 @@ namespace Automattic\Zoninator\Infrastructure\WordPress;
  * Registers the zoninator_zones taxonomy, which stores the zones, and
  * tracks which post types can be put in a zone.
  *
- * Zoninator keeps a public method for each of these under its original name
- * (get_supported_post_types() for get_post_types(), and
- * register_zone_post_type() for add_post_types()), which delegates here.
  *
  * @since 0.12.0
- * @internal Use Zoninator(), the template tags and the hooks instead.
+ * @internal Use the template tags, the Application classes and the hooks instead.
  */
 final class Taxonomy {
 
 	/**
-	 * The taxonomy's name. Zoninator::ZONE_TAXONOMY is its public name.
+	 * The taxonomy's name. Stored zones depend on it, so it can't change.
 	 */
 	public const NAME = 'zoninator_zones';
 

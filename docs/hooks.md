@@ -18,7 +18,7 @@ How long a zone lock is held without activity, in seconds. Defaults to `30`.
 
 ### `zoninator_zone_max_lock_period` (filter)
 
-How long, in seconds, the Zones screen keeps a zone locked while the user doesn't reorder, add or remove its posts. Defaults to `600`. After that, the screen asks whether they're still working, and goes to the Dashboard if not. Return `-1` (or use `z_disable_zoninator_locks`) to disable locking entirely.
+How long, in seconds, the Zones screen keeps a zone locked while the user doesn't reorder, add or remove its posts. Defaults to `600`. After that, the screen asks whether they're still working, and goes to the Dashboard if not. Return `-1` (or use `zoninator_disable_locks`) to disable locking entirely.
 
 - **Parameters:** `int $seconds`
 
@@ -138,7 +138,7 @@ Use `$zone_id` to focus the search on what suits a zone, for example only posts 
 
 ```php
 add_filter( 'zoninator_search_args', function ( $args, $zone_id ) {
-	$sport_zone = z_get_zone( 'sport' );
+	$sport_zone = zoninator_get_zone( 'sport' );
 	if ( $sport_zone && $zone_id === $sport_zone->term_id ) {
 		$args['category_name'] = 'sport';
 	}
@@ -164,7 +164,7 @@ Arguments passed to `wp_insert_term()` when a new zone is created.
 
 ### `zoninator_zone_detail_defaults` (filter)
 
-The details a zone stores in its term, with their default values. Zoninator saves only `description`. Add your own detail here, then read it as a property of the zone, for example `z_get_zone( 'homepage' )->kicker`. Zones without it get the default, and updating a zone without sending it keeps its current value. Since 0.12.0; it replaces writing to `Zoninator()->zone_detail_defaults`.
+The details a zone stores in its term, with their default values. Zoninator saves only `description`. Add your own detail here, then read it as a property of the zone, for example `zoninator_get_zone( 'homepage' )->kicker`. Zones without it get the default, and updating a zone without sending it keeps its current value. Since 0.12.0.
 
 - **Parameters:** `array $defaults` (detail name => default value)
 

@@ -20,7 +20,7 @@ The code behind them is gone too:
 |---|---|
 | `Zoninator::ajax_add_post()`, `ajax_remove_post()`, `ajax_reorder_posts()`, `ajax_search_posts()`, `ajax_recent_posts()` and `ajax_update_lock()` | the REST routes in the table under "To 0.12.0" |
 | `Zoninator::ajax_return()` | nothing; the REST routes send their own responses |
-| `Zoninator::ajax_move_zone_post()` | `Zoninator()->remove_zone_posts()`, then `Zoninator()->add_zone_posts()` |
+| `Zoninator::ajax_move_zone_post()` | `ZoneCurator::remove_posts()` on the old zone, then `add_posts()` on the new one; see [The `Zoninator` class and `Zoninator()` are gone](#the-zoninator-class-and-zoninator-are-gone) |
 | `Zoninator::zone_admin_recent_posts_dropdown()` | `GET /zoninator/v1/search` with no `term` |
 | `Zoninator::admin_ajax_init()` | nothing; it only registered the actions |
 | `Automattic\Zoninator\Admin\Ajax`, its `NONCE_ACTION` constant, and the `Zoninator()->zone_ajax_nonce_action` property | nothing; the REST API checks the `wp_rest` nonce |
@@ -29,13 +29,78 @@ If your code unhooked an action with `remove_action( 'wp_ajax_zoninator_add_post
 
 On the Zones screen, the hidden `zone-nonce-ajax-action` nonce field and the `ajaxNonceAction` entry in `zoninatorOptions` are gone, and so are the `zoninator.ajax()`, `zoninator.getAjaxNonce()`, `zoninator.getAjaxNonceField()` and `zoninator.updateAjaxNonce()` JavaScript functions. The screen still fires the `zoninator.ajax` jQuery event on `#zone-post-search` before each REST request, with the action name (such as `add_post`) and the request data, so listeners on it keep working.
 
-### `Zoninator`'s old properties are gone
+### The template tags have the `zoninator_` prefix
 
-The `__get()`, `__set()` and `__isset()` methods that kept `Zoninator()`'s old public properties working, with a notice, are removed. Reading one now gives PHP's "Undefined property" warning and `null`. Writing one creates a dynamic property, which PHP 8.2 deprecates and Zoninator never reads, so the write no longer changes anything. Use the replacements in the table under [`Zoninator`'s properties are no longer public](#zoninators-properties-are-no-longer-public), except for `$zone_messages` and `$zone_nonce_prefix`, whose `_get_message()` and `_get_nonce_key()` replacements are removed too (see below), and `$zone_ajax_nonce_action`, which went with the admin-ajax actions.
+The template tags began with `z_`, which was too short a prefix to be safe from clashes. They now begin with `zoninator_`, like every Zoninator hook. They take the same arguments and return the same values.
 
-### `Zoninator` keeps only its public API
+**Update your theme before, or together with, the plugin.** The old names no longer exist, so a template that still calls one stops with a fatal error.
 
-`Zoninator` now holds the zone, zone post, lock and post type methods, the settings getters (such as `get_zone_lock_period()`), the `ZONE_TAXONOMY` and `ZONE_META_PREFIX` constants, and the callbacks its hooks use. These methods are removed:
+| 0.12.x | 1.0.0 |
+|---|---|
+| `z_get_zones()` | `zoninator_get_zones()` |
+| `z_get_zone()` | `zoninator_get_zone()` |
+| `z_get_posts_in_zone()` | `zoninator_get_posts_in_zone()` |
+| `z_get_zone_query()` | `zoninator_get_zone_query()` |
+| `z_get_next_post_in_zone()` | `zoninator_get_next_post_in_zone()` |
+| `z_get_prev_post_in_zone()` | `zoninator_get_prev_post_in_zone()` |
+| `z_get_post_zones()` | `zoninator_get_post_zones()` |
+| `z_disable_zoninator_locks()` | `zoninator_disable_locks()` |
+| `z_get_zoninator()` | Nothing; see the next section |
+| `z_get_loop_post_id_or_default()` | `get_the_ID()` |
+
+A search for `z_get_` and `z_disable_` across your theme and plugins finds every call.
+
+### The `Zoninator` class and `Zoninator()` are gone
+
+`Zoninator` did a little of everything, so nothing said which of its methods were the plugin's public API. It's removed, along with the `Zoninator()` function, the `$zoninator` global and `z_get_zoninator()`. Code that calls any of them stops with a fatal error.
+
+To read zones, use the template tags. To change them, use the classes under `Automattic\Zoninator\Application\`, which you get from the container:
+
+```php
+use Automattic\Zoninator\Application\ZoneCurator;
+use Automattic\Zoninator\Application\ZoneManager;
+
+$zone = zoninator_container()->get( ZoneManager::class )->create( 'homepage', 'Home page' );
+
+zoninator_container()->get( ZoneCurator::class )->set_posts( $zone->get_id(), array( 12, 34, 56 ) );
+```
+
+These classes take a zone's ID, not its slug or term; `zoninator_get_zone( 'homepage' )->term_id` gets the ID. They return an `Automattic\Zoninator\Domain\Zone`, and where the old methods returned a `WP_Error` they throw an exception from `Automattic\Zoninator\Domain\`: `InvalidZoneException`, `ZoneNotFoundException`, `ZoneNotSavedException` or `ZoneLockedException`.
+
+| `Zoninator()->…` | Use instead |
+|---|---|
+| `insert_zone( $slug, $name, $details )` | `ZoneManager::create( $slug, $name, $details )` |
+| `update_zone( $zone, $data )` | `ZoneManager::update( $zone_id, $data )` |
+| `delete_zone( $zone )` | `ZoneRemover::remove( $zone_id )` |
+| `add_zone_posts( $zone, $posts, true )` | `ZoneCurator::add_posts( $zone_id, $post_ids )` |
+| `add_zone_posts( $zone, $posts )` | `ZoneCurator::set_posts( $zone_id, $post_ids )` |
+| `remove_zone_posts( $zone, $posts )` | `ZoneCurator::remove_posts( $zone_id, $post_ids )`, or `clear_posts( $zone_id )` to empty the zone |
+| `lock_zone( $zone, $user_id )` | `ZoneLocker::lock( $zone_id, $user_id )` |
+| `unlock_zone( $zone )` | `ZoneLocker::unlock( $zone_id )` |
+| `is_zone_locked( $zone )` | `ZoneLocker::get_blocker_id( $zone_id, get_current_user_id() )`, which gives the lock holder's ID, or `null` |
+| `get_zone()`, `get_zones()`, `get_zone_posts()` and `get_zone_query()` | `zoninator_get_zone()`, `zoninator_get_zones()`, `zoninator_get_posts_in_zone()` and `zoninator_get_zone_query()` |
+| `get_next_post_in_zone()`, `get_prev_post_in_zone()` and `get_zones_for_post()` | `zoninator_get_next_post_in_zone()`, `zoninator_get_prev_post_in_zone()` and `zoninator_get_post_zones()` |
+| `get_first_post_in_zone()`, `get_last_post_in_zone()` and `get_single_post_in_zone()` | `zoninator_get_posts_in_zone( $zone, array( 'posts_per_page' => 1 ) )`, with `'order' => 'DESC'` for the last post |
+| `zone_exists( $zone )` | `(bool) zoninator_get_zone( $zone )` |
+| `get_zone_id( $zone )` and `get_zone_slug( $zone )` | `zoninator_get_zone( $zone )->term_id` and `->slug` |
+| `get_zone_meta_key( $zone )` | `'_zoninator_order_' . $zone_id` |
+| `get_post_order( $post, $zone )` | `get_post_meta( $post_id, '_zoninator_order_' . $zone_id, true )` |
+| `get_post_id( $post )` | `$post->ID` |
+| `get_post_status_label( $post )` and `get_post_type_label( $post )` | `get_post_status_object( $post->post_status )->label` and `get_post_type_object( $post->post_type )->labels->singular_name` |
+| `get_supported_post_types()` | `get_post_types_by_support( 'zoninator_zones' )` |
+| `register_zone_post_type( $post_type )` | `add_post_type_support( $post_type, 'zoninator_zones' )` |
+| `get_zone_lock_period()`, `get_zone_max_lock_period()` and `get_posts_per_page()` | `apply_filters( 'zoninator_zone_lock_period', 30 )`, `apply_filters( 'zoninator_zone_max_lock_period', 600 )` and `apply_filters( 'zoninator_posts_per_page', 10 )` |
+| `get_zone_detail_defaults()` | `apply_filters( 'zoninator_zone_detail_defaults', array( 'description' => '' ) )` |
+| `get_zone_feed( $zone )` | `GET /zoninator/v1/zones/{zone_id}/posts`, or `zoninator_get_posts_in_zone()` for the whole posts |
+| `current_user_can_add_post_to_zone( $post )` | `post_type_supports( get_post_type( $post ), 'zoninator_zones' ) && current_user_can( 'read_post', $post_id )` |
+| `verify_nonce()` and `verify_access()` | Nothing; they served the Zones screen's own form |
+| `Zoninator::ZONE_TAXONOMY` and `Zoninator::ZONE_META_PREFIX` | `'zoninator_zones'` and `'_zoninator_order_'`. Stored zones depend on both, so they can't change |
+| `Zoninator()->rest_api` | Nothing; to change a route, use core's REST hooks |
+| `Zoninator()->default_post_types` | See [Zoninator boots on `plugins_loaded`](#zoninator-boots-on-plugins_loaded) |
+
+The properties that 0.12.0 deprecated went with the class. The table under [`Zoninator`'s properties are no longer public](#zoninators-properties-are-no-longer-public) names their replacements, which are now the calls above. `$zone_messages` and `$zone_nonce_prefix` have none.
+
+These methods of `Zoninator`, most of them helpers that were never meant to be public, are removed too:
 
 | Removed | Use instead |
 |---|---|
@@ -47,7 +112,7 @@ The `__get()`, `__set()` and `__isset()` methods that kept `Zoninator()`'s old p
 | `_get_message()` | Nothing; the messages belong to the Zones screen |
 | `_get_nonce_key( $action )` | Nothing; the Zones screen's nonce actions are `'zone-nonce-' . $action` |
 | `_get_zone_page_url( $args )` | `add_query_arg( $args, menu_page_url( 'zoninator', false ) )` |
-| `_fill_zone_details( $zone )` | `Zoninator()->get_zone( $zone )`, which returns the zone with its details filled in |
+| `_fill_zone_details( $zone )` | `zoninator_get_zone( $zone )`, which returns the zone with its details filled in |
 | `_unauthorized_access()` | `wp_die()` |
 | `_empty_zone_posts_cache()`, `get_zone_cache_key()`, `get_zone_posts_from_cache()` and `add_zone_posts_to_cache()` | Nothing; they did nothing since 0.12.0, when core's query cache took over |
 | `_get_add_zones_cap()` | `apply_filters( 'zoninator_add_zone_cap', 'edit_others_posts' )` |
@@ -58,7 +123,7 @@ The `__get()`, `__set()` and `__isset()` methods that kept `Zoninator()`'s old p
 | `_current_user_can_manage_zones()` | `current_user_can( apply_filters( 'zoninator_manage_zone_cap', 'edit_others_posts' ) )` |
 | `check( $action, $zone_id )` | The matching check above: `'insert'` is the add check, `'update'` and `'delete'` are the edit check for `$zone_id`, and anything else is the manage check |
 | `get_formatted_zone_slug()` and `get_unformatted_zone_slug()` | The slug itself; both returned it unchanged |
-| `get_admin_zone_post()` and `get_admin_zone_posts()` | `Zoninator()->get_zone_posts()` for the posts. Nothing in Zoninator used the arrays these built, and `zoninator_zone_post_columns` no longer fires for them |
+| `get_admin_zone_post()` and `get_admin_zone_posts()` | `zoninator_get_posts_in_zone()` for the posts. Nothing in Zoninator used the arrays these built, and `zoninator_zone_post_columns` no longer fires for them |
 | `admin_page_zone_tabs()`, `admin_page_zone_edit()`, `admin_page_zone_details()`, `admin_page_zone_content()`, `admin_page_zone_post()`, `zone_advanced_search_filters()` and `zone_admin_search_form()` | Nothing; the Zones screen renders these parts itself. To add to it, use the [zone field hooks](hooks.md#zoninator_pre_zone_fields--zoninator_post_zone_fields-actions), [`zoninator_zone_post_columns`](hooks.md#zoninator_zone_post_columns-filter) and [`zoninator_advanced_search_fields`](hooks.md#zoninator_advanced_search_fields-action) |
 | `is_zoninator_page()` | `'toplevel_page_zoninator' === get_current_screen()->id` |
 
@@ -96,19 +161,17 @@ The default callbacks in [`zoninator_zone_post_columns`](hooks.md#zoninator_zone
 
 Zoninator used to build itself as soon as WordPress loaded its file. It now builds its classes and adds its hooks on `plugins_loaded`, at priority 10, so every plugin has loaded by the time it starts. Code that runs later, such as theme code and anything on `init`, sees no difference.
 
-- Calling `Zoninator()` before `plugins_loaded`, from a mu-plugin or another plugin's main file, still works: it boots Zoninator there and then. `zoninator_container()` does the same.
+- Calling `zoninator_container()` or a template tag before `plugins_loaded`, from a mu-plugin or another plugin's main file, boots Zoninator there and then.
 - If a theme loads Zoninator from its `functions.php`, after `plugins_loaded` has fired, Zoninator boots straight away.
-- The `$zoninator` global is set when Zoninator boots, so it's empty until then. Use `Zoninator()` instead, which never is.
-- `Zoninator` is now `final`, and its constructor takes the parts it delegates to. Don't extend it or build it with `new Zoninator()`; use `Zoninator()`. The classes under `Automattic\Zoninator\`, apart from `Container`, are marked `@internal`.
-- `Zoninator::maybe_add_rest_api()` and `Zoninator::register_rest_routes()` are gone. The REST routes are always registered, by `Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper::register_rest_routes()` on `rest_api_init`. `Zoninator()->rest_api` still holds the REST controller once `rest_api_init` has fired.
+- The classes under `Automattic\Zoninator\Infrastructure\` are `final` and marked `@internal`. Use the template tags, the classes under `Automattic\Zoninator\Application\` and the hooks.
 
-`Zoninator::init()`, which ran on `init` at priority 99, is gone too, and so is the setup it did there:
+The setup that ran on `init` at priority 99 has changed too:
 
 - The settings filters, such as `zoninator_zone_lock_period`, apply each time Zoninator reads the value, so a filter you add at any point before then counts. They used to apply once, on `init`.
 - The `zoninator_pre_init` and `zoninator_post_init` actions are removed. Hook `init` instead, at whatever priority you need.
-- `Zoninator()->default_post_types` is removed. Posts support zones from the moment Zoninator boots. To take zones away from posts, call `remove_post_type_support( 'post', 'zoninator_zones' )`. To add a post type, call `add_post_type_support( 'page', 'zoninator_zones' )`, add `zoninator_zones` to the post type's `supports`, or call `Zoninator()->register_zone_post_type()`. Any of these works at any point.
+- Posts support zones from the moment Zoninator boots. To take zones away from posts, call `remove_post_type_support( 'post', 'zoninator_zones' )`. To add a post type, call `add_post_type_support( 'page', 'zoninator_zones' )`, or add `zoninator_zones` to the post type's `supports`. Either works at any point. This replaces `Zoninator()->default_post_types`.
 - The `zoninator_zones` taxonomy registers on `init` at the default priority, with no post types attached. A post's place in a zone has always been post meta, not a term relationship, so nothing else changes, but `get_object_taxonomies( 'post' )` no longer lists it.
-- `remove_action( 'init', array( Zoninator(), 'init' ), 99 )` now matches nothing; the table above gives the call that stops the taxonomy registering. To hide the Zones screen from some users, filter [`zoninator_manage_zone_cap`](hooks.md#zoninator_manage_zone_cap-filter).
+- `remove_action( 'init', array( Zoninator(), 'init' ), 99 )` no longer works; the table above gives the call that stops the taxonomy registering. To hide the Zones screen from some users, filter [`zoninator_manage_zone_cap`](hooks.md#zoninator_manage_zone_cap-filter).
 
 ### The internal classes have moved
 
@@ -125,7 +188,7 @@ The files moved with them, from `src/class-*.php` to paths such as `src/Infrastr
 
 ### A zone's lock can't be taken from someone else
 
-`Zoninator()->lock_zone()` used to replace a lock that another user held. It now leaves that lock in place and returns `false`. To take a zone over, call `Zoninator()->unlock_zone()` first. The REST route and the Zones screen already refused to lock a zone someone else was editing, so nothing changes there.
+Locking a zone used to replace a lock that another user held. `ZoneLocker::lock()` now leaves that lock in place and throws `ZoneLockedException`. To take a zone over, call `ZoneLocker::unlock()` first. The REST route and the Zones screen already refused to lock a zone someone else was editing, so nothing changes there.
 
 ### The zone post actions always pass post IDs
 
@@ -138,6 +201,8 @@ A post listed twice when a zone's posts are set now keeps its first place, where
 `zone_posts_widget_block_save_cache_seconds` is now [`zoninator_zone_posts_widget_block_save_cache_seconds`](hooks.md#zoninator_zone_posts_widget_block_save_cache_seconds-filter), with the prefix every other Zoninator hook uses. The old name no longer fires, so rename it in your `add_filter()` call.
 
 ## To 0.12.0
+
+**Going straight to 1.0.0?** Read [To 1.0.0](#to-100) first. This section tells you to call `Zoninator()` in places, and 1.0.0 removes it; where it does, use the replacement in [The `Zoninator` class and `Zoninator()` are gone](#the-zoninator-class-and-zoninator-are-gone).
 
 Most sites need do nothing. Check this section if your code reads or writes `Zoninator()`'s properties, calls the REST API, uses the REST classes Zoninator used to bundle, or customizes the Zones screen.
 

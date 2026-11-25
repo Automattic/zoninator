@@ -8,8 +8,8 @@ Content zone management for WordPress editorial workflows.
 |----------|-------|
 | **Main file** | `zoninator.php` |
 | **Text domain** | `zoninator` |
-| **Function prefix** | `z_` (template tags), `zoninator_` (hooks) |
-| **Class prefix** | `Zoninator`, `Zoninator_` (legacy, global); `Automattic\Zoninator\` for new classes |
+| **Function prefix** | `zoninator_` (template tags and hooks) |
+| **Class prefix** | `Automattic\Zoninator\`; `Zoninator_ZonePosts_Widget` is the one global class |
 | **Source directory** | Root level + `src/` |
 | **Requires PHP** | 8.2+ |
 | **Requires WP** | 6.9+ |
@@ -19,7 +19,7 @@ Content zone management for WordPress editorial workflows.
 ```
 zoninator/
 ├── zoninator.php                    # Main plugin file (header, bootstrap)
-├── functions.php                    # Template tag functions (z_*)
+├── functions.php                    # Template tag functions (zoninator_*)
 ├── src/
 │   ├── Domain/                      # Zone rules, with no WordPress: entities, and interfaces for storage
 │   │   ├── ZoneLock.php             # A zone's lock: who holds it, who it keeps out, how long it lasts
@@ -58,7 +58,6 @@ zoninator/
 │   │       │   └── Screen.php       # Zones admin screen (markup, form handling, assets)
 │   │       └── Rest/
 │   │           └── ZonesController.php # REST endpoints (/zoninator/v1/zones)
-│   ├── class-zoninator.php          # Zoninator: the public API that Zoninator() returns (global class)
 │   └── class-zoninator-zoneposts-widget.php  # Zone Posts widget (global class)
 ├── css/                             # Admin stylesheets
 ├── js/                              # Admin JavaScript (jQuery sortable, autocomplete) and the block editor script
@@ -77,10 +76,9 @@ zoninator/
 
 ### Key Classes and Files
 
-- `zoninator.php` — Loads the classes and defines the two public functions. `zoninator_container()` boots the plugin the first time it's called, by making a `Container` and calling `PluginBootstrapper::boot()`, and returns the container. `Zoninator()` returns the public API from it. Boot happens on `plugins_loaded` (straight away if that has fired, for themes that load plugins late), or earlier if either function is called first.
-- `src/Infrastructure/WordPress/PluginBootstrapper.php` — `Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper`: the composition root. `build()` builds every class by hand, in dependency order, and adds each to the container; the REST controller and `Abilities` go in as factories, so their files load only when needed. `register_hooks()` calls `register_hooks()` on each class that has hooks, and hooks its own methods that register the REST routes and the abilities. `boot()` runs both and sets the `$zoninator` global.
+- `zoninator.php` — Loads the template tags and the widget, registers the autoloader, and defines `zoninator_container()`. That function boots the plugin the first time it's called, by making a `Container` and calling `PluginBootstrapper::boot()`, and returns the container. Boot happens on `plugins_loaded` (straight away if that has fired, for themes that load plugins late), or earlier if `zoninator_container()` or a template tag is called first.
+- `src/Infrastructure/WordPress/PluginBootstrapper.php` — `Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper`: the composition root. `build()` builds every class by hand, in dependency order, and adds each to the container; the REST controller and `Abilities` go in as factories, so their files load only when needed. `register_hooks()` calls `register_hooks()` on each class that has hooks, and hooks its own methods that register the REST routes and the abilities. `boot()` runs both.
 - `src/Infrastructure/DI/Container.php` — `Automattic\Zoninator\Infrastructure\DI\Container`: holds objects by class name and knows nothing about them. `add()` stores an object, `factory()` stores a builder that `get()` calls the first time it's asked, and `get()` and `has()` are shaped like PSR-11's. Sites reach the object that handles a hook through `zoninator_container()->get( Feed::class )` and the like. It's the one class under `Automattic\Zoninator\` that isn't `@internal`.
-- `src/class-zoninator.php` — `Zoninator`, `final`: the public API that `Zoninator()` returns. Its constructor takes the parts it delegates to and builds nothing, and it has no hooks. Its methods are the zone, zone post, lock and post type methods and the settings getters (such as `get_zone_lock_period()`). `Zoninator::ZONE_TAXONOMY` and `Zoninator::ZONE_META_PREFIX` are public aliases of `Taxonomy::NAME` and `Zones::META_PREFIX`.
 - `src/Infrastructure/WordPress/Settings.php` — `Automattic\Zoninator\Infrastructure\WordPress\Settings`: the lock periods, results per page and zone detail defaults, each filtered when read, and the Zones screen's messages.
 - `src/Infrastructure/WordPress/Capabilities.php` — `Automattic\Zoninator\Infrastructure\WordPress\Capabilities`: the add, edit and manage capability checks (and their filters), and whether the user may put a given post in a zone.
 - `src/Infrastructure/WordPress/Request.php` — `Automattic\Zoninator\Infrastructure\WordPress\Request`: reads and sanitizes request variables, validates the search filters, and checks nonces and access, stopping the request if either fails. Its helpers are instance methods, so a class that uses one takes `Request` in its constructor.
@@ -96,10 +94,10 @@ zoninator/
 - `src/Infrastructure/WordPress/Search.php` — `Automattic\Zoninator\Infrastructure\WordPress\Search`: finds posts to offer for a zone, by text or the latest content. The REST search route and the `zoninator/search-posts` ability both call its `find_posts()`.
 - `src/Infrastructure/WordPress/Block.php` — `Automattic\Zoninator\Infrastructure\WordPress\Block`: the Zone Posts variation of core's Query Loop block. `js/zoninator-block.js` (plain JS, no build step) registers the variation and its zone picker, which saves the zone ID as `zoninatorZone` in the block's query. `Block` turns that into `Zones::get_query_args()` on `query_loop_block_query_vars` for the front end and on `rest_post_query` for the editor preview.
 - `src/Infrastructure/WordPress/Admin/Screen.php` — `Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen`: renders the Zones screen (`Screen::PAGE_SLUG`, `admin.php?page=zoninator`), saves its zone form and loads its assets.
-- `functions.php` — Public template tags: `z_get_zones()`, `z_get_zone()`, `z_get_posts_in_zone()`, `z_get_zone_query()`, `z_get_next_post_in_zone()`, `z_get_prev_post_in_zone()`, `z_get_post_zones()`. Used by themes in production.
+- `functions.php` — The template tags themes use to read zones: `zoninator_get_zones()`, `zoninator_get_zone()`, `zoninator_get_posts_in_zone()`, `zoninator_get_zone_query()`, `zoninator_get_next_post_in_zone()`, `zoninator_get_prev_post_in_zone()` and `zoninator_get_post_zones()`, plus `zoninator_disable_locks()`. They return `WP_Term`, `WP_Post` and `WP_Query`. Before 1.0.0 they began with `z_`.
 - `src/class-zoninator-zoneposts-widget.php` — Classic widget (`Zoninator_ZonePosts_Widget`). It takes `Zones` in its constructor; WordPress builds widgets itself with no arguments, so it falls back to the container's.
 - `src/Infrastructure/WordPress/Rest/ZonesController.php` — `Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController`, a `WP_REST_Controller` that registers the `zoninator/v1` routes, including the ones the Zones screen uses. Its search route calls `Search`. `PluginBootstrapper::register_rest_routes()` gets it from the container, which loads it, on `rest_api_init`.
-- `tests/Integration/TestCase.php` — Base class for integration tests.
+- `tests/Integration/TestCase.php` — Base class for integration tests. Its static helpers (`zones()`, `locker()`, `taxonomy()`, `settings()` and `feed()`) return the plugin's own objects from the container.
 
 ### Storage model
 
@@ -162,9 +160,9 @@ See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key point
 - Do not edit WordPress core files or bundled dependencies in `vendor/`.
 - Run `composer cs` before committing. CI will reject code standard violations.
 - Integration tests require `npx --no wp-env start` running first. Run `npm ci` before it, so `npx` uses the `@wordpress/env` pinned in `package.json`. Always keep `--no`: without an installed `@wordpress/env`, plain `npx wp-env` fetches the unrelated `wp-env` package from npm.
-- **Template tags are public API**: Functions in `functions.php` (e.g., `z_get_posts_in_zone()`) are used by themes in production. Do not rename, remove, or change their signatures without a deprecation cycle.
+- **The public PHP API is the template tags and the `Application` classes**: themes call the functions in `functions.php` in production, and sites change zones through `ZoneManager`, `ZoneRemover`, `ZoneCurator` and `ZoneLocker`. Don't rename them, remove them or change their signatures outside a major release, and put any change in the upgrade guide. There is no `Zoninator` class or `Zoninator()` function any more.
 - **Zone ordering is significant**: posts within a zone have a specific display order. Preserve it through any query modifications.
 - **Admin UI uses jQuery drag-and-drop**: test UI changes in a browser, not just with automated tests.
-- **`zoninator_zones` taxonomy is intentionally not public**: it has no front-end archive. Don't flip `public => true` to "fix" missing archives — themes are expected to render zones via template tags or `z_get_zone_query()`.
+- **`zoninator_zones` taxonomy is intentionally not public**: it has no front-end archive. Don't flip `public => true` to "fix" missing archives — themes are expected to render zones via template tags such as `zoninator_get_zone_query()`.
 - **Two version strings**: bump `zoninator.php` (header + `ZONINATOR_VERSION`), `package.json`, `package-lock.json`, and the `Stable tag` in `README.md`. The `npm run bump:*` scripts cover most of this.
 - **Prefix every hook `zoninator_`**: 1.0.0 renamed the last hook without it, `zone_posts_widget_block_save_cache_seconds`. Search the codebase before naming a new one.

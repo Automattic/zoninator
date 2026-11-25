@@ -11,9 +11,9 @@ namespace Automattic\Zoninator\Tests\Integration;
 
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
 use Automattic\Zoninator\Infrastructure\WordPress\Request;
+use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
 use RuntimeException;
 use WPDieException;
-use Zoninator;
 
 final class ZoninatorAdminControllerTest extends TestCase {
 
@@ -25,7 +25,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$zone          = Zoninator()->insert_zone( 'form-zone', 'Form zone', array( 'description' => 'Before' ) );
+		$zone          = self::zones()->insert( 'form-zone', 'Form zone', array( 'description' => 'Before' ) );
 		$this->zone_id = (int) $zone['term_id'];
 
 		// The handler redirects and exits on success, so stop it at the redirect.
@@ -53,7 +53,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			)
 		);
 
-		$zone = Zoninator()->get_zone( 'new-zone' );
+		$zone = self::zones()->get( 'new-zone' );
 		$this->assertSame( 'New zone', $zone->name );
 		$this->assertSame( 'Fresh', $zone->description );
 		$this->assertStringContainsString( 'zone_id=' . $zone->term_id, $location );
@@ -70,7 +70,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			)
 		);
 
-		$zone = Zoninator()->get_zone( $this->zone_id );
+		$zone = self::zones()->get( $this->zone_id );
 		$this->assertSame( 'Renamed zone', $zone->name );
 		$this->assertSame( 'After', $zone->description );
 		$this->assertStringContainsString( 'message=update-success', $location );
@@ -89,7 +89,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			)
 		);
 
-		$zone = Zoninator()->get_zone( 'backslash' );
+		$zone = self::zones()->get( 'backslash' );
 		$this->assertSame( 'Back\\slash', $zone->name );
 		$this->assertSame( 'C:\\path', $zone->description );
 
@@ -104,7 +104,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			)
 		);
 
-		$zone = Zoninator()->get_zone( (int) $zone->term_id );
+		$zone = self::zones()->get( (int) $zone->term_id );
 		$this->assertSame( 'Two\\back\\slashes', $zone->name );
 		$this->assertSame( 'D:\\path', $zone->description );
 	}
@@ -119,24 +119,24 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			)
 		);
 
-		$zone = Zoninator()->get_zone( 'creme' );
+		$zone = self::zones()->get( 'creme' );
 		$this->assertSame( 'Crème', $zone->name );
 		$this->assertSame( 'Crème &lt;b&gt;brûlée&lt;/b&gt; — “à la carte”', $zone->description );
 		// The zone reader repairs damaged descriptions, so check what was stored is valid as it is.
 		$this->assertSame(
 			array( 'description' => 'Crème &lt;b&gt;brûlée&lt;/b&gt; — “à la carte”' ),
-			unserialize( get_term_field( 'description', $zone->term_id, Zoninator::ZONE_TAXONOMY, 'raw' ), array( 'allowed_classes' => false ) ) // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
+			unserialize( get_term_field( 'description', $zone->term_id, Taxonomy::NAME, 'raw' ), array( 'allowed_classes' => false ) ) // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
 		);
 	}
 
 	public function test_delete_removes_the_zone_and_its_posts(): void {
 		$post_id = self::factory()->post->create();
-		Zoninator()->add_zone_posts( $this->zone_id, array( $post_id ) );
-		$meta_key = Zoninator()->get_zone_meta_key( $this->zone_id );
+		self::zones()->add_posts( $this->zone_id, array( $post_id ) );
+		$meta_key = self::zones()->get_meta_key( $this->zone_id );
 
 		$location = $this->submit( 'delete', array( 'zone_id' => $this->zone_id ) );
 
-		$this->assertFalse( Zoninator()->get_zone( $this->zone_id ) );
+		$this->assertFalse( self::zones()->get( $this->zone_id ) );
 		$this->assertSame( '', get_post_meta( $post_id, $meta_key, true ) );
 		$this->assertStringContainsString( 'message=delete-success', $location );
 	}
@@ -153,7 +153,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			)
 		);
 
-		$this->assertFalse( Zoninator()->get_zone( 'added-zone' ) );
+		$this->assertFalse( self::zones()->get( 'added-zone' ) );
 	}
 
 	public function test_insert_with_a_zone_does_not_change_it(): void {
@@ -175,7 +175,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			)
 		);
 
-		$zone = Zoninator()->get_zone( $this->zone_id );
+		$zone = self::zones()->get( $this->zone_id );
 		$this->assertSame( 'Form zone', $zone->name );
 		$this->assertSame( 'Before', $zone->description );
 	}
@@ -274,8 +274,8 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			$this->assertSame( esc_html( "Sorry, you're not supposed to do that..." ), $e->getMessage() );
 		}
 
-		$this->assertSame( 'Form zone', Zoninator()->get_zone( $this->zone_id )->name );
-		$this->assertFalse( Zoninator()->get_zone( 'changed-zone' ) );
+		$this->assertSame( 'Form zone', self::zones()->get( $this->zone_id )->name );
+		$this->assertFalse( self::zones()->get( 'changed-zone' ) );
 	}
 
 	/**

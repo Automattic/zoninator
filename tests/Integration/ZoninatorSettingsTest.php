@@ -10,7 +10,8 @@ namespace Automattic\Zoninator\Tests\Integration;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
 use Automattic\Zoninator\Infrastructure\WordPress\Request;
 use Automattic\Zoninator\Infrastructure\WordPress\Settings;
-use Zoninator;
+use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use Automattic\Zoninator\Infrastructure\WordPress\Zones;
 
 /**
  * Tests for the class constants and the settings getters.
@@ -18,12 +19,10 @@ use Zoninator;
 class ZoninatorSettingsTest extends TestCase {
 
 	public function test_getters_return_the_defaults(): void {
-		$zoninator = Zoninator();
-
-		$this->assertSame( 30, $zoninator->get_zone_lock_period() );
-		$this->assertSame( 600, $zoninator->get_zone_max_lock_period() );
-		$this->assertSame( 10, $zoninator->get_posts_per_page() );
-		$this->assertSame( array( 'description' => '' ), $zoninator->get_zone_detail_defaults() );
+		$this->assertSame( 30, self::settings()->get_lock_period() );
+		$this->assertSame( 600, self::settings()->get_max_lock_period() );
+		$this->assertSame( 10, self::settings()->get_posts_per_page() );
+		$this->assertSame( array( 'description' => '' ), self::settings()->get_detail_defaults() );
 	}
 
 	/**
@@ -43,15 +42,15 @@ class ZoninatorSettingsTest extends TestCase {
 	}
 
 	public function test_taxonomy_is_registered_with_constant(): void {
-		$this->assertTrue( taxonomy_exists( Zoninator::ZONE_TAXONOMY ) );
+		$this->assertTrue( taxonomy_exists( Taxonomy::NAME ) );
 	}
 
 	/**
 	 * Stored zones, post meta, nonces and admin links depend on these values.
 	 */
 	public function test_fixed_values_do_not_change(): void {
-		$this->assertSame( 'zoninator_zones', Zoninator::ZONE_TAXONOMY );
-		$this->assertSame( '_zoninator_order_', Zoninator::ZONE_META_PREFIX );
+		$this->assertSame( 'zoninator_zones', Taxonomy::NAME );
+		$this->assertSame( '_zoninator_order_', Zones::META_PREFIX );
 		$this->assertSame( 'zoninator', Screen::PAGE_SLUG );
 		$this->assertSame( 'zone-nonce', Request::NONCE_PREFIX );
 	}
@@ -66,24 +65,25 @@ class ZoninatorSettingsTest extends TestCase {
 		};
 		add_filter( 'zoninator_zone_detail_defaults', $add_kicker );
 
-		$plain   = Zoninator()->insert_zone( 'plain-zone' );
-		$kicked  = Zoninator()->insert_zone( 'kicked-zone', 'Kicked', array( 'kicker' => 'Sport' ) );
+		$plain   = self::zones()->insert( 'plain-zone' );
+		$kicked  = self::zones()->insert( 'kicked-zone', 'Kicked', array( 'kicker' => 'Sport' ) );
 		$kicked  = (int) $kicked['term_id'];
-		Zoninator()->update_zone( $kicked, array( 'name' => 'Renamed' ) );
+		self::zones()->update( $kicked, array( 'name' => 'Renamed' ) );
 
-		$this->assertSame( 'News', Zoninator()->get_zone( (int) $plain['term_id'] )->kicker );
-		$this->assertSame( 'Sport', Zoninator()->get_zone( $kicked )->kicker );
+		$this->assertSame( 'News', self::zones()->get( (int) $plain['term_id'] )->kicker );
+		$this->assertSame( 'Sport', self::zones()->get( $kicked )->kicker );
 
 		remove_filter( 'zoninator_zone_detail_defaults', $add_kicker );
 	}
 
 	/**
-	 * Sites that relied on the old public properties now get PHP's usual
-	 * warning instead of a value, so nothing reads them silently.
+	 * 1.0.0 removed the Zoninator class, its Zoninator() function and the z_
+	 * template tags, so nothing must bring them back by accident.
 	 */
-	public function test_old_properties_are_gone(): void {
-		$this->assertFalse( isset( Zoninator()->zone_taxonomy ) );
-		$this->assertFalse( method_exists( Zoninator(), '__get' ) );
-		$this->assertFalse( method_exists( Zoninator(), '__set' ) );
+	public function test_the_old_entry_points_are_gone(): void {
+		$this->assertFalse( class_exists( 'Zoninator' ) );
+		$this->assertFalse( function_exists( 'z_get_zoninator' ) );
+		$this->assertFalse( function_exists( 'z_get_posts_in_zone' ) );
+		$this->assertArrayNotHasKey( 'zoninator', $GLOBALS );
 	}
 }

@@ -34,7 +34,7 @@ class ZoninatorZonePostAccessTest extends TestCase {
 		parent::set_up();
 
 		$this->editor_id  = self::factory()->user->create( array( 'role' => 'editor' ) );
-		$zone             = Zoninator()->insert_zone( 'access-zone', 'Access zone' );
+		$zone             = self::zones()->insert( 'access-zone', 'Access zone' );
 		$this->zone_id    = (int) $zone['term_id'];
 		$this->secret_id  = self::factory()->post->create( array( 'post_title' => 'zoninator-canary@example.com' ) );
 
@@ -56,7 +56,7 @@ class ZoninatorZonePostAccessTest extends TestCase {
 	 */
 	public function test_rest_zone_post_route_rejects_a_post_the_user_cannot_read( string $method ): void {
 		wp_set_current_user( $this->editor_id );
-		Zoninator()->add_zone_posts( $this->zone_id, array( $this->secret_id ) );
+		self::zones()->add_posts( $this->zone_id, array( $this->secret_id ) );
 
 		$response = rest_do_request( new WP_REST_Request( $method, '/zoninator/v1/zones/' . $this->zone_id . '/posts/' . $this->secret_id ) );
 
@@ -123,6 +123,6 @@ class ZoninatorZonePostAccessTest extends TestCase {
 	 * @return string The post's order in the zone, or '' if it isn't in it.
 	 */
 	private function zone_order( $post_id ) {
-		return (string) get_post_meta( $post_id, Zoninator()->get_zone_meta_key( $this->zone_id ), true );
+		return (string) get_post_meta( $post_id, self::zones()->get_meta_key( $this->zone_id ), true );
 	}
 }

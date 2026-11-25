@@ -27,7 +27,7 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$zone          = Zoninator()->insert_zone( 'widget-zone', 'Widget zone', array( 'description' => 'About the zone' ) );
+		$zone          = self::zones()->insert( 'widget-zone', 'Widget zone', array( 'description' => 'About the zone' ) );
 		$this->zone_id = (int) $zone['term_id'];
 		$this->widget  = new Zoninator_ZonePosts_Widget();
 
@@ -38,7 +38,7 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 	public function test_widget_lists_zone_posts_in_order_under_the_zone_name(): void {
 		$first  = self::factory()->post->create( array( 'post_title' => 'First post' ) );
 		$second = self::factory()->post->create( array( 'post_title' => 'Second post' ) );
-		Zoninator()->add_zone_posts( $this->zone_id, array( $second, $first ) );
+		self::zones()->add_posts( $this->zone_id, array( $second, $first ) );
 
 		$html = $this->render( array( 'show_description' => 0 ) );
 
@@ -50,7 +50,7 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 
 	public function test_widget_html_filter_replaces_the_post_list(): void {
 		$post_id = self::factory()->post->create( array( 'post_title' => 'Filtered post' ) );
-		Zoninator()->add_zone_posts( $this->zone_id, $post_id );
+		self::zones()->add_posts( $this->zone_id, $post_id );
 		$received = array();
 		$filter   = static function ( $html, $posts, $query ) use ( &$received ) {
 			$received = array( $html, wp_list_pluck( $posts, 'ID' ), $query instanceof WP_Query );
@@ -68,7 +68,7 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 	}
 
 	public function test_widget_shows_the_description_when_asked(): void {
-		Zoninator()->add_zone_posts( $this->zone_id, array( self::factory()->post->create() ) );
+		self::zones()->add_posts( $this->zone_id, array( self::factory()->post->create() ) );
 
 		$html = $this->render( array( 'show_description' => 1 ) );
 
@@ -82,7 +82,7 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 				'post_status' => 'draft',
 			)
 		);
-		Zoninator()->add_zone_posts( $this->zone_id, array( self::factory()->post->create(), $draft ) );
+		self::zones()->add_posts( $this->zone_id, array( self::factory()->post->create(), $draft ) );
 
 		$this->assertStringNotContainsString( 'Draft post', $this->render( array( 'show_description' => 0 ) ) );
 	}
@@ -97,7 +97,7 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 	public function test_widget_shows_a_zone_change_straight_away( string $change ): void {
 		$first  = self::factory()->post->create( array( 'post_title' => 'First post' ) );
 		$second = self::factory()->post->create( array( 'post_title' => 'Second post' ) );
-		Zoninator()->add_zone_posts( $this->zone_id, array( $first ) );
+		self::zones()->add_posts( $this->zone_id, array( $first ) );
 
 		// Creating posts briefly blocks the cache from being saved. Let it save.
 		wp_cache_delete( 'widget-zone-posts-save_blocked', 'widget' );
@@ -105,19 +105,19 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 
 		switch ( $change ) {
 			case 'add':
-				Zoninator()->add_zone_posts( $this->zone_id, array( $second ), true );
+				self::zones()->add_posts( $this->zone_id, array( $second ), true );
 				$this->assertStringContainsString( 'Second post', $this->render( array( 'show_description' => 0 ) ) );
 				break;
 			case 'remove':
-				Zoninator()->remove_zone_posts( $this->zone_id, array( $first ) );
+				self::zones()->remove_posts( $this->zone_id, array( $first ) );
 				$this->assertStringNotContainsString( 'First post', $this->render( array( 'show_description' => 0 ) ) );
 				break;
 			case 'rename':
-				Zoninator()->update_zone( $this->zone_id, array( 'name' => 'Renamed zone' ) );
+				self::zones()->update( $this->zone_id, array( 'name' => 'Renamed zone' ) );
 				$this->assertStringContainsString( '<h2>Renamed zone</h2>', $this->render( array( 'show_description' => 0 ) ) );
 				break;
 			case 'delete':
-				Zoninator()->delete_zone( $this->zone_id );
+				self::zones()->delete( $this->zone_id );
 				$this->assertSame( '', $this->render( array( 'show_description' => 0 ) ) );
 				break;
 		}
@@ -152,7 +152,7 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 	}
 
 	public function test_widget_saved_without_a_description_setting_still_renders(): void {
-		Zoninator()->add_zone_posts( $this->zone_id, array( self::factory()->post->create( array( 'post_title' => 'Only post' ) ) ) );
+		self::zones()->add_posts( $this->zone_id, array( self::factory()->post->create( array( 'post_title' => 'Only post' ) ) ) );
 
 		$this->assertStringContainsString( 'Only post', $this->render( array() ) );
 	}
@@ -177,7 +177,7 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 	}
 
 	public function test_form_lists_the_zones_with_the_saved_one_selected(): void {
-		Zoninator()->insert_zone( 'other-zone', 'Other zone' );
+		self::zones()->insert( 'other-zone', 'Other zone' );
 
 		ob_start();
 		$this->widget->form( array( 'zone_id' => $this->zone_id ) );

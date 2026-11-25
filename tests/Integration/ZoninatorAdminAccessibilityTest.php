@@ -26,10 +26,10 @@ class ZoninatorAdminAccessibilityTest extends TestCase {
 	private function create_zone_with_post(): array {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 
-		$zone    = Zoninator()->insert_zone( 'a11y-zone', 'Accessibility zone' );
-		$zone    = Zoninator()->get_zone( (int) $zone['term_id'] );
+		$zone    = self::zones()->insert( 'a11y-zone', 'Accessibility zone' );
+		$zone    = self::zones()->get( (int) $zone['term_id'] );
 		$post_id = self::factory()->post->create( array( 'post_title' => 'Zoned story' ) );
-		Zoninator()->add_zone_posts( $zone, $post_id );
+		self::zones()->add_posts( $zone, $post_id );
 
 		return array( $zone, get_post( $post_id ) );
 	}

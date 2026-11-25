@@ -80,27 +80,27 @@ class ZoninatorTaxonomyTest extends TestCase {
 
 	public function test_posts_support_zones_by_default(): void {
 		$this->assertTrue( post_type_supports( 'post', 'zoninator_zones' ) );
-		$this->assertSame( array( 'post' ), Zoninator()->get_supported_post_types() );
+		$this->assertSame( array( 'post' ), self::taxonomy()->get_post_types() );
 	}
 
 	public function test_register_zone_post_type_adds_a_post_type(): void {
-		Zoninator()->get_supported_post_types();
+		self::taxonomy()->get_post_types();
 
-		$this->assertTrue( Zoninator()->register_zone_post_type( 'page' ) );
+		$this->assertTrue( self::taxonomy()->add_post_types( 'page' ) );
 
 		$this->assertTrue( post_type_supports( 'page', 'zoninator_zones' ) );
-		$this->assertSame( array( 'post', 'page' ), Zoninator()->get_supported_post_types() );
+		$this->assertSame( array( 'post', 'page' ), self::taxonomy()->get_post_types() );
 	}
 
 	public function test_register_zone_post_type_skips_a_missing_post_type(): void {
-		$this->assertFalse( Zoninator()->register_zone_post_type( 'no_such_type' ) );
-		$this->assertTrue( Zoninator()->register_zone_post_type( array( 'no_such_type', 'page' ) ) );
+		$this->assertFalse( self::taxonomy()->add_post_types( 'no_such_type' ) );
+		$this->assertTrue( self::taxonomy()->add_post_types( array( 'no_such_type', 'page' ) ) );
 	}
 
 	public function test_a_site_can_take_zones_away_from_posts(): void {
 		remove_post_type_support( 'post', 'zoninator_zones' );
 
-		$this->assertSame( array(), Zoninator()->get_supported_post_types() );
+		$this->assertSame( array(), self::taxonomy()->get_post_types() );
 	}
 
 	/**
@@ -108,10 +108,10 @@ class ZoninatorTaxonomyTest extends TestCase {
 	 * registered at the default priority.
 	 */
 	public function test_a_post_type_registered_later_with_zone_support_counts(): void {
-		Zoninator()->get_supported_post_types();
+		self::taxonomy()->get_post_types();
 		register_post_type( 'zoninator_late', array( 'supports' => array( 'title', 'zoninator_zones' ) ) );
 
-		$post_types = Zoninator()->get_supported_post_types();
+		$post_types = self::taxonomy()->get_post_types();
 
 		unregister_post_type( 'zoninator_late' );
 		$this->assertSame( array( 'post', 'zoninator_late' ), $post_types );

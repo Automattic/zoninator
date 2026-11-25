@@ -40,7 +40,7 @@ You can work with a zone's posts either as a `WP_Query` object or as a plain arr
 **WP_Query**
 
 ~~~php
-$zone_query = z_get_zone_query( 'homepage' );
+$zone_query = zoninator_get_zone_query( 'homepage' );
 if ( $zone_query->have_posts() ) :
 	while ( $zone_query->have_posts() ) : $zone_query->the_post();
 		echo '<li>' . esc_html( get_the_title() ) . '</li>';
@@ -52,7 +52,7 @@ endif;
 **Posts Array**
 
 ~~~php
-$zone_posts = z_get_posts_in_zone( 'homepage' );
+$zone_posts = zoninator_get_posts_in_zone( 'homepage' );
 foreach ( $zone_posts as $zone_post ) :
 	echo '<li>' . esc_html( get_the_title( $zone_post->ID ) ) . '</li>';
 endforeach;
@@ -78,7 +78,7 @@ Audience-targeted documentation lives in the GitHub repository:
 You can use a filter:
 
 ~~~php
-add_filter( 'zoninator_zone_max_lock_period', 'z_disable_zoninator_locks' );
+add_filter( 'zoninator_zone_max_lock_period', 'zoninator_disable_locks' );
 ~~~
 
 ### How do I change the locking feature settings?
@@ -100,9 +100,13 @@ See the [REST API documentation](https://github.com/Automattic/zoninator/blob/ma
 
 ### Can I use Zoninator with custom post types?
 
-Yes. Call `Zoninator()->register_zone_post_type( 'your_post_type' )` after `init` to add zone support to a custom post type.
+Yes. Call `add_post_type_support( 'your_post_type', 'zoninator_zones' )`, or add `zoninator_zones` to the `supports` list when you register the post type.
 
 ## Upgrade Notice
+
+### 1.0.0
+
+Breaking release. The template tags are renamed from `z_` to `zoninator_` (`z_get_posts_in_zone()` is now `zoninator_get_posts_in_zone()`), and `Zoninator()` is removed. Update your theme first, or it will stop with a fatal error. Requires WordPress 6.9 and PHP 8.2. See the [upgrade guide](https://github.com/Automattic/zoninator/blob/main/docs/upgrades.md).
 
 ### 0.12.0
 
