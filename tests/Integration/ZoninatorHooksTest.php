@@ -112,6 +112,21 @@ class ZoninatorHooksTest extends TestCase {
 	}
 
 	/**
+	 * Unhooking Zoninator's init turns off the whole plugin, so the screen's
+	 * hooks must wait for it rather than be added when the plugin loads.
+	 */
+	public function test_screen_hooks_are_added_on_init(): void {
+		$zoninator = new \Zoninator();
+		$callback  = array( $zoninator->get_admin_screen(), 'register_menu_page' );
+
+		$this->assertFalse( has_action( 'admin_menu', $callback ) );
+
+		$zoninator->init();
+
+		$this->assertSame( 10, has_action( 'admin_menu', $callback ) );
+	}
+
+	/**
 	 * The Zones screen uses the REST API, and 1.0.0 removed these actions.
 	 *
 	 * @dataProvider data_removed_ajax_actions

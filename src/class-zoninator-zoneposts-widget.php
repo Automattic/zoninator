@@ -28,6 +28,15 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 	}
 
 	/**
+	 * Hooks the widget's registration. Zoninator calls this once.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function register_hooks() {
+		add_action( 'widgets_init', array( self::class, 'register' ) );
+	}
+
+	/**
 	 * Registers the widget. Hooked on widgets_init.
 	 *
 	 * @since 1.0.0

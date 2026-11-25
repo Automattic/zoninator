@@ -16,8 +16,8 @@ use Automattic\Zoninator\Zones;
 /**
  * Renders the Zones admin screen, saves its zone form, and loads its assets.
  *
- * Zoninator registers the screen's hooks on this object. Sites reach it with
- * Zoninator()->get_admin_screen() to unhook them.
+ * It registers its own hooks in register_hooks(), which Zoninator calls on
+ * init. Sites reach it with Zoninator()->get_admin_screen() to unhook them.
  *
  * @since 0.12.0
  */
@@ -78,6 +78,24 @@ final class Screen {
 		$this->settings     = $settings;
 		$this->capabilities = $capabilities;
 		$this->request      = $request;
+	}
+
+	/**
+	 * Hooks the screen's form handling, assets, menu page and default search
+	 * fields. Zoninator calls this once, on init.
+	 *
+	 * @since 1.0.0
+	 */
+	public function register_hooks() {
+		add_action( 'admin_init', array( $this, 'handle_request' ) );
+
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
+
+		add_action( 'admin_menu', array( $this, 'register_menu_page' ) );
+
+		add_action( 'zoninator_advanced_search_fields', array( $this, 'render_category_filter' ) );
+		add_action( 'zoninator_advanced_search_fields', array( $this, 'render_date_filter' ), 20 );
 	}
 
 	/**

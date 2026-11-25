@@ -16,7 +16,8 @@ use WP_REST_Request;
  * The editor script registers a Query Loop variation with a zone picker,
  * which saves the zone ID as zoninatorZone in the block's query. These
  * callbacks turn that into the zone's query, on the front end and in the
- * editor preview. Its hooks stay registered on Zoninator.
+ * editor preview. It registers its own hooks in register_hooks(), and sites
+ * reach it with Zoninator()->get_block() to unhook them.
  *
  * @since 1.0.0
  */
@@ -56,6 +57,18 @@ final class Block {
 	 */
 	public function __construct( Zones $zones ) {
 		$this->zones = $zones;
+	}
+
+	/**
+	 * Hooks the zone query into the Query Loop block and its editor. Zoninator calls this once.
+	 *
+	 * @since 1.0.0
+	 */
+	public function register_hooks() {
+		add_filter( 'query_loop_block_query_vars', array( $this, 'filter_query_vars' ), 10, 2 );
+		// The Zone Posts block's editor preview always reads /wp/v2/posts.
+		add_filter( 'rest_post_query', array( $this, 'filter_rest_query' ), 10, 2 );
+		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_editor_assets' ) );
 	}
 
 	/**

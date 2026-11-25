@@ -127,24 +127,14 @@ class Zoninator {
 			$this->request
 		);
 
-		// Each hook is registered on the object that handles it. Sites reach those
-		// objects through the get_*() methods below to unhook them.
 		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
 
-		add_action( 'widgets_init', array( 'Zoninator_ZonePosts_Widget', 'register' ) );
-
-		add_action( 'init', array( $this->feed, 'add_rewrite_rule' ) );
-
-		add_action( 'template_redirect', array( $this->feed, 'serve' ) );
-
-		add_action( 'split_shared_term', array( $this->zones, 'split_shared_term' ), 10, 4 );
-
-		add_filter( 'query_loop_block_query_vars', array( $this->block, 'filter_query_vars' ), 10, 2 );
-
-		// The Zone Posts block's editor preview always reads /wp/v2/posts.
-		add_filter( 'rest_post_query', array( $this->block, 'filter_rest_query' ), 10, 2 );
-
-		add_action( 'enqueue_block_editor_assets', array( $this->block, 'enqueue_editor_assets' ) );
+		// Each class registers the hooks it handles. Sites reach those objects
+		// through the get_*() methods below to unhook them.
+		\Zoninator_ZonePosts_Widget::register_hooks();
+		$this->zones->register_hooks();
+		$this->feed->register_hooks();
+		$this->block->register_hooks();
 
 		$this->maybe_add_rest_api();
 
@@ -325,16 +315,8 @@ class Zoninator {
 
 		$this->taxonomy->register( $this->default_post_types );
 
-		add_action( 'admin_init', array( $this->admin_screen, 'handle_request' ) );
-
-		add_action( 'admin_enqueue_scripts', array( $this->admin_screen, 'enqueue_scripts' ) );
-		add_action( 'admin_enqueue_scripts', array( $this->admin_screen, 'enqueue_styles' ) );
-
-		add_action( 'admin_menu', array( $this->admin_screen, 'register_menu_page' ) );
-
-		// Add default advanced search fields
-		add_action( 'zoninator_advanced_search_fields', array( $this->admin_screen, 'render_category_filter' ) );
-		add_action( 'zoninator_advanced_search_fields', array( $this->admin_screen, 'render_date_filter' ), 20 );
+		// Here rather than in the constructor, so unhooking init turns off the screen too.
+		$this->admin_screen->register_hooks();
 
 		do_action( 'zoninator_post_init' );
 	}
