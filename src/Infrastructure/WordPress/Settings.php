@@ -8,6 +8,7 @@
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 use Automattic\Zoninator\Domain\LockSettingsInterface;
+use Automattic\Zoninator\Domain\ZoneSettingsInterface;
 
 /**
  * The values sites tune with filters (lock periods, results per page, zone
@@ -19,7 +20,7 @@ use Automattic\Zoninator\Domain\LockSettingsInterface;
  * @since 0.12.0
  * @internal Use Zoninator(), the template tags and the hooks instead.
  */
-final class Settings implements LockSettingsInterface {
+final class Settings implements LockSettingsInterface, ZoneSettingsInterface {
 
 	/**
 	 * Default number of seconds a zone lock lasts without being renewed.
@@ -68,7 +69,7 @@ final class Settings implements LockSettingsInterface {
 	 *
 	 * @return array
 	 */
-	public function get_detail_defaults() {
+	public function get_detail_defaults(): array {
 		/**
 		 * Filters the zone details saved in the zone term, and their default values.
 		 *

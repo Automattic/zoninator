@@ -7,7 +7,10 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
+use Automattic\Zoninator\Application\ZoneCurator;
 use Automattic\Zoninator\Application\ZoneLocker;
+use Automattic\Zoninator\Application\ZoneManager;
+use Automattic\Zoninator\Application\ZoneRemover;
 use Automattic\Zoninator\Infrastructure\DI\Container;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
 use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
@@ -68,7 +71,12 @@ final class PluginBootstrapper {
 		$capabilities = $container->add( new Capabilities( $taxonomy ) );
 		$request      = $container->add( new Request( $capabilities ) );
 		$locker       = $container->add( new ZoneLocker( $container->add( new TransientLockStore() ), $settings ) );
-		$zones        = $container->add( new Zones( $settings, $taxonomy, $capabilities, $locker ) );
+		$terms        = $container->add( new TermZoneRepository( $settings ) );
+		$zone_posts   = $container->add( new PostMetaZonePostsRepository( $terms, $taxonomy ) );
+		$manager      = $container->add( new ZoneManager( $terms, $settings ) );
+		$remover      = $container->add( new ZoneRemover( $terms, $zone_posts, $locker ) );
+		$curator      = $container->add( new ZoneCurator( $terms, $zone_posts ) );
+		$zones        = $container->add( new Zones( $taxonomy, $capabilities, $terms, $manager, $remover, $curator ) );
 		$feed         = $container->add( new Feed( $zones ) );
 		$screen       = $container->add( new Screen( $zones, $locker, $settings, $capabilities, $request ) );
 		$search       = $container->add( new Search( $taxonomy, $settings, $capabilities, $zones ) );

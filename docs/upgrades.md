@@ -127,6 +127,12 @@ The files moved with them, from `src/class-*.php` to paths such as `src/Infrastr
 
 `Zoninator()->lock_zone()` used to replace a lock that another user held. It now leaves that lock in place and returns `false`. To take a zone over, call `Zoninator()->unlock_zone()` first. The REST route and the Zones screen already refused to lock a zone someone else was editing, so nothing changes there.
 
+### The zone post actions always pass post IDs
+
+`zoninator_add_zone_posts` and `zoninator_remove_zone_posts` used to pass their first argument as whatever the caller gave: one post ID, an array of IDs, or `WP_Post` objects. They now always pass an array of post IDs. If your callback handled each form, you can drop that; if it expected `WP_Post` objects, call `get_post()` on each ID. The second argument is still the zone's `WP_Term`.
+
+A post listed twice when a zone's posts are set now keeps its first place, where it used to end up in its last.
+
 ### The widget's cache filter has a new name
 
 `zone_posts_widget_block_save_cache_seconds` is now [`zoninator_zone_posts_widget_block_save_cache_seconds`](hooks.md#zoninator_zone_posts_widget_block_save_cache_seconds-filter), with the prefix every other Zoninator hook uses. The old name no longer fires, so rename it in your `add_filter()` call.
