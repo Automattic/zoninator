@@ -29,7 +29,7 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 
 		$zone          = self::insert_zone( 'widget-zone', 'Widget zone', array( 'description' => 'About the zone' ) );
 		$this->zone_id = (int) $zone['term_id'];
-		$this->widget  = new Zoninator_ZonePosts_Widget();
+		$this->widget  = new Zoninator_ZonePosts_Widget( self::zones() );
 
 		wp_cache_delete( 'widget-zone-posts', 'widget' );
 		wp_cache_delete( 'widget-zone-posts-save_blocked', 'widget' );
@@ -141,10 +141,39 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 	public function test_save_pause_filter_can_turn_the_pause_off(): void {
 		add_filter( 'zoninator_zone_posts_widget_block_save_cache_seconds', '__return_zero' );
 
-		( new Zoninator_ZonePosts_Widget() )->flush_widget_cache();
+		$this->widget->flush_widget_cache();
 
 		remove_filter( 'zoninator_zone_posts_widget_block_save_cache_seconds', '__return_zero' );
 		$this->assertFalse( wp_cache_get( 'widget-zone-posts-save_blocked', 'widget' ) );
+	}
+
+	/**
+	 * Sites remove the widget, and themes print it, by its class name, so
+	 * WordPress must have it filed under that name.
+	 */
+	public function test_wordpress_knows_the_widget_by_its_class_name(): void {
+		global $wp_widget_factory;
+
+		$this->assertSame( zoninator_container()->get( Zoninator_ZonePosts_Widget::class ), $wp_widget_factory->widgets[ Zoninator_ZonePosts_Widget::class ] );
+		$this->assertSame( $wp_widget_factory->widgets[ Zoninator_ZonePosts_Widget::class ], $wp_widget_factory->get_widget_object( 'zoninator_zoneposts_widget' ) );
+	}
+
+	public function test_unregister_widget_removes_the_widget_by_its_class_name(): void {
+		global $wp_widget_factory;
+		$widget = $wp_widget_factory->widgets[ Zoninator_ZonePosts_Widget::class ];
+
+		unregister_widget( Zoninator_ZonePosts_Widget::class );
+		$removed = ! isset( $wp_widget_factory->widgets[ Zoninator_ZonePosts_Widget::class ] );
+		$wp_widget_factory->widgets[ Zoninator_ZonePosts_Widget::class ] = $widget;
+
+		$this->assertTrue( $removed );
+	}
+
+	/**
+	 * Building a widget must not hook anything, so a second one doesn't flush the cache twice.
+	 */
+	public function test_building_the_widget_adds_no_hooks(): void {
+		$this->assertFalse( has_action( 'save_post', array( $this->widget, 'flush_widget_cache' ) ) );
 	}
 
 	public function test_widget_for_an_empty_zone_outputs_nothing(): void {

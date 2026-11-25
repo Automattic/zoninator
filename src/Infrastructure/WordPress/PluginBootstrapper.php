@@ -93,6 +93,12 @@ final class PluginBootstrapper {
 		$container->add( new Block( $zones ) );
 
 		// Only REST and Abilities API requests need these, so they're built, and their files loaded, then.
+		$container->factory(
+			Zoninator_ZonePosts_Widget::class,
+			static function () use ( $zones ) {
+				return new Zoninator_ZonePosts_Widget( $zones );
+			}
+		);
 		$permissions = static function () use ( $container ) {
 			return $container->get( Permissions::class );
 		};
@@ -142,11 +148,10 @@ final class PluginBootstrapper {
 
 	/**
 	 * Registers every hook Zoninator uses: each class registers the ones it
-	 * handles, and the methods below load the REST and Abilities API classes
-	 * only when they're needed.
+	 * handles, and the methods below build the widget and load the REST and
+	 * Abilities API classes only when they're needed.
 	 */
 	public function register_hooks() {
-		Zoninator_ZonePosts_Widget::register_hooks();
 		$this->container->get( Taxonomy::class )->register_hooks();
 		$this->container->get( TermSplitHandler::class )->register_hooks();
 		$this->container->get( FeedEndpoint::class )->register_hooks();
@@ -154,9 +159,29 @@ final class PluginBootstrapper {
 		$this->container->get( Screen::class )->register_hooks();
 		$this->container->get( ZoneForm::class )->register_hooks();
 
+		add_action( 'widgets_init', array( $this, 'register_widget' ) );
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 		add_action( 'wp_abilities_api_categories_init', array( $this, 'register_ability_categories' ) );
 		add_action( 'wp_abilities_api_init', array( $this, 'register_abilities' ) );
+	}
+
+	/**
+	 * Builds the Zone Posts widget and registers it. Hooked on widgets_init,
+	 * which is the earliest the widget's name can be translated.
+	 *
+	 * @global \WP_Widget_Factory $wp_widget_factory
+	 */
+	public function register_widget() {
+		global $wp_widget_factory;
+
+		$widget = $this->container->get( Zoninator_ZonePosts_Widget::class );
+		$widget->register_hooks();
+
+		// Not register_widget(): given an object, it files the widget under the object's
+		// ID, and then unregister_widget( 'Zoninator_ZonePosts_Widget' ) and the_widget(
+		// 'Zoninator_ZonePosts_Widget' ), which sites and themes call, no longer find it.
+		// This is where register_widget() files a widget it builds from a class name.
+		$wp_widget_factory->widgets[ Zoninator_ZonePosts_Widget::class ] = $widget;
 	}
 
 	/**

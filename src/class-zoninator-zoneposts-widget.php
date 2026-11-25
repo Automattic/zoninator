@@ -19,50 +19,40 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 	/**
 	 * Constructor.
 	 *
-	 * WordPress builds widgets itself, with no arguments, so the zones come
-	 * from the container unless a test or a subclass passes them in.
+	 * WordPress can't build this widget itself, as it builds widgets with no
+	 * arguments. PluginBootstrapper builds it and files it with WordPress. To
+	 * register a subclass, build it the same way:
+	 * register_widget( new My_Widget( zoninator_container()->get( Zones::class ) ) ).
 	 *
-	 * @param Zones|null $zones Zones and the posts in them.
+	 * @param Zones $zones Zones and the posts in them.
 	 */
-	public function __construct( ?Zones $zones = null ) {
-		$this->zones = $zones ?? zoninator_container()->get( Zones::class );
-
-		$widget_ops = array(
-			'classname'   => 'widget-zone-posts',
-			'description' => __( 'Use this widget to display a list of posts from any zone.', 'zoninator' ),
-		);
-
+	public function __construct( Zones $zones ) {
+		$this->zones           = $zones;
 		$this->alt_option_name = 'widget_zone_posts';
-		add_action( 'save_post', array( &$this, 'flush_widget_cache' ) );
-		add_action( 'deleted_post', array( &$this, 'flush_widget_cache' ) );
-		add_action( 'switch_theme', array( &$this, 'flush_widget_cache' ) );
-		add_action( 'zoninator_add_zone_posts', array( $this, 'flush_widget_cache' ) );
-		add_action( 'zoninator_remove_zone_posts', array( $this, 'flush_widget_cache' ) );
-		add_action( 'edited_' . Taxonomy::NAME, array( $this, 'flush_widget_cache' ) );
 
 		parent::__construct(
 			false,
 			__( 'Zone Posts', 'zoninator' ),
-			$widget_ops
+			array(
+				'classname'   => 'widget-zone-posts',
+				'description' => __( 'Use this widget to display a list of posts from any zone.', 'zoninator' ),
+			)
 		);
 	}
 
 	/**
-	 * Hooks the widget's registration. PluginBootstrapper::register_hooks() calls this once.
+	 * Hooks the widget's cache to everything that changes what it shows.
+	 * PluginBootstrapper::register_widget() calls this once.
 	 *
 	 * @since 1.0.0
 	 */
-	public static function register_hooks() {
-		add_action( 'widgets_init', array( self::class, 'register' ) );
-	}
-
-	/**
-	 * Registers the widget. Hooked on widgets_init.
-	 *
-	 * @since 1.0.0
-	 */
-	public static function register() {
-		register_widget( self::class );
+	public function register_hooks() {
+		add_action( 'save_post', array( $this, 'flush_widget_cache' ) );
+		add_action( 'deleted_post', array( $this, 'flush_widget_cache' ) );
+		add_action( 'switch_theme', array( $this, 'flush_widget_cache' ) );
+		add_action( 'zoninator_add_zone_posts', array( $this, 'flush_widget_cache' ) );
+		add_action( 'zoninator_remove_zone_posts', array( $this, 'flush_widget_cache' ) );
+		add_action( 'edited_' . Taxonomy::NAME, array( $this, 'flush_widget_cache' ) );
 	}
 
 	public function widget( $args, $instance ) {

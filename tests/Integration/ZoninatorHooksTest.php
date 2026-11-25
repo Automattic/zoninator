@@ -33,7 +33,7 @@ class ZoninatorHooksTest extends TestCase {
 	 */
 	private const HOOKS = array(
 		'init'                             => array( Taxonomy::class . '::register 10 1', FeedEndpoint::class . '::add_rewrite_rule 10 1' ),
-		'widgets_init'                     => array( Zoninator_ZonePosts_Widget::class . '::register 10 1' ),
+		'widgets_init'                     => array( PluginBootstrapper::class . '::register_widget 10 1' ),
 		'template_redirect'                => array( FeedEndpoint::class . '::serve 10 1' ),
 		'split_shared_term'                => array( TermSplitHandler::class . '::move_zone_posts 10 4' ),
 		'query_loop_block_query_vars'      => array( Block::class . '::filter_query_vars 10 2' ),
@@ -109,7 +109,7 @@ class ZoninatorHooksTest extends TestCase {
 
 		return array(
 			'taxonomy'         => array( 'init', array( zoninator_container()->get( Taxonomy::class ), 'register' ), 10 ),
-			'widget'           => array( 'widgets_init', array( 'Zoninator_ZonePosts_Widget', 'register' ), 10 ),
+			'widget'           => array( 'widgets_init', array( zoninator_container()->get( PluginBootstrapper::class ), 'register_widget' ), 10 ),
 			'feed rewrite'     => array( 'init', array( $feed, 'add_rewrite_rule' ), 10 ),
 			'feed'             => array( 'template_redirect', array( $feed, 'serve' ), 10 ),
 			'term split'       => array( 'split_shared_term', array( zoninator_container()->get( TermSplitHandler::class ), 'move_zone_posts' ), 10 ),
