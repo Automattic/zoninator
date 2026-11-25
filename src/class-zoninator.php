@@ -78,6 +78,13 @@ class Zoninator {
 	private $feed;
 
 	/**
+	 * The Zone Posts Query Loop variation. The zone block methods here delegate to it.
+	 *
+	 * @var \Automattic\Zoninator\Block
+	 */
+	private $block;
+
+	/**
 	 * The settings sites tune with filters, and the screen's messages.
 	 *
 	 * @var \Automattic\Zoninator\Settings
@@ -118,6 +125,7 @@ class Zoninator {
 		$this->zones        = new \Automattic\Zoninator\Zones( $this->settings, $this->taxonomy, $this->capabilities );
 		$this->locks        = new \Automattic\Zoninator\Locks( $this->zones, $this->settings );
 		$this->feed         = new \Automattic\Zoninator\Feed( $this->zones );
+		$this->block        = new \Automattic\Zoninator\Block( $this->zones );
 		$this->admin_screen = new \Automattic\Zoninator\Admin\Screen(
 			$this->zones,
 			$this->locks,
@@ -151,6 +159,13 @@ class Zoninator {
 		add_action( 'template_redirect', array( $this, 'do_zoninator_feeds' ) );
 
 		add_action( 'split_shared_term', array( $this, 'split_shared_term' ), 10, 4 );
+
+		add_filter( 'query_loop_block_query_vars', array( $this, 'zone_block_query_vars' ), 10, 2 );
+
+		// The Zone Posts block's editor preview always reads /wp/v2/posts.
+		add_filter( 'rest_post_query', array( $this, 'zone_block_rest_query' ), 10, 2 );
+
+		add_action( 'enqueue_block_editor_assets', array( $this, 'zone_block_editor_assets' ) );
 
 		$this->maybe_add_rest_api();
 
@@ -392,6 +407,41 @@ class Zoninator {
 		add_action( 'zoninator_advanced_search_fields', array( $this, 'zone_advanced_search_date_filter' ), 20 );
 
 		do_action( 'zoninator_post_init' );
+	}
+
+	/**
+	 * Turns a Zone Posts Query Loop block's query into the zone's query.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array    $query Query args core built from the block.
+	 * @param WP_Block $block The Post Template or Query Pagination block inside the Query Loop.
+	 * @return array
+	 */
+	public function zone_block_query_vars( $query, $block ) {
+		return $this->block->filter_query_vars( $query, $block );
+	}
+
+	/**
+	 * Turns the Zone Posts block's editor preview request into the zone's query.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array           $args    Query args for the REST request.
+	 * @param WP_REST_Request $request The REST request.
+	 * @return array
+	 */
+	public function zone_block_rest_query( $args, $request ) {
+		return $this->block->filter_rest_query( $args, $request );
+	}
+
+	/**
+	 * Loads the Zone Posts block's editor script.
+	 *
+	 * @since 1.0.0
+	 */
+	public function zone_block_editor_assets() {
+		return $this->block->enqueue_editor_assets();
 	}
 
 	public function widgets_init() {

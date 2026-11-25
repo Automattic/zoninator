@@ -253,6 +253,22 @@ final class Zones {
 	}
 
 	public function get_query( $zone, $args = array() ) {
+		return new WP_Query( $this->get_query_args( $zone, $args ) );
+	}
+
+	/**
+	 * Gets the WP_Query args for a zone's posts, in zone order.
+	 *
+	 * The zone Query Loop block uses these too, so every way of listing a
+	 * zone follows the same rules.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param int|string|WP_Term $zone Zone.
+	 * @param array              $args Optional. Query args to change the defaults.
+	 * @return array
+	 */
+	public function get_query_args( $zone, $args = array() ) {
 		$meta_key = $this->get_meta_key( $zone );
 
 		$defaults = array(
@@ -281,7 +297,7 @@ final class Zones {
 		$args['orderby']  = 'meta_value_num';
 		$args['meta_key'] = $meta_key;
 
-		return new WP_Query( $args );
+		return $args;
 	}
 
 	public function get_last_post( $zone ) {

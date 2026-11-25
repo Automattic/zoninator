@@ -31,7 +31,7 @@ This plugin was originally built by [Mohammad Jangda](http://digitalize.ca) in c
 1. Unzip contents and upload to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Go to Zones in the admin menu to create and manage your zones, and easily search for and add existing posts.
-4. Use the plugin's handy API functions to add zones to your theme that retrieve and display your content. Or, for those who are a bit code-averse, go to Appearance-Widgets and add Zone Posts widgets to display your zone posts in your sidebar or footer. The widget will pull the posts from the chosen zone.
+4. Use the plugin's handy API functions to add zones to your theme that retrieve and display your content. Or, for those who are a bit code-averse, go to Appearance-Widgets and add Zone Posts widgets to display your zone posts in your sidebar or footer. The widget will pull the posts from the chosen zone. On a block theme, add the Zone Posts block to a page or template and pick the zone in its settings.
 
 ### Usage examples
 
