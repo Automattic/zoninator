@@ -62,6 +62,36 @@ The `__get()`, `__set()` and `__isset()` methods that kept `Zoninator()`'s old p
 | `admin_page_zone_tabs()`, `admin_page_zone_edit()`, `admin_page_zone_details()`, `admin_page_zone_content()`, `admin_page_zone_post()`, `zone_advanced_search_filters()` and `zone_admin_search_form()` | Nothing; the Zones screen renders these parts itself. To add to it, use the [zone field hooks](hooks.md#zoninator_pre_zone_fields--zoninator_post_zone_fields-actions), [`zoninator_zone_post_columns`](hooks.md#zoninator_zone_post_columns-filter) and [`zoninator_advanced_search_fields`](hooks.md#zoninator_advanced_search_fields-action) |
 | `is_zoninator_page()` | `'toplevel_page_zoninator' === get_current_screen()->id` |
 
+### Hooks are registered on the objects that handle them
+
+Up to 0.12.x, every Zoninator hook was registered on the `Zoninator` object, with a one-line method that handed the work to the class that does it. In 1.0.0 each hook is registered on that class's object, and the one-line methods are gone.
+
+**Check your `remove_action()` and `remove_filter()` calls.** One that names an old callback, such as `remove_action( 'template_redirect', array( Zoninator(), 'do_zoninator_feeds' ) )`, now matches nothing. PHP gives no error and WordPress gives no notice, so the hook quietly keeps running. Replace it with the call in the last column. `Zoninator()` has four new getters for this: `get_admin_screen()`, `get_feed()`, `get_block()` and `get_zone_store()`. They return the objects that handle the hooks; use them only to unhook, as their other methods are internal.
+
+| Hook | Old callback | How to unhook it in 1.0.0 |
+|---|---|---|
+| `init` | `array( Zoninator(), 'add_zone_feed' )` | `remove_action( 'init', array( Zoninator()->get_feed(), 'add_rewrite_rule' ) )` |
+| `template_redirect` | `array( Zoninator(), 'do_zoninator_feeds' )` | `remove_action( 'template_redirect', array( Zoninator()->get_feed(), 'serve' ) )` |
+| `widgets_init` | `array( Zoninator(), 'widgets_init' )` | `remove_action( 'widgets_init', array( 'Zoninator_ZonePosts_Widget', 'register' ) )` |
+| `split_shared_term` | `array( Zoninator(), 'split_shared_term' )` | `remove_action( 'split_shared_term', array( Zoninator()->get_zone_store(), 'split_shared_term' ) )` |
+| `query_loop_block_query_vars` | `array( Zoninator(), 'zone_block_query_vars' )` | `remove_filter( 'query_loop_block_query_vars', array( Zoninator()->get_block(), 'filter_query_vars' ) )` |
+| `rest_post_query` | `array( Zoninator(), 'zone_block_rest_query' )` | `remove_filter( 'rest_post_query', array( Zoninator()->get_block(), 'filter_rest_query' ) )` |
+| `enqueue_block_editor_assets` | `array( Zoninator(), 'zone_block_editor_assets' )` | `remove_action( 'enqueue_block_editor_assets', array( Zoninator()->get_block(), 'enqueue_editor_assets' ) )` |
+| `admin_init` | `array( Zoninator(), 'admin_controller' )` | `remove_action( 'admin_init', array( Zoninator()->get_admin_screen(), 'handle_request' ) )` |
+| `admin_init` | `array( Zoninator(), 'admin_init' )`, which added the two `admin_enqueue_scripts` callbacks | Nothing to unhook: the two callbacks below are now added directly |
+| `admin_enqueue_scripts` | `array( Zoninator(), 'admin_enqueue_scripts' )` | `remove_action( 'admin_enqueue_scripts', array( Zoninator()->get_admin_screen(), 'enqueue_scripts' ) )` |
+| `admin_enqueue_scripts` | `array( Zoninator(), 'admin_enqueue_styles' )` | `remove_action( 'admin_enqueue_scripts', array( Zoninator()->get_admin_screen(), 'enqueue_styles' ) )` |
+| `admin_menu` | `array( Zoninator(), 'admin_page_init' )` | `remove_action( 'admin_menu', array( Zoninator()->get_admin_screen(), 'register_menu_page' ) )` |
+| `toplevel_page_zoninator` | `array( Zoninator(), 'admin_page' )` | `remove_action( 'toplevel_page_zoninator', array( Zoninator()->get_admin_screen(), 'render' ) )` |
+| `zoninator_advanced_search_fields` | `array( Zoninator(), 'zone_advanced_search_cat_filter' )` | `remove_action( 'zoninator_advanced_search_fields', array( Zoninator()->get_admin_screen(), 'render_category_filter' ) )` |
+| `zoninator_advanced_search_fields` | `array( Zoninator(), 'zone_advanced_search_date_filter' )`, priority 20 | `remove_action( 'zoninator_advanced_search_fields', array( Zoninator()->get_admin_screen(), 'render_date_filter' ), 20 )` |
+
+As before, Zoninator adds the `admin_init`, `admin_enqueue_scripts`, `admin_menu` and `zoninator_advanced_search_fields` callbacks on `init` at priority 99, so remove them after that, for example on `admin_init` at priority 0. `toplevel_page_zoninator` is added on `admin_menu`.
+
+These hooks keep their `Zoninator` callbacks, so calls that remove them still work: `init` at priority 99 (`array( Zoninator(), 'init' )`), `rest_api_init` (`register_rest_routes`), `wp_abilities_api_categories_init` (`register_ability_categories`) and `wp_abilities_api_init` (`register_abilities`).
+
+The default callbacks in [`zoninator_zone_post_columns`](hooks.md#zoninator_zone_post_columns-filter) have moved the same way: `array( Zoninator(), 'admin_page_zone_post_col_position' )` and `array( Zoninator(), 'admin_page_zone_post_col_info' )` are now `array( Zoninator()->get_admin_screen(), 'render_position_column' )` and `array( Zoninator()->get_admin_screen(), 'render_info_column' )`. If your filter compares them or calls them directly, update it.
+
 ### The widget's cache filter has a new name
 
 `zone_posts_widget_block_save_cache_seconds` is now [`zoninator_zone_posts_widget_block_save_cache_seconds`](hooks.md#zoninator_zone_posts_widget_block_save_cache_seconds-filter), with the prefix every other Zoninator hook uses. The old name no longer fires, so rename it in your `add_filter()` call.
@@ -89,7 +119,7 @@ The values sites tune now come from filters, and the fixed values are class cons
 | `$zone_ajax_nonce_action` | `Automattic\Zoninator\Admin\Ajax::NONCE_ACTION` | can't be changed |
 | `$zone_term_prefix` | Zoninator never used it; use your own value | — |
 
-The work behind `Zoninator` now lives in classes under `Automattic\Zoninator\`. They're `final` and internal, so keep using `Zoninator()`, the template tags and the hooks. Zoninator's hooks are still registered on the `Zoninator` object, so `remove_action( 'init', array( Zoninator(), 'init' ), 99 )` and the like keep working.
+The work behind `Zoninator` now lives in classes under `Automattic\Zoninator\`. They're `final` and internal, so keep using `Zoninator()`, the template tags and the hooks. Zoninator's hooks are still registered on the `Zoninator` object, so `remove_action( 'init', array( Zoninator(), 'init' ), 99 )` and the like keep working. 1.0.0 [moves most of them](#hooks-are-registered-on-the-objects-that-handle-them).
 
 ### The REST API runs on core's `WP_REST_Controller`
 

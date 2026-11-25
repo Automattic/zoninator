@@ -22,7 +22,7 @@ final class ZoninatorZoneFeedTest extends TestCase {
 
 	public function test_feed_url_sets_the_zone_query_var(): void {
 		$this->set_permalink_structure( '/%postname%/' );
-		\Zoninator()->add_zone_feed();
+		\Zoninator()->get_feed()->add_rewrite_rule();
 		flush_rewrite_rules();
 
 		$this->go_to( home_url( '/zones/homepage/feed.json' ) );
@@ -113,29 +113,9 @@ final class ZoninatorZoneFeedTest extends TestCase {
 
 	public function test_a_request_without_the_feed_query_var_is_left_alone(): void {
 		ob_start();
-		\Zoninator()->do_zoninator_feeds();
+		\Zoninator()->get_feed()->serve();
 
 		$this->assertSame( '', ob_get_clean() );
-	}
-
-	/**
-	 * @dataProvider data_feed_hooks
-	 *
-	 * @param string $hook   Hook name.
-	 * @param string $method Zoninator method.
-	 */
-	public function test_feed_hooks_are_registered_on_the_facade( string $hook, string $method ): void {
-		$this->assertSame( 10, has_action( $hook, array( \Zoninator(), $method ) ) );
-	}
-
-	/**
-	 * @return array<string, array{string, string}>
-	 */
-	public function data_feed_hooks(): array {
-		return array(
-			'rewrite rule' => array( 'init', 'add_zone_feed' ),
-			'feed request' => array( 'template_redirect', 'do_zoninator_feeds' ),
-		);
 	}
 
 	private function create_zone(): int {

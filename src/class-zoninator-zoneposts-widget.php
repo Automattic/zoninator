@@ -27,6 +27,15 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		);
 	}
 
+	/**
+	 * Registers the widget. Hooked on widgets_init.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function register() {
+		register_widget( self::class );
+	}
+
 	public function widget( $args, $instance ) {
 		$cache_key = 'widget-zone-posts';
 		$cache     = wp_cache_get( $cache_key, 'widget' );

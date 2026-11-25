@@ -64,7 +64,7 @@ final class ZoninatorZoneBlockTest extends TestCase {
 			array( 'query' => array( 'postType' => 'page' ) )
 		);
 
-		$this->assertSame( $query, \Zoninator()->zone_block_query_vars( $query, $block ) );
+		$this->assertSame( $query, \Zoninator()->get_block()->filter_query_vars( $query, $block ) );
 	}
 
 	public function test_editor_preview_lists_zone_posts_in_zone_order(): void {
@@ -123,10 +123,6 @@ final class ZoninatorZoneBlockTest extends TestCase {
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( array( $second, $first ), wp_list_pluck( $response->get_data(), 'id' ) );
-	}
-
-	public function test_editor_preview_filter_is_always_registered(): void {
-		$this->assertSame( 10, has_filter( 'rest_post_query', array( \Zoninator(), 'zone_block_rest_query' ) ) );
 	}
 
 	public function test_block_second_page_shows_the_next_zone_posts(): void {

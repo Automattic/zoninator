@@ -11,7 +11,7 @@ class ZoninatorZoneScreenTest extends TestCase {
 
 	private function render_zone_edit( $zone = null ): string {
 		ob_start();
-		self::admin_screen()->render_zone_edit( $zone );
+		Zoninator()->get_admin_screen()->render_zone_edit( $zone );
 		return (string) ob_get_clean();
 	}
 
@@ -65,7 +65,7 @@ class ZoninatorZoneScreenTest extends TestCase {
 		$post_id = self::factory()->post->create( array( 'post_title' => 'Labelled story' ) );
 
 		ob_start();
-		Zoninator()->admin_page_zone_post_col_info( get_post( $post_id ), $zone );
+		Zoninator()->get_admin_screen()->render_info_column( get_post( $post_id ), $zone );
 		$output = (string) ob_get_clean();
 
 		$this->assertStringContainsString( '<span class="zone-post-status">(Published)</span>', $output );
@@ -78,7 +78,7 @@ class ZoninatorZoneScreenTest extends TestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 
 		ob_start();
-		Zoninator()->admin_page_zone_post_col_info( get_post( $post_id ), $zone );
+		Zoninator()->get_admin_screen()->render_info_column( get_post( $post_id ), $zone );
 		$output = (string) ob_get_clean();
 
 		$this->assertStringNotContainsString( 'class="edit"', $output );
@@ -87,7 +87,7 @@ class ZoninatorZoneScreenTest extends TestCase {
 
 	public function test_date_filter_shows_labels(): void {
 		ob_start();
-		Zoninator()->zone_advanced_search_date_filter();
+		Zoninator()->get_admin_screen()->render_date_filter();
 		$output = (string) ob_get_clean();
 
 		$this->assertStringContainsString( '>All dates</option>', $output );

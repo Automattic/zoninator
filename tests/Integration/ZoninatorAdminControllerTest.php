@@ -222,7 +222,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->set_request( $action, $fields, true );
 
 		try {
-			\Zoninator()->admin_controller();
+			\Zoninator()->get_admin_screen()->handle_request();
 		} catch ( RuntimeException $e ) {
 			return $e->getMessage();
 		}
@@ -241,7 +241,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->set_request( $action, $fields, true );
 
 		try {
-			\Zoninator()->admin_controller();
+			\Zoninator()->get_admin_screen()->handle_request();
 		} catch ( RuntimeException | WPDieException $e ) {
 			return;
 		}
@@ -265,7 +265,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		);
 
 		try {
-			\Zoninator()->admin_controller();
+			\Zoninator()->get_admin_screen()->handle_request();
 			$this->fail( 'Expected the handler to stop the request.' );
 		} catch ( WPDieException $e ) {
 			$this->assertSame( esc_html( "Sorry, you're not supposed to do that..." ), $e->getMessage() );

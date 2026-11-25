@@ -25,7 +25,7 @@ class ZoninatorZoneLockNoticeTest extends TestCase {
 		Zoninator()->lock_zone( (int) $zone['term_id'], $locker_id );
 
 		ob_start();
-		self::admin_screen()->render_zone_edit( Zoninator()->get_zone( (int) $zone['term_id'] ) );
+		Zoninator()->get_admin_screen()->render_zone_edit( Zoninator()->get_zone( (int) $zone['term_id'] ) );
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( 'Zone Locker', $output );
