@@ -28,11 +28,11 @@ use Automattic\Zoninator\Infrastructure\WordPress\Request;
 final class ZoneForm {
 
 	/**
-	 * The Zones screen, for its URL.
+	 * Where the Zones screen is.
 	 *
-	 * @var Screen
+	 * @var ScreenLocation
 	 */
-	private $screen;
+	private $location;
 
 	/**
 	 * Reads and checks requests.
@@ -51,14 +51,14 @@ final class ZoneForm {
 	/**
 	 * Constructor.
 	 *
-	 * @param Screen             $screen  The Zones screen.
+	 * @param ScreenLocation     $location Where the Zones screen is.
 	 * @param Request            $request Reads and checks requests.
 	 * @param GuardedZoneManager $manager Creates, changes and deletes zones for the current user.
 	 */
-	public function __construct( Screen $screen, Request $request, GuardedZoneManager $manager ) {
-		$this->screen  = $screen;
-		$this->request = $request;
-		$this->manager = $manager;
+	public function __construct( ScreenLocation $location, Request $request, GuardedZoneManager $manager ) {
+		$this->location = $location;
+		$this->request  = $request;
+		$this->manager  = $manager;
 	}
 
 	/**
@@ -72,7 +72,7 @@ final class ZoneForm {
 	 * Saves the form if this request submitted it, then redirects.
 	 */
 	public function handle_request() {
-		if ( ! $this->screen->is_current() ) {
+		if ( ! $this->location->is_current() ) {
 			return;
 		}
 
@@ -88,10 +88,10 @@ final class ZoneForm {
 		$this->request->verify_access( $action, $zone_id );
 
 		try {
-			$url = $this->screen->get_page_url( $this->save( $action, $zone_id ) );
+			$url = $this->location->get_url( $this->save( $action, $zone_id ) );
 		} catch ( ZoneLockedException $exception ) {
 			// The zone's own page says who is editing it.
-			$url = $this->screen->get_page_url(
+			$url = $this->location->get_url(
 				array(
 					'action'  => 'edit',
 					'zone_id' => $zone_id,
@@ -99,7 +99,7 @@ final class ZoneForm {
 			);
 		} catch ( AccessDeniedException | InvalidZoneException | ZoneNotFoundException | ZoneNotSavedException $exception ) {
 			if ( 'delete' === $action ) {
-				$url = $this->screen->get_page_url( array( 'error' => $exception instanceof ZoneNotFoundException ? 'invalid-zone' : 'delete-zone' ) );
+				$url = $this->location->get_url( array( 'error' => $exception instanceof ZoneNotFoundException ? 'invalid-zone' : 'delete-zone' ) );
 			} else {
 				$url = add_query_arg( 'message', 'error-general' );
 			}

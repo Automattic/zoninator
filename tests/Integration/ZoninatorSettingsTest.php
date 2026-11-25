@@ -7,7 +7,7 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
-use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenLocation;
 use Automattic\Zoninator\Infrastructure\WordPress\Request;
 use Automattic\Zoninator\Infrastructure\WordPress\Settings;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
@@ -51,7 +51,7 @@ class ZoninatorSettingsTest extends TestCase {
 	public function test_fixed_values_do_not_change(): void {
 		$this->assertSame( 'zoninator_zones', Taxonomy::NAME );
 		$this->assertSame( '_zoninator_order_', Zones::META_PREFIX );
-		$this->assertSame( 'zoninator', Screen::PAGE_SLUG );
+		$this->assertSame( 'zoninator', ScreenLocation::SLUG );
 		$this->assertSame( 'zone-nonce', Request::NONCE_PREFIX );
 	}
 

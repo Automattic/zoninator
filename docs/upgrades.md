@@ -146,12 +146,12 @@ Up to 0.12.x, every Zoninator hook was registered on the `Zoninator` object, wit
 | `enqueue_block_editor_assets` | `array( Zoninator(), 'zone_block_editor_assets' )` | `remove_action( 'enqueue_block_editor_assets', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class ), 'enqueue_editor_assets' ) )` |
 | `admin_init` | `array( Zoninator(), 'admin_controller' )` | `remove_action( 'admin_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm::class ), 'handle_request' ) )` |
 | `admin_init` | `array( Zoninator(), 'admin_init' )`, which added the two `admin_enqueue_scripts` callbacks | Nothing to unhook: the two callbacks below are now added directly |
-| `admin_enqueue_scripts` | `array( Zoninator(), 'admin_enqueue_scripts' )` | `remove_action( 'admin_enqueue_scripts', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'enqueue_scripts' ) )` |
-| `admin_enqueue_scripts` | `array( Zoninator(), 'admin_enqueue_styles' )` | `remove_action( 'admin_enqueue_scripts', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'enqueue_styles' ) )` |
-| `admin_menu` | `array( Zoninator(), 'admin_page_init' )` | `remove_action( 'admin_menu', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'register_menu_page' ) )` |
+| `admin_enqueue_scripts` | `array( Zoninator(), 'admin_enqueue_scripts' )` | `remove_action( 'admin_enqueue_scripts', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Assets::class ), 'enqueue_scripts' ) )` |
+| `admin_enqueue_scripts` | `array( Zoninator(), 'admin_enqueue_styles' )` | `remove_action( 'admin_enqueue_scripts', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Assets::class ), 'enqueue_styles' ) )` |
+| `admin_menu` | `array( Zoninator(), 'admin_page_init' )` | `remove_action( 'admin_menu', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Menu::class ), 'register' ) )` |
 | `toplevel_page_zoninator` | `array( Zoninator(), 'admin_page' )` | `remove_action( 'toplevel_page_zoninator', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'render' ) )` |
-| `zoninator_advanced_search_fields` | `array( Zoninator(), 'zone_advanced_search_cat_filter' )` | `remove_action( 'zoninator_advanced_search_fields', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'render_category_filter' ) )` |
-| `zoninator_advanced_search_fields` | `array( Zoninator(), 'zone_advanced_search_date_filter' )`, priority 20 | `remove_action( 'zoninator_advanced_search_fields', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'render_date_filter' ), 20 )` |
+| `zoninator_advanced_search_fields` | `array( Zoninator(), 'zone_advanced_search_cat_filter' )` | `remove_action( 'zoninator_advanced_search_fields', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\SearchForm::class ), 'render_category_filter' ) )` |
+| `zoninator_advanced_search_fields` | `array( Zoninator(), 'zone_advanced_search_date_filter' )`, priority 20 | `remove_action( 'zoninator_advanced_search_fields', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\SearchForm::class ), 'render_date_filter' ), 20 )` |
 
 Zoninator adds all of these when it boots, on `plugins_loaded` at priority 10 (see [Zoninator boots on `plugins_loaded`](#zoninator-boots-on-plugins_loaded)). The admin ones used to wait for `init` at priority 99. Remove them on `plugins_loaded` at priority 20, which works for every hook in the table. The exception is `toplevel_page_zoninator`, which is added on `admin_menu`, so remove it on `admin_menu` at priority 11 or later.
 
@@ -179,7 +179,7 @@ The classes 0.12.0 added under `Automattic\Zoninator\` are internal, but if your
 
 | 0.12.x | 1.0.0 |
 |---|---|
-| `Automattic\Zoninator\Admin\Screen` | `Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen` |
+| `Automattic\Zoninator\Admin\Screen` | Several classes under `Automattic\Zoninator\Infrastructure\WordPress\Admin\`, each with one part of the screen. `Screen` still prints the page, and its `PAGE_SLUG` constant is now `ScreenLocation::SLUG` |
 | `Automattic\Zoninator\REST\Zones_Controller` | Four controllers under `Automattic\Zoninator\Infrastructure\WordPress\Rest\`: `ZonesController`, `ZonePostsController`, `SearchController` and `LockController`. Its error code constants are on `ErrorCodes` |
 | `Automattic\Zoninator\Settings`, `Taxonomy`, `Capabilities`, `Request`, `Zones` and `Feed` | The same class name under `Automattic\Zoninator\Infrastructure\WordPress\` |
 | `Automattic\Zoninator\Locks` | `Automattic\Zoninator\Application\ZoneLocker`, whose `lock()` and `get_blocker_id()` take a zone ID and a user ID |
@@ -246,7 +246,7 @@ The values sites tune now come from filters, and the fixed values are class cons
 | `$zone_messages` | `Zoninator()->_get_message()` | can't be changed |
 | `$zone_taxonomy` | `Zoninator::ZONE_TAXONOMY` | can't be changed |
 | `$zone_meta_prefix` | `Zoninator::ZONE_META_PREFIX` | can't be changed |
-| `$key` | `Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::PAGE_SLUG` | can't be changed |
+| `$key` | `Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenLocation::SLUG` | can't be changed |
 | `$zone_nonce_prefix` | `Zoninator()->_get_nonce_key()` | can't be changed |
 | `$zone_ajax_nonce_action` | `Automattic\Zoninator\Admin\Ajax::NONCE_ACTION` | can't be changed |
 | `$zone_term_prefix` | Zoninator never used it; use your own value | — |

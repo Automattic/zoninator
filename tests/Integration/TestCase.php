@@ -11,6 +11,8 @@ use Automattic\Zoninator\Application\ZoneCurator;
 use Automattic\Zoninator\Application\ZoneLocker;
 use Automattic\Zoninator\Application\ZoneManager;
 use Automattic\Zoninator\Application\ZoneRemover;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenDataLoader;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneEditorView;
 use Automattic\Zoninator\Infrastructure\WordPress\Feed;
 use Automattic\Zoninator\Infrastructure\WordPress\Settings;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
@@ -99,6 +101,19 @@ abstract class TestCase extends WPIntegrationTestCase {
 			},
 			is_array( $posts ) ? $posts : array( $posts )
 		);
+	}
+
+	/**
+	 * Renders the Zones screen's editor for the current user.
+	 *
+	 * @param int $zone_id Zone to open, or 0 for the form that adds one.
+	 * @return string HTML.
+	 */
+	protected static function render_zone_editor( int $zone_id = 0 ): string {
+		ob_start();
+		zoninator_container()->get( ZoneEditorView::class )->render( zoninator_container()->get( ScreenDataLoader::class )->load( $zone_id ) );
+
+		return (string) ob_get_clean();
 	}
 
 	protected static function zones(): Zones {

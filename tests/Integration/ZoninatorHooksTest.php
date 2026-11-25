@@ -15,7 +15,10 @@ namespace Automattic\Zoninator\Tests\Integration;
 
 use ArrayObject;
 use Automattic\Zoninator\Infrastructure\DI\Container;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\Assets;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\Menu;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\SearchForm;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZonePostRow;
 use Automattic\Zoninator\Infrastructure\WordPress\Block;
@@ -45,9 +48,9 @@ class ZoninatorHooksTest extends TestCase {
 		'wp_abilities_api_categories_init' => array( PluginBootstrapper::class . '::register_ability_categories 10 1' ),
 		'wp_abilities_api_init'            => array( PluginBootstrapper::class . '::register_abilities 10 1' ),
 		'admin_init'                       => array( ZoneForm::class . '::handle_request 10 1' ),
-		'admin_enqueue_scripts'            => array( Screen::class . '::enqueue_scripts 10 1', Screen::class . '::enqueue_styles 10 1' ),
-		'admin_menu'                       => array( Screen::class . '::register_menu_page 10 1' ),
-		'zoninator_advanced_search_fields' => array( Screen::class . '::render_category_filter 10 1', Screen::class . '::render_date_filter 20 1' ),
+		'admin_enqueue_scripts'            => array( Assets::class . '::enqueue_scripts 10 1', Assets::class . '::enqueue_styles 10 1' ),
+		'admin_menu'                       => array( Menu::class . '::register 10 1' ),
+		'zoninator_advanced_search_fields' => array( SearchForm::class . '::render_category_filter 10 1', SearchForm::class . '::render_date_filter 20 1' ),
 		// The widget registers these on itself when it's built.
 		'save_post'                        => array( Zoninator_ZonePosts_Widget::class . '::flush_widget_cache 10 1' ),
 		'deleted_post'                     => array( Zoninator_ZonePosts_Widget::class . '::flush_widget_cache 10 1' ),
@@ -104,7 +107,8 @@ class ZoninatorHooksTest extends TestCase {
 	 * @return array<string, array{string, callable, int}>
 	 */
 	public function data_unhook_calls(): array {
-		$screen = zoninator_container()->get( Screen::class );
+		$assets = zoninator_container()->get( Assets::class );
+		$search = zoninator_container()->get( SearchForm::class );
 		$feed   = zoninator_container()->get( FeedEndpoint::class );
 		$block  = zoninator_container()->get( Block::class );
 
@@ -121,11 +125,11 @@ class ZoninatorHooksTest extends TestCase {
 			'ability category' => array( 'wp_abilities_api_categories_init', array( zoninator_container()->get( PluginBootstrapper::class ), 'register_ability_categories' ), 10 ),
 			'abilities'        => array( 'wp_abilities_api_init', array( zoninator_container()->get( PluginBootstrapper::class ), 'register_abilities' ), 10 ),
 			'form handling'    => array( 'admin_init', array( zoninator_container()->get( ZoneForm::class ), 'handle_request' ), 10 ),
-			'scripts'          => array( 'admin_enqueue_scripts', array( $screen, 'enqueue_scripts' ), 10 ),
-			'styles'           => array( 'admin_enqueue_scripts', array( $screen, 'enqueue_styles' ), 10 ),
-			'menu'             => array( 'admin_menu', array( $screen, 'register_menu_page' ), 10 ),
-			'category field'   => array( 'zoninator_advanced_search_fields', array( $screen, 'render_category_filter' ), 10 ),
-			'date field'       => array( 'zoninator_advanced_search_fields', array( $screen, 'render_date_filter' ), 20 ),
+			'scripts'          => array( 'admin_enqueue_scripts', array( $assets, 'enqueue_scripts' ), 10 ),
+			'styles'           => array( 'admin_enqueue_scripts', array( $assets, 'enqueue_styles' ), 10 ),
+			'menu'             => array( 'admin_menu', array( zoninator_container()->get( Menu::class ), 'register' ), 10 ),
+			'category field'   => array( 'zoninator_advanced_search_fields', array( $search, 'render_category_filter' ), 10 ),
+			'date field'       => array( 'zoninator_advanced_search_fields', array( $search, 'render_date_filter' ), 20 ),
 		);
 	}
 
@@ -137,7 +141,7 @@ class ZoninatorHooksTest extends TestCase {
 		$container    = new Container();
 		$bootstrapper = new PluginBootstrapper( $container );
 		$bootstrapper->build();
-		$callback = array( $container->get( Screen::class ), 'register_menu_page' );
+		$callback = array( $container->get( Menu::class ), 'register' );
 
 		$this->assertFalse( has_action( 'admin_menu', $callback ) );
 
@@ -204,7 +208,7 @@ class ZoninatorHooksTest extends TestCase {
 	public function test_menu_page_renders_with_the_screen(): void {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 
-		zoninator_container()->get( Screen::class )->register_menu_page();
+		zoninator_container()->get( Menu::class )->register();
 
 		$this->assertSame( 10, has_action( 'toplevel_page_zoninator', array( zoninator_container()->get( Screen::class ), 'render' ) ) );
 	}
@@ -239,7 +243,7 @@ class ZoninatorHooksTest extends TestCase {
 		$screen = get_current_screen();
 		set_current_screen( 'toplevel_page_zoninator' );
 
-		zoninator_container()->get( Screen::class )->enqueue_scripts();
+		zoninator_container()->get( Assets::class )->enqueue_scripts();
 
 		$GLOBALS['current_screen'] = $screen; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		$this->assertTrue( wp_script_is( 'zoninator-js', 'enqueued' ) );
