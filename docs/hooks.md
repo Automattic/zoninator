@@ -270,13 +270,13 @@ add_filter( 'zoninator_zone_posts_widget_html', function ( $html, $posts ) {
 }, 10, 2 );
 ```
 
-### `zone_posts_widget_block_save_cache_seconds` (filter)
+### `zoninator_zone_posts_widget_block_save_cache_seconds` (filter)
 
 Fires from `src/class-zoninator-zoneposts-widget.php`. How long (in seconds) the widget cache is locked against re-population after a flush. Defaults to `5`. Set to `0` to disable the lock.
 
 - **Parameters:** `int $seconds`
 
-> **Naming note.** This hook predates the `zoninator_` prefix convention and cannot be renamed without breaking sites that use it.
+Before 1.0.0 this filter was `zone_posts_widget_block_save_cache_seconds`.
 
 ## See also
 

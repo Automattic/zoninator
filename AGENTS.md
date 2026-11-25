@@ -131,4 +131,4 @@ See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key point
 - **Admin UI uses jQuery drag-and-drop**: test UI changes in a browser, not just with automated tests.
 - **`zoninator_zones` taxonomy is intentionally not public**: it has no front-end archive. Don't flip `public => true` to "fix" missing archives — themes are expected to render zones via template tags or `z_get_zone_query()`.
 - **Two version strings**: bump `zoninator.php` (header + `ZONINATOR_VERSION`), `package.json`, `package-lock.json`, and the `Stable tag` in `README.md`. The `npm run bump:*` scripts cover most of this.
-- **Don't add new hooks under the `zone_posts_widget_*` prefix**: that prefix is grandfathered. Use `zoninator_*` for any new hook (search the codebase before naming).
+- **Prefix every hook `zoninator_`**: 1.0.0 renamed the last hook without it, `zone_posts_widget_block_save_cache_seconds`. Search the codebase before naming a new one.
