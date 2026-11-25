@@ -133,8 +133,9 @@ final class ZonePostRow {
 		if ( $edit_link ) {
 			array_splice( $action_links, 2, 0, sprintf( '<a href="%s" class="edit" target="_blank" aria-label="%s">%s</a>', esc_url( $edit_link ), $labels['edit'], esc_html__( 'Edit', 'zoninator' ) ) );
 		}
+		$status = get_post_status_object( $post->post_status );
 		?>
-		<?php printf( '%s <span class="zone-post-status">(%s)</span>', esc_html( $post->post_title ), esc_html( $this->zones->get_post_status_label( $post ) ) ); ?>
+		<?php printf( '%s <span class="zone-post-status">(%s)</span>', esc_html( $post->post_title ), esc_html( $status ? $status->label : $post->post_status ) ); ?>
 
 	<div class="row-actions">
 		<?php echo wp_kses_post( implode( ' | ', $action_links ) ); ?>
