@@ -7,6 +7,8 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
+use WP_Post;
+
 /**
  * The capability checks for adding, editing and managing zones, and for
  * putting a post in one. Sites change the capabilities with the
@@ -65,7 +67,7 @@ final class Capabilities {
 	 * Request handlers take post IDs from the user, so they check here that
 	 * each ID is a post of a zone post type that the user can read.
 	 *
-	 * @param int|\WP_Post $post Post ID or object.
+	 * @param int|WP_Post $post Post ID or object.
 	 * @return bool
 	 */
 	public function current_user_can_add_post_to_zone( $post ) {

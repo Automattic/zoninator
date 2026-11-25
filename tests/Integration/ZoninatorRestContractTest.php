@@ -13,8 +13,10 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
 use WP_REST_Request;
 use WP_REST_Response;
+use Zoninator;
 
 /**
  * @coversNothing
@@ -304,7 +306,7 @@ final class ZoninatorRestContractTest extends TestCase {
 		// The zone reader repairs damaged descriptions, so check what was stored is valid as it is.
 		$this->assertSame(
 			array( 'description' => 'Crème brûlée' ),
-			unserialize( get_term_field( 'description', $zone->term_id, \Zoninator::ZONE_TAXONOMY, 'raw' ), array( 'allowed_classes' => false ) ) // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
+			unserialize( get_term_field( 'description', $zone->term_id, Zoninator::ZONE_TAXONOMY, 'raw' ), array( 'allowed_classes' => false ) ) // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
 		);
 	}
 
@@ -472,7 +474,7 @@ final class ZoninatorRestContractTest extends TestCase {
 		$response = $this->dispatch( 'POST', "/zones/$zone_id/posts/$post_id" );
 
 		ob_start();
-		zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class )->render_zone_post( get_post( $post_id ), Zoninator()->get_zone( $zone_id ) );
+		zoninator_container()->get( Screen::class )->render_zone_post( get_post( $post_id ), Zoninator()->get_zone( $zone_id ) );
 		$row = ob_get_clean();
 
 		$this->assertSame( 201, $response->get_status() );
@@ -997,13 +999,13 @@ final class ZoninatorRestContractTest extends TestCase {
 	}
 
 	public function test_get_zones_returns_an_error_code_when_zones_cannot_be_read(): void {
-		$taxonomy = $GLOBALS['wp_taxonomies'][ \Zoninator::ZONE_TAXONOMY ];
-		unset( $GLOBALS['wp_taxonomies'][ \Zoninator::ZONE_TAXONOMY ] );
+		$taxonomy = $GLOBALS['wp_taxonomies'][ Zoninator::ZONE_TAXONOMY ];
+		unset( $GLOBALS['wp_taxonomies'][ Zoninator::ZONE_TAXONOMY ] );
 
 		try {
 			$response = $this->dispatch( 'GET', '/zones' );
 		} finally {
-			$GLOBALS['wp_taxonomies'][ \Zoninator::ZONE_TAXONOMY ] = $taxonomy;
+			$GLOBALS['wp_taxonomies'][ Zoninator::ZONE_TAXONOMY ] = $taxonomy;
 		}
 
 		$this->assert_rest_error( $response, 400, 'zones-read-error', 'Zones could not be read.' );

@@ -7,6 +7,8 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
+use WP_Post;
+
 /**
  * Finds posts to offer for a zone: a text search, or the latest content when
  * nothing has been typed. The REST search route and the zoninator/search-posts
@@ -143,7 +145,7 @@ final class Search {
 	/**
 	 * Formats a post as a search result.
 	 *
-	 * @param \WP_Post $post Post.
+	 * @param WP_Post $post Post.
 	 * @return array The result, passed through the zoninator_search_results_post filter.
 	 */
 	private function format_search_result( $post ) {
@@ -175,7 +177,7 @@ final class Search {
 	 *
 	 * @param array $args    WP_Query args.
 	 * @param array $exclude Post IDs to leave out.
-	 * @return \WP_Post[]
+	 * @return WP_Post[]
 	 */
 	private function get_posts_excluding( $args, $exclude ) {
 		$exclude = array_unique( array_map( 'absint', (array) $exclude ) );

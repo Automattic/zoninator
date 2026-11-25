@@ -8,7 +8,9 @@
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 use WP_Error;
+use WP_Post;
 use WP_Query;
+use WP_Term;
 
 /**
  * Creates, reads, updates and deletes zones, and stores the posts in each
@@ -21,7 +23,7 @@ use WP_Query;
  * Zoninator keeps a public method for each of these under its original name
  * (insert_zone() for insert(), get_zone_posts() for get_posts(), and so on),
  * which delegates here. It registers its own hook in register_hooks(), and
- * sites reach it with zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Zones::class ) to unhook it.
+ * sites reach it with zoninator_container()->get( Zones::class ) to unhook it.
  *
  * @since 0.12.0
  * @internal Use Zoninator(), the template tags and the hooks instead.
@@ -243,7 +245,7 @@ final class Zones {
 	 * unless a zone manager is in the admin.
 	 *
 	 * @param int $post_id Post ID.
-	 * @return \WP_Term[] The zones, by zone ID.
+	 * @return WP_Term[] The zones, by zone ID.
 	 */
 	public function get_for_post( $post_id ) {
 		$post = get_post( $post_id );
@@ -483,7 +485,7 @@ final class Zones {
 	/**
 	 * Gets the label for a post's status, such as "Published", falling back to the status itself.
 	 *
-	 * @param \WP_Post $post Post.
+	 * @param WP_Post $post Post.
 	 * @return string
 	 */
 	public function get_post_status_label( $post ) {
@@ -494,7 +496,7 @@ final class Zones {
 	/**
 	 * Gets the singular label for a post's type, such as "Post", falling back to the type itself.
 	 *
-	 * @param \WP_Post $post Post.
+	 * @param WP_Post $post Post.
 	 * @return string
 	 */
 	public function get_post_type_label( $post ) {

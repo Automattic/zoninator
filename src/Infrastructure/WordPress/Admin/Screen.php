@@ -17,7 +17,7 @@ use Automattic\Zoninator\Infrastructure\WordPress\Zones;
  * Renders the Zones admin screen, saves its zone form, and loads its assets.
  *
  * It registers its own hooks in register_hooks(). Sites reach it with
- * zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ) to unhook them.
+ * zoninator_container()->get( Screen::class ) to unhook them.
  *
  * @since 0.12.0
  * @internal Use Zoninator(), the template tags and the hooks instead.

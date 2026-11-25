@@ -8,6 +8,8 @@
 namespace Automattic\Zoninator\Tests\Integration;
 
 use WP_REST_Request;
+use WP_Term;
+use Zoninator;
 
 final class ZoninatorZoneDescriptionTest extends TestCase {
 
@@ -48,15 +50,15 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 		$zone_id = $this->damaged_zone();
 
 		Zoninator()->update_zone( $zone_id, array( 'name' => 'Renamed' ) );
-		clean_term_cache( $zone_id, \Zoninator::ZONE_TAXONOMY );
-		$raw = get_term( $zone_id, \Zoninator::ZONE_TAXONOMY )->description;
+		clean_term_cache( $zone_id, Zoninator::ZONE_TAXONOMY );
+		$raw = get_term( $zone_id, Zoninator::ZONE_TAXONOMY )->description;
 
 		$this->assertSame( array( 'description' => 'Café &amp; Co' ), unserialize( $raw, array( 'allowed_classes' => false ) ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
 	}
 
 	/**
 	 * @param string $description Description.
-	 * @return \WP_Term
+	 * @return WP_Term
 	 */
 	private function insert( $description ) {
 		$result = Zoninator()->insert_zone( 'description-' . wp_rand(), 'Zone', array( 'description' => $description ) );
@@ -74,7 +76,7 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 	private function damaged_zone() {
 		$result = wp_insert_term(
 			'Damaged',
-			\Zoninator::ZONE_TAXONOMY,
+			Zoninator::ZONE_TAXONOMY,
 			array( 'description' => 'a:1:{s:11:"description";s:20:"Café &amp; Co";}' )
 		);
 		$this->assertNotWPError( $result );

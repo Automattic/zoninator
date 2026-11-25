@@ -17,7 +17,7 @@ use WP_REST_Request;
  * which saves the zone ID as zoninatorZone in the block's query. These
  * callbacks turn that into the zone's query, on the front end and in the
  * editor preview. It registers its own hooks in register_hooks(), and sites
- * reach it with zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class ) to unhook them.
+ * reach it with zoninator_container()->get( Block::class ) to unhook them.
  *
  * @since 1.0.0
  * @internal Use Zoninator(), the template tags and the hooks instead.

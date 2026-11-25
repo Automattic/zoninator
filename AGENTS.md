@@ -120,6 +120,7 @@ See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key point
 - **PRs**: Open against `develop`. The title describes the outcome in sentence case, without a conventional commit prefix. The description explains the problem first, then how the PR solves it. PRs land as merge commits (squash and rebase merging are disabled), so every commit message reaches `develop` as written.
 - **Testing**: Integration tests run inside `wp-env` against a real WordPress install. Extend `Automattic\Zoninator\Tests\Integration\TestCase`. E2E tests in `tests/e2e/` cover only what a browser shows on the Zones screen; they share the development site's database, so create test data with the `zoninator` fixture, which deletes it afterwards, and never empty the site.
 - **Code style**: WordPress coding standards via PHPCS (with VIP rules). Tabs for indentation.
+- **Imports**: Name a class from another namespace with a `use` statement at the top of the file, then its short name, in code and docblocks alike. Write a fully qualified name inline only where a `use` can't help, such as an example of code a site would write.
 - **i18n**: All user-facing strings must use the `zoninator` text domain.
 
 ## Architectural Decisions
