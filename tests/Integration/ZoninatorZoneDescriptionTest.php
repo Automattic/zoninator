@@ -49,7 +49,7 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 	public function test_saving_a_damaged_zone_stores_a_valid_description(): void {
 		$zone_id = $this->damaged_zone();
 
-		self::zones()->update( $zone_id, array( 'name' => 'Renamed' ) );
+		self::update_zone( $zone_id, array( 'name' => 'Renamed' ) );
 		clean_term_cache( $zone_id, Taxonomy::NAME );
 		$raw = get_term( $zone_id, Taxonomy::NAME )->description;
 
@@ -61,7 +61,7 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 	 * @return WP_Term
 	 */
 	private function insert( $description ) {
-		$result = self::zones()->insert( 'description-' . wp_rand(), 'Zone', array( 'description' => $description ) );
+		$result = self::insert_zone( 'description-' . wp_rand(), 'Zone', array( 'description' => $description ) );
 		$this->assertNotWPError( $result );
 
 		return self::zones()->get( (int) $result['term_id'] );

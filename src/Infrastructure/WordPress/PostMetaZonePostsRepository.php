@@ -48,6 +48,16 @@ final class PostMetaZonePostsRepository implements ZonePostsRepositoryInterface 
 	}
 
 	/**
+	 * Gets every post in a zone, in order, whatever its status.
+	 *
+	 * @param int $zone_id Zone ID.
+	 * @return int[] Post IDs.
+	 */
+	public function get_post_ids( int $zone_id ): array {
+		return $this->find_post_ids( $zone_id, 'ASC', -1 );
+	}
+
+	/**
 	 * Adds posts to the end of a zone, in the order given.
 	 *
 	 * @param int   $zone_id  Zone ID.
@@ -92,7 +102,7 @@ final class PostMetaZonePostsRepository implements ZonePostsRepositoryInterface 
 	 * @param int $zone_id Zone ID.
 	 */
 	public function clear( int $zone_id ): void {
-		$this->remove( $zone_id, $this->find_post_ids( $zone_id, 'ASC', -1 ) );
+		$this->remove( $zone_id, $this->get_post_ids( $zone_id ) );
 	}
 
 	/**

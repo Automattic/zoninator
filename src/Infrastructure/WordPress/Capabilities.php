@@ -7,6 +7,7 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
+use Automattic\Zoninator\Domain\ZoneAccessInterface;
 use WP_Post;
 
 /**
@@ -18,7 +19,7 @@ use WP_Post;
  * @since 0.12.0
  * @internal Use the template tags, the Application classes and the hooks instead.
  */
-final class Capabilities {
+final class Capabilities implements ZoneAccessInterface {
 
 	/**
 	 * The zone taxonomy, for the post types that support zones.
@@ -80,6 +81,54 @@ final class Capabilities {
 	}
 
 	/**
+	 * Whether a user may create zones.
+	 *
+	 * @param int $user_id User ID.
+	 * @return bool
+	 */
+	public function can_create_zones( int $user_id ): bool {
+		return user_can( $user_id, $this->get_add_zones_cap() );
+	}
+
+	/**
+	 * Whether a user may change a zone's name and details, or delete it.
+	 *
+	 * @param int $user_id User ID.
+	 * @param int $zone_id Zone ID.
+	 * @return bool
+	 */
+	public function can_edit_zone( int $user_id, int $zone_id ): bool {
+		return (bool) apply_filters( 'zoninator_current_user_can_edit_zone', user_can( $user_id, $this->get_edit_zones_cap() ), $zone_id );
+	}
+
+	/**
+	 * Whether a user may curate zones: add, order and remove their posts.
+	 *
+	 * @param int $user_id User ID.
+	 * @return bool
+	 */
+	public function can_curate_zones( int $user_id ): bool {
+		return user_can( $user_id, $this->get_manage_zones_cap() );
+	}
+
+	/**
+	 * Whether a user may put a post in a zone, or take it out: the post must
+	 * be of a post type that supports zones, and one the user may read.
+	 *
+	 * @param int $user_id User ID.
+	 * @param int $post_id Post ID.
+	 * @return bool
+	 */
+	public function can_use_post( int $user_id, int $post_id ): bool {
+		// get_post() falls back to the global post when given an empty value.
+		$post = $post_id ? get_post( $post_id ) : null;
+
+		return $post
+			&& in_array( $post->post_type, $this->taxonomy->get_post_types(), true )
+			&& user_can( $user_id, 'read_post', $post->ID );
+	}
+
+	/**
 	 * Whether the current user may take an action on zones.
 	 *
 	 * @param string   $action  'insert', 'update' or 'delete'. Anything else checks for managing zones.
@@ -87,7 +136,6 @@ final class Capabilities {
 	 * @return bool
 	 */
 	public function check( $action = '', $zone_id = null ) {
-		// Zone locks aren't checked on writes yet. See https://github.com/Automattic/zoninator/issues/215.
 		if ( 'insert' === $action ) {
 			return $this->current_user_can_add_zones();
 		}

@@ -33,16 +33,16 @@ final class ZoninatorTemplateTagsTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$zone          = self::zones()->insert( 'tags-zone', 'Tags zone' );
+		$zone          = self::insert_zone( 'tags-zone', 'Tags zone' );
 		$this->zone_id = (int) $zone['term_id'];
 
 		$created        = self::factory()->post->create_many( 3 );
 		$this->post_ids = array( $created[2], $created[0], $created[1] );
-		self::zones()->add_posts( $this->zone_id, $this->post_ids );
+		self::add_zone_posts( $this->zone_id, $this->post_ids );
 	}
 
 	public function test_z_get_zones_lists_every_zone(): void {
-		self::zones()->insert( 'other-zone', 'Other zone' );
+		self::insert_zone( 'other-zone', 'Other zone' );
 
 		$slugs = wp_list_pluck( zoninator_get_zones(), 'slug' );
 		sort( $slugs );
@@ -117,7 +117,7 @@ final class ZoninatorTemplateTagsTest extends TestCase {
 
 	public function test_z_get_next_post_in_zone_compares_positions_as_numbers(): void {
 		$more = self::factory()->post->create_many( 8 );
-		self::zones()->add_posts( $this->zone_id, $more, true );
+		self::add_zone_posts( $this->zone_id, $more, true );
 
 		// Position 9 is followed by 10, which sorts before 9 as a string.
 		$next = zoninator_get_next_post_in_zone( $this->zone_id, $more[5] );
@@ -134,8 +134,8 @@ final class ZoninatorTemplateTagsTest extends TestCase {
 	}
 
 	public function test_z_get_post_zones_lists_each_zone_the_post_is_in(): void {
-		$other = self::zones()->insert( 'other-zone', 'Other zone' );
-		self::zones()->add_posts( (int) $other['term_id'], $this->post_ids[1] );
+		$other = self::insert_zone( 'other-zone', 'Other zone' );
+		self::add_zone_posts( (int) $other['term_id'], $this->post_ids[1] );
 
 		$zones = zoninator_get_post_zones( $this->post_ids[1] );
 

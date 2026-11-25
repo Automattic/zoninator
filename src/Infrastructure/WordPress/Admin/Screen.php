@@ -14,7 +14,7 @@ use Automattic\Zoninator\Infrastructure\WordPress\Settings;
 use Automattic\Zoninator\Infrastructure\WordPress\Zones;
 
 /**
- * Renders the Zones admin screen, saves its zone form, and loads its assets.
+ * Renders the Zones admin screen and loads its assets. ZoneForm saves its zone form.
  *
  * It registers its own hooks in register_hooks(). Sites reach it with
  * zoninator_container()->get( Screen::class ) to unhook them.
@@ -82,14 +82,11 @@ final class Screen {
 	}
 
 	/**
-	 * Hooks the screen's form handling, assets, menu page and default search
-	 * fields. PluginBootstrapper::register_hooks() calls this once.
+	 * Hooks the screen's assets, menu page and default search fields. PluginBootstrapper::register_hooks() calls this once.
 	 *
 	 * @since 1.0.0
 	 */
 	public function register_hooks() {
-		add_action( 'admin_init', array( $this, 'handle_request' ) );
-
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
 
@@ -151,82 +148,6 @@ final class Screen {
 	public function enqueue_styles() {
 		if ( $this->is_current() ) {
 				wp_enqueue_style( 'zoninator-styles', plugin_dir_url( ZONINATOR_FILE ) . 'css/zoninator.css', false, ZONINATOR_VERSION, 'all' );
-		}
-	}
-
-	public function handle_request() {
-		if ( $this->is_current() ) {
-			$action = $this->request->get_request_var( 'action' );
-
-			switch ( $action ) {
-				case 'insert':
-				case 'update':
-					$zone_id = $this->request->get_post_var( 'zone_id', 0, 'absint' );
-
-					$this->request->verify_nonce( $action );
-					$this->request->verify_access( $action, $zone_id );
-
-					$name    = $this->request->get_post_var( 'name', '', array( $this->request, 'sanitize_value' ) );
-					$slug    = $this->request->get_post_var( 'slug', sanitize_title( $name ) );
-					$details = array(
-						'description' => $this->request->get_post_var( 'description', '', array( $this->request, 'sanitize_value' ) ),
-					);
-
-					// Go by the action that was checked, not by whether a zone ID was sent.
-					if ( 'update' === $action ) {
-						$result = $this->zones->update(
-							$zone_id,
-							array(
-								'name'    => $name,
-								'slug'    => $slug,
-								'details' => $details,
-							)
-						);
-					} else {
-						$result = $this->zones->insert( $slug, $name, $details );
-					}
-
-					if ( is_wp_error( $result ) ) {
-						wp_safe_redirect( add_query_arg( 'message', 'error-general' ) );
-						exit;
-					} else {
-						if ( 'insert' === $action && isset( $result['term_id'] ) ) {
-							$zone_id = $result['term_id'];
-						}
-
-						// Redirect with success message
-						$message = sprintf( '%s-success', $action );
-						wp_safe_redirect(
-							$this->get_page_url(
-								array(
-									'action'  => 'edit',
-									'zone_id' => $zone_id,
-									'message' => $message,
-								)
-							)
-						);
-						exit;
-					}
-
-				case 'delete':
-					$zone_id = $this->request->get_request_var( 'zone_id', 0, 'absint' );
-
-					$this->request->verify_nonce( $action );
-					$this->request->verify_access( $action, $zone_id );
-
-					if ( $zone_id ) {
-						$result = $this->zones->delete( $zone_id );
-					}
-
-					if ( is_wp_error( $result ) ) {
-						$redirect_args = array( 'error' => $result->get_error_code() );
-					} else {
-						$redirect_args = array( 'message' => 'delete-success' );
-					}
-
-					wp_safe_redirect( $this->get_page_url( $redirect_args ) );
-					exit;
-			}
 		}
 	}
 

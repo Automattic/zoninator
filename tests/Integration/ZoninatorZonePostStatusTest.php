@@ -24,7 +24,7 @@ class ZoninatorZonePostStatusTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$zone          = self::zones()->insert( 'status-zone', 'Status zone' );
+		$zone          = self::insert_zone( 'status-zone', 'Status zone' );
 		$this->zone_id = (int) $zone['term_id'];
 
 		$this->post_ids = array(
@@ -38,7 +38,7 @@ class ZoninatorZonePostStatusTest extends TestCase {
 			'draft'   => self::factory()->post->create( array( 'post_status' => 'draft' ) ),
 		);
 
-		self::zones()->add_posts( $this->zone_id, array_values( $this->post_ids ) );
+		self::add_zone_posts( $this->zone_id, array_values( $this->post_ids ) );
 
 		// admin-ajax.php and admin-post.php run in the admin for every visitor.
 		set_current_screen( 'dashboard' );

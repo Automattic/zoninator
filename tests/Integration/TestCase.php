@@ -7,7 +7,10 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Automattic\Zoninator\Application\ZoneCurator;
 use Automattic\Zoninator\Application\ZoneLocker;
+use Automattic\Zoninator\Application\ZoneManager;
+use Automattic\Zoninator\Application\ZoneRemover;
 use Automattic\Zoninator\Infrastructure\WordPress\Feed;
 use Automattic\Zoninator\Infrastructure\WordPress\Settings;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
@@ -18,6 +21,85 @@ use Yoast\WPTestUtils\WPIntegration\TestCase as WPIntegrationTestCase;
  * Base test case for integration tests, with the plugin's own objects to hand.
  */
 abstract class TestCase extends WPIntegrationTestCase {
+
+	/**
+	 * Creates a zone, for a test to work on.
+	 *
+	 * @param string $slug    The zone's slug.
+	 * @param string $name    The zone's name, or '' to use the slug.
+	 * @param array  $details Details to set, by name.
+	 * @return array{term_id: int} The new zone's ID, keyed as wp_insert_term() returns it.
+	 */
+	protected static function insert_zone( string $slug, string $name = '', array $details = array() ): array {
+		return array( 'term_id' => (int) zoninator_container()->get( ZoneManager::class )->create( $slug, $name, $details )->get_id() );
+	}
+
+	/**
+	 * Changes a zone.
+	 *
+	 * @param int|string|\WP_Term $zone Zone ID, slug or term.
+	 * @param array               $data The name, slug and details to change.
+	 */
+	protected static function update_zone( $zone, array $data = array() ): void {
+		zoninator_container()->get( ZoneManager::class )->update( self::zones()->get_id( $zone ), $data );
+	}
+
+	/**
+	 * Deletes a zone.
+	 *
+	 * @param int|string|\WP_Term $zone Zone ID, slug or term.
+	 */
+	protected static function delete_zone( $zone ): void {
+		zoninator_container()->get( ZoneRemover::class )->remove( self::zones()->get_id( $zone ) );
+	}
+
+	/**
+	 * Sets a zone's posts, or adds posts to the end of it.
+	 *
+	 * @param int|string|\WP_Term $zone   Zone ID, slug or term.
+	 * @param mixed               $posts  A post or posts, as IDs or WP_Post objects.
+	 * @param bool                $append Whether to add the posts to the end. Otherwise they replace the zone's posts.
+	 */
+	protected static function add_zone_posts( $zone, $posts, bool $append = false ): void {
+		$curator = zoninator_container()->get( ZoneCurator::class );
+		$zone_id = self::zones()->get_id( $zone );
+
+		if ( $append ) {
+			$curator->add_posts( $zone_id, self::post_ids( $posts ) );
+		} else {
+			$curator->set_posts( $zone_id, self::post_ids( $posts ) );
+		}
+	}
+
+	/**
+	 * Takes posts out of a zone, or empties it.
+	 *
+	 * @param int|string|\WP_Term $zone  Zone ID, slug or term.
+	 * @param mixed               $posts A post or posts, as IDs or WP_Post objects. Leave out to empty the zone.
+	 */
+	protected static function remove_zone_posts( $zone, $posts = null ): void {
+		$curator = zoninator_container()->get( ZoneCurator::class );
+		$zone_id = self::zones()->get_id( $zone );
+
+		if ( null === $posts ) {
+			$curator->clear_posts( $zone_id );
+		} else {
+			$curator->remove_posts( $zone_id, self::post_ids( $posts ) );
+		}
+	}
+
+	/**
+	 * @param mixed $posts A post or posts, as IDs or WP_Post objects.
+	 * @return int[] Their IDs.
+	 */
+	private static function post_ids( $posts ): array {
+		return array_map(
+			static function ( $post ) {
+				return is_object( $post ) ? (int) $post->ID : (int) $post;
+			},
+			is_array( $posts ) ? $posts : array( $posts )
+		);
+	}
 
 	protected static function zones(): Zones {
 		return zoninator_container()->get( Zones::class );

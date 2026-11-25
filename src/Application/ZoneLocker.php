@@ -54,11 +54,7 @@ final class ZoneLocker {
 	 * @throws ZoneLockedException If someone else holds the zone's lock.
 	 */
 	public function lock( int $zone_id, int $user_id ): void {
-		$lock = $this->store->find( $zone_id );
-
-		if ( $lock && $lock->blocks( $user_id ) ) {
-			throw new ZoneLockedException( $lock );
-		}
+		$this->check_unlocked( $zone_id, $user_id );
 
 		$this->store->save( $zone_id, new ZoneLock( $user_id ), ZoneLock::duration( $this->settings->get_lock_period() ) );
 	}
@@ -74,6 +70,22 @@ final class ZoneLocker {
 		$lock = $this->store->find( $zone_id );
 
 		return $lock && $lock->blocks( $user_id ) ? $lock->get_holder_id() : null;
+	}
+
+	/**
+	 * Checks that no one else's lock keeps a user out of a zone.
+	 *
+	 * @param int $zone_id Zone ID.
+	 * @param int $user_id ID of the user who wants to change the zone.
+	 *
+	 * @throws ZoneLockedException If someone else holds the zone's lock.
+	 */
+	public function check_unlocked( int $zone_id, int $user_id ): void {
+		$lock = $this->store->find( $zone_id );
+
+		if ( $lock && $lock->blocks( $user_id ) ) {
+			throw new ZoneLockedException( $lock );
+		}
 	}
 
 	/**

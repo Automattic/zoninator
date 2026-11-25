@@ -397,7 +397,7 @@ final class ZoninatorRestContractTest extends TestCase {
 		$zone_id  = $this->create_zone( 'feed' );
 		$post_ids = self::factory()->post->create_many( 3 );
 		$ordered  = array( $post_ids[2], $post_ids[0], $post_ids[1] );
-		self::zones()->add_posts( $zone_id, $ordered );
+		self::add_zone_posts( $zone_id, $ordered );
 
 		$response = $this->dispatch( 'GET', "/zones/$zone_id/posts" );
 		$data     = $response->get_data();
@@ -429,7 +429,7 @@ final class ZoninatorRestContractTest extends TestCase {
 				'post_password' => 'secret123',
 			)
 		);
-		self::zones()->add_posts( $zone_id, array( $post_id ) );
+		self::add_zone_posts( $zone_id, array( $post_id ) );
 		wp_set_current_user( 0 );
 
 		$response = $this->dispatch( 'GET', "/zones/$zone_id/posts" );
@@ -456,7 +456,7 @@ final class ZoninatorRestContractTest extends TestCase {
 
 	public function test_update_zone_posts_with_an_empty_list_empties_the_zone(): void {
 		$zone_id = $this->create_zone( 'emptied' );
-		self::zones()->add_posts( $zone_id, array( self::factory()->post->create() ) );
+		self::add_zone_posts( $zone_id, array( self::factory()->post->create() ) );
 
 		$response = $this->dispatch( 'PUT', "/zones/$zone_id/posts", array( 'post_ids' => array() ) );
 
@@ -469,7 +469,7 @@ final class ZoninatorRestContractTest extends TestCase {
 		$zone_id  = $this->create_zone( 'appended' );
 		$first_id = self::factory()->post->create();
 		$post_id  = self::factory()->post->create();
-		self::zones()->add_posts( $zone_id, array( $first_id ) );
+		self::add_zone_posts( $zone_id, array( $first_id ) );
 
 		$response = $this->dispatch( 'POST', "/zones/$zone_id/posts/$post_id" );
 
@@ -514,7 +514,7 @@ final class ZoninatorRestContractTest extends TestCase {
 			)
 		);
 		$post_id      = self::factory()->post->create();
-		self::zones()->add_posts( $zone_id, array( self::factory()->post->create(), $scheduled_id ) );
+		self::add_zone_posts( $zone_id, array( self::factory()->post->create(), $scheduled_id ) );
 
 		$this->dispatch( 'POST', "/zones/$zone_id/posts/$post_id" );
 
@@ -535,7 +535,7 @@ final class ZoninatorRestContractTest extends TestCase {
 		$zone_id    = $this->create_zone( 'removed' );
 		$kept_id    = self::factory()->post->create();
 		$removed_id = self::factory()->post->create();
-		self::zones()->add_posts( $zone_id, array( $kept_id, $removed_id ) );
+		self::add_zone_posts( $zone_id, array( $kept_id, $removed_id ) );
 
 		$response = $this->dispatch( 'DELETE', "/zones/$zone_id/posts/$removed_id" );
 
@@ -565,7 +565,7 @@ final class ZoninatorRestContractTest extends TestCase {
 				'post_date'   => gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ),
 			)
 		);
-		self::zones()->add_posts( $zone_id, array( $scheduled_id, $post_id ) );
+		self::add_zone_posts( $zone_id, array( $scheduled_id, $post_id ) );
 
 		$this->dispatch( 'PUT', "/zones/$zone_id/posts", array( 'post_ids' => array( $post_id ) ) );
 
@@ -602,7 +602,7 @@ final class ZoninatorRestContractTest extends TestCase {
 		}
 		$zone_id = $this->create_zone( 'matrix' );
 		$post_id = self::factory()->post->create();
-		self::zones()->add_posts( $zone_id, array( $post_id ) );
+		self::add_zone_posts( $zone_id, array( $post_id ) );
 		if ( array_key_exists( 'post_ids', $params ) ) {
 			$params['post_ids'] = array( $post_id );
 		}
@@ -666,7 +666,8 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( 403, $refused->get_status() );
 		$this->assertSame( 'Closed', self::zones()->get( $closed_id )->name );
 		$this->assertSame( $status, $allowed->get_status() );
-		$this->assertSame( array( $closed_id, $open_id ), $asked );
+		// The route's permission check asks, and so does the guard on the change itself.
+		$this->assertSame( array( $closed_id, $open_id ), array_values( array_unique( $asked ) ) );
 	}
 
 	public static function data_zone_edit_routes(): array {
@@ -1062,6 +1063,53 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( $holder_id, self::locker()->get_blocker_id( $zone_id, get_current_user_id() ) );
 	}
 
+	/**
+	 * A lock used to stop only the Zones screen. Every write must respect it,
+	 * so nothing saves over the person editing the zone.
+	 *
+	 * @dataProvider data_writes_to_a_locked_zone
+	 *
+	 * @param string $method HTTP method.
+	 * @param string $path   Route, with %1$d for the zone ID and %2$d for a post in it.
+	 * @param array  $params Request params; post_ids of null means the zone's post.
+	 */
+	public function test_writes_are_refused_while_someone_else_holds_the_lock( $method, $path, $params ): void {
+		$zone_id = $this->create_zone( 'held', 'Held' );
+		$post_id = self::factory()->post->create();
+		self::add_zone_posts( $zone_id, array( $post_id ) );
+		if ( array_key_exists( 'post_ids', $params ) ) {
+			$params['post_ids'] = array();
+		}
+		self::locker()->lock( $zone_id, self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
+		$response = $this->dispatch( $method, sprintf( $path, $zone_id, $post_id ), $params );
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( 'zone-locked', $response->get_data()['code'] );
+		$this->assertSame( 'Held', self::zones()->get( $zone_id )->name );
+		$this->assertSame( array( $post_id ), wp_list_pluck( self::zones()->get_posts( $zone_id ), 'ID' ) );
+	}
+
+	public static function data_writes_to_a_locked_zone(): array {
+		return array(
+			'update zone'       => array( 'PUT', '/zones/%1$d', array( 'name' => 'Renamed' ) ),
+			'delete zone'       => array( 'DELETE', '/zones/%1$d', array() ),
+			'update zone posts' => array( 'PUT', '/zones/%1$d/posts', array( 'post_ids' => null ) ),
+			'add zone post'     => array( 'POST', '/zones/%1$d/posts/%2$d', array() ),
+			'remove zone post'  => array( 'DELETE', '/zones/%1$d/posts/%2$d', array() ),
+		);
+	}
+
+	public function test_the_lock_holder_can_still_write(): void {
+		$zone_id = $this->create_zone( 'mine', 'Mine' );
+		self::locker()->lock( $zone_id, $this->admin_id );
+
+		$response = $this->dispatch( 'PUT', "/zones/$zone_id", array( 'name' => 'Still mine' ) );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'Still mine', self::zones()->get( $zone_id )->name );
+	}
+
 	public function test_lock_zone_with_zone_id_zero_is_a_bad_request(): void {
 		$response = $this->dispatch( 'PUT', '/zones/0/lock' );
 
@@ -1094,7 +1142,7 @@ final class ZoninatorRestContractTest extends TestCase {
 	 * @return int Zone term ID.
 	 */
 	private function create_zone( $slug, $name = '', $description = '' ) {
-		$result = self::zones()->insert( $slug, $name, array( 'description' => $description ) );
+		$result = self::insert_zone( $slug, $name, array( 'description' => $description ) );
 		$this->assertNotWPError( $result );
 
 		return (int) $result['term_id'];

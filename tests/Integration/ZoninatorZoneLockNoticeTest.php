@@ -23,7 +23,7 @@ class ZoninatorZoneLockNoticeTest extends TestCase {
 		);
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 
-		$zone = self::zones()->insert( 'locked-zone', 'Locked zone' );
+		$zone = self::insert_zone( 'locked-zone', 'Locked zone' );
 		self::locker()->lock( (int) $zone['term_id'], $locker_id );
 
 		ob_start();

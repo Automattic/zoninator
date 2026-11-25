@@ -65,10 +65,10 @@ class ZoninatorSettingsTest extends TestCase {
 		};
 		add_filter( 'zoninator_zone_detail_defaults', $add_kicker );
 
-		$plain   = self::zones()->insert( 'plain-zone' );
-		$kicked  = self::zones()->insert( 'kicked-zone', 'Kicked', array( 'kicker' => 'Sport' ) );
+		$plain   = self::insert_zone( 'plain-zone' );
+		$kicked  = self::insert_zone( 'kicked-zone', 'Kicked', array( 'kicker' => 'Sport' ) );
 		$kicked  = (int) $kicked['term_id'];
-		self::zones()->update( $kicked, array( 'name' => 'Renamed' ) );
+		self::update_zone( $kicked, array( 'name' => 'Renamed' ) );
 
 		$this->assertSame( 'News', self::zones()->get( (int) $plain['term_id'] )->kicker );
 		$this->assertSame( 'Sport', self::zones()->get( $kicked )->kicker );
