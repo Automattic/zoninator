@@ -109,6 +109,10 @@ const test = base.test.extend( {
 /**
  * Opens a page logged in as another user, in a browser context of its own.
  *
+ * Logs in by posting to wp-login.php, as RequestUtils.login() does, rather than
+ * filling in the form: the login page's scripts can clear the password field
+ * after it's filled, and the browser then won't submit the form.
+ *
  * @param {import('@playwright/test').Browser}   browser
  * @param {string}                               baseURL
  * @param {{username: string, password: string}} user
@@ -116,13 +120,12 @@ const test = base.test.extend( {
  */
 async function loginAs( browser, baseURL, { username, password } ) {
 	const context = await browser.newContext( { baseURL } );
-	const page = await context.newPage();
-	await page.goto( '/wp-login.php' );
-	await page.getByLabel( 'Username or Email Address' ).fill( username );
-	await page.getByLabel( 'Password', { exact: true } ).fill( password );
-	await page.getByRole( 'button', { name: 'Log In' } ).click();
-	await page.waitForURL( /wp-admin/ );
-	return page;
+	// The context's request shares its cookies, so the page is logged in too.
+	await context.request.post( '/wp-login.php', {
+		failOnStatusCode: true,
+		form: { log: username, pwd: password },
+	} );
+	return context.newPage();
 }
 
 const zoneUrl = ( zoneId ) =>
