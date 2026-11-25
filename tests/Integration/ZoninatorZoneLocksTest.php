@@ -66,6 +66,13 @@ class ZoninatorZoneLocksTest extends TestCase {
 		$this->assertFalse( Zoninator()->is_zone_locked( $this->zone_id ) );
 	}
 
+	public function test_deleting_a_zone_releases_its_lock(): void {
+		Zoninator()->lock_zone( $this->zone_id, $this->other_id );
+
+		$this->assertTrue( Zoninator()->delete_zone( $this->zone_id ) );
+		$this->assertFalse( get_transient( Zoninator()->get_zone_meta_key( $this->zone_id ) ) );
+	}
+
 	public function test_a_missing_zone_cannot_be_locked(): void {
 		$this->assertFalse( Zoninator()->lock_zone( 'no-such-zone', $this->other_id ) );
 		$this->assertFalse( Zoninator()->unlock_zone( 'no-such-zone' ) );
