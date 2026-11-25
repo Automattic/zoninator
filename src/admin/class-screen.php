@@ -16,10 +16,8 @@ use Automattic\Zoninator\Zones;
 /**
  * Renders the Zones admin screen, saves its zone form, and loads its assets.
  *
- * Zoninator registers the screen's hooks on itself, with a method for each
- * (admin_page() for render(), and so on) that delegates here, so
- * array( Zoninator(), 'method' ) keeps working as a callback. Callbacks this
- * class hands to WordPress point at Zoninator too, for the same reason.
+ * It registers its own hooks in register_hooks(), which Zoninator calls on
+ * init. Sites reach it with Zoninator()->get_admin_screen() to unhook them.
  *
  * @since 0.12.0
  */
@@ -66,13 +64,6 @@ final class Screen {
 	private $request;
 
 	/**
-	 * Callbacks on the Zoninator facade for the menu page and the default zone post columns, keyed 'page', 'position' and 'info'. Sites unhook and replace these, so they must stay on the facade.
-	 *
-	 * @var array
-	 */
-	private $callbacks;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Zones $zones Zones and the posts in them.
@@ -80,15 +71,31 @@ final class Screen {
 	 * @param Settings $settings Zoninator's settings.
 	 * @param Capabilities $capabilities The capability checks.
 	 * @param Request $request Reads and checks requests.
-	 * @param array $callbacks Callbacks on the Zoninator facade for the menu page and the default zone post columns, keyed 'page', 'position' and 'info'. Sites unhook and replace these, so they must stay on the facade.
 	 */
-	public function __construct( Zones $zones, Locks $locks, Settings $settings, Capabilities $capabilities, Request $request, array $callbacks ) {
+	public function __construct( Zones $zones, Locks $locks, Settings $settings, Capabilities $capabilities, Request $request ) {
 		$this->zones        = $zones;
 		$this->locks        = $locks;
 		$this->settings     = $settings;
 		$this->capabilities = $capabilities;
 		$this->request      = $request;
-		$this->callbacks    = $callbacks;
+	}
+
+	/**
+	 * Hooks the screen's form handling, assets, menu page and default search
+	 * fields. Zoninator calls this once, on init.
+	 *
+	 * @since 1.0.0
+	 */
+	public function register_hooks() {
+		add_action( 'admin_init', array( $this, 'handle_request' ) );
+
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
+
+		add_action( 'admin_menu', array( $this, 'register_menu_page' ) );
+
+		add_action( 'zoninator_advanced_search_fields', array( $this, 'render_category_filter' ) );
+		add_action( 'zoninator_advanced_search_fields', array( $this, 'render_date_filter' ), 20 );
 	}
 
 	/**
@@ -109,7 +116,7 @@ final class Screen {
 
 	public function register_menu_page() {
 		// Set up page
-		add_menu_page( __( 'Zones', 'zoninator' ), __( 'Zones', 'zoninator' ), $this->capabilities->get_manage_zones_cap(), self::PAGE_SLUG, $this->callbacks['page'], 'dashicons-layout', 11 );
+		add_menu_page( __( 'Zones', 'zoninator' ), __( 'Zones', 'zoninator' ), $this->capabilities->get_manage_zones_cap(), self::PAGE_SLUG, array( $this, 'render' ), 'dashicons-layout', 11 );
 	}
 
 	public function enqueue_scripts() {
@@ -511,8 +518,8 @@ final class Screen {
 		$columns = apply_filters(
 			'zoninator_zone_post_columns',
 			array(
-				'position' => $this->callbacks['position'],
-				'info'     => $this->callbacks['info'],
+				'position' => array( $this, 'render_position_column' ),
+				'info'     => array( $this, 'render_info_column' ),
 			),
 			$post,
 			$zone

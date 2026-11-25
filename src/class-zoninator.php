@@ -36,7 +36,7 @@ class Zoninator {
 	public $default_post_types = array( 'post' );
 
 	/**
-	 * Renders the Zones admin screen. The screen's public methods here delegate to it.
+	 * Renders the Zones admin screen and handles its hooks.
 	 *
 	 * @var \Automattic\Zoninator\Admin\Screen
 	 */
@@ -64,14 +64,14 @@ class Zoninator {
 	private $locks;
 
 	/**
-	 * The JSON feed. The feed methods here delegate to it.
+	 * The JSON feed, which handles its own hooks.
 	 *
 	 * @var \Automattic\Zoninator\Feed
 	 */
 	private $feed;
 
 	/**
-	 * The Zone Posts Query Loop variation. The zone block methods here delegate to it.
+	 * The Zone Posts Query Loop variation, which handles its own hooks.
 	 *
 	 * @var \Automattic\Zoninator\Block
 	 */
@@ -124,31 +124,17 @@ class Zoninator {
 			$this->locks,
 			$this->settings,
 			$this->capabilities,
-			$this->request,
-			// Sites unhook and replace these, so they stay pointed at Zoninator().
-			array(
-				'page'     => array( $this, 'admin_page' ),
-				'position' => array( $this, 'admin_page_zone_post_col_position' ),
-				'info'     => array( $this, 'admin_page_zone_post_col_info' ),
-			)
+			$this->request
 		);
 
 		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
 
-		add_action( 'widgets_init', array( $this, 'widgets_init' ) );
-
-		add_action( 'init', array( $this, 'add_zone_feed' ) );
-
-		add_action( 'template_redirect', array( $this, 'do_zoninator_feeds' ) );
-
-		add_action( 'split_shared_term', array( $this, 'split_shared_term' ), 10, 4 );
-
-		add_filter( 'query_loop_block_query_vars', array( $this, 'zone_block_query_vars' ), 10, 2 );
-
-		// The Zone Posts block's editor preview always reads /wp/v2/posts.
-		add_filter( 'rest_post_query', array( $this, 'zone_block_rest_query' ), 10, 2 );
-
-		add_action( 'enqueue_block_editor_assets', array( $this, 'zone_block_editor_assets' ) );
+		// Each class registers the hooks it handles. Sites reach those objects
+		// through the get_*() methods below to unhook them.
+		\Zoninator_ZonePosts_Widget::register_hooks();
+		$this->zones->register_hooks();
+		$this->feed->register_hooks();
+		$this->block->register_hooks();
 
 		$this->maybe_add_rest_api();
 
@@ -198,6 +184,56 @@ class Zoninator {
 	 */
 	public function get_zone_detail_defaults() {
 		return $this->settings->get_detail_defaults();
+	}
+
+	/**
+	 * The Zones admin screen, which handles the screen's hooks. Use it to unhook them,
+	 * as in remove_action( 'admin_init', array( Zoninator()->get_admin_screen(), 'handle_request' ) ).
+	 * Its other methods are internal.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return \Automattic\Zoninator\Admin\Screen
+	 */
+	public function get_admin_screen() {
+		return $this->admin_screen;
+	}
+
+	/**
+	 * The JSON feed, which handles the feed's hooks. Use it to unhook them,
+	 * as in remove_action( 'template_redirect', array( Zoninator()->get_feed(), 'serve' ) ).
+	 * Its other methods are internal.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return \Automattic\Zoninator\Feed
+	 */
+	public function get_feed() {
+		return $this->feed;
+	}
+
+	/**
+	 * The Zone Posts Query Loop variation, which handles the block's hooks. Use it to
+	 * unhook them. Its other methods are internal.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return \Automattic\Zoninator\Block
+	 */
+	public function get_block() {
+		return $this->block;
+	}
+
+	/**
+	 * The zone store, which handles split_shared_term. Use it to unhook that. Its
+	 * other methods are internal; use the zone methods on Zoninator instead.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return \Automattic\Zoninator\Zones
+	 */
+	public function get_zone_store() {
+		return $this->zones;
 	}
 
 	public function maybe_add_rest_api() {
@@ -272,10 +308,6 @@ class Zoninator {
 		return $this->abilities;
 	}
 
-	public function add_zone_feed() {
-		return $this->feed->add_rewrite_rule();
-	}
-
 	public function init() {
 		$this->settings->init();
 
@@ -283,97 +315,10 @@ class Zoninator {
 
 		$this->taxonomy->register( $this->default_post_types );
 
-		add_action( 'admin_init', array( $this, 'admin_controller' ) );
-		add_action( 'admin_init', array( $this, 'admin_init' ) );
-
-		add_action( 'admin_menu', array( $this, 'admin_page_init' ) );
-
-		// Add default advanced search fields
-		add_action( 'zoninator_advanced_search_fields', array( $this, 'zone_advanced_search_cat_filter' ) );
-		add_action( 'zoninator_advanced_search_fields', array( $this, 'zone_advanced_search_date_filter' ), 20 );
+		// Here rather than in the constructor, so unhooking init turns off the screen too.
+		$this->admin_screen->register_hooks();
 
 		do_action( 'zoninator_post_init' );
-	}
-
-	/**
-	 * Turns a Zone Posts Query Loop block's query into the zone's query.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param array    $query Query args core built from the block.
-	 * @param WP_Block $block The Post Template or Query Pagination block inside the Query Loop.
-	 * @return array
-	 */
-	public function zone_block_query_vars( $query, $block ) {
-		return $this->block->filter_query_vars( $query, $block );
-	}
-
-	/**
-	 * Turns the Zone Posts block's editor preview request into the zone's query.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param array           $args    Query args for the REST request.
-	 * @param WP_REST_Request $request The REST request.
-	 * @return array
-	 */
-	public function zone_block_rest_query( $args, $request ) {
-		return $this->block->filter_rest_query( $args, $request );
-	}
-
-	/**
-	 * Loads the Zone Posts block's editor script.
-	 *
-	 * @since 1.0.0
-	 */
-	public function zone_block_editor_assets() {
-		return $this->block->enqueue_editor_assets();
-	}
-
-	public function widgets_init() {
-		register_widget( 'Zoninator_ZonePosts_Widget' );
-	}
-
-	public function admin_init() {
-		// Enqueue Scripts and Styles
-		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_styles' ) );
-	}
-
-	public function admin_page_init() {
-		return $this->admin_screen->register_menu_page();
-	}
-
-	public function admin_enqueue_scripts() {
-		return $this->admin_screen->enqueue_scripts();
-	}
-
-	public function admin_enqueue_styles() {
-		return $this->admin_screen->enqueue_styles();
-	}
-
-	public function admin_controller() {
-		return $this->admin_screen->handle_request();
-	}
-
-	public function admin_page() {
-		return $this->admin_screen->render();
-	}
-
-	public function admin_page_zone_post_col_position( $post, $zone ) {
-		return $this->admin_screen->render_position_column( $post, $zone );
-	}
-
-	public function admin_page_zone_post_col_info( $post, $zone ) {
-		return $this->admin_screen->render_info_column( $post, $zone );
-	}
-
-	public function zone_advanced_search_cat_filter() {
-		return $this->admin_screen->render_category_filter();
-	}
-
-	public function zone_advanced_search_date_filter() {
-		return $this->admin_screen->render_date_filter();
 	}
 
 	/**
@@ -542,15 +487,6 @@ class Zoninator {
 
 	public function verify_access( $action = '', $zone_id = null ) {
 		return $this->request->verify_access( $action, $zone_id );
-	}
-
-	public function do_zoninator_feeds() {
-		return $this->feed->serve();
-	}
-
-	// Handle 4.2 term-splitting
-	public function split_shared_term( $old_term_id, $new_term_id, $term_taxonomy_id, $taxonomy ) {
-		return $this->zones->split_shared_term( $old_term_id, $new_term_id, $term_taxonomy_id, $taxonomy );
 	}
 
 	/**

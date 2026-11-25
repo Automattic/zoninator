@@ -15,7 +15,8 @@ use WP_Error;
  *
  * Zoninator keeps a public method for each of these under its original name
  * (do_zoninator_feeds() for serve(), get_zone_feed() for get(), and so on),
- * which delegates here. Its hooks stay registered on Zoninator.
+ * which delegates here. It registers its own hooks in register_hooks(), and
+ * sites reach it with Zoninator()->get_feed() to unhook them.
  *
  * @since 0.12.0
  */
@@ -35,6 +36,16 @@ final class Feed {
 	 */
 	public function __construct( Zones $zones ) {
 		$this->zones = $zones;
+	}
+
+	/**
+	 * Hooks the feed's rewrite rule and its response. Zoninator calls this once.
+	 *
+	 * @since 1.0.0
+	 */
+	public function register_hooks() {
+		add_action( 'init', array( $this, 'add_rewrite_rule' ) );
+		add_action( 'template_redirect', array( $this, 'serve' ) );
 	}
 
 	public function add_rewrite_rule() {

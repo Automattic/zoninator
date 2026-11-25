@@ -213,7 +213,7 @@ class ZoninatorZoneDataTest extends TestCase {
 		add_action( 'zoninator_split_shared_term', $record, 10, 3 );
 		add_action( 'zoninator_did_split_shared_term', $record, 10, 3 );
 
-		Zoninator()->split_shared_term( $this->zone_id, $new_id, 123, 'zoninator_zones' );
+		Zoninator()->get_zone_store()->split_shared_term( $this->zone_id, $new_id, 123, 'zoninator_zones' );
 
 		remove_action( 'zoninator_split_shared_term', $record, 10 );
 		remove_action( 'zoninator_did_split_shared_term', $record, 10 );
@@ -269,7 +269,7 @@ class ZoninatorZoneDataTest extends TestCase {
 		$new_id   = (int) $new_zone['term_id'];
 		$filter   = $this->hide_post_from_query_filters( $this->post_ids[2] );
 
-		Zoninator()->split_shared_term( $this->zone_id, $new_id, 123, 'zoninator_zones' );
+		Zoninator()->get_zone_store()->split_shared_term( $this->zone_id, $new_id, 123, 'zoninator_zones' );
 
 		remove_filter( 'posts_where', $filter );
 		$this->assertSame( array(), $this->zone_post_ids() );
@@ -287,7 +287,7 @@ class ZoninatorZoneDataTest extends TestCase {
 		$new_zone = Zoninator()->insert_zone( 'split-scheduled-zone' );
 		$new_id   = (int) $new_zone['term_id'];
 
-		Zoninator()->split_shared_term( $this->zone_id, $new_id, 123, 'zoninator_zones' );
+		Zoninator()->get_zone_store()->split_shared_term( $this->zone_id, $new_id, 123, 'zoninator_zones' );
 
 		$this->assertSame( '', get_post_meta( $scheduled_id, Zoninator()->get_zone_meta_key( $this->zone_id ), true ) );
 		$this->assertSame( '4', get_post_meta( $scheduled_id, Zoninator()->get_zone_meta_key( $new_id ), true ) );
@@ -296,26 +296,9 @@ class ZoninatorZoneDataTest extends TestCase {
 	public function test_split_shared_term_ignores_other_taxonomies(): void {
 		$new_zone = Zoninator()->insert_zone( 'split-zone' );
 
-		Zoninator()->split_shared_term( $this->zone_id, (int) $new_zone['term_id'], 123, 'category' );
+		Zoninator()->get_zone_store()->split_shared_term( $this->zone_id, (int) $new_zone['term_id'], 123, 'category' );
 
 		$this->assertSame( $this->post_ids, $this->zone_post_ids() );
-	}
-
-	public function test_split_shared_term_is_hooked_on_the_facade(): void {
-		global $wp_filter;
-
-		$this->assertSame( 10, has_action( 'split_shared_term', array( Zoninator(), 'split_shared_term' ) ) );
-
-		$callbacks = $wp_filter['split_shared_term']->callbacks[10];
-		$callback  = current(
-			array_filter(
-				$callbacks,
-				static function ( $entry ) {
-					return array( Zoninator(), 'split_shared_term' ) === $entry['function'];
-				}
-			)
-		);
-		$this->assertSame( 4, $callback['accepted_args'] );
 	}
 
 	/**
