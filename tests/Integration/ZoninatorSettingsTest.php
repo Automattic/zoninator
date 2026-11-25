@@ -7,8 +7,10 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
 use Automattic\Zoninator\Infrastructure\WordPress\Request;
 use Automattic\Zoninator\Infrastructure\WordPress\Settings;
+use Zoninator;
 
 /**
  * Tests for the class constants and the settings getters.
@@ -41,31 +43,17 @@ class ZoninatorSettingsTest extends TestCase {
 	}
 
 	public function test_taxonomy_is_registered_with_constant(): void {
-		$this->assertTrue( taxonomy_exists( \Zoninator::ZONE_TAXONOMY ) );
+		$this->assertTrue( taxonomy_exists( Zoninator::ZONE_TAXONOMY ) );
 	}
 
 	/**
 	 * Stored zones, post meta, nonces and admin links depend on these values.
-	 *
-	 * @dataProvider data_fixed_values
-	 *
-	 * @param string $constant Constant.
-	 * @param string $value    Its value, which must not change.
 	 */
-	public function test_fixed_values_do_not_change( string $constant, string $value ): void {
-		$this->assertSame( $value, constant( $constant ) );
-	}
-
-	/**
-	 * @return array<string, array{string, string}>
-	 */
-	public function data_fixed_values(): array {
-		return array(
-			'taxonomy'     => array( '\\Zoninator::ZONE_TAXONOMY', 'zoninator_zones' ),
-			'meta prefix'  => array( '\\Zoninator::ZONE_META_PREFIX', '_zoninator_order_' ),
-			'admin page'   => array( '\\Automattic\\Zoninator\\Infrastructure\\WordPress\\Admin\\Screen::PAGE_SLUG', 'zoninator' ),
-			'nonce prefix' => array( '\\Automattic\\Zoninator\\Infrastructure\\WordPress\\Request::NONCE_PREFIX', 'zone-nonce' ),
-		);
+	public function test_fixed_values_do_not_change(): void {
+		$this->assertSame( 'zoninator_zones', Zoninator::ZONE_TAXONOMY );
+		$this->assertSame( '_zoninator_order_', Zoninator::ZONE_META_PREFIX );
+		$this->assertSame( 'zoninator', Screen::PAGE_SLUG );
+		$this->assertSame( 'zone-nonce', Request::NONCE_PREFIX );
 	}
 
 	public function test_nonce_keys_keep_their_prefix(): void {

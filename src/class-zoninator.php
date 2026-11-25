@@ -3,6 +3,15 @@
  * Main Zoninator class
  */
 
+use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
+use Automattic\Zoninator\Infrastructure\WordPress\Feed;
+use Automattic\Zoninator\Infrastructure\WordPress\Locks;
+use Automattic\Zoninator\Infrastructure\WordPress\Request;
+use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
+use Automattic\Zoninator\Infrastructure\WordPress\Settings;
+use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use Automattic\Zoninator\Infrastructure\WordPress\Zones;
+
 /**
  * Zoninator's public API, which Zoninator() returns: zones and their posts,
  * zone locks, the post types that support zones, and the settings.
@@ -16,7 +25,7 @@ final class Zoninator {
 	 *
 	 * @since 0.12.0
 	 */
-	public const ZONE_TAXONOMY = \Automattic\Zoninator\Infrastructure\WordPress\Taxonomy::NAME;
+	public const ZONE_TAXONOMY = Taxonomy::NAME;
 
 	/**
 	 * Prefix of the post meta key that holds a post's position in a zone. The
@@ -24,83 +33,83 @@ final class Zoninator {
 	 *
 	 * @since 0.12.0
 	 */
-	public const ZONE_META_PREFIX = \Automattic\Zoninator\Infrastructure\WordPress\Zones::META_PREFIX;
+	public const ZONE_META_PREFIX = Zones::META_PREFIX;
 
 	/**
 	* The REST controller. PluginBootstrapper::register_rest_routes() sets it on rest_api_init.
 	*
-	* @var \Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController|null
+	* @var ZonesController|null
 	*/
 	public $rest_api;
 
 	/**
 	 * Zones and the posts in them. The zone data methods here delegate to it.
 	 *
-	 * @var \Automattic\Zoninator\Infrastructure\WordPress\Zones
+	 * @var Zones
 	 */
 	private $zones;
 
 	/**
 	 * The zone taxonomy. The post type support methods here delegate to it.
 	 *
-	 * @var \Automattic\Zoninator\Infrastructure\WordPress\Taxonomy
+	 * @var Taxonomy
 	 */
 	private $taxonomy;
 
 	/**
 	 * Zone locks. The lock methods here delegate to it.
 	 *
-	 * @var \Automattic\Zoninator\Infrastructure\WordPress\Locks
+	 * @var Locks
 	 */
 	private $locks;
 
 	/**
 	 * The JSON feed. get_zone_feed() delegates to it.
 	 *
-	 * @var \Automattic\Zoninator\Infrastructure\WordPress\Feed
+	 * @var Feed
 	 */
 	private $feed;
 
 	/**
 	 * The settings sites tune with filters, and the screen's messages.
 	 *
-	 * @var \Automattic\Zoninator\Infrastructure\WordPress\Settings
+	 * @var Settings
 	 */
 	private $settings;
 
 	/**
 	 * The capability checks.
 	 *
-	 * @var \Automattic\Zoninator\Infrastructure\WordPress\Capabilities
+	 * @var Capabilities
 	 */
 	private $capabilities;
 
 	/**
 	 * Reads and checks requests. The verify_* methods here delegate to it.
 	 *
-	 * @var \Automattic\Zoninator\Infrastructure\WordPress\Request
+	 * @var Request
 	 */
 	private $request;
 
 	/**
 	 * Constructor. Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper builds the arguments.
 	 *
-	 * @param \Automattic\Zoninator\Infrastructure\WordPress\Settings     $settings     The settings sites tune with filters.
-	 * @param \Automattic\Zoninator\Infrastructure\WordPress\Taxonomy     $taxonomy     The zone taxonomy.
-	 * @param \Automattic\Zoninator\Infrastructure\WordPress\Capabilities $capabilities The capability checks.
-	 * @param \Automattic\Zoninator\Infrastructure\WordPress\Request      $request      Reads and checks requests.
-	 * @param \Automattic\Zoninator\Infrastructure\WordPress\Zones        $zones        Zones and the posts in them.
-	 * @param \Automattic\Zoninator\Infrastructure\WordPress\Locks        $locks        Zone locks.
-	 * @param \Automattic\Zoninator\Infrastructure\WordPress\Feed         $feed         The JSON feed.
+	 * @param Settings     $settings     The settings sites tune with filters.
+	 * @param Taxonomy     $taxonomy     The zone taxonomy.
+	 * @param Capabilities $capabilities The capability checks.
+	 * @param Request      $request      Reads and checks requests.
+	 * @param Zones        $zones        Zones and the posts in them.
+	 * @param Locks        $locks        Zone locks.
+	 * @param Feed         $feed         The JSON feed.
 	 */
 	public function __construct(
-		\Automattic\Zoninator\Infrastructure\WordPress\Settings $settings,
-		\Automattic\Zoninator\Infrastructure\WordPress\Taxonomy $taxonomy,
-		\Automattic\Zoninator\Infrastructure\WordPress\Capabilities $capabilities,
-		\Automattic\Zoninator\Infrastructure\WordPress\Request $request,
-		\Automattic\Zoninator\Infrastructure\WordPress\Zones $zones,
-		\Automattic\Zoninator\Infrastructure\WordPress\Locks $locks,
-		\Automattic\Zoninator\Infrastructure\WordPress\Feed $feed
+		Settings $settings,
+		Taxonomy $taxonomy,
+		Capabilities $capabilities,
+		Request $request,
+		Zones $zones,
+		Locks $locks,
+		Feed $feed
 	) {
 		$this->settings     = $settings;
 		$this->taxonomy     = $taxonomy;

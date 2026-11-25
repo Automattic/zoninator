@@ -32,6 +32,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 */
 
+use Automattic\Zoninator\Infrastructure\DI\Container;
+use Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper;
+
 define( 'ZONINATOR_VERSION', '0.12.0' );
 define( 'ZONINATOR_FILE', __FILE__ );
 
@@ -65,15 +68,15 @@ spl_autoload_register(
  *
  * @since 1.0.0
  *
- * @return \Automattic\Zoninator\Infrastructure\DI\Container
+ * @return Container
  */
 function zoninator_container() {
 	static $container = null;
 
 	if ( null === $container ) {
-		$container = new \Automattic\Zoninator\Infrastructure\DI\Container();
+		$container = new Container();
 
-		( new \Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper( $container ) )->boot();
+		( new PluginBootstrapper( $container ) )->boot();
 	}
 
 	return $container;

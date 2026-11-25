@@ -11,6 +11,11 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use WP_Post;
+use WP_Query;
+use WP_Term;
+use Zoninator;
+
 final class ZoninatorTemplateTagsTest extends TestCase {
 
 	/**
@@ -28,16 +33,16 @@ final class ZoninatorTemplateTagsTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$zone          = \Zoninator()->insert_zone( 'tags-zone', 'Tags zone' );
+		$zone          = Zoninator()->insert_zone( 'tags-zone', 'Tags zone' );
 		$this->zone_id = (int) $zone['term_id'];
 
 		$created        = self::factory()->post->create_many( 3 );
 		$this->post_ids = array( $created[2], $created[0], $created[1] );
-		\Zoninator()->add_zone_posts( $this->zone_id, $this->post_ids );
+		Zoninator()->add_zone_posts( $this->zone_id, $this->post_ids );
 	}
 
 	public function test_z_get_zones_lists_every_zone(): void {
-		\Zoninator()->insert_zone( 'other-zone', 'Other zone' );
+		Zoninator()->insert_zone( 'other-zone', 'Other zone' );
 
 		$slugs = wp_list_pluck( z_get_zones(), 'slug' );
 		sort( $slugs );
@@ -63,7 +68,7 @@ final class ZoninatorTemplateTagsTest extends TestCase {
 	public function test_z_get_zone_query_returns_the_zone_posts_in_order(): void {
 		$query = z_get_zone_query( $this->zone_id );
 
-		$this->assertInstanceOf( \WP_Query::class, $query );
+		$this->assertInstanceOf( WP_Query::class, $query );
 		$this->assertSame( $this->post_ids, $this->ids( $query->posts ) );
 	}
 
@@ -112,7 +117,7 @@ final class ZoninatorTemplateTagsTest extends TestCase {
 
 	public function test_z_get_next_post_in_zone_compares_positions_as_numbers(): void {
 		$more = self::factory()->post->create_many( 8 );
-		\Zoninator()->add_zone_posts( $this->zone_id, $more, true );
+		Zoninator()->add_zone_posts( $this->zone_id, $more, true );
 
 		// Position 9 is followed by 10, which sorts before 9 as a string.
 		$next = z_get_next_post_in_zone( $this->zone_id, $more[5] );
@@ -129,13 +134,13 @@ final class ZoninatorTemplateTagsTest extends TestCase {
 	}
 
 	public function test_z_get_post_zones_lists_each_zone_the_post_is_in(): void {
-		$other = \Zoninator()->insert_zone( 'other-zone', 'Other zone' );
-		\Zoninator()->add_zone_posts( (int) $other['term_id'], $this->post_ids[1] );
+		$other = Zoninator()->insert_zone( 'other-zone', 'Other zone' );
+		Zoninator()->add_zone_posts( (int) $other['term_id'], $this->post_ids[1] );
 
 		$zones = z_get_post_zones( $this->post_ids[1] );
 
 		$this->assertSame( array( $this->zone_id, (int) $other['term_id'] ), wp_list_pluck( $zones, 'term_id' ) );
-		$this->assertInstanceOf( \WP_Term::class, $zones[0] );
+		$this->assertInstanceOf( WP_Term::class, $zones[0] );
 		$this->assertSame( array( $this->zone_id ), wp_list_pluck( z_get_post_zones( $this->post_ids[0] ), 'term_id' ) );
 	}
 
@@ -162,13 +167,13 @@ final class ZoninatorTemplateTagsTest extends TestCase {
 	}
 
 	public function test_z_get_post_zones_ignores_order_meta_for_a_deleted_zone(): void {
-		add_post_meta( $this->post_ids[0], \Zoninator::ZONE_META_PREFIX . '999999', 1 );
+		add_post_meta( $this->post_ids[0], Zoninator::ZONE_META_PREFIX . '999999', 1 );
 
 		$this->assertSame( array( $this->zone_id ), wp_list_pluck( z_get_post_zones( $this->post_ids[0] ), 'term_id' ) );
 	}
 
 	/**
-	 * @param \WP_Post[] $posts Posts.
+	 * @param WP_Post[] $posts Posts.
 	 * @return int[]
 	 */
 	private function ids( array $posts ): array {

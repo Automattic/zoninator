@@ -9,6 +9,8 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Automattic\Zoninator\Infrastructure\WordPress\Block;
+use WP_Block;
 use WP_REST_Request;
 
 final class ZoninatorZoneBlockTest extends TestCase {
@@ -19,7 +21,7 @@ final class ZoninatorZoneBlockTest extends TestCase {
 		$second  = $this->create_post( 'Zone second' );
 		$draft   = $this->create_post( 'Zone draft', 'draft' );
 		$this->create_post( 'Not in zone' );
-		\Zoninator()->add_zone_posts( $zone_id, array( $second, $draft, $first ) );
+		Zoninator()->add_zone_posts( $zone_id, array( $second, $draft, $first ) );
 
 		$html = $this->render_block( $zone_id );
 
@@ -39,7 +41,7 @@ final class ZoninatorZoneBlockTest extends TestCase {
 			$this->create_post( 'Zone two' ),
 			$this->create_post( 'Zone three' ),
 		);
-		\Zoninator()->add_zone_posts( $zone_id, $post_ids );
+		Zoninator()->add_zone_posts( $zone_id, $post_ids );
 
 		$html = $this->render_block( $zone_id, 2 );
 
@@ -59,12 +61,12 @@ final class ZoninatorZoneBlockTest extends TestCase {
 			'post_type' => 'page',
 			'orderby'   => 'title',
 		);
-		$block = new \WP_Block(
+		$block = new WP_Block(
 			array( 'blockName' => 'core/post-template' ),
 			array( 'query' => array( 'postType' => 'page' ) )
 		);
 
-		$this->assertSame( $query, zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class )->filter_query_vars( $query, $block ) );
+		$this->assertSame( $query, zoninator_container()->get( Block::class )->filter_query_vars( $query, $block ) );
 	}
 
 	public function test_editor_preview_lists_zone_posts_in_zone_order(): void {
@@ -74,7 +76,7 @@ final class ZoninatorZoneBlockTest extends TestCase {
 		$second  = $this->create_post( 'Zone second' );
 		$draft   = $this->create_post( 'Zone draft', 'draft' );
 		$this->create_post( 'Not in zone' );
-		\Zoninator()->add_zone_posts( $zone_id, array( $second, $draft, $first ) );
+		Zoninator()->add_zone_posts( $zone_id, array( $second, $draft, $first ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'zoninatorZone', $zone_id );
@@ -89,7 +91,7 @@ final class ZoninatorZoneBlockTest extends TestCase {
 		$older = self::factory()->post->create( array( 'post_date' => '2024-01-01 00:00:00' ) );
 		$newer = self::factory()->post->create( array( 'post_date' => '2024-02-01 00:00:00' ) );
 		$zone_id = $this->create_zone();
-		\Zoninator()->add_zone_posts( $zone_id, array( $older ) );
+		Zoninator()->add_zone_posts( $zone_id, array( $older ) );
 
 		$response = rest_do_request( new WP_REST_Request( 'GET', '/wp/v2/posts' ) );
 
@@ -115,7 +117,7 @@ final class ZoninatorZoneBlockTest extends TestCase {
 		$first   = $this->create_post( 'Zone first' );
 		$private = $this->create_post( 'Zone private', 'private' );
 		$second  = $this->create_post( 'Zone second' );
-		\Zoninator()->add_zone_posts( $zone_id, array( $second, $private, $first ) );
+		Zoninator()->add_zone_posts( $zone_id, array( $second, $private, $first ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'zoninatorZone', $zone_id );
@@ -132,7 +134,7 @@ final class ZoninatorZoneBlockTest extends TestCase {
 			$this->create_post( 'Zone two' ),
 			$this->create_post( 'Zone three' ),
 		);
-		\Zoninator()->add_zone_posts( $zone_id, $post_ids );
+		Zoninator()->add_zone_posts( $zone_id, $post_ids );
 
 		$_GET['query-1-page'] = '2';
 		try {
@@ -149,11 +151,11 @@ final class ZoninatorZoneBlockTest extends TestCase {
 	public function test_editor_script_loads_in_the_block_editor(): void {
 		do_action( 'enqueue_block_editor_assets' );
 
-		$this->assertTrue( wp_script_is( \Automattic\Zoninator\Infrastructure\WordPress\Block::SCRIPT_HANDLE, 'enqueued' ) );
+		$this->assertTrue( wp_script_is( Block::SCRIPT_HANDLE, 'enqueued' ) );
 	}
 
 	private function create_zone(): int {
-		$zone = \Zoninator()->insert_zone( 'block-zone', 'Block zone' );
+		$zone = Zoninator()->insert_zone( 'block-zone', 'Block zone' );
 
 		return (int) $zone['term_id'];
 	}

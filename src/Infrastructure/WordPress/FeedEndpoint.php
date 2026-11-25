@@ -11,7 +11,7 @@ namespace Automattic\Zoninator\Infrastructure\WordPress;
  * Serves each zone's feed as JSON at /zones/{slug}/feed.json.
  *
  * It registers its own hooks in register_hooks(), and sites reach it with
- * zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class ) to unhook them.
+ * zoninator_container()->get( FeedEndpoint::class ) to unhook them.
  *
  * @since 1.0.0
  * @internal Use Zoninator(), the template tags and the hooks instead.

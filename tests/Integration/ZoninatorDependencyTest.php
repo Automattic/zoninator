@@ -10,8 +10,23 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Automattic\Zoninator\Infrastructure\WordPress\Abilities;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Block;
+use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
+use Automattic\Zoninator\Infrastructure\WordPress\Feed;
+use Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint;
+use Automattic\Zoninator\Infrastructure\WordPress\Locks;
+use Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper;
+use Automattic\Zoninator\Infrastructure\WordPress\Request;
+use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
+use Automattic\Zoninator\Infrastructure\WordPress\Search;
+use Automattic\Zoninator\Infrastructure\WordPress\Settings;
+use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use Automattic\Zoninator\Infrastructure\WordPress\Zones;
 use ReflectionClass;
 use ReflectionNamedType;
+use Zoninator;
 
 final class ZoninatorDependencyTest extends TestCase {
 
@@ -39,18 +54,18 @@ final class ZoninatorDependencyTest extends TestCase {
 	 * Zoninator builds nothing itself, so tests can hand it parts of their own.
 	 */
 	public function test_zoninator_works_with_parts_it_is_given(): void {
-		$settings     = new \Automattic\Zoninator\Infrastructure\WordPress\Settings();
-		$taxonomy     = new \Automattic\Zoninator\Infrastructure\WordPress\Taxonomy();
-		$capabilities = new \Automattic\Zoninator\Infrastructure\WordPress\Capabilities( $taxonomy );
-		$zones        = new \Automattic\Zoninator\Infrastructure\WordPress\Zones( $settings, $taxonomy, $capabilities );
-		$zoninator    = new \Zoninator(
+		$settings     = new Settings();
+		$taxonomy     = new Taxonomy();
+		$capabilities = new Capabilities( $taxonomy );
+		$zones        = new Zones( $settings, $taxonomy, $capabilities );
+		$zoninator    = new Zoninator(
 			$settings,
 			$taxonomy,
 			$capabilities,
-			new \Automattic\Zoninator\Infrastructure\WordPress\Request( $capabilities ),
+			new Request( $capabilities ),
 			$zones,
-			new \Automattic\Zoninator\Infrastructure\WordPress\Locks( $zones, $settings ),
-			new \Automattic\Zoninator\Infrastructure\WordPress\Feed( $zones )
+			new Locks( $zones, $settings ),
+			new Feed( $zones )
 		);
 		$zone      = $zoninator->insert_zone( 'parts-zone', 'Parts zone' );
 
@@ -63,21 +78,21 @@ final class ZoninatorDependencyTest extends TestCase {
 	 */
 	public function data_classes(): array {
 		$classes = array(
-			\Automattic\Zoninator\Infrastructure\WordPress\Settings::class,
-			\Automattic\Zoninator\Infrastructure\WordPress\Taxonomy::class,
-			\Automattic\Zoninator\Infrastructure\WordPress\Capabilities::class,
-			\Automattic\Zoninator\Infrastructure\WordPress\Request::class,
-			\Automattic\Zoninator\Infrastructure\WordPress\Zones::class,
-			\Automattic\Zoninator\Infrastructure\WordPress\Locks::class,
-			\Automattic\Zoninator\Infrastructure\WordPress\Feed::class,
-			\Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class,
-			\Automattic\Zoninator\Infrastructure\WordPress\Search::class,
-			\Automattic\Zoninator\Infrastructure\WordPress\Block::class,
-			\Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class,
-			\Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController::class,
-			\Automattic\Zoninator\Infrastructure\WordPress\Abilities::class,
-			\Zoninator::class,
-			\Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper::class,
+			Settings::class,
+			Taxonomy::class,
+			Capabilities::class,
+			Request::class,
+			Zones::class,
+			Locks::class,
+			Feed::class,
+			FeedEndpoint::class,
+			Search::class,
+			Block::class,
+			Screen::class,
+			ZonesController::class,
+			Abilities::class,
+			Zoninator::class,
+			PluginBootstrapper::class,
 		);
 
 		return array_combine( $classes, array_map( static fn( $class_name ) => array( $class_name ), $classes ) );

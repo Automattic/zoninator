@@ -12,6 +12,7 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Automattic\Zoninator\Infrastructure\WordPress\Zones;
 use WP_Error;
 
 class ZoninatorZoneDataTest extends TestCase {
@@ -213,7 +214,7 @@ class ZoninatorZoneDataTest extends TestCase {
 		add_action( 'zoninator_split_shared_term', $record, 10, 3 );
 		add_action( 'zoninator_did_split_shared_term', $record, 10, 3 );
 
-		zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Zones::class )->split_shared_term( $this->zone_id, $new_id, 123, 'zoninator_zones' );
+		zoninator_container()->get( Zones::class )->split_shared_term( $this->zone_id, $new_id, 123, 'zoninator_zones' );
 
 		remove_action( 'zoninator_split_shared_term', $record, 10 );
 		remove_action( 'zoninator_did_split_shared_term', $record, 10 );
@@ -269,7 +270,7 @@ class ZoninatorZoneDataTest extends TestCase {
 		$new_id   = (int) $new_zone['term_id'];
 		$filter   = $this->hide_post_from_query_filters( $this->post_ids[2] );
 
-		zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Zones::class )->split_shared_term( $this->zone_id, $new_id, 123, 'zoninator_zones' );
+		zoninator_container()->get( Zones::class )->split_shared_term( $this->zone_id, $new_id, 123, 'zoninator_zones' );
 
 		remove_filter( 'posts_where', $filter );
 		$this->assertSame( array(), $this->zone_post_ids() );
@@ -287,7 +288,7 @@ class ZoninatorZoneDataTest extends TestCase {
 		$new_zone = Zoninator()->insert_zone( 'split-scheduled-zone' );
 		$new_id   = (int) $new_zone['term_id'];
 
-		zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Zones::class )->split_shared_term( $this->zone_id, $new_id, 123, 'zoninator_zones' );
+		zoninator_container()->get( Zones::class )->split_shared_term( $this->zone_id, $new_id, 123, 'zoninator_zones' );
 
 		$this->assertSame( '', get_post_meta( $scheduled_id, Zoninator()->get_zone_meta_key( $this->zone_id ), true ) );
 		$this->assertSame( '4', get_post_meta( $scheduled_id, Zoninator()->get_zone_meta_key( $new_id ), true ) );
@@ -296,7 +297,7 @@ class ZoninatorZoneDataTest extends TestCase {
 	public function test_split_shared_term_ignores_other_taxonomies(): void {
 		$new_zone = Zoninator()->insert_zone( 'split-zone' );
 
-		zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Zones::class )->split_shared_term( $this->zone_id, (int) $new_zone['term_id'], 123, 'category' );
+		zoninator_container()->get( Zones::class )->split_shared_term( $this->zone_id, (int) $new_zone['term_id'], 123, 'category' );
 
 		$this->assertSame( $this->post_ids, $this->zone_post_ids() );
 	}
