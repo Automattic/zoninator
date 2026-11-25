@@ -10,8 +10,9 @@ namespace Automattic\Zoninator\Infrastructure\WordPress;
 use WP_Error;
 
 /**
- * Registers read-only abilities for what editors do on the Zones screen:
- * list zones, get a zone's posts and search for posts to add.
+ * Registers the read-only abilities for what editors do on the Zones screen:
+ * list zones, get a zone's posts and search for posts to add. CurationAbilities
+ * registers the ones that change a zone's posts.
  *
  * The bootstrapper hooks it, and the container builds it the first time one of its hooks fires.
  *
@@ -67,7 +68,7 @@ final class Abilities {
 			self::CATEGORY,
 			array(
 				'label'       => __( 'Zones', 'zoninator' ),
-				'description' => __( 'Read zones and the posts in them.', 'zoninator' ),
+				'description' => __( 'Read zones, and curate the posts in them.', 'zoninator' ),
 			)
 		);
 	}

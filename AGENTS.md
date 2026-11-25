@@ -58,6 +58,7 @@ zoninator/
 │   │       ├── Search.php           # Finds posts to offer for a zone
 │   │       ├── Block.php            # The Zone Posts Query Loop variation's queries and editor script
 │   │       ├── Abilities.php        # Read-only Abilities API abilities
+│   │       ├── CurationAbilities.php # Abilities that change a zone's posts
 │   │       ├── Admin/
 │   │       │   ├── Screen.php       # Zones admin screen (markup, assets)
 │   │       │   └── ZoneForm.php     # Saves the screen's zone form
@@ -96,6 +97,7 @@ zoninator/
 - `src/Infrastructure/WordPress/TermSplitHandler.php` — moves a zone's posts to its new ID when WordPress splits a term the zone shared with another taxonomy.
 - `src/Application/ZoneLocker.php` — `Automattic\Zoninator\Application\ZoneLocker`: locks a zone for a user, says who is keeping a user out, and unlocks it. It throws `Domain\ZoneLockedException` when someone else holds the lock; the REST route and the Zones screen turn that into their own responses. `Domain\ZoneLock` holds the rules. `Infrastructure\WordPress\TransientLockStore` keeps the locks in transients, and `Settings` supplies the lock period through `Domain\LockSettingsInterface`.
 - `src/Infrastructure/WordPress/Abilities.php` — `Automattic\Zoninator\Infrastructure\WordPress\Abilities`: the read-only Abilities API abilities (`zoninator/list-zones`, `zoninator/get-zone-posts`, `zoninator/search-posts`) in the `zoninator` category. The bootstrapper hooks `wp_abilities_api_categories_init` and `wp_abilities_api_init`, and the container builds it the first time either fires. Like the REST route callbacks, the ability callbacks live on this class; sites remove an ability with `wp_unregister_ability()`.
+- `src/Infrastructure/WordPress/CurationAbilities.php` — `Automattic\Zoninator\Infrastructure\WordPress\CurationAbilities`: the abilities that change a zone's posts (`zoninator/add-zone-posts`, `zoninator/set-zone-posts`, `zoninator/remove-zone-posts`), through `GuardedZoneCurator`. Unlike the read-only ones, they aren't public on the MCP adapter's default server.
 - `src/Infrastructure/WordPress/Feed.php` — `Automattic\Zoninator\Infrastructure\WordPress\Feed`: a zone's published posts as the JSON feed lists them, limited to the feed's fields and passed through its filters. It has no hooks. `FeedEndpoint` and the REST route `GET /zones/{zone_id}/posts` both return it.
 - `src/Infrastructure/WordPress/FeedEndpoint.php` — `Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint`: the rewrite rule and response for the JSON feed at `/zones/{slug}/feed.json`.
 - `src/Infrastructure/WordPress/Search.php` — `Automattic\Zoninator\Infrastructure\WordPress\Search`: finds posts to offer for a zone, by text or the latest content. The REST search route and the `zoninator/search-posts` ability both call its `find_posts()`.
