@@ -66,31 +66,49 @@ The `__get()`, `__set()` and `__isset()` methods that kept `Zoninator()`'s old p
 
 Up to 0.12.x, every Zoninator hook was registered on the `Zoninator` object, with a one-line method that handed the work to the class that does it. In 1.0.0 each hook is registered on that class's object, and the one-line methods are gone.
 
-**Check your `remove_action()` and `remove_filter()` calls.** One that names an old callback, such as `remove_action( 'template_redirect', array( Zoninator(), 'do_zoninator_feeds' ) )`, now matches nothing. PHP gives no error and WordPress gives no notice, so the hook quietly keeps running. Replace it with the call in the last column. `Zoninator()` has four new getters for this: `get_admin_screen()`, `get_feed()`, `get_block()` and `get_zone_store()`. They return the objects that handle the hooks; use them only to unhook, as their other methods are internal.
+**Check your `remove_action()` and `remove_filter()` calls.** One that names an old callback, such as `remove_action( 'template_redirect', array( Zoninator(), 'do_zoninator_feeds' ) )`, now matches nothing. PHP gives no error and WordPress gives no notice, so the hook quietly keeps running. Replace it with the call in the last column. The new `zoninator_container()` function returns the container that builds Zoninator's classes, and its `get()` takes a class name and returns that class's object, the one that handles the hook. Use those objects only to unhook, as their other methods are internal.
 
 | Hook | Old callback | How to unhook it in 1.0.0 |
 |---|---|---|
-| `init` | `array( Zoninator(), 'add_zone_feed' )` | `remove_action( 'init', array( Zoninator()->get_feed(), 'add_rewrite_rule' ) )` |
-| `template_redirect` | `array( Zoninator(), 'do_zoninator_feeds' )` | `remove_action( 'template_redirect', array( Zoninator()->get_feed(), 'serve' ) )` |
+| `init` | `array( Zoninator(), 'init' )`, priority 99, which registered the zone taxonomy | `remove_action( 'init', array( zoninator_container()->get( \Automattic\Zoninator\Taxonomy::class ), 'register' ) )`, now at the default priority |
+| `init` | `array( Zoninator(), 'add_zone_feed' )` | `remove_action( 'init', array( zoninator_container()->get( \Automattic\Zoninator\Feed::class ), 'add_rewrite_rule' ) )` |
+| `template_redirect` | `array( Zoninator(), 'do_zoninator_feeds' )` | `remove_action( 'template_redirect', array( zoninator_container()->get( \Automattic\Zoninator\Feed::class ), 'serve' ) )` |
+| `rest_api_init` | `array( Zoninator(), 'register_rest_routes' )` | `remove_action( 'rest_api_init', array( zoninator_container()->get( \Automattic\Zoninator\Bootstrapper::class ), 'register_rest_routes' ) )` |
 | `widgets_init` | `array( Zoninator(), 'widgets_init' )` | `remove_action( 'widgets_init', array( 'Zoninator_ZonePosts_Widget', 'register' ) )` |
-| `split_shared_term` | `array( Zoninator(), 'split_shared_term' )` | `remove_action( 'split_shared_term', array( Zoninator()->get_zone_store(), 'split_shared_term' ) )` |
-| `query_loop_block_query_vars` | `array( Zoninator(), 'zone_block_query_vars' )` | `remove_filter( 'query_loop_block_query_vars', array( Zoninator()->get_block(), 'filter_query_vars' ) )` |
-| `rest_post_query` | `array( Zoninator(), 'zone_block_rest_query' )` | `remove_filter( 'rest_post_query', array( Zoninator()->get_block(), 'filter_rest_query' ) )` |
-| `enqueue_block_editor_assets` | `array( Zoninator(), 'zone_block_editor_assets' )` | `remove_action( 'enqueue_block_editor_assets', array( Zoninator()->get_block(), 'enqueue_editor_assets' ) )` |
-| `admin_init` | `array( Zoninator(), 'admin_controller' )` | `remove_action( 'admin_init', array( Zoninator()->get_admin_screen(), 'handle_request' ) )` |
+| `split_shared_term` | `array( Zoninator(), 'split_shared_term' )` | `remove_action( 'split_shared_term', array( zoninator_container()->get( \Automattic\Zoninator\Zones::class ), 'split_shared_term' ) )` |
+| `query_loop_block_query_vars` | `array( Zoninator(), 'zone_block_query_vars' )` | `remove_filter( 'query_loop_block_query_vars', array( zoninator_container()->get( \Automattic\Zoninator\Block::class ), 'filter_query_vars' ) )` |
+| `rest_post_query` | `array( Zoninator(), 'zone_block_rest_query' )` | `remove_filter( 'rest_post_query', array( zoninator_container()->get( \Automattic\Zoninator\Block::class ), 'filter_rest_query' ) )` |
+| `enqueue_block_editor_assets` | `array( Zoninator(), 'zone_block_editor_assets' )` | `remove_action( 'enqueue_block_editor_assets', array( zoninator_container()->get( \Automattic\Zoninator\Block::class ), 'enqueue_editor_assets' ) )` |
+| `admin_init` | `array( Zoninator(), 'admin_controller' )` | `remove_action( 'admin_init', array( zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class ), 'handle_request' ) )` |
 | `admin_init` | `array( Zoninator(), 'admin_init' )`, which added the two `admin_enqueue_scripts` callbacks | Nothing to unhook: the two callbacks below are now added directly |
-| `admin_enqueue_scripts` | `array( Zoninator(), 'admin_enqueue_scripts' )` | `remove_action( 'admin_enqueue_scripts', array( Zoninator()->get_admin_screen(), 'enqueue_scripts' ) )` |
-| `admin_enqueue_scripts` | `array( Zoninator(), 'admin_enqueue_styles' )` | `remove_action( 'admin_enqueue_scripts', array( Zoninator()->get_admin_screen(), 'enqueue_styles' ) )` |
-| `admin_menu` | `array( Zoninator(), 'admin_page_init' )` | `remove_action( 'admin_menu', array( Zoninator()->get_admin_screen(), 'register_menu_page' ) )` |
-| `toplevel_page_zoninator` | `array( Zoninator(), 'admin_page' )` | `remove_action( 'toplevel_page_zoninator', array( Zoninator()->get_admin_screen(), 'render' ) )` |
-| `zoninator_advanced_search_fields` | `array( Zoninator(), 'zone_advanced_search_cat_filter' )` | `remove_action( 'zoninator_advanced_search_fields', array( Zoninator()->get_admin_screen(), 'render_category_filter' ) )` |
-| `zoninator_advanced_search_fields` | `array( Zoninator(), 'zone_advanced_search_date_filter' )`, priority 20 | `remove_action( 'zoninator_advanced_search_fields', array( Zoninator()->get_admin_screen(), 'render_date_filter' ), 20 )` |
+| `admin_enqueue_scripts` | `array( Zoninator(), 'admin_enqueue_scripts' )` | `remove_action( 'admin_enqueue_scripts', array( zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class ), 'enqueue_scripts' ) )` |
+| `admin_enqueue_scripts` | `array( Zoninator(), 'admin_enqueue_styles' )` | `remove_action( 'admin_enqueue_scripts', array( zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class ), 'enqueue_styles' ) )` |
+| `admin_menu` | `array( Zoninator(), 'admin_page_init' )` | `remove_action( 'admin_menu', array( zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class ), 'register_menu_page' ) )` |
+| `toplevel_page_zoninator` | `array( Zoninator(), 'admin_page' )` | `remove_action( 'toplevel_page_zoninator', array( zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class ), 'render' ) )` |
+| `zoninator_advanced_search_fields` | `array( Zoninator(), 'zone_advanced_search_cat_filter' )` | `remove_action( 'zoninator_advanced_search_fields', array( zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class ), 'render_category_filter' ) )` |
+| `zoninator_advanced_search_fields` | `array( Zoninator(), 'zone_advanced_search_date_filter' )`, priority 20 | `remove_action( 'zoninator_advanced_search_fields', array( zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class ), 'render_date_filter' ), 20 )` |
 
-As before, Zoninator adds the `admin_init`, `admin_enqueue_scripts`, `admin_menu` and `zoninator_advanced_search_fields` callbacks on `init` at priority 99, so remove them after that, for example on `admin_init` at priority 0. `toplevel_page_zoninator` is added on `admin_menu`.
+Zoninator adds all of these when it boots, on `plugins_loaded` at priority 10 (see [Zoninator boots on `plugins_loaded`](#zoninator-boots-on-plugins_loaded)). The admin ones used to wait for `init` at priority 99. Remove them on `plugins_loaded` at priority 20, which works for every hook in the table. The exception is `toplevel_page_zoninator`, which is added on `admin_menu`, so remove it on `admin_menu` at priority 11 or later.
 
-These hooks keep their `Zoninator` callbacks, so calls that remove them still work: `init` at priority 99 (`array( Zoninator(), 'init' )`), `rest_api_init` (`register_rest_routes`), `wp_abilities_api_categories_init` (`register_ability_categories`) and `wp_abilities_api_init` (`register_abilities`).
+The default callbacks in [`zoninator_zone_post_columns`](hooks.md#zoninator_zone_post_columns-filter) have moved the same way: `array( Zoninator(), 'admin_page_zone_post_col_position' )` and `array( Zoninator(), 'admin_page_zone_post_col_info' )` are now `array( zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class ), 'render_position_column' )` and `array( zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class ), 'render_info_column' )`. If your filter compares them or calls them directly, update it.
 
-The default callbacks in [`zoninator_zone_post_columns`](hooks.md#zoninator_zone_post_columns-filter) have moved the same way: `array( Zoninator(), 'admin_page_zone_post_col_position' )` and `array( Zoninator(), 'admin_page_zone_post_col_info' )` are now `array( Zoninator()->get_admin_screen(), 'render_position_column' )` and `array( Zoninator()->get_admin_screen(), 'render_info_column' )`. If your filter compares them or calls them directly, update it.
+### Zoninator boots on `plugins_loaded`
+
+Zoninator used to build itself as soon as WordPress loaded its file. It now builds its classes and adds its hooks on `plugins_loaded`, at priority 10, so every plugin has loaded by the time it starts. Code that runs later, such as theme code and anything on `init`, sees no difference.
+
+- Calling `Zoninator()` before `plugins_loaded`, from a mu-plugin or another plugin's main file, still works: it boots Zoninator there and then. `zoninator_container()` does the same.
+- If a theme loads Zoninator from its `functions.php`, after `plugins_loaded` has fired, Zoninator boots straight away.
+- The `$zoninator` global is set when Zoninator boots, so it's empty until then. Use `Zoninator()` instead, which never is.
+- `Zoninator` is now `final`, and its constructor takes the parts it delegates to. Don't extend it or build it with `new Zoninator()`; use `Zoninator()`. The classes under `Automattic\Zoninator\`, apart from `Container`, are marked `@internal`.
+- `Zoninator::maybe_add_rest_api()` and `Zoninator::register_rest_routes()` are gone. The REST routes are always registered, by `Automattic\Zoninator\Bootstrapper::register_rest_routes()` on `rest_api_init`. `Zoninator()->rest_api` still holds the REST controller once `rest_api_init` has fired.
+
+`Zoninator::init()`, which ran on `init` at priority 99, is gone too, and so is the setup it did there:
+
+- The settings filters, such as `zoninator_zone_lock_period`, apply each time Zoninator reads the value, so a filter you add at any point before then counts. They used to apply once, on `init`.
+- The `zoninator_pre_init` and `zoninator_post_init` actions are removed. Hook `init` instead, at whatever priority you need.
+- `Zoninator()->default_post_types` is removed. Posts support zones from the moment Zoninator boots. To take zones away from posts, call `remove_post_type_support( 'post', 'zoninator_zones' )`. To add a post type, call `add_post_type_support( 'page', 'zoninator_zones' )`, add `zoninator_zones` to the post type's `supports`, or call `Zoninator()->register_zone_post_type()`. Any of these works at any point.
+- The `zoninator_zones` taxonomy registers on `init` at the default priority, with no post types attached. A post's place in a zone has always been post meta, not a term relationship, so nothing else changes, but `get_object_taxonomies( 'post' )` no longer lists it.
+- `remove_action( 'init', array( Zoninator(), 'init' ), 99 )` now matches nothing; the table above gives the call that stops the taxonomy registering. To hide the Zones screen from some users, filter [`zoninator_manage_zone_cap`](hooks.md#zoninator_manage_zone_cap-filter).
 
 ### The widget's cache filter has a new name
 

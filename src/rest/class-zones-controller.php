@@ -25,6 +25,7 @@ use Automattic\Zoninator\Zones;
  * Zones, their posts and their locks.
  *
  * @since 0.12.0
+ * @internal Use Zoninator(), the template tags and the hooks instead.
  */
 final class Zones_Controller extends WP_REST_Controller {
 	public const ZONE_ITEM_URL_REGEX = '/zones/(?P<zone_id>[\d]+)';

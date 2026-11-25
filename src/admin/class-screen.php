@@ -16,10 +16,11 @@ use Automattic\Zoninator\Zones;
 /**
  * Renders the Zones admin screen, saves its zone form, and loads its assets.
  *
- * It registers its own hooks in register_hooks(), which Zoninator calls on
- * init. Sites reach it with Zoninator()->get_admin_screen() to unhook them.
+ * It registers its own hooks in register_hooks(). Sites reach it with
+ * zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class ) to unhook them.
  *
  * @since 0.12.0
+ * @internal Use Zoninator(), the template tags and the hooks instead.
  */
 final class Screen {
 
@@ -82,7 +83,7 @@ final class Screen {
 
 	/**
 	 * Hooks the screen's form handling, assets, menu page and default search
-	 * fields. Zoninator calls this once, on init.
+	 * fields. Bootstrapper::register_hooks() calls this once.
 	 *
 	 * @since 1.0.0
 	 */

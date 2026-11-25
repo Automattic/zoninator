@@ -28,7 +28,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Hooks the widget's registration. Zoninator calls this once.
+	 * Hooks the widget's registration. Bootstrapper::register_hooks() calls this once.
 	 *
 	 * @since 1.0.0
 	 */

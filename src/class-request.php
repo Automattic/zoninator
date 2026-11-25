@@ -12,6 +12,7 @@ namespace Automattic\Zoninator;
  * and capabilities before a request handler does any work.
  *
  * @since 0.12.0
+ * @internal Use Zoninator(), the template tags and the hooks instead.
  */
 final class Request {
 

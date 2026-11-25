@@ -16,6 +16,7 @@ namespace Automattic\Zoninator;
  * (lock_zone() for lock(), and so on), which delegates here.
  *
  * @since 0.12.0
+ * @internal Use Zoninator(), the template tags and the hooks instead.
  */
 final class Locks {
 

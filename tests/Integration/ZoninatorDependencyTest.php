@@ -2,7 +2,7 @@
 declare( strict_types = 1 );
 
 /**
- * Checks that dependencies run one way: Zoninator builds the other classes,
+ * Checks that dependencies run one way: the bootstrapper builds every class,
  * and none of them depends on Zoninator.
  *
  * @package Automattic\Zoninator
@@ -40,6 +40,29 @@ final class ZoninatorDependencyTest extends TestCase {
 	}
 
 	/**
+	 * Zoninator builds nothing itself, so tests can hand it parts of their own.
+	 */
+	public function test_zoninator_works_with_parts_it_is_given(): void {
+		$settings     = new \Automattic\Zoninator\Settings();
+		$taxonomy     = new \Automattic\Zoninator\Taxonomy();
+		$capabilities = new \Automattic\Zoninator\Capabilities( $taxonomy );
+		$zones        = new \Automattic\Zoninator\Zones( $settings, $taxonomy, $capabilities );
+		$zoninator    = new \Zoninator(
+			$settings,
+			$taxonomy,
+			$capabilities,
+			new \Automattic\Zoninator\Request( $capabilities ),
+			$zones,
+			new \Automattic\Zoninator\Locks( $zones, $settings ),
+			new \Automattic\Zoninator\Feed( $zones )
+		);
+		$zone      = $zoninator->insert_zone( 'parts-zone', 'Parts zone' );
+
+		$this->assertSame( 'Parts zone', $zoninator->get_zone( (int) $zone['term_id'] )->name );
+		$this->assertSame( 30, $zoninator->get_zone_lock_period() );
+	}
+
+	/**
 	 * @return array<string, array{string}>
 	 */
 	public function data_classes(): array {
@@ -55,6 +78,8 @@ final class ZoninatorDependencyTest extends TestCase {
 			\Automattic\Zoninator\Admin\Screen::class,
 			\Automattic\Zoninator\REST\Zones_Controller::class,
 			\Automattic\Zoninator\Abilities::class,
+			\Zoninator::class,
+			\Automattic\Zoninator\Bootstrapper::class,
 		);
 
 		return array_combine( $classes, array_map( static fn( $class_name ) => array( $class_name ), $classes ) );

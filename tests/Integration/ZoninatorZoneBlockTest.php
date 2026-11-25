@@ -64,7 +64,7 @@ final class ZoninatorZoneBlockTest extends TestCase {
 			array( 'query' => array( 'postType' => 'page' ) )
 		);
 
-		$this->assertSame( $query, \Zoninator()->get_block()->filter_query_vars( $query, $block ) );
+		$this->assertSame( $query, zoninator_container()->get( \Automattic\Zoninator\Block::class )->filter_query_vars( $query, $block ) );
 	}
 
 	public function test_editor_preview_lists_zone_posts_in_zone_order(): void {

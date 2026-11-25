@@ -13,9 +13,10 @@ use WP_Error;
  * Registers read-only abilities for what editors do on the Zones screen:
  * list zones, get a zone's posts and search for posts to add.
  *
- * Its hooks stay registered on Zoninator.
+ * The bootstrapper hooks it, and the container builds it the first time one of its hooks fires.
  *
  * @since 1.0.0
+ * @internal Use Zoninator(), the template tags and the hooks instead.
  */
 final class Abilities {
 

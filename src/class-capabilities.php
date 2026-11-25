@@ -14,6 +14,7 @@ namespace Automattic\Zoninator;
  * filters.
  *
  * @since 0.12.0
+ * @internal Use Zoninator(), the template tags and the hooks instead.
  */
 final class Capabilities {
 
