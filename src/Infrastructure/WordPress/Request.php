@@ -46,7 +46,7 @@ final class Request {
 	 * @param callable|string $sanitize_callback Callback to sanitise the value, or each item of an array.
 	 * @return mixed
 	 */
-	public static function get_value_or_default( $key, $source, $default_value = '', $sanitize_callback = '' ) {
+	public function get_value_or_default( $key, $source, $default_value = '', $sanitize_callback = '' ) {
 		if ( is_object( $source ) ) {
 			$value = empty( $source->$key ) ? $default_value : $source->$key;
 		} elseif ( is_array( $source ) ) {
@@ -64,17 +64,17 @@ final class Request {
 
 	public function get_request_var( $key, $default_value = '', $sanitize_callback = '' ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		return self::get_value_or_default( $key, $_REQUEST, $default_value, $sanitize_callback );
+		return $this->get_value_or_default( $key, $_REQUEST, $default_value, $sanitize_callback );
 	}
 
 	public function get_get_var( $key, $default_value = '', $sanitize_callback = '' ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		return self::get_value_or_default( $key, $_GET, $default_value, $sanitize_callback );
+		return $this->get_value_or_default( $key, $_GET, $default_value, $sanitize_callback );
 	}
 
 	public function get_post_var( $key, $default_value = '', $sanitize_callback = '' ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		return self::get_value_or_default( $key, $_POST, $default_value, $sanitize_callback );
+		return $this->get_value_or_default( $key, $_POST, $default_value, $sanitize_callback );
 	}
 
 	/**
@@ -83,7 +83,7 @@ final class Request {
 	 * @param string $value Raw value.
 	 * @return string
 	 */
-	public static function sanitize_value( $value ) {
+	public function sanitize_value( $value ) {
 		// htmlspecialchars(), not htmlentities(): core decodes named entities such as
 		// &eacute; when it saves a term, which broke the serialised zone details.
 		return htmlspecialchars( stripslashes( $value ) );
@@ -95,7 +95,7 @@ final class Request {
 	 * @param string $action Action.
 	 * @return string
 	 */
-	public static function get_nonce_key( $action ) {
+	public function get_nonce_key( $action ) {
 		return sprintf( '%s-%s', self::NONCE_PREFIX, $action );
 	}
 
@@ -105,7 +105,7 @@ final class Request {
 	 * @param string $action Action.
 	 */
 	public function verify_nonce( $action ) {
-		$action = self::get_nonce_key( $action );
+		$action = $this->get_nonce_key( $action );
 		$nonce  = $this->get_request_var( $action );
 
 		if ( empty( $nonce ) ) {

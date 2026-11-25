@@ -166,10 +166,10 @@ final class Screen {
 					$this->request->verify_nonce( $action );
 					$this->request->verify_access( $action, $zone_id );
 
-					$name    = $this->request->get_post_var( 'name', '', array( Request::class, 'sanitize_value' ) );
+					$name    = $this->request->get_post_var( 'name', '', array( $this->request, 'sanitize_value' ) );
 					$slug    = $this->request->get_post_var( 'slug', sanitize_title( $name ) );
 					$details = array(
-						'description' => $this->request->get_post_var( 'description', '', array( Request::class, 'sanitize_value' ) ),
+						'description' => $this->request->get_post_var( 'description', '', array( $this->request, 'sanitize_value' ) ),
 					);
 
 					// Go by the action that was checked, not by whether a zone ID was sent.
@@ -339,7 +339,7 @@ final class Screen {
 	}
 
 	public function render_zone_edit( $zone = null ) {
-		$zone_id = Request::get_value_or_default( 'term_id', $zone, 0, 'absint' );
+		$zone_id = $this->request->get_value_or_default( 'term_id', $zone, 0, 'absint' );
 
 		$zone_posts = $zone_id ? $this->zones->get_posts( $zone ) : array();
 
@@ -351,7 +351,7 @@ final class Screen {
 				'zone_id' => $zone_id,
 			)
 		);
-		$delete_link = wp_nonce_url( $delete_link, Request::get_nonce_key( 'delete' ) );
+		$delete_link = wp_nonce_url( $delete_link, $this->request->get_nonce_key( 'delete' ) );
 		$can_open    = ( 0 == $zone_id && $this->capabilities->current_user_can_add_zones() ) || ( 0 != $zone_id && $this->capabilities->current_user_can_manage_zones() );
 		?>
 	<div id="zone-edit-wrapper">
@@ -401,10 +401,10 @@ final class Screen {
 	 * @param string        $delete_link URL that deletes the zone.
 	 */
 	public function render_zone_details( $zone, $zone_locked, $delete_link ) {
-		$zone_id          = Request::get_value_or_default( 'term_id', $zone, 0, 'absint' );
-		$zone_name        = Request::get_value_or_default( 'name', $zone );
-		$zone_slug        = Request::get_value_or_default( 'slug', $zone, '' );
-		$zone_description = Request::get_value_or_default( 'description', $zone );
+		$zone_id          = $this->request->get_value_or_default( 'term_id', $zone, 0, 'absint' );
+		$zone_name        = $this->request->get_value_or_default( 'name', $zone );
+		$zone_slug        = $this->request->get_value_or_default( 'slug', $zone, '' );
+		$zone_description = $this->request->get_value_or_default( 'description', $zone );
 		?>
 	<div class="form-wrap zone-form zone-info-form">
 
@@ -436,9 +436,9 @@ final class Screen {
 
 				<?php if ( $zone_id ) : ?>
 					<input type="hidden" name="zone_id" id="zone_id" value="<?php echo esc_attr( $zone_id ); ?>" />
-					<?php wp_nonce_field( Request::get_nonce_key( 'update' ) ); ?>
+					<?php wp_nonce_field( $this->request->get_nonce_key( 'update' ) ); ?>
 				<?php else : ?>
-					<?php wp_nonce_field( Request::get_nonce_key( 'insert' ) ); ?>
+					<?php wp_nonce_field( $this->request->get_nonce_key( 'insert' ) ); ?>
 				<?php endif; ?>
 
 				<p class="submit submitbox">

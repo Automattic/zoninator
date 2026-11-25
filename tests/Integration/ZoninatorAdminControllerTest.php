@@ -283,7 +283,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 	private function set_request( string $action, array $fields, bool $with_nonce ): void {
 		$_POST = $fields;
 		if ( $with_nonce ) {
-			$_POST['_wpnonce'] = wp_create_nonce( \Automattic\Zoninator\Infrastructure\WordPress\Request::get_nonce_key( $action ) );
+			$_POST['_wpnonce'] = wp_create_nonce( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Request::class )->get_nonce_key( $action ) );
 		}
 
 		$_REQUEST = array_merge(
