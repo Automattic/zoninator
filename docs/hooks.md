@@ -154,7 +154,7 @@ Each search result, including the latest content offered before anything is type
 
 ## Zone CRUD
 
-These fire from `src/Infrastructure/WordPress/Zones.php`.
+These fire from `src/Infrastructure/WordPress/TermZoneRepository.php`, for zones, and `src/Infrastructure/WordPress/PostMetaZonePostsRepository.php`, for the posts in them.
 
 ### `zoninator_insert_zone` (filter)
 
@@ -190,9 +190,9 @@ Fires after a zone has been deleted.
 
 Fires after one or more posts have been added to a zone.
 
-- **Parameters:** `int|int[]|WP_Post[] $posts`, `WP_Term $zone`
+- **Parameters:** `int[] $post_ids`, `WP_Term $zone`
 
-`$posts` is whatever was passed to `Zoninator::add_zone_posts()`, so its type depends on the caller. Adding one post with `POST /zoninator/v1/zones/{zone_id}/posts/{post_id}` passes its ID as an `int`. Replacing the zone's posts with `PUT /zoninator/v1/zones/{zone_id}/posts` passes `WP_Post` objects. Your own calls pass whatever you gave. To get IDs whatever the type, use `array_map( fn( $post ) => is_object( $post ) ? $post->ID : (int) $post, (array) $posts )`.
+`$post_ids` is always an array of post IDs, however the posts were added. Before 1.0.0 it was whatever the caller passed: an ID, an array of IDs, or `WP_Post` objects.
 
 Replacing the zone's posts, rather than appending, first removes every post in the zone, so `zoninator_remove_zone_posts` fires before this.
 
@@ -200,9 +200,9 @@ Replacing the zone's posts, rather than appending, first removes every post in t
 
 Fires after one or more posts have been removed from a zone.
 
-- **Parameters:** `int|int[]|WP_Post[] $posts`, `WP_Term $zone`
+- **Parameters:** `int[] $post_ids`, `WP_Term $zone`
 
-As with `zoninator_add_zone_posts`, `$posts` is whatever was passed to `Zoninator::remove_zone_posts()`. Removing one post passes its ID as an `int`. When the whole zone is cleared (replacing its posts, deleting the zone, or splitting a shared term), it's every post in the zone, whatever its status, as `WP_Post` objects.
+`$post_ids` is always an array of post IDs. When the whole zone is cleared (replacing its posts, deleting the zone, or splitting a shared term), it's every post that was in the zone, whatever its status, and the array is empty if the zone had none.
 
 ## Term splitting (WordPress 4.2 carry-over)
 

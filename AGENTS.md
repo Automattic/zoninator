@@ -25,9 +25,17 @@ zoninator/
 │   │   ├── ZoneLock.php             # A zone's lock: who holds it, who it keeps out, how long it lasts
 │   │   ├── LockStoreInterface.php   # Where locks are kept
 │   │   ├── LockSettingsInterface.php # How long a lock is valid for
-│   │   └── ZoneLockedException.php  # Someone else holds the zone's lock
+│   │   ├── ZoneLockedException.php  # Someone else holds the zone's lock
+│   │   ├── Zone.php                 # A zone, and the rules for making and changing one
+│   │   ├── ZoneRepositoryInterface.php # Where zones are kept
+│   │   ├── ZonePostsRepositoryInterface.php # Where the posts in each zone are kept
+│   │   ├── ZoneSettingsInterface.php # Which details every zone has
+│   │   └── *Exception.php           # InvalidZone, ZoneNotFound, ZoneNotSaved
 │   ├── Application/                 # Use cases, with no WordPress
-│   │   └── ZoneLocker.php           # Locks, checks and unlocks zones
+│   │   ├── ZoneLocker.php           # Locks, checks and unlocks zones
+│   │   ├── ZoneManager.php          # Creates and changes zones
+│   │   ├── ZoneRemover.php          # Deletes a zone, with its posts' places and its lock
+│   │   └── ZoneCurator.php          # Adds, orders and removes the posts in a zone
 │   ├── Infrastructure/              # Everything that talks to WordPress, and the wiring
 │   │   ├── DI/
 │   │   │   └── Container.php        # Holds the built objects by class name
@@ -37,7 +45,9 @@ zoninator/
 │   │       ├── Capabilities.php     # Who may add, edit and manage zones
 │   │       ├── Request.php          # Request variables, sanitizing, nonces and access checks
 │   │       ├── Taxonomy.php         # Registers the zone taxonomy; which post types support zones
-│   │       ├── Zones.php            # Zone CRUD, zone posts and their order
+│   │       ├── Zones.php            # Reads zones and their posts as WP_Term, WP_Post and WP_Query
+│   │       ├── TermZoneRepository.php # Keeps zones as taxonomy terms
+│   │       ├── PostMetaZonePostsRepository.php # Keeps each post's place in a zone as post meta
 │   │       ├── TransientLockStore.php # Keeps zone locks in transients
 │   │       ├── Feed.php             # The JSON feed's data: a zone's published posts, feed fields only
 │   │       ├── FeedEndpoint.php     # Serves the feed at /zones/{slug}/feed.json
@@ -75,7 +85,10 @@ zoninator/
 - `src/Infrastructure/WordPress/Capabilities.php` — `Automattic\Zoninator\Infrastructure\WordPress\Capabilities`: the add, edit and manage capability checks (and their filters), and whether the user may put a given post in a zone.
 - `src/Infrastructure/WordPress/Request.php` — `Automattic\Zoninator\Infrastructure\WordPress\Request`: reads and sanitizes request variables, validates the search filters, and checks nonces and access, stopping the request if either fails. Its helpers are instance methods, so a class that uses one takes `Request` in its constructor.
 - `src/Infrastructure/WordPress/Taxonomy.php` — `Automattic\Zoninator\Infrastructure\WordPress\Taxonomy`: registers the `zoninator_zones` taxonomy (`Taxonomy::NAME`) on `init`, with no object types, and gives posts zone support when the plugin boots. A post type supports zones if it has the `zoninator_zones` post type feature; `get_post_types()` asks core each time, with no cache.
-- `src/Infrastructure/WordPress/Zones.php` — `Automattic\Zoninator\Infrastructure\WordPress\Zones`: creates, reads, updates and deletes zones, and stores each zone's posts in order under post meta keys starting `Zones::META_PREFIX`. It reads the detail defaults from `Settings`.
+- `src/Domain/Zone.php` — `Automattic\Zoninator\Domain\Zone`: a zone's ID, slug, name and details, with the rules for making one (`create()`) and changing one (`with_changes()`). It never changes itself. `ZoneRepositoryInterface` and `ZonePostsRepositoryInterface` say what storage must do.
+- `src/Application/` — `ZoneManager` creates and changes zones, `ZoneRemover` deletes one with its posts' places and its lock, and `ZoneCurator` adds, orders and removes the posts in a zone. They take zone and post IDs, return `Zone`, and throw `Domain` exceptions (`InvalidZoneException`, `ZoneNotFoundException`, `ZoneNotSavedException`).
+- `src/Infrastructure/WordPress/TermZoneRepository.php` and `PostMetaZonePostsRepository.php` — the storage: zones as terms with their details serialised in the description, and each post's place as post meta. They apply `zoninator_insert_zone` and `zoninator_update_zone` and fire `zoninator_delete_zone`, `zoninator_add_zone_posts` and `zoninator_remove_zone_posts`, so every way of changing a zone fires them.
+- `src/Infrastructure/WordPress/Zones.php` — `Automattic\Zoninator\Infrastructure\WordPress\Zones`: reads zones and their posts for WordPress code, as `WP_Term`, `WP_Post` and `WP_Query`. Its methods that change a zone hand the work to the Application classes and turn the result back into arrays and `WP_Error`; they stay only until every caller uses those classes directly.
 - `src/Application/ZoneLocker.php` — `Automattic\Zoninator\Application\ZoneLocker`: locks a zone for a user, says who is keeping a user out, and unlocks it. It throws `Domain\ZoneLockedException` when someone else holds the lock; the REST route and the Zones screen turn that into their own responses. `Domain\ZoneLock` holds the rules. `Infrastructure\WordPress\TransientLockStore` keeps the locks in transients, and `Settings` supplies the lock period through `Domain\LockSettingsInterface`.
 - `src/Infrastructure/WordPress/Abilities.php` — `Automattic\Zoninator\Infrastructure\WordPress\Abilities`: the read-only Abilities API abilities (`zoninator/list-zones`, `zoninator/get-zone-posts`, `zoninator/search-posts`) in the `zoninator` category. The bootstrapper hooks `wp_abilities_api_categories_init` and `wp_abilities_api_init`, and the container builds it the first time either fires. Like the REST route callbacks, the ability callbacks live on this class; sites remove an ability with `wp_unregister_ability()`.
 - `src/Infrastructure/WordPress/Feed.php` — `Automattic\Zoninator\Infrastructure\WordPress\Feed`: a zone's published posts as the JSON feed lists them, limited to the feed's fields and passed through its filters. It has no hooks. `FeedEndpoint` and the REST route `GET /zones/{zone_id}/posts` both return it.
@@ -136,7 +149,7 @@ See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key point
 
 - **Taxonomy and post meta storage**: Zones are custom taxonomy terms; each post's position in a zone is post meta, which the zone query orders by. This uses WordPress's built-in caching and query infrastructure. Do not switch to custom database tables.
 - **Template tags in `functions.php`**: Theme developers consume zones through these functions. They are part of the public API — do not rename or change signatures without a deprecation cycle.
-- **Namespaces and layers**: Classes go under `Automattic\Zoninator\`, in `src/`, named and placed for PSR-4 (`Automattic\Zoninator\Infrastructure\WordPress\Feed` is `src/Infrastructure/WordPress/Feed.php`). A small autoloader in `zoninator.php` loads them on first use, as the release package has no Composer autoloader. The layers follow `plugin-standards/ARCHITECTURE.md` and legacy-redirector: `Domain` (zone rules, no WordPress), `Application` (use cases) and `Infrastructure` (WordPress and wiring). `Domain` and `Application` must run without WordPress: `Domain` names no other layer, `Application` names only `Domain`, and `tests/Unit/LayersTest.php` checks both. They report failure by throwing a domain exception, which `Infrastructure` turns into a `WP_Error` or a response. Zone locks are there so far; the rest of the classes are still in `Infrastructure`, because each one calls WordPress, and move as their rules are separated out. Classes are `final` unless a site has a reason to extend them. The two legacy global classes, `Zoninator` and `Zoninator_ZonePosts_Widget`, stay in `class-*.php` files loaded with `require_once`.
+- **Namespaces and layers**: Classes go under `Automattic\Zoninator\`, in `src/`, named and placed for PSR-4 (`Automattic\Zoninator\Infrastructure\WordPress\Feed` is `src/Infrastructure/WordPress/Feed.php`). A small autoloader in `zoninator.php` loads them on first use, as the release package has no Composer autoloader. The layers follow `plugin-standards/ARCHITECTURE.md` and legacy-redirector: `Domain` (zone rules, no WordPress), `Application` (use cases) and `Infrastructure` (WordPress and wiring). `Domain` and `Application` must run without WordPress: `Domain` names no other layer, `Application` names only `Domain`, and `tests/Unit/LayersTest.php` checks both. They report failure by throwing a domain exception, which `Infrastructure` turns into a `WP_Error` or a response. Zone locks, and creating, changing, deleting and curating zones, are there so far. Reading zones and their posts is still in `Infrastructure`, because themes are given `WP_Term`, `WP_Post` and `WP_Query`. Classes are `final` unless a site has a reason to extend them. The two legacy global classes, `Zoninator` and `Zoninator_ZonePosts_Widget`, stay in `class-*.php` files loaded with `require_once`.
 - **REST controller on core**: The REST API extends core's `WP_REST_Controller` directly. `ZoninatorRestContractTest` pins its routes, methods, args and response bodies; change them only on purpose.
 - **Each class registers the hooks it handles** in a `register_hooks()` method, with callbacks on itself. Constructors don't add hooks (except the widget's, as WordPress builds widgets itself); `PluginBootstrapper::register_hooks()` calls each `register_hooks()` once. Sites unhook through `zoninator_container()->get()`, on `plugins_loaded` at priority 20. Moving a callback breaks a site's `remove_action()` silently, so `ZoninatorHooksTest` pins every hook's callback, priority and accepted args; change it only with a row in the upgrade guide's unhooking table.
 - **No hidden dependencies**: a class calls another only through an object it was given in its constructor, never through a static method, a global or a template tag. The widget's fallback to the container is the one exception, because WordPress builds it.

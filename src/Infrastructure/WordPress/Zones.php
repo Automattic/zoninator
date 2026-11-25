@@ -7,24 +7,28 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
-use Automattic\Zoninator\Application\ZoneLocker;
+use Automattic\Zoninator\Application\ZoneCurator;
+use Automattic\Zoninator\Application\ZoneManager;
+use Automattic\Zoninator\Application\ZoneRemover;
+use Automattic\Zoninator\Domain\InvalidZoneException;
+use Automattic\Zoninator\Domain\ZoneNotFoundException;
+use Automattic\Zoninator\Domain\ZoneNotSavedException;
 use WP_Error;
 use WP_Post;
 use WP_Query;
 use WP_Term;
 
 /**
- * Creates, reads, updates and deletes zones, and stores the posts in each
- * zone in order.
+ * Reads zones and their posts for WordPress code, as WP_Term, WP_Post and
+ * WP_Query, and handles a shared term being split.
  *
- * A zone is a term in the zoninator_zones taxonomy, with its details
- * serialised into the term description. A post's position in a zone is
- * post meta keyed by the zone's ID.
+ * Its methods that change a zone hand the work to the Application layer
+ * (ZoneManager, ZoneRemover and ZoneCurator) and turn the result back into
+ * what WordPress code expects: arrays and WP_Error. They stay only until
+ * every caller uses those classes.
  *
- * Zoninator keeps a public method for each of these under its original name
- * (insert_zone() for insert(), get_zone_posts() for get_posts(), and so on),
- * which delegates here. It registers its own hook in register_hooks(), and
- * sites reach it with zoninator_container()->get( Zones::class ) to unhook it.
+ * It registers its own hook in register_hooks(), and sites reach it with
+ * zoninator_container()->get( Zones::class ) to unhook it.
  *
  * @since 0.12.0
  * @internal Use Zoninator(), the template tags and the hooks instead.
@@ -49,13 +53,6 @@ final class Zones {
 	);
 
 	/**
-	 * Zoninator's settings.
-	 *
-	 * @var Settings
-	 */
-	private $settings;
-
-	/**
 	 * The zone taxonomy.
 	 *
 	 * @var Taxonomy
@@ -70,25 +67,50 @@ final class Zones {
 	private $capabilities;
 
 	/**
-	 * Zone locks, to release a deleted zone's lock.
+	 * Zone terms, for each zone's details.
 	 *
-	 * @var ZoneLocker
+	 * @var TermZoneRepository
 	 */
-	private $locker;
+	private $terms;
+
+	/**
+	 * Creates and changes zones.
+	 *
+	 * @var ZoneManager
+	 */
+	private $manager;
+
+	/**
+	 * Deletes zones.
+	 *
+	 * @var ZoneRemover
+	 */
+	private $remover;
+
+	/**
+	 * Changes the posts in a zone.
+	 *
+	 * @var ZoneCurator
+	 */
+	private $curator;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param Settings     $settings     Zoninator's settings.
-	 * @param Taxonomy     $taxonomy     The zone taxonomy.
-	 * @param Capabilities $capabilities The capability checks.
-	 * @param ZoneLocker   $locker       Zone locks.
+	 * @param Taxonomy           $taxonomy     The zone taxonomy.
+	 * @param Capabilities       $capabilities The capability checks.
+	 * @param TermZoneRepository $terms        Zone terms.
+	 * @param ZoneManager        $manager      Creates and changes zones.
+	 * @param ZoneRemover        $remover      Deletes zones.
+	 * @param ZoneCurator        $curator      Changes the posts in a zone.
 	 */
-	public function __construct( Settings $settings, Taxonomy $taxonomy, Capabilities $capabilities, ZoneLocker $locker ) {
-		$this->settings     = $settings;
+	public function __construct( Taxonomy $taxonomy, Capabilities $capabilities, TermZoneRepository $terms, ZoneManager $manager, ZoneRemover $remover, ZoneCurator $curator ) {
 		$this->taxonomy     = $taxonomy;
 		$this->capabilities = $capabilities;
-		$this->locker       = $locker;
+		$this->terms        = $terms;
+		$this->manager      = $manager;
+		$this->remover      = $remover;
+		$this->curator      = $curator;
 	}
 
 	/**
@@ -100,145 +122,128 @@ final class Zones {
 		add_action( 'split_shared_term', array( $this, 'split_shared_term' ), 10, 4 );
 	}
 
+	/**
+	 * Creates a zone.
+	 *
+	 * @param string $slug    The zone's slug.
+	 * @param string $name    The zone's name, or '' to use the slug.
+	 * @param array  $details Details to set, by name.
+	 * @return array|WP_Error The new term's term_id and term_taxonomy_id, or an error.
+	 */
 	public function insert( $slug, $name = '', $details = array() ) {
-
-		// slug cannot be empty
-		if ( empty( $slug ) ) {
+		try {
+			$zone = $this->manager->create( (string) $slug, (string) $name, (array) $details );
+		} catch ( InvalidZoneException $exception ) {
 			return new WP_Error( 'zone-empty-slug', __( 'Slug is a required field.', 'zoninator' ) );
+		} catch ( ZoneNotSavedException $exception ) {
+			return new WP_Error( $exception->get_error_code(), $exception->getMessage() );
 		}
 
-		$name = empty( $name ) ? $slug : $name;
-
-		$details = wp_parse_args( $details, $this->settings->get_detail_defaults() );
-		$details = maybe_serialize( $details );
-
-		$args = array(
-			'slug'        => $slug,
-			'description' => $details,
-		);
-
-		// Filterize to allow other inputs
-		$args = apply_filters( 'zoninator_insert_zone', $args );
-
-		// wp_insert_term() expects slashed data, as it unslashes the name and description.
-		return wp_insert_term( wp_slash( $name ), Taxonomy::NAME, wp_slash( $args ) );
-	}
-
-	public function update( $zone, $data = array() ) {
-		$zone_id = $this->get_id( $zone );
-
-		if ( $this->exists( $zone_id ) ) {
-			$zone = $this->get( $zone );
-
-			$name    = empty( $data['name'] ) ? $zone->name : $data['name'];
-			$slug    = empty( $data['slug'] ) ? $zone->slug : $data['slug'];
-			$details = empty( $data['details'] ) ? array() : $data['details'];
-
-			// Keep the zone's current value for any detail the caller didn't send.
-			$defaults = $this->settings->get_detail_defaults();
-			$current  = array_intersect_key( get_object_vars( $zone ), $defaults );
-			$details  = wp_parse_args( $details, wp_parse_args( $current, $defaults ) );
-			$details  = maybe_serialize( $details );
-
-			$args = array(
-				'name'        => $name,
-				'slug'        => $slug,
-				'description' => $details,
-			);
-
-			// Filterize to allow other inputs
-			$args = apply_filters( 'zoninator_update_zone', $args, $zone_id, $zone );
-
-			// wp_update_term() expects slashed data, as it unslashes the name and description.
-			return wp_update_term( $zone_id, Taxonomy::NAME, wp_slash( $args ) );
-		}
-
-		return new WP_Error( 'invalid-zone', __( "Sorry, that zone doesn't exist.", 'zoninator' ) );
-	}
-
-	public function delete( $zone ) {
-		$zone_id = $this->get_id( $zone );
-
-		if ( $this->exists( $zone_id ) ) {
-			// Delete all post associations for the zone
-			$this->remove_posts( $zone_id );
-
-			// Delete the term
-			$delete = wp_delete_term( $zone_id, Taxonomy::NAME );
-
-			if ( ! $delete ) {
-				return new WP_Error( 'delete-zone', __( "Sorry, we couldn't delete the zone.", 'zoninator' ) );
-			} else {
-				$this->locker->unlock( $zone_id );
-
-				do_action( 'zoninator_delete_zone', $zone_id );
-				return $delete;
-			}
-		}
-
-		return new WP_Error( 'invalid-zone', __( "Sorry, that zone doesn't exist.", 'zoninator' ) );
+		return $this->get_term_ids( (int) $zone->get_id() );
 	}
 
 	/**
-	 * @param $zone
-	 * @param $posts
-	 * @param bool  $append
-	 * @return bool|WP_Error
+	 * Changes a zone.
+	 *
+	 * @param int|string|WP_Term $zone Zone.
+	 * @param array              $data The name, slug and details to change.
+	 * @return array|WP_Error The term's term_id and term_taxonomy_id, or an error.
 	 */
-	public function add_posts( $zone, $posts, $append = false ) {
-		$zone     = $this->get( $zone );
-		$meta_key = $this->get_meta_key( $zone );
+	public function update( $zone, $data = array() ) {
+		$zone_id = $this->get_id( $zone );
 
-		if ( $append ) {
-			// Order should be the highest post order, counting every post in the
-			// zone, so a new post never shares a position with one already there.
-			$last_post = $this->get_single_post( $zone, array( 'order' => 'DESC' ) + self::EVERY_POST );
-			$order     = $last_post ? $this->get_post_order( $last_post, $zone ) : 0;
-		} else {
-			$order = 0;
-			$this->remove_posts( $zone );
+		try {
+			$this->manager->update( $zone_id, (array) $data );
+		} catch ( ZoneNotFoundException $exception ) {
+			return $this->invalid_zone();
+		} catch ( ZoneNotSavedException $exception ) {
+			return new WP_Error( $exception->get_error_code(), $exception->getMessage() );
 		}
 
-		foreach ( (array) $posts as $post ) {
-			$post_id = $this->get_post_id( $post );
-			if ( $post_id ) {
-				++$order;
-				update_metadata( 'post', $post_id, $meta_key, $order, true );
-			}
+		return $this->get_term_ids( $zone_id );
+	}
+
+	/**
+	 * Deletes a zone, and takes its posts out of it.
+	 *
+	 * @param int|string|WP_Term $zone Zone.
+	 * @return true|WP_Error
+	 */
+	public function delete( $zone ) {
+		try {
+			$this->remover->remove( $this->get_id( $zone ) );
+		} catch ( ZoneNotFoundException $exception ) {
+			return $this->invalid_zone();
+		} catch ( ZoneNotSavedException $exception ) {
+			return new WP_Error( 'delete-zone', __( "Sorry, we couldn't delete the zone.", 'zoninator' ) );
 		}
-
-		clean_term_cache( $this->get_id( $zone ), Taxonomy::NAME ); // flush cache for our zone term and related APC caches
-
-		do_action( 'zoninator_add_zone_posts', $posts, $zone );
 
 		return true;
 	}
 
 	/**
-	 * @param mixed $zone
-	 * @param mixed $posts
+	 * Adds posts to a zone, or sets the zone's posts.
 	 *
-	 * @return bool|WP_Error
+	 * @param int|string|WP_Term $zone   Zone.
+	 * @param mixed              $posts  A post or posts, as IDs, WP_Post objects or arrays with an ID.
+	 * @param bool               $append Whether to add the posts to the end. Otherwise they replace the zone's posts.
+	 * @return true|WP_Error
+	 */
+	public function add_posts( $zone, $posts, $append = false ) {
+		$zone_id  = $this->get_id( $zone );
+		$post_ids = array_map( array( $this, 'get_post_id' ), (array) $posts );
+
+		try {
+			if ( $append ) {
+				$this->curator->add_posts( $zone_id, $post_ids );
+			} else {
+				$this->curator->set_posts( $zone_id, $post_ids );
+			}
+		} catch ( ZoneNotFoundException $exception ) {
+			return $this->invalid_zone();
+		}
+
+		return true;
+	}
+
+	/**
+	 * Takes posts out of a zone.
+	 *
+	 * @param int|string|WP_Term $zone  Zone.
+	 * @param mixed              $posts A post or posts, as IDs, WP_Post objects or arrays with an ID. Leave out to empty the zone.
 	 */
 	public function remove_posts( $zone, $posts = null ) {
-		$zone     = $this->get( $zone );
-		$meta_key = $this->get_meta_key( $zone );
+		$zone_id = $this->get_id( $zone );
 
-		// If null, remove every post in the zone.
-		if ( ! $posts ) {
-			$posts = $this->get_posts( $zone, self::EVERY_POST );
-		}
-
-		foreach ( (array) $posts as $post ) {
-			$post_id = $this->get_post_id( $post );
-			if ( $post_id ) {
-				delete_metadata( 'post', $post_id, $meta_key );
+		try {
+			if ( $posts ) {
+				$this->curator->remove_posts( $zone_id, array_map( array( $this, 'get_post_id' ), (array) $posts ) );
+			} else {
+				$this->curator->clear_posts( $zone_id );
 			}
+		} catch ( ZoneNotFoundException $exception ) {
+			return;
 		}
+	}
 
-		clean_term_cache( $this->get_id( $zone ), Taxonomy::NAME ); // flush cache for our zone term and related APC caches
+	/**
+	 * @return WP_Error The error for a zone that doesn't exist.
+	 */
+	private function invalid_zone() {
+		return new WP_Error( 'invalid-zone', __( "Sorry, that zone doesn't exist.", 'zoninator' ) );
+	}
 
-		do_action( 'zoninator_remove_zone_posts', $posts, $zone );
+	/**
+	 * @param int $zone_id Zone ID.
+	 * @return array The zone's term_id and term_taxonomy_id, as wp_insert_term() and wp_update_term() return them.
+	 */
+	private function get_term_ids( $zone_id ) {
+		$term = get_term( $zone_id, Taxonomy::NAME );
+
+		return array(
+			'term_id'          => $term->term_id,
+			'term_taxonomy_id' => $term->term_taxonomy_id,
+		);
 	}
 
 	public function get_posts( $zone, $args = array() ) {
@@ -521,66 +526,7 @@ final class Zones {
 	}
 
 	public function fill_details( $zone ) {
-		// get_terms() gives ids or names instead of terms when the fields arg is set.
-		if ( ! is_object( $zone ) ) {
-			return $zone;
-		}
-
-		if ( ! empty( $zone->zoninator_parsed ) && $zone->zoninator_parsed ) {
-			return $zone;
-		}
-
-		$details = array();
-
-		if ( ! empty( $zone->description ) && is_serialized( $zone->description ) ) {
-			// Disallow object instantiation to prevent PHP object injection if a
-			// crafted serialized payload reaches the term description via any path.
-			// Silenced because unserialize() can still emit notices on truncated or
-			// malformed payloads that pass is_serialized().
-			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
-			$unserialized = @unserialize( trim( $zone->description ), array( 'allowed_classes' => false ) );
-			if ( false === $unserialized ) {
-				// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
-				$unserialized = @unserialize( $this->repair_serialized_lengths( trim( $zone->description ) ), array( 'allowed_classes' => false ) );
-			}
-			if ( is_array( $unserialized ) ) {
-				$details = $unserialized;
-			}
-		}
-
-		$details = wp_parse_args( $details, $this->settings->get_detail_defaults() );
-
-		foreach ( $details as $detail_key => $detail_value ) {
-			$zone->$detail_key = $detail_value;
-		}
-
-		$zone->zoninator_parsed = true;
-
-		return $zone;
-	}
-
-	/**
-	 * Recount the string lengths in a serialised value.
-	 *
-	 * Earlier versions stored a description with non-ASCII characters with its
-	 * length counted before core decoded its HTML entities, so it no longer
-	 * unserialised. The text is intact, so recounting recovers it.
-	 *
-	 * Limitation: this assumes no stored string contains `";`. The sanitisers
-	 * encode `"`, so saved zone details don't; if one does, unserialize() still
-	 * fails safely and the description reads as empty, as before.
-	 *
-	 * @param string $serialized Serialised value.
-	 * @return string
-	 */
-	private function repair_serialized_lengths( $serialized ) {
-		return preg_replace_callback(
-			'/s:\d+:"(.*?)";/s',
-			static function ( $matches ) {
-				return 's:' . strlen( $matches[1] ) . ':"' . $matches[1] . '";';
-			},
-			$serialized
-		);
+		return $this->terms->fill_details( $zone );
 	}
 
 	// Handle 4.2 term-splitting

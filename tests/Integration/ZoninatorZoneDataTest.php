@@ -122,6 +122,9 @@ class ZoninatorZoneDataTest extends TestCase {
 		$this->assertSame( array( $new_id, $this->post_ids[0] ), $this->zone_post_ids() );
 	}
 
+	/**
+	 * The actions get post IDs, however the posts were passed in.
+	 */
 	public function test_add_and_remove_zone_posts_fire_their_actions(): void {
 		$fired  = array();
 		$record = static function ( $posts, $zone ) use ( &$fired ) {
@@ -138,8 +141,8 @@ class ZoninatorZoneDataTest extends TestCase {
 		remove_action( 'zoninator_remove_zone_posts', $record, 10 );
 		$this->assertSame(
 			array(
-				array( 'zoninator_add_zone_posts', $new_id, $this->zone_id ),
-				array( 'zoninator_remove_zone_posts', $new_id, $this->zone_id ),
+				array( 'zoninator_add_zone_posts', array( $new_id ), $this->zone_id ),
+				array( 'zoninator_remove_zone_posts', array( $new_id ), $this->zone_id ),
 			),
 			$fired
 		);
