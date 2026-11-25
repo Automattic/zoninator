@@ -74,6 +74,9 @@ jobs:
         env:
           RUNNER_TOOL_CACHE: ${{ runner.tool_cache }}
 
+      - name: Run unit tests
+        run: composer test:unit
+
       - name: Setup wp-env
         run: npx --no wp-env start
         env:

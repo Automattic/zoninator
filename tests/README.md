@@ -1,6 +1,6 @@
 # Tests
 
-This plugin has integration tests and end-to-end (E2E) tests, and no separate unit suite. The integration tests run PHPUnit inside a `wp-env` container, so they have access to a real WordPress install. The E2E tests drive the Zones screen in a real browser with [Playwright](https://playwright.dev/).
+This plugin has unit tests, integration tests and end-to-end (E2E) tests. The unit tests cover the code that doesn't call WordPress, and run on your own PHP. The integration tests run PHPUnit inside a `wp-env` container, so they have access to a real WordPress install. The E2E tests drive the Zones screen in a real browser with [Playwright](https://playwright.dev/).
 
 ## Prerequisites
 
@@ -21,11 +21,12 @@ npx --no wp-env start
 ## Running the tests
 
 ```bash
+composer test:unit              # Unit tests; needs PHP 8.2 or later, but not Docker or wp-env
 composer test:integration       # Single-site integration tests
 composer test:integration-ms    # Same tests in multisite mode
 ```
 
-Both commands run PHPUnit inside the wp-env `cli` container, so you don't need PHP locally to use them. The tests share the environment's database with the development site. `phpunit.xml.dist` gives the tests their own `wptests_` tables, so running them, through these scripts or by calling PHPUnit directly in the container, leaves your development content alone.
+The two integration commands run PHPUnit inside the wp-env `cli` container, so you don't need PHP locally to use them. The tests share the environment's database with the development site. `phpunit.xml.dist` gives the tests their own `wptests_` tables, so running them, through these scripts or by calling PHPUnit directly in the container, leaves your development content alone.
 
 ## End-to-end tests
 

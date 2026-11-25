@@ -7,6 +7,7 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
+use Automattic\Zoninator\Application\ZoneLocker;
 use WP_Error;
 use WP_Post;
 use WP_Query;
@@ -69,16 +70,25 @@ final class Zones {
 	private $capabilities;
 
 	/**
+	 * Zone locks, to release a deleted zone's lock.
+	 *
+	 * @var ZoneLocker
+	 */
+	private $locker;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param Settings $settings Zoninator's settings.
-	 * @param Taxonomy $taxonomy The zone taxonomy.
+	 * @param Settings     $settings     Zoninator's settings.
+	 * @param Taxonomy     $taxonomy     The zone taxonomy.
 	 * @param Capabilities $capabilities The capability checks.
+	 * @param ZoneLocker   $locker       Zone locks.
 	 */
-	public function __construct( Settings $settings, Taxonomy $taxonomy, Capabilities $capabilities ) {
+	public function __construct( Settings $settings, Taxonomy $taxonomy, Capabilities $capabilities, ZoneLocker $locker ) {
 		$this->settings     = $settings;
 		$this->taxonomy     = $taxonomy;
 		$this->capabilities = $capabilities;
+		$this->locker       = $locker;
 	}
 
 	/**
@@ -159,8 +169,7 @@ final class Zones {
 			if ( ! $delete ) {
 				return new WP_Error( 'delete-zone', __( "Sorry, we couldn't delete the zone.", 'zoninator' ) );
 			} else {
-				// Release the zone's lock, which Locks keeps in a transient under the zone's meta key.
-				delete_transient( $this->get_meta_key( $zone_id ) );
+				$this->locker->unlock( $zone_id );
 
 				do_action( 'zoninator_delete_zone', $zone_id );
 				return $delete;

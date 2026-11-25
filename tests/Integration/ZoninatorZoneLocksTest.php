@@ -59,6 +59,13 @@ class ZoninatorZoneLocksTest extends TestCase {
 		$this->assertSame( Zoninator()->get_zone_lock_period() + 1, $expiration );
 	}
 
+	public function test_a_lock_held_by_someone_else_cannot_be_taken(): void {
+		Zoninator()->lock_zone( $this->zone_id, $this->other_id );
+
+		$this->assertFalse( Zoninator()->lock_zone( $this->zone_id ) );
+		$this->assertSame( $this->other_id, Zoninator()->is_zone_locked( $this->zone_id ) );
+	}
+
 	public function test_unlock_zone_releases_the_lock(): void {
 		Zoninator()->lock_zone( $this->zone_id, $this->other_id );
 
