@@ -139,7 +139,7 @@ Up to 0.12.x, every Zoninator hook was registered on the `Zoninator` object, wit
 | `init` | `array( Zoninator(), 'add_zone_feed' )` | `remove_action( 'init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class ), 'add_rewrite_rule' ) )` |
 | `template_redirect` | `array( Zoninator(), 'do_zoninator_feeds' )` | `remove_action( 'template_redirect', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class ), 'serve' ) )` |
 | `rest_api_init` | `array( Zoninator(), 'register_rest_routes' )` | `remove_action( 'rest_api_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper::class ), 'register_rest_routes' ) )` |
-| `widgets_init` | `array( Zoninator(), 'widgets_init' )` | `remove_action( 'widgets_init', array( 'Zoninator_ZonePosts_Widget', 'register' ) )` |
+| `widgets_init` | `array( Zoninator(), 'widgets_init' )` | `unregister_widget( 'Zoninator_ZonePosts_Widget' )` on `widgets_init` at priority 11, as before. Or `remove_action( 'widgets_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper::class ), 'register_widget' ) )` |
 | `split_shared_term` | `array( Zoninator(), 'split_shared_term' )` | `remove_action( 'split_shared_term', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\TermSplitHandler::class ), 'move_zone_posts' ) )` |
 | `query_loop_block_query_vars` | `array( Zoninator(), 'zone_block_query_vars' )` | `remove_filter( 'query_loop_block_query_vars', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class ), 'filter_query_vars' ) )` |
 | `rest_post_query` | `array( Zoninator(), 'zone_block_rest_query' )` | `remove_filter( 'rest_post_query', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class ), 'filter_rest_query' ) )` |
@@ -201,6 +201,20 @@ Now every change made for a user is checked in one place: the user may make it, 
 `zoninator_add_zone_posts` and `zoninator_remove_zone_posts` used to pass their first argument as whatever the caller gave: one post ID, an array of IDs, or `WP_Post` objects. They now always pass an array of post IDs. If your callback handled each form, you can drop that; if it expected `WP_Post` objects, call `get_post()` on each ID. The second argument is still the zone's `WP_Term`.
 
 A post listed twice when a zone's posts are set now keeps its first place, where it used to end up in its last.
+
+### A subclass of the Zone Posts widget must be registered as an object
+
+`Zoninator_ZonePosts_Widget`'s constructor now takes the zones it reads, so WordPress can no longer build it, or a class that extends it, from the class name alone. If you extend the widget, `register_widget( 'My_Zone_Widget' )` stops with a fatal error. Build it yourself and register the object:
+
+```php
+add_action( 'widgets_init', function () {
+	register_widget( new My_Zone_Widget( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Zones::class ) ) );
+} );
+```
+
+If your subclass has its own constructor, give it that argument and pass it to `parent::__construct()`.
+
+Nothing changes for the widget itself. It's in the same sidebars with the same settings, and `the_widget( 'Zoninator_ZonePosts_Widget', ... )` and `unregister_widget( 'Zoninator_ZonePosts_Widget' )` work as before.
 
 ### The widget's cache filter has a new name
 
