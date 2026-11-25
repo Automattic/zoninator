@@ -226,4 +226,119 @@ final class ZoninatorAbilitiesTest extends TestCase {
 		$this->assertInstanceOf( WP_Error::class, $result );
 		$this->assertSame( 'zone-not-found', $result->get_error_code() );
 	}
+
+	/**
+	 * @dataProvider data_write_ability_names
+	 *
+	 * @param string $name Ability name.
+	 */
+	public function test_write_ability_is_registered_and_kept_off_the_default_mcp_server( string $name ): void {
+		$ability = wp_get_ability( $name );
+
+		$this->assertNotNull( $ability );
+		$this->assertSame( 'zoninator', $ability->get_category() );
+		$this->assertFalse( $ability->get_meta_item( 'annotations' )['readonly'] );
+		$this->assertFalse( $ability->get_meta_item( 'mcp' )['public'] );
+	}
+
+	/**
+	 * @dataProvider data_write_ability_names
+	 *
+	 * @param string $name Ability name.
+	 */
+	public function test_write_ability_denies_a_user_who_cannot_manage_zones( string $name ): void {
+		$post_id = self::factory()->post->create();
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+
+		$result = wp_get_ability( $name )->execute(
+			array(
+				'zone_id'  => $this->zone_id,
+				'post_ids' => array( $post_id ),
+			)
+		);
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( array(), $this->zone_post_ids() );
+	}
+
+	/**
+	 * @return array<string, array{string}>
+	 */
+	public function data_write_ability_names(): array {
+		$names = array( 'zoninator/add-zone-posts', 'zoninator/set-zone-posts', 'zoninator/remove-zone-posts' );
+
+		return array_combine( $names, array_map( static fn( $name ) => array( $name ), $names ) );
+	}
+
+	public function test_the_write_abilities_add_order_and_remove_posts(): void {
+		list( $first, $second, $third ) = self::factory()->post->create_many( 3 );
+
+		$this->assertSame( array( 'success' => true ), $this->change( 'add', array( $first, $second ) ) );
+		$this->change( 'add', array( $third ) );
+		$this->assertSame( array( $first, $second, $third ), $this->zone_post_ids() );
+
+		$this->change( 'set', array( $third, $first, $second ) );
+		$this->assertSame( array( $third, $first, $second ), $this->zone_post_ids() );
+
+		$this->change( 'remove', array( $first ) );
+		$this->assertSame( array( $third, $second ), $this->zone_post_ids() );
+	}
+
+	public function test_a_write_ability_rejects_a_post_that_cannot_go_in_a_zone(): void {
+		$result = $this->change( 'add', array( self::factory()->post->create( array( 'post_type' => 'page' ) ) ) );
+
+		$this->assertSame( 'invalid-post-id', $result->get_error_code() );
+		$this->assertSame( array(), $this->zone_post_ids() );
+	}
+
+	public function test_a_write_ability_rejects_an_unknown_zone(): void {
+		$result = wp_get_ability( 'zoninator/add-zone-posts' )->execute(
+			array(
+				'zone_id'  => 999999,
+				'post_ids' => array( self::factory()->post->create() ),
+			)
+		);
+
+		$this->assertSame( 'zone-not-found', $result->get_error_code() );
+	}
+
+	/**
+	 * An agent acting for one user must not save over another user editing the zone.
+	 */
+	public function test_a_write_ability_respects_someone_elses_lock(): void {
+		$holder_id = self::factory()->user->create(
+			array(
+				'role'         => 'editor',
+				'display_name' => 'Lock Holder',
+			)
+		);
+		self::locker()->lock( $this->zone_id, $holder_id );
+
+		$result = $this->change( 'add', array( self::factory()->post->create() ) );
+
+		$this->assertSame( 'zone-locked', $result->get_error_code() );
+		$this->assertStringContainsString( 'Lock Holder', $result->get_error_message() );
+		$this->assertSame( array(), $this->zone_post_ids() );
+	}
+
+	/**
+	 * @param string $verb     'add', 'set' or 'remove'.
+	 * @param int[]  $post_ids Post IDs.
+	 * @return array|WP_Error
+	 */
+	private function change( string $verb, array $post_ids ) {
+		return wp_get_ability( "zoninator/$verb-zone-posts" )->execute(
+			array(
+				'zone_id'  => $this->zone_id,
+				'post_ids' => $post_ids,
+			)
+		);
+	}
+
+	/**
+	 * @return int[] IDs of the posts in the test zone, in order, whatever their status.
+	 */
+	private function zone_post_ids(): array {
+		return wp_list_pluck( self::zones()->get_posts( $this->zone_id, array( 'post_status' => 'any' ) ), 'ID' );
+	}
 }

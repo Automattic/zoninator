@@ -96,6 +96,12 @@ final class PluginBootstrapper {
 			}
 		);
 		$container->factory(
+			CurationAbilities::class,
+			static function () use ( $guarded_posts, $capabilities ) {
+				return new CurationAbilities( $guarded_posts, $capabilities );
+			}
+		);
+		$container->factory(
 			Abilities::class,
 			static function () use ( $zones, $capabilities, $search ) {
 				return new Abilities( $zones, $capabilities, $search );
@@ -141,5 +147,6 @@ final class PluginBootstrapper {
 	 */
 	public function register_abilities() {
 		$this->container->get( Abilities::class )->register();
+		$this->container->get( CurationAbilities::class )->register();
 	}
 }
