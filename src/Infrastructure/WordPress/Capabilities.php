@@ -5,7 +5,7 @@
  * @package Automattic\Zoninator
  */
 
-namespace Automattic\Zoninator;
+namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 /**
  * The capability checks for adding, editing and managing zones, and for

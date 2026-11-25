@@ -222,7 +222,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->set_request( $action, $fields, true );
 
 		try {
-			zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class )->handle_request();
+			zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class )->handle_request();
 		} catch ( RuntimeException $e ) {
 			return $e->getMessage();
 		}
@@ -241,7 +241,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->set_request( $action, $fields, true );
 
 		try {
-			zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class )->handle_request();
+			zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class )->handle_request();
 		} catch ( RuntimeException | WPDieException $e ) {
 			return;
 		}
@@ -265,7 +265,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		);
 
 		try {
-			zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class )->handle_request();
+			zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class )->handle_request();
 			$this->fail( 'Expected the handler to stop the request.' );
 		} catch ( WPDieException $e ) {
 			$this->assertSame( esc_html( "Sorry, you're not supposed to do that..." ), $e->getMessage() );
@@ -283,13 +283,13 @@ final class ZoninatorAdminControllerTest extends TestCase {
 	private function set_request( string $action, array $fields, bool $with_nonce ): void {
 		$_POST = $fields;
 		if ( $with_nonce ) {
-			$_POST['_wpnonce'] = wp_create_nonce( \Automattic\Zoninator\Request::get_nonce_key( $action ) );
+			$_POST['_wpnonce'] = wp_create_nonce( \Automattic\Zoninator\Infrastructure\WordPress\Request::get_nonce_key( $action ) );
 		}
 
 		$_REQUEST = array_merge(
 			$_POST,
 			array(
-				'page'   => \Automattic\Zoninator\Admin\Screen::PAGE_SLUG,
+				'page'   => \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::PAGE_SLUG,
 				'action' => $action,
 			)
 		);

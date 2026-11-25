@@ -64,7 +64,7 @@ final class ZoninatorZoneBlockTest extends TestCase {
 			array( 'query' => array( 'postType' => 'page' ) )
 		);
 
-		$this->assertSame( $query, zoninator_container()->get( \Automattic\Zoninator\Block::class )->filter_query_vars( $query, $block ) );
+		$this->assertSame( $query, zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class )->filter_query_vars( $query, $block ) );
 	}
 
 	public function test_editor_preview_lists_zone_posts_in_zone_order(): void {
@@ -149,7 +149,7 @@ final class ZoninatorZoneBlockTest extends TestCase {
 	public function test_editor_script_loads_in_the_block_editor(): void {
 		do_action( 'enqueue_block_editor_assets' );
 
-		$this->assertTrue( wp_script_is( \Automattic\Zoninator\Block::SCRIPT_HANDLE, 'enqueued' ) );
+		$this->assertTrue( wp_script_is( \Automattic\Zoninator\Infrastructure\WordPress\Block::SCRIPT_HANDLE, 'enqueued' ) );
 	}
 
 	private function create_zone(): int {

@@ -5,7 +5,7 @@
  * @package Automattic\Zoninator
  */
 
-namespace Automattic\Zoninator;
+namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 /**
  * Stops two people editing a zone at once. A lock is a transient, keyed

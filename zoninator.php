@@ -37,37 +37,43 @@ define( 'ZONINATOR_FILE', __FILE__ );
 
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/src/class-zoninator-zoneposts-widget.php';
-require_once __DIR__ . '/src/class-settings.php';
-require_once __DIR__ . '/src/class-taxonomy.php';
-require_once __DIR__ . '/src/class-capabilities.php';
-require_once __DIR__ . '/src/class-request.php';
-require_once __DIR__ . '/src/class-zones.php';
-require_once __DIR__ . '/src/class-locks.php';
-require_once __DIR__ . '/src/class-feed.php';
-require_once __DIR__ . '/src/class-block.php';
-require_once __DIR__ . '/src/admin/class-screen.php';
 require_once __DIR__ . '/src/class-zoninator.php';
-require_once __DIR__ . '/src/class-container.php';
-require_once __DIR__ . '/src/class-bootstrapper.php';
+
+// Loads the classes under Automattic\Zoninator\ from src/, by PSR-4, when they're first used.
+spl_autoload_register(
+	static function ( $class_name ) {
+		$prefix = 'Automattic\\Zoninator\\';
+
+		if ( 0 !== strpos( $class_name, $prefix ) ) {
+			return;
+		}
+
+		$file = __DIR__ . '/src/' . str_replace( '\\', '/', substr( $class_name, strlen( $prefix ) ) ) . '.php';
+
+		if ( is_readable( $file ) ) {
+			require_once $file;
+		}
+	}
+);
 
 /**
  * Boots Zoninator the first time it's called, and returns its container.
  *
  * Use the container's get() to reach the object that handles one of
  * Zoninator's hooks, to unhook it, for example on plugins_loaded at priority 20:
- * remove_action( 'template_redirect', array( zoninator_container()->get( \Automattic\Zoninator\Feed::class ), 'serve' ) ).
+ * remove_action( 'template_redirect', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Feed::class ), 'serve' ) ).
  *
  * @since 1.0.0
  *
- * @return \Automattic\Zoninator\Container
+ * @return \Automattic\Zoninator\Infrastructure\DI\Container
  */
 function zoninator_container() {
 	static $container = null;
 
 	if ( null === $container ) {
-		$container = new \Automattic\Zoninator\Container();
+		$container = new \Automattic\Zoninator\Infrastructure\DI\Container();
 
-		( new \Automattic\Zoninator\Bootstrapper( $container ) )->boot();
+		( new \Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper( $container ) )->boot();
 	}
 
 	return $container;

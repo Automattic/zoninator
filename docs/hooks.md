@@ -8,7 +8,7 @@ To unhook one of Zoninator's own callbacks from a core hook, such as the JSON fe
 
 ## Configuration
 
-These fire from `src/class-settings.php` each time Zoninator reads the value, so a filter added at any point before then counts.
+These fire from `src/Infrastructure/WordPress/Settings.php` each time Zoninator reads the value, so a filter added at any point before then counts.
 
 ### `zoninator_zone_lock_period` (filter)
 
@@ -30,7 +30,7 @@ Number of posts shown per page in the admin search and recent-posts dropdown. De
 
 ## Capabilities
 
-These fire from `src/class-capabilities.php`. By default all three capability hooks return `edit_others_posts`.
+These fire from `src/Infrastructure/WordPress/Capabilities.php`. By default all three capability hooks return `edit_others_posts`.
 
 ### `zoninator_add_zone_cap` (filter)
 
@@ -60,7 +60,7 @@ Per-zone editing check. `$has_cap` is whether the user has the `zoninator_edit_z
 
 ### `zoninator_rest_get_zones_permissions_check` (filter)
 
-Fires from `src/rest/class-zones-controller.php`. Whether the `GET /zoninator/v1/zones` endpoint authorizes the current request. Defaults to `is_user_logged_in()` since 0.11.0; return `true` to restore the historical anonymous behavior.
+Fires from `src/Infrastructure/WordPress/Rest/ZonesController.php`. Whether the `GET /zoninator/v1/zones` endpoint authorizes the current request. Defaults to `is_user_logged_in()` since 0.11.0; return `true` to restore the historical anonymous behavior.
 
 - **Parameters:** `bool $authorized`, `WP_REST_Request $request`
 
@@ -70,7 +70,7 @@ add_filter( 'zoninator_rest_get_zones_permissions_check', '__return_true' );
 
 ## Admin UI
 
-These fire from `src/admin/class-screen.php`, except where noted.
+These fire from `src/Infrastructure/WordPress/Admin/Screen.php`, except where noted.
 
 ### `zoninator_admin_page_get_zones_args` (filter)
 
@@ -80,7 +80,7 @@ Arguments passed to `get_zones()` when rendering the admin Zones list page.
 
 ### `zoninator_zone_post_columns` (filter)
 
-Columns rendered for each post inside the zone editor: column key => callback, which receives `$post` and `$zone` and prints the cell. Fires from `src/admin/class-screen.php`, for the Zones screen and the row `POST /zoninator/v1/zones/{zone_id}/posts/{post_id}` returns.
+Columns rendered for each post inside the zone editor: column key => callback, which receives `$post` and `$zone` and prints the cell. Fires from `src/Infrastructure/WordPress/Admin/Screen.php`, for the Zones screen and the row `POST /zoninator/v1/zones/{zone_id}/posts/{post_id}` returns.
 
 - **Parameters:** `array $columns`, `WP_Post $post`, `WP_Term $zone`
 
@@ -120,7 +120,7 @@ Default selected date filter.
 
 ## Content search
 
-These fire from `src/rest/class-zones-controller.php`, for the `GET /zoninator/v1/search` route and the `zoninator/search-posts` ability alike.
+These fire from `src/Infrastructure/WordPress/Rest/ZonesController.php`, for the `GET /zoninator/v1/search` route and the `zoninator/search-posts` ability alike.
 
 ### `zoninator_recent_posts_args` (filter)
 
@@ -154,7 +154,7 @@ Each search result, including the latest content offered before anything is type
 
 ## Zone CRUD
 
-These fire from `src/class-zones.php`.
+These fire from `src/Infrastructure/WordPress/Zones.php`.
 
 ### `zoninator_insert_zone` (filter)
 
@@ -206,7 +206,7 @@ As with `zoninator_add_zone_posts`, `$posts` is whatever was passed to `Zoninato
 
 ## Term splitting (WordPress 4.2 carry-over)
 
-These fire from `src/class-zones.php`.
+These fire from `src/Infrastructure/WordPress/Zones.php`.
 
 ### `zoninator_split_shared_term` (action)
 
@@ -222,7 +222,7 @@ Fires after the copy is complete.
 
 ## JSON feed at `/zones/{slug}/feed.json`
 
-These fire from `src/class-feed.php`.
+These fire from `src/Infrastructure/WordPress/Feed.php`.
 
 ### `zoninator_zone_feed_fields` (filter)
 

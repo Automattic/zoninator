@@ -5,21 +5,21 @@
  * @package Automattic\Zoninator
  */
 
-namespace Automattic\Zoninator\REST;
+namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 
 use WP_Error;
 use WP_REST_Controller;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
-use Automattic\Zoninator\Admin\Screen;
-use Automattic\Zoninator\Capabilities;
-use Automattic\Zoninator\Feed;
-use Automattic\Zoninator\Locks;
-use Automattic\Zoninator\Request;
-use Automattic\Zoninator\Settings;
-use Automattic\Zoninator\Taxonomy;
-use Automattic\Zoninator\Zones;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
+use Automattic\Zoninator\Infrastructure\WordPress\Feed;
+use Automattic\Zoninator\Infrastructure\WordPress\Locks;
+use Automattic\Zoninator\Infrastructure\WordPress\Request;
+use Automattic\Zoninator\Infrastructure\WordPress\Settings;
+use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use Automattic\Zoninator\Infrastructure\WordPress\Zones;
 
 /**
  * Zones, their posts and their locks.
@@ -27,7 +27,7 @@ use Automattic\Zoninator\Zones;
  * @since 0.12.0
  * @internal Use Zoninator(), the template tags and the hooks instead.
  */
-final class Zones_Controller extends WP_REST_Controller {
+final class ZonesController extends WP_REST_Controller {
 	public const ZONE_ITEM_URL_REGEX = '/zones/(?P<zone_id>[\d]+)';
 
 	public const ZONE_ITEM_POSTS_URL_REGEX = '/zones/(?P<zone_id>[\d]+)/posts';

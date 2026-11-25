@@ -5,10 +5,11 @@
  * @package Automattic\Zoninator
  */
 
-namespace Automattic\Zoninator;
+namespace Automattic\Zoninator\Infrastructure\WordPress;
 
-use Automattic\Zoninator\Admin\Screen;
-use Automattic\Zoninator\REST\Zones_Controller;
+use Automattic\Zoninator\Infrastructure\DI\Container;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
 use Zoninator;
 use Zoninator_ZonePosts_Widget;
 
@@ -23,7 +24,7 @@ use Zoninator_ZonePosts_Widget;
  * @since 1.0.0
  * @internal Use zoninator_container() to reach the objects it builds.
  */
-final class Bootstrapper {
+final class PluginBootstrapper {
 
 	/**
 	 * Where the classes it builds are kept.
@@ -72,25 +73,21 @@ final class Bootstrapper {
 		$container->add( new Block( $zones ) );
 		$container->add( new Zoninator( $settings, $taxonomy, $capabilities, $request, $zones, $locks, $feed ) );
 
-		// Only REST and Abilities API requests need these, so their files load then.
+		// Only REST and Abilities API requests need these, so they're built, and their files loaded, then.
 		$container->factory(
-			Zones_Controller::class,
+			ZonesController::class,
 			static function () use ( $zones, $taxonomy, $locks, $feed, $settings, $capabilities, $screen ) {
-				require_once __DIR__ . '/rest/class-zones-controller.php';
-
-				return new Zones_Controller( $zones, $taxonomy, $locks, $feed, $settings, $capabilities, $screen );
+				return new ZonesController( $zones, $taxonomy, $locks, $feed, $settings, $capabilities, $screen );
 			}
 		);
 		$container->factory(
 			Abilities::class,
 			static function () use ( $container, $zones, $capabilities ) {
-				require_once __DIR__ . '/class-abilities.php';
-
 				return new Abilities(
 					$zones,
 					$capabilities,
 					static function () use ( $container ) {
-						return $container->get( Zones_Controller::class );
+						return $container->get( ZonesController::class );
 					}
 				);
 			}
@@ -119,7 +116,7 @@ final class Bootstrapper {
 	 * Registers the zoninator/v1 REST routes. Hooked on rest_api_init.
 	 */
 	public function register_rest_routes() {
-		$controller = $this->container->get( Zones_Controller::class );
+		$controller = $this->container->get( ZonesController::class );
 
 		$this->container->get( Zoninator::class )->rest_api = $controller;
 		$controller->register_routes();

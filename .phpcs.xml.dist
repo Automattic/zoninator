@@ -40,12 +40,15 @@
 	<rule ref="WordPress-Extra">
 		<exclude name="Universal.Operators.DisallowShortTernary.Found"/>
 	</rule>
+	<!-- The classes under src/Domain, src/Application and src/Infrastructure are named for PSR-4 autoloading. -->
 	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
 		<exclude-pattern>widget.zone-posts.php</exclude-pattern>
 		<exclude-pattern>zoninator.php</exclude-pattern>
+		<exclude-pattern>src/(Domain|Application|Infrastructure)/</exclude-pattern>
 	</rule>
 	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
 		<exclude-pattern>widget.zone-posts.php</exclude-pattern>
+		<exclude-pattern>src/(Domain|Application|Infrastructure)/</exclude-pattern>
 	</rule>
 <!--	<rule ref="WordPress-Docs"/>-->
 	<!-- For help in understanding these custom sniff properties:

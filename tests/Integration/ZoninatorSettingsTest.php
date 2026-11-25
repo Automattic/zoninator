@@ -7,8 +7,8 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
-use Automattic\Zoninator\Request;
-use Automattic\Zoninator\Settings;
+use Automattic\Zoninator\Infrastructure\WordPress\Request;
+use Automattic\Zoninator\Infrastructure\WordPress\Settings;
 
 /**
  * Tests for the class constants and the settings getters.
@@ -63,8 +63,8 @@ class ZoninatorSettingsTest extends TestCase {
 		return array(
 			'taxonomy'     => array( '\\Zoninator::ZONE_TAXONOMY', 'zoninator_zones' ),
 			'meta prefix'  => array( '\\Zoninator::ZONE_META_PREFIX', '_zoninator_order_' ),
-			'admin page'   => array( '\\Automattic\\Zoninator\\Admin\\Screen::PAGE_SLUG', 'zoninator' ),
-			'nonce prefix' => array( '\\Automattic\\Zoninator\\Request::NONCE_PREFIX', 'zone-nonce' ),
+			'admin page'   => array( '\\Automattic\\Zoninator\\Infrastructure\\WordPress\\Admin\\Screen::PAGE_SLUG', 'zoninator' ),
+			'nonce prefix' => array( '\\Automattic\\Zoninator\\Infrastructure\\WordPress\\Request::NONCE_PREFIX', 'zone-nonce' ),
 		);
 	}
 

@@ -5,7 +5,7 @@
  * @package Automattic\Zoninator
  */
 
-namespace Automattic\Zoninator;
+namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 use WP_Error;
 use WP_Query;
@@ -21,7 +21,7 @@ use WP_Query;
  * Zoninator keeps a public method for each of these under its original name
  * (insert_zone() for insert(), get_zone_posts() for get_posts(), and so on),
  * which delegates here. It registers its own hook in register_hooks(), and
- * sites reach it with zoninator_container()->get( \Automattic\Zoninator\Zones::class ) to unhook it.
+ * sites reach it with zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Zones::class ) to unhook it.
  *
  * @since 0.12.0
  * @internal Use Zoninator(), the template tags and the hooks instead.
@@ -80,7 +80,7 @@ final class Zones {
 	}
 
 	/**
-	 * Hooks the handler that keeps zone posts when core splits a shared term. Bootstrapper::register_hooks() calls this once.
+	 * Hooks the handler that keeps zone posts when core splits a shared term. PluginBootstrapper::register_hooks() calls this once.
 	 *
 	 * @since 1.0.0
 	 */
