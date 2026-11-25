@@ -1,0 +1,110 @@
+<?php
+/**
+ * The zoninator/v1 route that takes a zone's lock.
+ *
+ * @package Automattic\Zoninator
+ */
+
+namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
+
+use Automattic\Zoninator\Application\ZoneLocker;
+use Automattic\Zoninator\Domain\ZoneLockedException;
+use Automattic\Zoninator\Domain\ZoneNotFoundException;
+use Automattic\Zoninator\Infrastructure\WordPress\Settings;
+use WP_Error;
+use WP_REST_Controller;
+use WP_REST_Request;
+use WP_REST_Response;
+use WP_REST_Server;
+
+/**
+ * Takes or renews the current user's lock on a zone: /zones/{zone_id}/lock.
+ *
+ * @since 1.0.0
+ * @internal Use the REST API itself, not this class.
+ */
+final class LockController extends WP_REST_Controller {
+
+	use RespondsToRequests;
+
+	/**
+	 * Zone locks.
+	 *
+	 * @var ZoneLocker
+	 */
+	private $locker;
+
+	/**
+	 * Zoninator's settings, for the lock periods.
+	 *
+	 * @var Settings
+	 */
+	private $settings;
+
+	/**
+	 * Says who may call each route.
+	 *
+	 * @var Permissions
+	 */
+	private $permissions;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param ZoneLocker  $locker      Zone locks.
+	 * @param Settings    $settings    Zoninator's settings.
+	 * @param Permissions $permissions Says who may call each route.
+	 */
+	public function __construct( ZoneLocker $locker, Settings $settings, Permissions $permissions ) {
+		$this->locker      = $locker;
+		$this->settings    = $settings;
+		$this->permissions = $permissions;
+	}
+
+	/**
+	 * Register the routes.
+	 */
+	public function register_routes() {
+		register_rest_route(
+			self::$rest_namespace,
+			'/zones/(?P<zone_id>[\d]+)/lock',
+			array(
+				array(
+					'methods'             => WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'zone_update_lock' ),
+					'permission_callback' => array( $this->permissions, 'manage_zones' ),
+					'args'                => $this->get_zone_id_param(),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Take the zone's lock for the current user, or renew it.
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Response
+	 */
+	public function zone_update_lock( $request ) {
+		$zone_id = $this->get_param( $request, 'zone_id', 0, 'absint' );
+
+		if ( ! $zone_id ) {
+			return $this->bad_request( ErrorCodes::ZONE_ID_REQUIRED, __( 'Zone ID is required.', 'zoninator' ) );
+		}
+
+		try {
+			$this->locker->lock( $zone_id, get_current_user_id() );
+		} catch ( ZoneNotFoundException | ZoneLockedException $exception ) {
+			return $this->error_response( $exception, $zone_id );
+		}
+
+		return new WP_REST_Response(
+			array(
+				'zone_id'         => $zone_id,
+				'timeout'         => $this->settings->get_lock_period(),
+				'max_lock_period' => $this->settings->get_max_lock_period(),
+			),
+			200
+		);
+	}
+}

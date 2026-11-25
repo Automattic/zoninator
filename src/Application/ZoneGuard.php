@@ -11,11 +11,13 @@ use Automattic\Zoninator\Domain\AccessDeniedException;
 use Automattic\Zoninator\Domain\PostNotAllowedException;
 use Automattic\Zoninator\Domain\ZoneAccessInterface;
 use Automattic\Zoninator\Domain\ZoneLockedException;
+use Automattic\Zoninator\Domain\ZoneNotFoundException;
+use Automattic\Zoninator\Domain\ZoneRepositoryInterface;
 
 /**
  * The checks every change to a zone must pass when it's made for a user:
- * the user may make it, may use each post, and isn't kept out by someone
- * else's lock.
+ * the user may make it, the zone exists, the user may use each post, and no
+ * one else's lock keeps them out.
  *
  * @since 1.0.0
  */
@@ -36,14 +38,23 @@ final class ZoneGuard {
 	private $locker;
 
 	/**
+	 * Where the zones are kept.
+	 *
+	 * @var ZoneRepositoryInterface
+	 */
+	private $zones;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param ZoneAccessInterface $access Says what a user may do.
-	 * @param ZoneLocker          $locker Zone locks.
+	 * @param ZoneAccessInterface     $access Says what a user may do.
+	 * @param ZoneLocker              $locker Zone locks.
+	 * @param ZoneRepositoryInterface $zones  Where the zones are kept.
 	 */
-	public function __construct( ZoneAccessInterface $access, ZoneLocker $locker ) {
+	public function __construct( ZoneAccessInterface $access, ZoneLocker $locker, ZoneRepositoryInterface $zones ) {
 		$this->access = $access;
 		$this->locker = $locker;
+		$this->zones  = $zones;
 	}
 
 	/**
@@ -66,6 +77,7 @@ final class ZoneGuard {
 	 * @param int $zone_id Zone ID.
 	 *
 	 * @throws AccessDeniedException If they may not.
+	 * @throws ZoneNotFoundException If there's no such zone.
 	 * @throws ZoneLockedException   If someone else holds the zone's lock.
 	 */
 	public function check_edit( int $user_id, int $zone_id ): void {
@@ -73,6 +85,7 @@ final class ZoneGuard {
 			throw new AccessDeniedException();
 		}
 
+		$this->check_exists( $zone_id );
 		$this->locker->check_unlocked( $zone_id, $user_id );
 	}
 
@@ -84,6 +97,7 @@ final class ZoneGuard {
 	 * @param int[] $post_ids Post IDs.
 	 *
 	 * @throws AccessDeniedException   If they may not curate zones.
+	 * @throws ZoneNotFoundException   If there's no such zone.
 	 * @throws PostNotAllowedException If they may not use one of the posts.
 	 * @throws ZoneLockedException     If someone else holds the zone's lock.
 	 */
@@ -92,6 +106,8 @@ final class ZoneGuard {
 			throw new AccessDeniedException();
 		}
 
+		$this->check_exists( $zone_id );
+
 		foreach ( $post_ids as $post_id ) {
 			if ( ! $this->access->can_use_post( $user_id, (int) $post_id ) ) {
 				throw new PostNotAllowedException( (int) $post_id );
@@ -99,5 +115,16 @@ final class ZoneGuard {
 		}
 
 		$this->locker->check_unlocked( $zone_id, $user_id );
+	}
+
+	/**
+	 * @param int $zone_id Zone ID.
+	 *
+	 * @throws ZoneNotFoundException If there's no such zone.
+	 */
+	private function check_exists( int $zone_id ): void {
+		if ( ! $this->zones->find( $zone_id ) ) {
+			throw new ZoneNotFoundException( $zone_id );
+		}
 	}
 }

@@ -19,6 +19,7 @@ use Automattic\Zoninator\Application\ZoneRemover;
 use Automattic\Zoninator\Domain\AccessDeniedException;
 use Automattic\Zoninator\Domain\PostNotAllowedException;
 use Automattic\Zoninator\Domain\ZoneLockedException;
+use Automattic\Zoninator\Domain\ZoneNotFoundException;
 use Automattic\Zoninator\Tests\Unit\Doubles\FakeZoneAccess;
 use Automattic\Zoninator\Tests\Unit\Doubles\FixedSettings;
 use Automattic\Zoninator\Tests\Unit\Doubles\InMemoryLockStore;
@@ -64,10 +65,10 @@ final class ZoneGuardTest extends TestCase {
 	protected function setUp(): void {
 		$settings         = new FixedSettings();
 		$this->access     = new FakeZoneAccess();
-		$this->locker     = new ZoneLocker( new InMemoryLockStore(), $settings );
 		$this->zones      = new InMemoryZoneRepository();
+		$this->locker     = new ZoneLocker( new InMemoryLockStore(), $settings, $this->zones );
 		$this->zone_posts = new InMemoryZonePostsRepository();
-		$guard            = new ZoneGuard( $this->access, $this->locker );
+		$guard            = new ZoneGuard( $this->access, $this->locker, $this->zones );
 		$curator          = new ZoneCurator( $this->zones, $this->zone_posts );
 		$this->manager    = new GuardedZoneManager( new ZoneManager( $this->zones, $settings ), new ZoneRemover( $this->zones, $this->zone_posts, $this->locker ), $guard );
 		$this->curator    = new GuardedZoneCurator( $curator, $guard );
@@ -131,6 +132,23 @@ final class ZoneGuardTest extends TestCase {
 			'update a locked zone'      => array( 'update', array( array( 'name' => 'New' ) ), ZoneLockedException::class, true, true ),
 			'delete a locked zone'      => array( 'remove', array(), ZoneLockedException::class, true, true ),
 		);
+	}
+
+	/**
+	 * A missing zone is reported before anything about the posts, whichever change is asked for.
+	 */
+	public function test_a_change_to_a_missing_zone_is_refused_as_not_found(): void {
+		foreach ( array( 'add_posts', 'set_posts', 'remove_posts' ) as $method ) {
+			try {
+				$this->curator->$method( self::EDITOR, 9, array( 99 ) );
+				$this->fail( 'Expected the missing zone to be refused.' );
+			} catch ( ZoneNotFoundException $exception ) {
+				$this->assertArrayNotHasKey( 9, $this->zone_posts->post_ids );
+			}
+		}
+
+		$this->expectException( ZoneNotFoundException::class );
+		$this->manager->update( self::EDITOR, 9, array( 'name' => 'New' ) );
 	}
 
 	public function test_a_curator_can_add_order_and_remove_posts(): void {

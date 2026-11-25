@@ -11,6 +11,8 @@ use Automattic\Zoninator\Domain\LockSettingsInterface;
 use Automattic\Zoninator\Domain\LockStoreInterface;
 use Automattic\Zoninator\Domain\ZoneLock;
 use Automattic\Zoninator\Domain\ZoneLockedException;
+use Automattic\Zoninator\Domain\ZoneNotFoundException;
+use Automattic\Zoninator\Domain\ZoneRepositoryInterface;
 
 /**
  * Takes, checks and releases the lock that stops two people editing a zone
@@ -35,14 +37,23 @@ final class ZoneLocker {
 	private $settings;
 
 	/**
+	 * Where the zones are kept.
+	 *
+	 * @var ZoneRepositoryInterface
+	 */
+	private $zones;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param LockStoreInterface    $store    Where the locks are kept.
-	 * @param LockSettingsInterface $settings Says how long a lock is valid for.
+	 * @param LockStoreInterface      $store    Where the locks are kept.
+	 * @param LockSettingsInterface   $settings Says how long a lock is valid for.
+	 * @param ZoneRepositoryInterface $zones    Where the zones are kept.
 	 */
-	public function __construct( LockStoreInterface $store, LockSettingsInterface $settings ) {
+	public function __construct( LockStoreInterface $store, LockSettingsInterface $settings, ZoneRepositoryInterface $zones ) {
 		$this->store    = $store;
 		$this->settings = $settings;
+		$this->zones    = $zones;
 	}
 
 	/**
@@ -51,9 +62,14 @@ final class ZoneLocker {
 	 * @param int $zone_id Zone ID.
 	 * @param int $user_id ID of the user editing the zone.
 	 *
-	 * @throws ZoneLockedException If someone else holds the zone's lock.
+	 * @throws ZoneNotFoundException If there's no such zone.
+	 * @throws ZoneLockedException   If someone else holds the zone's lock.
 	 */
 	public function lock( int $zone_id, int $user_id ): void {
+		if ( ! $this->zones->find( $zone_id ) ) {
+			throw new ZoneNotFoundException( $zone_id );
+		}
+
 		$this->check_unlocked( $zone_id, $user_id );
 
 		$this->store->save( $zone_id, new ZoneLock( $user_id ), ZoneLock::duration( $this->settings->get_lock_period() ) );

@@ -17,6 +17,10 @@ use Automattic\Zoninator\Application\ZoneRemover;
 use Automattic\Zoninator\Infrastructure\DI\Container;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm;
+use Automattic\Zoninator\Infrastructure\WordPress\Rest\LockController;
+use Automattic\Zoninator\Infrastructure\WordPress\Rest\Permissions;
+use Automattic\Zoninator\Infrastructure\WordPress\Rest\SearchController;
+use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonePostsController;
 use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
 use Zoninator_ZonePosts_Widget;
 
@@ -70,13 +74,13 @@ final class PluginBootstrapper {
 		$taxonomy      = $container->add( new Taxonomy() );
 		$capabilities  = $container->add( new Capabilities( $taxonomy ) );
 		$request       = $container->add( new Request( $capabilities ) );
-		$locker        = $container->add( new ZoneLocker( $container->add( new TransientLockStore() ), $settings ) );
 		$terms         = $container->add( new TermZoneRepository( $settings ) );
+		$locker        = $container->add( new ZoneLocker( $container->add( new TransientLockStore() ), $settings, $terms ) );
 		$zone_posts    = $container->add( new PostMetaZonePostsRepository( $terms, $taxonomy ) );
 		$manager       = $container->add( new ZoneManager( $terms, $settings ) );
 		$remover       = $container->add( new ZoneRemover( $terms, $zone_posts, $locker ) );
 		$curator       = $container->add( new ZoneCurator( $terms, $zone_posts ) );
-		$guard         = $container->add( new ZoneGuard( $capabilities, $locker ) );
+		$guard         = $container->add( new ZoneGuard( $capabilities, $locker, $terms ) );
 		$guarded_zones = $container->add( new GuardedZoneManager( $manager, $remover, $guard ) );
 		$guarded_posts = $container->add( new GuardedZoneCurator( $curator, $guard ) );
 		$zones         = $container->add( new Zones( $taxonomy, $capabilities, $terms ) );
@@ -89,10 +93,37 @@ final class PluginBootstrapper {
 		$container->add( new Block( $zones ) );
 
 		// Only REST and Abilities API requests need these, so they're built, and their files loaded, then.
+		$permissions = static function () use ( $container ) {
+			return $container->get( Permissions::class );
+		};
+		$container->factory(
+			Permissions::class,
+			static function () use ( $capabilities ) {
+				return new Permissions( $capabilities );
+			}
+		);
 		$container->factory(
 			ZonesController::class,
-			static function () use ( $zones, $locker, $feed, $settings, $capabilities, $screen, $search, $guarded_zones, $guarded_posts ) {
-				return new ZonesController( $zones, $locker, $feed, $settings, $capabilities, $screen, $search, $guarded_zones, $guarded_posts );
+			static function () use ( $zones, $guarded_zones, $permissions ) {
+				return new ZonesController( $zones, $guarded_zones, $permissions() );
+			}
+		);
+		$container->factory(
+			ZonePostsController::class,
+			static function () use ( $feed, $guarded_posts, $screen, $permissions ) {
+				return new ZonePostsController( $feed, $guarded_posts, $screen, $permissions() );
+			}
+		);
+		$container->factory(
+			SearchController::class,
+			static function () use ( $search, $permissions ) {
+				return new SearchController( $search, $permissions() );
+			}
+		);
+		$container->factory(
+			LockController::class,
+			static function () use ( $locker, $settings, $permissions ) {
+				return new LockController( $locker, $settings, $permissions() );
 			}
 		);
 		$container->factory(
@@ -132,7 +163,9 @@ final class PluginBootstrapper {
 	 * Registers the zoninator/v1 REST routes. Hooked on rest_api_init.
 	 */
 	public function register_rest_routes() {
-		$this->container->get( ZonesController::class )->register_routes();
+		foreach ( array( ZonesController::class, ZonePostsController::class, SearchController::class, LockController::class ) as $controller ) {
+			$this->container->get( $controller )->register_routes();
+		}
 	}
 
 	/**

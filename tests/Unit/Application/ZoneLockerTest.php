@@ -10,14 +10,17 @@ declare( strict_types = 1 );
 namespace Automattic\Zoninator\Tests\Unit\Application;
 
 use Automattic\Zoninator\Application\ZoneLocker;
-use Automattic\Zoninator\Domain\LockSettingsInterface;
+use Automattic\Zoninator\Domain\Zone;
 use Automattic\Zoninator\Domain\ZoneLockedException;
+use Automattic\Zoninator\Domain\ZoneNotFoundException;
+use Automattic\Zoninator\Tests\Unit\Doubles\FixedSettings;
 use Automattic\Zoninator\Tests\Unit\Doubles\InMemoryLockStore;
+use Automattic\Zoninator\Tests\Unit\Doubles\InMemoryZoneRepository;
 use PHPUnit\Framework\TestCase;
 
 final class ZoneLockerTest extends TestCase {
 
-	private const ZONE   = 7;
+	private const ZONE   = 1;
 	private const EDITOR = 11;
 	private const OTHER  = 12;
 
@@ -32,15 +35,20 @@ final class ZoneLockerTest extends TestCase {
 	private $locker;
 
 	protected function setUp(): void {
+		$zones = new InMemoryZoneRepository();
+		$zones->insert( new Zone( null, 'homepage', 'Home page', array() ) );
+
 		$this->store  = new InMemoryLockStore();
-		$this->locker = new ZoneLocker(
-			$this->store,
-			new class() implements LockSettingsInterface {
-				public function get_lock_period(): int {
-					return 30;
-				}
-			}
-		);
+		$this->locker = new ZoneLocker( $this->store, new FixedSettings(), $zones );
+	}
+
+	public function test_only_a_zone_can_be_locked(): void {
+		try {
+			$this->locker->lock( 9, self::EDITOR );
+			$this->fail( 'Expected the missing zone to be refused.' );
+		} catch ( ZoneNotFoundException $exception ) {
+			$this->assertArrayNotHasKey( 9, $this->store->seconds );
+		}
 	}
 
 	public function test_an_unlocked_zone_keeps_no_one_out(): void {

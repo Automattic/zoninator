@@ -436,6 +436,22 @@ final class Screen {
 		<?php
 	}
 
+	/**
+	 * Gets a zone post's row, as the Zones screen shows it.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param int $post_id Post ID.
+	 * @param int $zone_id Zone ID.
+	 * @return string HTML.
+	 */
+	public function get_zone_post_html( $post_id, $zone_id ) {
+		ob_start();
+		$this->render_zone_post( get_post( $post_id ), $this->zones->get( (int) $zone_id ) );
+
+		return (string) ob_get_clean();
+	}
+
 	public function render_zone_post( $post, $zone ) {
 		$columns = apply_filters(
 			'zoninator_zone_post_columns',
