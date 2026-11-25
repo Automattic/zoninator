@@ -19,9 +19,9 @@ class ZoninatorHooksTest extends TestCase {
 	 * Every hook the plugin registers, as hook => list of "Class::method priority accepted_args".
 	 */
 	private const HOOKS = array(
-		'init'                             => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Taxonomy::register 10 1', 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Feed::add_rewrite_rule 10 1' ),
+		'init'                             => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Taxonomy::register 10 1', 'Automattic\\Zoninator\\Infrastructure\\WordPress\\FeedEndpoint::add_rewrite_rule 10 1' ),
 		'widgets_init'                     => array( 'Zoninator_ZonePosts_Widget::register 10 1' ),
-		'template_redirect'                => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Feed::serve 10 1' ),
+		'template_redirect'                => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\FeedEndpoint::serve 10 1' ),
 		'split_shared_term'                => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Zones::split_shared_term 10 4' ),
 		'query_loop_block_query_vars'      => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Block::filter_query_vars 10 2' ),
 		'rest_post_query'                  => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Block::filter_rest_query 10 2' ),
@@ -91,7 +91,7 @@ class ZoninatorHooksTest extends TestCase {
 	 */
 	public function data_unhook_calls(): array {
 		$screen = zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class );
-		$feed   = zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Feed::class );
+		$feed   = zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class );
 		$block  = zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class );
 
 		return array(

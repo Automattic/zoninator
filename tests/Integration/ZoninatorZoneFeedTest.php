@@ -22,7 +22,7 @@ final class ZoninatorZoneFeedTest extends TestCase {
 
 	public function test_feed_url_sets_the_zone_query_var(): void {
 		$this->set_permalink_structure( '/%postname%/' );
-		zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Feed::class )->add_rewrite_rule();
+		zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class )->add_rewrite_rule();
 		flush_rewrite_rules();
 
 		$this->go_to( home_url( '/zones/homepage/feed.json' ) );
@@ -113,7 +113,7 @@ final class ZoninatorZoneFeedTest extends TestCase {
 
 	public function test_a_request_without_the_feed_query_var_is_left_alone(): void {
 		ob_start();
-		zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Feed::class )->serve();
+		zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class )->serve();
 
 		$this->assertSame( '', ob_get_clean() );
 	}

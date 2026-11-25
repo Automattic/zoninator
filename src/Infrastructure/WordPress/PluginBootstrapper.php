@@ -71,6 +71,7 @@ final class PluginBootstrapper {
 		$feed         = $container->add( new Feed( $zones ) );
 		$screen       = $container->add( new Screen( $zones, $locks, $settings, $capabilities, $request ) );
 		$search       = $container->add( new Search( $taxonomy, $settings, $capabilities, $zones ) );
+		$container->add( new FeedEndpoint( $feed ) );
 		$container->add( new Block( $zones ) );
 		$container->add( new Zoninator( $settings, $taxonomy, $capabilities, $request, $zones, $locks, $feed ) );
 
@@ -98,7 +99,7 @@ final class PluginBootstrapper {
 		Zoninator_ZonePosts_Widget::register_hooks();
 		$this->container->get( Taxonomy::class )->register_hooks();
 		$this->container->get( Zones::class )->register_hooks();
-		$this->container->get( Feed::class )->register_hooks();
+		$this->container->get( FeedEndpoint::class )->register_hooks();
 		$this->container->get( Block::class )->register_hooks();
 		$this->container->get( Screen::class )->register_hooks();
 

@@ -70,6 +70,7 @@ final class ZoninatorDependencyTest extends TestCase {
 			\Automattic\Zoninator\Infrastructure\WordPress\Zones::class,
 			\Automattic\Zoninator\Infrastructure\WordPress\Locks::class,
 			\Automattic\Zoninator\Infrastructure\WordPress\Feed::class,
+			\Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class,
 			\Automattic\Zoninator\Infrastructure\WordPress\Search::class,
 			\Automattic\Zoninator\Infrastructure\WordPress\Block::class,
 			\Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class,

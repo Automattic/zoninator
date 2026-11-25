@@ -61,7 +61,7 @@ spl_autoload_register(
  *
  * Use the container's get() to reach the object that handles one of
  * Zoninator's hooks, to unhook it, for example on plugins_loaded at priority 20:
- * remove_action( 'template_redirect', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Feed::class ), 'serve' ) ).
+ * remove_action( 'template_redirect', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class ), 'serve' ) ).
  *
  * @since 1.0.0
  *
