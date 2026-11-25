@@ -84,18 +84,6 @@ final class Taxonomy {
 	}
 
 	/**
-	 * Replaces the list of post types that support zones.
-	 *
-	 * Only for writes to the old Zoninator::$post_types property, which still
-	 * take effect until 1.0.0. Use add_post_types() instead.
-	 *
-	 * @param string[]|null $post_types Post types, or null to work them out again.
-	 */
-	public function set_post_types( $post_types ) {
-		$this->post_types = $post_types;
-	}
-
-	/**
 	 * Registers a post type to be available for zones
 	 *
 	 * @param string|array $post_types A post type string or array of post type strings to register.

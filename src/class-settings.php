@@ -11,15 +11,14 @@ namespace Automattic\Zoninator;
  * The values sites tune with filters (lock periods, results per page, zone
  * details) and the messages the Zones screen shows.
  *
- * The filters apply on init, as they always have. Until 1.0.0, a write to one
- * of the old public Zoninator properties still changes the value here.
+ * The filters apply on init, as they always have.
  *
  * @since 0.12.0
  */
 final class Settings {
 
 	/**
-	 * Current values, keyed by the name of the old Zoninator property.
+	 * Current values.
 	 *
 	 * @var array
 	 */
@@ -58,34 +57,6 @@ final class Settings {
 		$this->values['zone_lock_period']     = apply_filters( 'zoninator_zone_lock_period', $this->values['zone_lock_period'] );
 		$this->values['zone_max_lock_period'] = apply_filters( 'zoninator_zone_max_lock_period', $this->values['zone_max_lock_period'] );
 		$this->values['posts_per_page']       = apply_filters( 'zoninator_posts_per_page', $this->values['posts_per_page'] );
-	}
-
-	/**
-	 * Gets a value by the name of the old Zoninator property, unfiltered.
-	 *
-	 * @param string $name Old property name.
-	 * @return mixed
-	 */
-	public function get( $name ) {
-		return $this->values[ $name ] ?? null;
-	}
-
-	/**
-	 * Sets a value by the name of the old Zoninator property.
-	 *
-	 * Only for writes to the old properties, which still take effect until 1.0.0.
-	 *
-	 * @param string $name  Old property name.
-	 * @param mixed  $value New value.
-	 * @return bool Whether it's a setting.
-	 */
-	public function set( $name, $value ) {
-		if ( ! array_key_exists( $name, $this->values ) ) {
-			return false;
-		}
-
-		$this->values[ $name ] = $value;
-		return true;
 	}
 
 	/**

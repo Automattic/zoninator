@@ -16,9 +16,8 @@ use Automattic\Zoninator\Zones;
 /**
  * Renders the Zones admin screen, saves its zone form, and loads its assets.
  *
- * Zoninator keeps a public method for each of these under its original name
- * (admin_page() for render(), admin_page_zone_post() for render_zone_post(),
- * and so on), which delegates here. Hooks are registered on it, so
+ * Zoninator registers the screen's hooks on itself, with a method for each
+ * (admin_page() for render(), and so on) that delegates here, so
  * array( Zoninator(), 'method' ) keeps working as a callback. Callbacks this
  * class hands to WordPress point at Zoninator too, for the same reason.
  *

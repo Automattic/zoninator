@@ -106,7 +106,7 @@ class ZoninatorAdminHooksTest extends TestCase {
 		add_filter( 'zoninator_zone_post_columns', $spy );
 
 		ob_start();
-		Zoninator()->admin_page_zone_post( get_post( self::factory()->post->create() ), Zoninator()->get_zone( $this->zone_id ) );
+		self::admin_screen()->render_zone_post( get_post( self::factory()->post->create() ), Zoninator()->get_zone( $this->zone_id ) );
 		ob_end_clean();
 
 		remove_filter( 'zoninator_zone_post_columns', $spy );

@@ -90,7 +90,7 @@ Arguments passed to `get_zones()` when rendering the admin Zones list page.
 
 ### `zoninator_zone_post_columns` (filter)
 
-Columns rendered for each post inside the zone editor: column key => callback, which receives `$post` and `$zone` and prints the cell. Two call sites: one in `src/admin/class-screen.php` for HTML output, used by the Zones screen and `POST /zoninator/v1/zones/{zone_id}/posts/{post_id}`, and one in `src/class-zoninator.php` for the array returned by `get_admin_zone_post()`.
+Columns rendered for each post inside the zone editor: column key => callback, which receives `$post` and `$zone` and prints the cell. Fires from `src/admin/class-screen.php`, for the Zones screen and the row `POST /zoninator/v1/zones/{zone_id}/posts/{post_id}` returns.
 
 - **Parameters:** `array $columns`, `WP_Post $post`, `WP_Term $zone`
 

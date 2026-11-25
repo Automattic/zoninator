@@ -29,6 +29,39 @@ If your code unhooked an action with `remove_action( 'wp_ajax_zoninator_add_post
 
 On the Zones screen, the hidden `zone-nonce-ajax-action` nonce field and the `ajaxNonceAction` entry in `zoninatorOptions` are gone, and so are the `zoninator.ajax()`, `zoninator.getAjaxNonce()`, `zoninator.getAjaxNonceField()` and `zoninator.updateAjaxNonce()` JavaScript functions. The screen still fires the `zoninator.ajax` jQuery event on `#zone-post-search` before each REST request, with the action name (such as `add_post`) and the request data, so listeners on it keep working.
 
+### `Zoninator`'s old properties are gone
+
+The `__get()`, `__set()` and `__isset()` methods that kept `Zoninator()`'s old public properties working, with a notice, are removed. Reading one now gives PHP's "Undefined property" warning and `null`. Writing one creates a dynamic property, which PHP 8.2 deprecates and Zoninator never reads, so the write no longer changes anything. Use the replacements in the table under [`Zoninator`'s properties are no longer public](#zoninators-properties-are-no-longer-public), except for `$zone_messages` and `$zone_nonce_prefix`, whose `_get_message()` and `_get_nonce_key()` replacements are removed too (see below), and `$zone_ajax_nonce_action`, which went with the admin-ajax actions.
+
+### `Zoninator` keeps only its public API
+
+`Zoninator` now holds the zone, zone post, lock and post type methods, the settings getters (such as `get_zone_lock_period()`), the `ZONE_TAXONOMY` and `ZONE_META_PREFIX` constants, and the callbacks its hooks use. These methods are removed:
+
+| Removed | Use instead |
+|---|---|
+| `_get_request_var()`, `_get_get_var()` and `_get_post_var()` | Core's functions on `$_REQUEST`, `$_GET` or `$_POST`, such as `sanitize_text_field( wp_unslash( $_POST['name'] ?? '' ) )` |
+| `_get_value_or_default( $key, $source, $default )` | `! empty( $source[ $key ] ) ? $source[ $key ] : $default` |
+| `_sanitize_value( $value )` | `htmlspecialchars( stripslashes( $value ) )`, which is what it did |
+| `_validate_date_filter( $date )` | `preg_match( '/\d{4}-\d{2}-\d{2}/', $date )` |
+| `_validate_category_filter( $cat )` | `get_term_by( 'id', $cat, 'category' )` |
+| `_get_message()` | Nothing; the messages belong to the Zones screen |
+| `_get_nonce_key( $action )` | Nothing; the Zones screen's nonce actions are `'zone-nonce-' . $action` |
+| `_get_zone_page_url( $args )` | `add_query_arg( $args, menu_page_url( 'zoninator', false ) )` |
+| `_fill_zone_details( $zone )` | `Zoninator()->get_zone( $zone )`, which returns the zone with its details filled in |
+| `_unauthorized_access()` | `wp_die()` |
+| `_empty_zone_posts_cache()`, `get_zone_cache_key()`, `get_zone_posts_from_cache()` and `add_zone_posts_to_cache()` | Nothing; they did nothing since 0.12.0, when core's query cache took over |
+| `_get_add_zones_cap()` | `apply_filters( 'zoninator_add_zone_cap', 'edit_others_posts' )` |
+| `_get_edit_zones_cap()` | `apply_filters( 'zoninator_edit_zone_cap', 'edit_others_posts' )` |
+| `_get_manage_zones_cap()` | `apply_filters( 'zoninator_manage_zone_cap', 'edit_others_posts' )` |
+| `_current_user_can_add_zones()` | `current_user_can( apply_filters( 'zoninator_add_zone_cap', 'edit_others_posts' ) )` |
+| `_current_user_can_edit_zones( $zone_id )` | `apply_filters( 'zoninator_current_user_can_edit_zone', current_user_can( apply_filters( 'zoninator_edit_zone_cap', 'edit_others_posts' ) ), $zone_id )` |
+| `_current_user_can_manage_zones()` | `current_user_can( apply_filters( 'zoninator_manage_zone_cap', 'edit_others_posts' ) )` |
+| `check( $action, $zone_id )` | The matching check above: `'insert'` is the add check, `'update'` and `'delete'` are the edit check for `$zone_id`, and anything else is the manage check |
+| `get_formatted_zone_slug()` and `get_unformatted_zone_slug()` | The slug itself; both returned it unchanged |
+| `get_admin_zone_post()` and `get_admin_zone_posts()` | `Zoninator()->get_zone_posts()` for the posts. Nothing in Zoninator used the arrays these built, and `zoninator_zone_post_columns` no longer fires for them |
+| `admin_page_zone_tabs()`, `admin_page_zone_edit()`, `admin_page_zone_details()`, `admin_page_zone_content()`, `admin_page_zone_post()`, `zone_advanced_search_filters()` and `zone_admin_search_form()` | Nothing; the Zones screen renders these parts itself. To add to it, use the [zone field hooks](hooks.md#zoninator_pre_zone_fields--zoninator_post_zone_fields-actions), [`zoninator_zone_post_columns`](hooks.md#zoninator_zone_post_columns-filter) and [`zoninator_advanced_search_fields`](hooks.md#zoninator_advanced_search_fields-action) |
+| `is_zoninator_page()` | `'toplevel_page_zoninator' === get_current_screen()->id` |
+
 ### The widget's cache filter has a new name
 
 `zone_posts_widget_block_save_cache_seconds` is now [`zoninator_zone_posts_widget_block_save_cache_seconds`](hooks.md#zoninator_zone_posts_widget_block_save_cache_seconds-filter), with the prefix every other Zoninator hook uses. The old name no longer fires, so rename it in your `add_filter()` call.

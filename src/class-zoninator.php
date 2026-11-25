@@ -85,7 +85,7 @@ class Zoninator {
 	private $settings;
 
 	/**
-	 * The capability checks. The _current_user_can_* and _get_*_cap methods here delegate to it.
+	 * The capability checks.
 	 *
 	 * @var \Automattic\Zoninator\Capabilities
 	 */
@@ -99,7 +99,7 @@ class Zoninator {
 	private $abilities;
 
 	/**
-	 * Reads and checks requests. The _get_*_var and verify_* methods here delegate to it.
+	 * Reads and checks requests. The verify_* methods here delegate to it.
 	 *
 	 * @var \Automattic\Zoninator\Request
 	 */
@@ -154,102 +154,6 @@ class Zoninator {
 
 		add_action( 'wp_abilities_api_categories_init', array( $this, 'register_ability_categories' ) );
 		add_action( 'wp_abilities_api_init', array( $this, 'register_abilities' ) );
-	}
-
-	/**
-	 * Keeps the old public properties readable, with a notice, so sites can update their code.
-	 *
-	 * @param string $name Property name.
-	 * @return mixed
-	 */
-	public function __get( $name ) {
-		$properties = $this->get_old_properties();
-
-		if ( ! isset( $properties[ $name ] ) ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error, WordPress.Security.EscapeOutput.OutputNotEscaped -- same warning PHP gives for an undefined property.
-			trigger_error( sprintf( 'Undefined property: %s::$%s', __CLASS__, esc_html( $name ) ), E_USER_WARNING );
-			return null;
-		}
-
-		_doing_it_wrong(
-			esc_html( __CLASS__ . '::$' . $name ),
-			/* translators: %s: Replacement constant or method. */
-			sprintf( esc_html__( 'This property is no longer public. Use %s instead.', 'zoninator' ), esc_html( $properties[ $name ][1] ) ),
-			'0.12.0'
-		);
-
-		return $properties[ $name ][0];
-	}
-
-	/**
-	 * Keeps writes to the old public properties working, with a notice, until 1.0.0.
-	 *
-	 * A write to a property that is now private still takes effect. A write to
-	 * one that is now a constant is ignored, as those values name the
-	 * taxonomy, meta keys and nonces the stored data depends on.
-	 *
-	 * @param string $name  Property name.
-	 * @param mixed  $value New value.
-	 */
-	public function __set( $name, $value ) {
-		$properties = $this->get_old_properties();
-
-		if ( ! isset( $properties[ $name ] ) ) {
-			// Same as PHP without __set(): create the dynamic property.
-			$this->$name = $value;
-			return;
-		}
-
-		if ( 'post_types' === $name || in_array( $name, array( 'zone_detail_defaults', 'zone_lock_period', 'zone_max_lock_period', 'posts_per_page', 'zone_messages' ), true ) ) {
-			if ( 'post_types' === $name ) {
-				$this->taxonomy->set_post_types( $value );
-			} else {
-				$this->settings->set( $name, $value );
-			}
-
-			if ( isset( $properties[ $name ][2] ) ) {
-				/* translators: %s: Filter or method to use instead. */
-				$message = sprintf( esc_html__( 'This property is no longer public. The new value is used for now, but will be ignored from 1.0.0. Use %s instead.', 'zoninator' ), esc_html( $properties[ $name ][2] ) );
-			} else {
-				$message = esc_html__( 'This property is no longer public. The new value is used for now, but will be ignored from 1.0.0.', 'zoninator' );
-			}
-		} else {
-			$message = esc_html__( 'This property is no longer public and the new value is ignored. This value can not be changed.', 'zoninator' );
-		}
-
-		_doing_it_wrong( esc_html( __CLASS__ . '::$' . $name ), $message, '0.12.0' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
-	}
-
-	/**
-	 * @param string $name Property name.
-	 * @return bool
-	 */
-	public function __isset( $name ) {
-		$properties = $this->get_old_properties();
-		return isset( $properties[ $name ] ) && null !== $properties[ $name ][0];
-	}
-
-	/**
-	 * Old public property name => array( value, replacement to read it, way to change it or null ).
-	 *
-	 * The ones still backed by a private property keep honouring writes until 1.0.0.
-	 *
-	 * @return array
-	 */
-	private function get_old_properties() {
-		return array(
-			'key'                  => array( \Automattic\Zoninator\Admin\Screen::PAGE_SLUG, 'Automattic\\Zoninator\\Admin\\Screen::PAGE_SLUG', null ),
-			'zone_taxonomy'        => array( self::ZONE_TAXONOMY, 'Zoninator::ZONE_TAXONOMY', null ),
-			'zone_term_prefix'     => array( 'zone-', 'your own value (Zoninator never used it)', null ),
-			'zone_meta_prefix'     => array( self::ZONE_META_PREFIX, 'Zoninator::ZONE_META_PREFIX', null ),
-			'zone_nonce_prefix'    => array( \Automattic\Zoninator\Request::NONCE_PREFIX, 'Zoninator::_get_nonce_key()', null ),
-			'zone_detail_defaults' => array( $this->settings->get( 'zone_detail_defaults' ), 'Zoninator::get_zone_detail_defaults()', 'the zoninator_zone_detail_defaults filter' ),
-			'zone_lock_period'     => array( $this->settings->get( 'zone_lock_period' ), 'Zoninator::get_zone_lock_period()', 'the zoninator_zone_lock_period filter' ),
-			'zone_max_lock_period' => array( $this->settings->get( 'zone_max_lock_period' ), 'Zoninator::get_zone_max_lock_period()', 'the zoninator_zone_max_lock_period filter' ),
-			'posts_per_page'       => array( $this->settings->get( 'posts_per_page' ), 'Zoninator::get_posts_per_page()', 'the zoninator_posts_per_page filter' ),
-			'post_types'           => array( $this->taxonomy->get_post_types(), 'Zoninator::get_supported_post_types()', 'Zoninator::register_zone_post_type()' ),
-			'zone_messages'        => array( $this->settings->get( 'zone_messages' ), 'Zoninator::_get_message()', null ),
-		);
 	}
 
 	/**
@@ -456,44 +360,6 @@ class Zoninator {
 		return $this->admin_screen->render();
 	}
 
-	public function admin_page_zone_tabs( $zones, $active_zone_id = 0 ) {
-		return $this->admin_screen->render_zone_tabs( $zones, $active_zone_id );
-	}
-
-	public function admin_page_zone_edit( $zone = null ) {
-		return $this->admin_screen->render_zone_edit( $zone );
-	}
-
-	/**
-	 * Renders the zone's name and description, as a form or read only.
-	 *
-	 * @since 0.12.0
-	 *
-	 * @param WP_Term|array $zone        The zone, or an empty array for a new one.
-	 * @param int|false     $zone_locked ID of the user holding the zone's lock, or false.
-	 * @param string        $delete_link URL that deletes the zone.
-	 */
-	public function admin_page_zone_details( $zone, $zone_locked, $delete_link ) {
-		return $this->admin_screen->render_zone_details( $zone, $zone_locked, $delete_link );
-	}
-
-	/**
-	 * Renders the box for finding, adding and ordering a zone's content.
-	 *
-	 * @since 0.12.0
-	 *
-	 * @param WP_Term   $zone        The zone.
-	 * @param WP_Post[] $zone_posts  Posts in the zone, in order.
-	 * @param int|false $zone_locked ID of the user holding the zone's lock, or false.
-	 */
-	public function admin_page_zone_content( $zone, $zone_posts, $zone_locked ) {
-		return $this->admin_screen->render_zone_content( $zone, $zone_posts, $zone_locked );
-	}
-
-	public function admin_page_zone_post( $post, $zone ) {
-		return $this->admin_screen->render_zone_post( $post, $zone );
-	}
-
 	public function admin_page_zone_post_col_position( $post, $zone ) {
 		return $this->admin_screen->render_position_column( $post, $zone );
 	}
@@ -502,20 +368,12 @@ class Zoninator {
 		return $this->admin_screen->render_info_column( $post, $zone );
 	}
 
-	public function zone_advanced_search_filters() {
-		return $this->admin_screen->render_search_filters();
-	}
-
 	public function zone_advanced_search_cat_filter() {
 		return $this->admin_screen->render_category_filter();
 	}
 
 	public function zone_advanced_search_date_filter() {
 		return $this->admin_screen->render_date_filter();
-	}
-
-	public function zone_admin_search_form() {
-		return $this->admin_screen->render_search_form();
 	}
 
 	/**
@@ -540,10 +398,6 @@ class Zoninator {
 	 */
 	public function get_post_type_label( $post ) {
 		return $this->zones->get_post_type_label( $post );
-	}
-
-	public function is_zoninator_page() {
-		return $this->admin_screen->is_current();
 	}
 
 	public function get_supported_post_types() {
@@ -661,14 +515,6 @@ class Zoninator {
 		return $this->zones->get_slug( $zone );
 	}
 
-	public function get_formatted_zone_slug( $slug ) {
-		return $slug; // legacy function -- slugs can no longer be changed
-	}
-
-	public function get_unformatted_zone_slug( $slug ) {
-		return $slug; // legacy function -- slugs can no longer be changed
-	}
-
 	public function get_post_id( $post ) {
 		return $this->zones->get_post_id( $post );
 	}
@@ -698,162 +544,13 @@ class Zoninator {
 		return $this->request->verify_access( $action, $zone_id );
 	}
 
-	public function _unauthorized_access() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return $this->request->unauthorized_access();
-	}
-
-	public function _fill_zone_details( $zone ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return $this->zones->fill_details( $zone );
-	}
-
 	public function do_zoninator_feeds() {
 		return $this->feed->serve();
-	}
-
-	/*
-	 * No plugin level cache for zone posts. Since WP 6.1, WP_Query caches the
-	 * zone query in the `post-queries` group, and any post meta change (add,
-	 * remove, reorder) clears it. These no-op methods stay for back-compat.
-	 */
-	public function get_zone_cache_key( $zone, $args = array() ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- potentially breaking change/
-		return '';
-	}
-
-	public function get_zone_posts_from_cache( $zone, $args = array() ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- potentially breaking change/
-		return false;
-	}
-
-	public function add_zone_posts_to_cache( $posts, $zone, $args = array() ) {
 	}
 
 	// Handle 4.2 term-splitting
 	public function split_shared_term( $old_term_id, $new_term_id, $term_taxonomy_id, $taxonomy ) {
 		return $this->zones->split_shared_term( $old_term_id, $new_term_id, $term_taxonomy_id, $taxonomy );
-	}
-
-	public function _empty_zone_posts_cache( $meta_key ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		// No-op, see the note above get_zone_cache_key().
-	}
-
-	public function _get_message( $message_id, $encode = false ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return $this->settings->get_message( $message_id, $encode );
-	}
-
-	public function _get_nonce_key( $action ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return \Automattic\Zoninator\Request::get_nonce_key( $action );
-	}
-
-	public function _current_user_can_add_zones() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return $this->capabilities->current_user_can_add_zones();
-	}
-
-	public function _current_user_can_edit_zones( $zone_id ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return $this->capabilities->current_user_can_edit_zones( $zone_id );
-	}
-
-	public function _current_user_can_manage_zones() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return $this->capabilities->current_user_can_manage_zones();
-	}
-
-	public function _get_add_zones_cap() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return $this->capabilities->get_add_zones_cap();
-	}
-
-	public function _get_edit_zones_cap() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return $this->capabilities->get_edit_zones_cap();
-	}
-
-	public function _get_manage_zones_cap() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return $this->capabilities->get_manage_zones_cap();
-	}
-
-	public function _get_zone_page_url( $args = array() ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return $this->admin_screen->get_page_url( $args );
-	}
-
-	public function _validate_date_filter( $date ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return \Automattic\Zoninator\Request::is_valid_date_filter( $date );
-	}
-
-	public function _validate_category_filter( $cat ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return \Automattic\Zoninator\Request::is_valid_category_filter( $cat );
-	}
-
-	public function _sanitize_value( $var ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return \Automattic\Zoninator\Request::sanitize_value( $var );
-	}
-
-	public function _get_value_or_default( $var, $object, $default = '', $sanitize_callback = '' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound, Universal.NamingConventions.NoReservedKeywordParameterNames.objectFound, Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return \Automattic\Zoninator\Request::get_value_or_default( $var, $object, $default, $sanitize_callback );
-	}
-
-	public function _get_request_var( $var, $default = '', $sanitize_callback = '' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound, Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return $this->request->get_request_var( $var, $default, $sanitize_callback );
-	}
-
-	public function _get_get_var( $var, $default = '', $sanitize_callback = '' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound, Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return $this->request->get_get_var( $var, $default, $sanitize_callback );
-	}
-
-	public function _get_post_var( $var, $default = '', $sanitize_callback = '' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound, Universal.NamingConventions.NoReservedKeywordParameterNames.varFound, PSR2.Methods.MethodDeclaration.Underscore -- breaking change
-		return $this->request->get_post_var( $var, $default, $sanitize_callback );
-	}
-
-	public function get_admin_zone_post( $post, $zone ) {
-		return apply_filters(
-			'zoninator_zone_post_columns',
-			array(
-				'post_id'  => $post->ID,
-				'position' => array(
-					'current_position'        => intval( $this->get_post_order( $post->ID, $zone ) ),
-					'change_position_message' => esc_attr__( 'Drag to change the position of this item.', 'zoninator' ),
-					'key'                     => 'position',
-				),
-				'info'     => array(
-					'key'              => 'info',
-					'post'             => array(
-						'post_title'  => esc_html( $post->post_title ),
-						'post_status' => esc_html( $post->post_status ),
-					),
-					'action_link_data' => array(
-						array(
-							'action' => 'edit',
-							'anchor' => get_edit_post_link( $post->ID ),
-							'title'  => __( 'Opens in a new tab', 'zoninator' ),
-							'text'   => __( 'Edit', 'zoninator' ),
-							'target' => '_blank',
-						),
-						array(
-							'action' => 'delete',
-							'anchor' => '#',
-							'title'  => '',
-							'text'   => __( 'Remove', 'zoninator' ),
-						),
-						array(
-							'action' => 'view',
-							'anchor' => get_permalink( $post->ID ),
-							'title'  => __( 'Opens in a new tab', 'zoninator' ),
-							'text'   => __( 'View', 'zoninator' ),
-							'target' => '_blank',
-						),
-					),
-				),
-			),
-			$post,
-			$zone
-		);
-	}
-
-	public function get_admin_zone_posts( $zone_or_id ) {
-		$zone             = $this->get_zone( $zone_or_id );
-		$posts            = $this->get_zone_posts( $zone );
-		$admin_zone_posts = array();
-
-		foreach ( $posts as $post ) {
-			$admin_zone_posts[] = $this->get_admin_zone_post( $post, $zone );
-		}
-
-		return $admin_zone_posts;
 	}
 
 	/**
@@ -862,9 +559,5 @@ class Zoninator {
 	 */
 	public function get_zone_feed( $zone_slug_or_id ) {
 		return $this->feed->get( $zone_slug_or_id );
-	}
-
-	public function check( $action = '', $zone_id = null ) {
-		return $this->capabilities->check( $action, $zone_id );
 	}
 }

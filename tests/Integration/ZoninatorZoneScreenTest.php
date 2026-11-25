@@ -11,7 +11,7 @@ class ZoninatorZoneScreenTest extends TestCase {
 
 	private function render_zone_edit( $zone = null ): string {
 		ob_start();
-		Zoninator()->admin_page_zone_edit( $zone );
+		self::admin_screen()->render_zone_edit( $zone );
 		return (string) ob_get_clean();
 	}
 
