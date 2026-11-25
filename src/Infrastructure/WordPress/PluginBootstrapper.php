@@ -79,7 +79,7 @@ final class PluginBootstrapper {
 		$zone_posts    = $container->add( new PostMetaZonePostsRepository( $terms, $taxonomy ) );
 		$manager       = $container->add( new ZoneManager( $terms, $settings ) );
 		$remover       = $container->add( new ZoneRemover( $terms, $zone_posts, $locker ) );
-		$curator       = $container->add( new ZoneCurator( $terms, $zone_posts ) );
+		$curator       = $container->add( new ZoneCurator( $terms, $zone_posts, $settings ) );
 		$guard         = $container->add( new ZoneGuard( $capabilities, $locker, $terms ) );
 		$guarded_zones = $container->add( new GuardedZoneManager( $manager, $remover, $guard ) );
 		$guarded_posts = $container->add( new GuardedZoneCurator( $curator, $guard ) );

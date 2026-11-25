@@ -11,7 +11,9 @@ namespace Automattic\Zoninator\Tests\Unit\Application;
 
 use Automattic\Zoninator\Application\ZoneCurator;
 use Automattic\Zoninator\Domain\Zone;
+use Automattic\Zoninator\Domain\ZoneFullException;
 use Automattic\Zoninator\Domain\ZoneNotFoundException;
+use Automattic\Zoninator\Tests\Unit\Doubles\FixedSettings;
 use Automattic\Zoninator\Tests\Unit\Doubles\InMemoryZonePostsRepository;
 use Automattic\Zoninator\Tests\Unit\Doubles\InMemoryZoneRepository;
 use PHPUnit\Framework\TestCase;
@@ -22,6 +24,11 @@ final class ZoneCuratorTest extends TestCase {
 	 * @var InMemoryZonePostsRepository
 	 */
 	private $zone_posts;
+
+	/**
+	 * @var FixedSettings
+	 */
+	private $settings;
 
 	/**
 	 * @var ZoneCurator
@@ -36,7 +43,8 @@ final class ZoneCuratorTest extends TestCase {
 	protected function setUp(): void {
 		$zones            = new InMemoryZoneRepository();
 		$this->zone_posts = new InMemoryZonePostsRepository();
-		$this->curator    = new ZoneCurator( $zones, $this->zone_posts );
+		$this->settings   = new FixedSettings();
+		$this->curator    = new ZoneCurator( $zones, $this->zone_posts, $this->settings );
 		$this->zone_id    = (int) $zones->insert( new Zone( null, 'homepage', 'Home page', array() ) )->get_id();
 	}
 
@@ -91,6 +99,53 @@ final class ZoneCuratorTest extends TestCase {
 		$this->curator->move_posts( 99, $this->zone_id );
 
 		$this->assertSame( array( 6 ), $this->zone_posts->post_ids[ $this->zone_id ] );
+	}
+
+	public function test_a_zone_takes_posts_up_to_its_limit_and_no_more(): void {
+		$this->settings->post_limit = 2;
+		$this->curator->add_posts( $this->zone_id, array( 5, 6 ) );
+
+		try {
+			$this->curator->add_posts( $this->zone_id, array( 7 ) );
+			$this->fail( 'Expected the full zone to refuse another post.' );
+		} catch ( ZoneFullException $exception ) {
+			$this->assertSame( 2, $exception->get_limit() );
+		}
+
+		$this->assertSame( array( 5, 6 ), $this->zone_posts->post_ids[ $this->zone_id ] );
+	}
+
+	public function test_adding_a_post_already_in_a_full_zone_is_not_one_too_many(): void {
+		$this->settings->post_limit = 2;
+		$this->curator->set_posts( $this->zone_id, array( 5, 6 ) );
+
+		$this->curator->add_posts( $this->zone_id, array( 6 ) );
+
+		$this->addToAssertionCount( 1 );
+	}
+
+	public function test_a_zones_posts_can_not_be_set_past_its_limit(): void {
+		$this->settings->post_limit = 2;
+		$this->curator->set_posts( $this->zone_id, array( 5 ) );
+
+		try {
+			$this->curator->set_posts( $this->zone_id, array( 5, 6, 7 ) );
+			$this->fail( 'Expected the zone to refuse more posts than it may hold.' );
+		} catch ( ZoneFullException $exception ) {
+			$this->assertSame( array( 5 ), $this->zone_posts->post_ids[ $this->zone_id ] );
+		}
+	}
+
+	/**
+	 * A zone's posts follow it to its new ID even if a limit was set since they were added.
+	 */
+	public function test_moving_posts_ignores_the_limit(): void {
+		$this->zone_posts->replace( 99, array( 5, 6, 7 ) );
+		$this->settings->post_limit = 2;
+
+		$this->curator->move_posts( 99, $this->zone_id );
+
+		$this->assertSame( array( 5, 6, 7 ), $this->zone_posts->post_ids[ $this->zone_id ] );
 	}
 
 	/**

@@ -10,6 +10,7 @@ namespace Automattic\Zoninator\Infrastructure\WordPress;
 use Automattic\Zoninator\Application\GuardedZoneCurator;
 use Automattic\Zoninator\Domain\AccessDeniedException;
 use Automattic\Zoninator\Domain\PostNotAllowedException;
+use Automattic\Zoninator\Domain\ZoneFullException;
 use Automattic\Zoninator\Domain\ZoneLockedException;
 use Automattic\Zoninator\Domain\ZoneNotFoundException;
 use WP_Error;
@@ -205,6 +206,8 @@ final class CurationAbilities {
 			$this->curator->$method( get_current_user_id(), (int) $input['zone_id'], array_map( 'intval', (array) $input['post_ids'] ) );
 		} catch ( ZoneNotFoundException $exception ) {
 			return new WP_Error( 'zone-not-found', __( 'Zone not found.', 'zoninator' ), array( 'status' => 404 ) );
+		} catch ( ZoneFullException $exception ) {
+			return new WP_Error( 'zone-full', __( 'Sorry, another item cannot be added to this zone.', 'zoninator' ), array( 'status' => 400 ) );
 		} catch ( PostNotAllowedException $exception ) {
 			return new WP_Error( 'invalid-post-id', __( 'Invalid post ID.', 'zoninator' ), array( 'status' => 400 ) );
 		} catch ( ZoneLockedException $exception ) {

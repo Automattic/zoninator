@@ -46,6 +46,11 @@ final class ErrorCodes {
 	public const ZONE_NOT_FOUND = 'zone-not-found';
 
 	/**
+	 * The zone can't hold more posts.
+	 */
+	public const ZONE_FULL = 'zone-full';
+
+	/**
 	 * Someone else holds the zone's lock.
 	 */
 	public const ZONE_LOCKED = 'zone-locked';

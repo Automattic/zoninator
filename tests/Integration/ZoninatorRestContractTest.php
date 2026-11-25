@@ -1110,6 +1110,30 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( 'Still mine', self::zones()->get( $zone_id )->name );
 	}
 
+	public function test_a_full_zone_refuses_another_post(): void {
+		$zone_id  = $this->create_zone( 'full' );
+		$post_ids = self::factory()->post->create_many( 3 );
+		$asked    = array();
+		add_filter(
+			'zoninator_post_count_limit',
+			static function ( $limit, $limited_zone_id ) use ( &$asked ) {
+				$asked[] = $limited_zone_id;
+				return 2;
+			},
+			10,
+			2
+		);
+		self::add_zone_posts( $zone_id, array( $post_ids[0], $post_ids[1] ) );
+
+		$added = $this->dispatch( 'POST', "/zones/$zone_id/posts/{$post_ids[2]}" );
+		$set   = $this->dispatch( 'PUT', "/zones/$zone_id/posts", array( 'post_ids' => $post_ids ) );
+
+		$this->assert_rest_error( $added, 400, 'zone-full', 'Sorry, another item cannot be added to this zone.' );
+		$this->assertSame( 'zone-full', $set->get_data()['code'] );
+		$this->assertSame( array( $post_ids[0], $post_ids[1] ), wp_list_pluck( self::zones()->get_posts( $zone_id ), 'ID' ) );
+		$this->assertSame( array( $zone_id ), array_values( array_unique( $asked ) ) );
+	}
+
 	public function test_lock_zone_with_zone_id_zero_is_a_bad_request(): void {
 		$response = $this->dispatch( 'PUT', '/zones/0/lock' );
 
