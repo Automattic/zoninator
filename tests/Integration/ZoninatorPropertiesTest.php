@@ -77,12 +77,11 @@ class ZoninatorPropertiesTest extends TestCase {
 			'taxonomy'          => array( 'zone_taxonomy', 'zoninator_zones', '\\Zoninator::ZONE_TAXONOMY' ),
 			'meta prefix'       => array( 'zone_meta_prefix', '_zoninator_order_', '\\Zoninator::ZONE_META_PREFIX' ),
 			'admin page'        => array( 'key', 'zoninator', '\\Automattic\\Zoninator\\Admin\\Screen::PAGE_SLUG' ),
-			'AJAX nonce action' => array( 'zone_ajax_nonce_action', 'ajax-action', '\\Automattic\\Zoninator\\Admin\\Ajax::NONCE_ACTION' ),
 		);
 	}
 
 	public function test_nonce_keys_keep_their_prefix(): void {
-		$this->assertSame( 'zone-nonce-ajax-action', Zoninator()->_get_nonce_key( 'ajax-action' ) );
+		$this->assertSame( 'zone-nonce-update', Zoninator()->_get_nonce_key( 'update' ) );
 	}
 
 	public function test_isset_on_old_property(): void {

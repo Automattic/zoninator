@@ -46,7 +46,6 @@ require_once __DIR__ . '/src/class-locks.php';
 require_once __DIR__ . '/src/class-feed.php';
 require_once __DIR__ . '/src/class-block.php';
 require_once __DIR__ . '/src/admin/class-screen.php';
-require_once __DIR__ . '/src/admin/class-ajax.php';
 require_once __DIR__ . '/src/class-zoninator.php';
 
 function Zoninator() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid, Universal.Files.SeparateFunctionsFromOO.Mixed -- Windows is case-sensitive, so changing this is a breaking change.

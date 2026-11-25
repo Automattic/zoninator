@@ -216,7 +216,7 @@ The codes are constants on `Automattic\Zoninator\REST\Zones_Controller`, such as
 
 - The endpoints are registered by `Automattic\Zoninator\REST\Zones_Controller` (`src/rest/class-zones-controller.php`), which extends core's `WP_REST_Controller`. The file loads only on `rest_api_init`.
 - The update routes (`/zones/{zone_id}`, `/zones/{zone_id}/posts` and `/zones/{zone_id}/lock`) accept `POST`, `PUT` and `PATCH`.
-- The Zones screen uses these routes through `wp.apiFetch()`. Its `zoninator_add_post`, `zoninator_remove_post`, `zoninator_reorder_posts`, `zoninator_search_posts`, `zoninator_update_lock` and `zoninator_update_recent` admin-ajax actions are deprecated since 0.12.0, and go in 1.0.0.
+- The Zones screen uses these routes through `wp.apiFetch()`. They replaced its admin-ajax actions, which were deprecated in 0.12.0 and removed in 1.0.0. See the [upgrade guide](upgrades.md#the-zones-screens-admin-ajax-actions-are-gone).
 - A lock is a transient keyed against the zone, holding the locking user's ID. It survives page reloads, and expires when `zoninator_zone_lock_period` lapses without a renewal.
 
 ## See also

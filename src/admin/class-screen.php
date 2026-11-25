@@ -120,7 +120,6 @@ final class Screen {
 			$options = array(
 				'baseUrl'           => $this->get_page_url(),
 				'adminUrl'          => admin_url(),
-				'ajaxNonceAction'   => Request::get_nonce_key( Ajax::NONCE_ACTION ),
 				'errorGeneral'      => $this->settings->get_message( 'error-general' ),
 				'errorZoneLock'     => sprintf( $this->settings->get_message( 'error-zone-lock' ), __( 'another user', 'zoninator' ) ),
 				'errorSave'         => __( 'The order of the zone could not be saved.', 'zoninator' ),
@@ -358,9 +357,6 @@ final class Screen {
 				<input type="hidden" id="zone-locked" name="zone-locked" value="1" />
 				<?php
 			endif;
-
-			// Ideally, we should separate nonces for each action. But this will do for simplicity.
-			wp_nonce_field( Request::get_nonce_key( Ajax::NONCE_ACTION ), Request::get_nonce_key( Ajax::NONCE_ACTION ), false );
 
 			if ( $zone_id ) {
 				// Curating content is the main task, so it comes before the zone's details.

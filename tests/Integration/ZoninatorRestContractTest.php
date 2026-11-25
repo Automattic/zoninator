@@ -807,7 +807,7 @@ final class ZoninatorRestContractTest extends TestCase {
 
 	/**
 	 * Sites change the search with these filters, so they must get the same
-	 * arguments as from the AJAX action.
+	 * arguments the old admin-ajax action gave them.
 	 */
 	public function test_search_applies_the_search_filters(): void {
 		$args = null;

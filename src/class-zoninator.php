@@ -43,13 +43,6 @@ class Zoninator {
 	private $admin_screen;
 
 	/**
-	 * Handles the Zones screen's admin-ajax requests. The ajax_* methods here delegate to it.
-	 *
-	 * @var \Automattic\Zoninator\Admin\Ajax
-	 */
-	private $admin_ajax;
-
-	/**
 	 * Zones and the posts in them. The zone data methods here delegate to it.
 	 *
 	 * @var \Automattic\Zoninator\Zones
@@ -138,16 +131,6 @@ class Zoninator {
 				'position' => array( $this, 'admin_page_zone_post_col_position' ),
 				'info'     => array( $this, 'admin_page_zone_post_col_info' ),
 			)
-		);
-		$this->admin_ajax = new \Automattic\Zoninator\Admin\Ajax(
-			$this->zones,
-			$this->locks,
-			$this->capabilities,
-			$this->request,
-			$this->admin_screen,
-			function () {
-				return $this->make_rest_controller();
-			}
 		);
 
 		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
@@ -255,18 +238,17 @@ class Zoninator {
 	 */
 	private function get_old_properties() {
 		return array(
-			'key'                    => array( \Automattic\Zoninator\Admin\Screen::PAGE_SLUG, 'Automattic\\Zoninator\\Admin\\Screen::PAGE_SLUG', null ),
-			'zone_taxonomy'          => array( self::ZONE_TAXONOMY, 'Zoninator::ZONE_TAXONOMY', null ),
-			'zone_term_prefix'       => array( 'zone-', 'your own value (Zoninator never used it)', null ),
-			'zone_meta_prefix'       => array( self::ZONE_META_PREFIX, 'Zoninator::ZONE_META_PREFIX', null ),
-			'zone_nonce_prefix'      => array( \Automattic\Zoninator\Request::NONCE_PREFIX, 'Zoninator::_get_nonce_key()', null ),
-			'zone_ajax_nonce_action' => array( \Automattic\Zoninator\Admin\Ajax::NONCE_ACTION, 'Automattic\\Zoninator\\Admin\\Ajax::NONCE_ACTION', null ),
-			'zone_detail_defaults'   => array( $this->settings->get( 'zone_detail_defaults' ), 'Zoninator::get_zone_detail_defaults()', 'the zoninator_zone_detail_defaults filter' ),
-			'zone_lock_period'       => array( $this->settings->get( 'zone_lock_period' ), 'Zoninator::get_zone_lock_period()', 'the zoninator_zone_lock_period filter' ),
-			'zone_max_lock_period'   => array( $this->settings->get( 'zone_max_lock_period' ), 'Zoninator::get_zone_max_lock_period()', 'the zoninator_zone_max_lock_period filter' ),
-			'posts_per_page'         => array( $this->settings->get( 'posts_per_page' ), 'Zoninator::get_posts_per_page()', 'the zoninator_posts_per_page filter' ),
-			'post_types'             => array( $this->taxonomy->get_post_types(), 'Zoninator::get_supported_post_types()', 'Zoninator::register_zone_post_type()' ),
-			'zone_messages'          => array( $this->settings->get( 'zone_messages' ), 'Zoninator::_get_message()', null ),
+			'key'                  => array( \Automattic\Zoninator\Admin\Screen::PAGE_SLUG, 'Automattic\\Zoninator\\Admin\\Screen::PAGE_SLUG', null ),
+			'zone_taxonomy'        => array( self::ZONE_TAXONOMY, 'Zoninator::ZONE_TAXONOMY', null ),
+			'zone_term_prefix'     => array( 'zone-', 'your own value (Zoninator never used it)', null ),
+			'zone_meta_prefix'     => array( self::ZONE_META_PREFIX, 'Zoninator::ZONE_META_PREFIX', null ),
+			'zone_nonce_prefix'    => array( \Automattic\Zoninator\Request::NONCE_PREFIX, 'Zoninator::_get_nonce_key()', null ),
+			'zone_detail_defaults' => array( $this->settings->get( 'zone_detail_defaults' ), 'Zoninator::get_zone_detail_defaults()', 'the zoninator_zone_detail_defaults filter' ),
+			'zone_lock_period'     => array( $this->settings->get( 'zone_lock_period' ), 'Zoninator::get_zone_lock_period()', 'the zoninator_zone_lock_period filter' ),
+			'zone_max_lock_period' => array( $this->settings->get( 'zone_max_lock_period' ), 'Zoninator::get_zone_max_lock_period()', 'the zoninator_zone_max_lock_period filter' ),
+			'posts_per_page'       => array( $this->settings->get( 'posts_per_page' ), 'Zoninator::get_posts_per_page()', 'the zoninator_posts_per_page filter' ),
+			'post_types'           => array( $this->taxonomy->get_post_types(), 'Zoninator::get_supported_post_types()', 'Zoninator::register_zone_post_type()' ),
+			'zone_messages'        => array( $this->settings->get( 'zone_messages' ), 'Zoninator::_get_message()', null ),
 		);
 	}
 
@@ -448,20 +430,7 @@ class Zoninator {
 		register_widget( 'Zoninator_ZonePosts_Widget' );
 	}
 
-	// Add necessary AJAX actions
-	public function admin_ajax_init() {
-		add_action( 'wp_ajax_zoninator_reorder_posts', array( $this, 'ajax_reorder_posts' ) );
-		add_action( 'wp_ajax_zoninator_add_post', array( $this, 'ajax_add_post' ) );
-		add_action( 'wp_ajax_zoninator_remove_post', array( $this, 'ajax_remove_post' ) );
-		add_action( 'wp_ajax_zoninator_search_posts', array( $this, 'ajax_search_posts' ) );
-		add_action( 'wp_ajax_zoninator_update_lock', array( $this, 'ajax_update_lock' ) );
-		add_action( 'wp_ajax_zoninator_update_recent', array( $this, 'ajax_recent_posts' ) );
-	}
-
 	public function admin_init() {
-
-		$this->admin_ajax_init();
-
 		// Enqueue Scripts and Styles
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_styles' ) );
@@ -575,98 +544,6 @@ class Zoninator {
 
 	public function is_zoninator_page() {
 		return $this->admin_screen->is_current();
-	}
-
-	/**
-	 * Sends a response from a Zones screen admin-ajax handler.
-	 *
-	 * @deprecated 0.12.0 The Zones screen uses the zoninator/v1 REST API. This goes in 1.0.0.
-	 */
-	public function ajax_return( $status, $content = '', $action = '' ) {
-		_deprecated_function( __METHOD__, '0.12.0' );
-		return $this->admin_ajax->respond( $status, $content, $action );
-	}
-
-	/**
-	 * Handles the zoninator_add_post admin-ajax action.
-	 *
-	 * @deprecated 0.12.0 The Zones screen uses POST /zoninator/v1/zones/{zone_id}/posts/{post_id}. The action goes in 1.0.0.
-	 */
-	public function ajax_add_post() {
-		_deprecated_function( __METHOD__, '0.12.0', 'POST /zoninator/v1/zones/{zone_id}/posts/{post_id}' );
-		return $this->admin_ajax->add_post();
-	}
-
-	/**
-	 * Handles the zoninator_remove_post admin-ajax action.
-	 *
-	 * @deprecated 0.12.0 The Zones screen uses DELETE /zoninator/v1/zones/{zone_id}/posts/{post_id}. The action goes in 1.0.0.
-	 */
-	public function ajax_remove_post() {
-		_deprecated_function( __METHOD__, '0.12.0', 'DELETE /zoninator/v1/zones/{zone_id}/posts/{post_id}' );
-		return $this->admin_ajax->remove_post();
-	}
-
-	/**
-	 * Handles the zoninator_reorder_posts admin-ajax action.
-	 *
-	 * @deprecated 0.12.0 The Zones screen uses PUT /zoninator/v1/zones/{zone_id}/posts. The action goes in 1.0.0.
-	 */
-	public function ajax_reorder_posts() {
-		_deprecated_function( __METHOD__, '0.12.0', 'PUT /zoninator/v1/zones/{zone_id}/posts' );
-		return $this->admin_ajax->reorder_posts();
-	}
-
-	/**
-	 * Never used by the Zones screen.
-	 *
-	 * @deprecated 0.12.0 Use Zoninator::add_zone_posts() and Zoninator::remove_zone_posts(). This goes in 1.0.0.
-	 */
-	public function ajax_move_zone_post( $from_zone, $to_zone, $post_id ) {
-		_deprecated_function( __METHOD__, '0.12.0', 'Zoninator::add_zone_posts() and Zoninator::remove_zone_posts()' );
-		return $this->admin_ajax->move_zone_post( $from_zone, $to_zone, $post_id );
-	}
-
-	/**
-	 * Handles the zoninator_search_posts admin-ajax action.
-	 *
-	 * @deprecated 0.12.0 The Zones screen uses GET /zoninator/v1/search. The action goes in 1.0.0.
-	 */
-	public function ajax_search_posts() {
-		_deprecated_function( __METHOD__, '0.12.0', 'GET /zoninator/v1/search' );
-		return $this->admin_ajax->search_posts();
-	}
-
-	/**
-	 * Handles the zoninator_update_lock admin-ajax action.
-	 *
-	 * @deprecated 0.12.0 The Zones screen uses PUT /zoninator/v1/zones/{zone_id}/lock. The action goes in 1.0.0.
-	 */
-	public function ajax_update_lock() {
-		_deprecated_function( __METHOD__, '0.12.0', 'PUT /zoninator/v1/zones/{zone_id}/lock' );
-		return $this->admin_ajax->update_lock();
-	}
-
-	/**
-	 * Handles the zoninator_update_recent admin-ajax action.
-	 *
-	 * @deprecated 0.12.0 The Zones screen lists the latest content with GET /zoninator/v1/search and no term. The action goes in 1.0.0.
-	 */
-	public function ajax_recent_posts() {
-		_deprecated_function( __METHOD__, '0.12.0', 'GET /zoninator/v1/search' );
-		return $this->admin_ajax->recent_posts();
-	}
-
-	/**
-	 * Prints a dropdown of the latest content that isn't in the zone.
-	 *
-	 * @deprecated 0.12.0 The Zones screen lists the latest content with GET /zoninator/v1/search and no term. This goes in 1.0.0.
-	 *
-	 * @param int $zone_id Zone ID.
-	 */
-	public function zone_admin_recent_posts_dropdown( $zone_id ) {
-		_deprecated_function( __METHOD__, '0.12.0', 'GET /zoninator/v1/search' );
-		$this->admin_ajax->recent_posts_dropdown( $zone_id );
 	}
 
 	public function get_supported_post_types() {
