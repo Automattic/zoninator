@@ -706,6 +706,105 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertNotContains( $post_ids[1], $ids );
 	}
 
+	public function test_search_finds_a_scheduled_post(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'zoninator_scheduled_canary',
+				'post_status' => 'future',
+				'post_date'   => gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ),
+			)
+		);
+
+		$response = $this->dispatch( 'GET', '/search', array( 'term' => 'zoninator_scheduled_canary' ) );
+
+		$this->assertSame( array( $post_id ), wp_list_pluck( $response->get_data(), 'post_id' ) );
+	}
+
+	/**
+	 * Excluded posts must not come back, and the page must still be full when
+	 * they're the newest matches. Issue #75's slow NOT IN clause must not be used.
+	 *
+	 * @dataProvider data_search_terms
+	 *
+	 * @param string $term Search term. Empty for the latest content.
+	 */
+	public function test_search_leaves_out_excluded_posts_and_fills_the_page( string $term ): void {
+		$limit    = '' === $term ? Zoninator()->get_posts_per_page() : 2;
+		$post_ids = array();
+		for ( $i = 1; $i <= $limit + 2; $i++ ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_title' => 'zoninator_exclude_canary ' . $i,
+					'post_date'  => gmdate( 'Y-m-d H:i:s', time() - ( 100 - $i ) * HOUR_IN_SECONDS ),
+				)
+			);
+		}
+		$queries = array();
+		$logger  = static function ( $query ) use ( &$queries ) {
+			$queries[] = $query;
+			return $query;
+		};
+		add_filter( 'query', $logger );
+
+		// The newest two posts are already in the zone.
+		$response = $this->dispatch(
+			'GET',
+			'/search',
+			array(
+				'term'    => $term,
+				'limit'   => $limit,
+				'exclude' => array_slice( $post_ids, -2 ),
+			)
+		);
+
+		remove_filter( 'query', $logger );
+		$this->assertSame( array_reverse( array_slice( $post_ids, 0, $limit ) ), wp_list_pluck( $response->get_data(), 'post_id' ) );
+		$this->assertNotEmpty( $queries );
+		foreach ( $queries as $query ) {
+			$this->assertDoesNotMatchRegularExpression( '/\.ID NOT IN/', $query );
+		}
+	}
+
+	public static function data_search_terms(): array {
+		return array(
+			'text search'    => array( 'zoninator_exclude_canary' ),
+			'latest content' => array( '' ),
+		);
+	}
+
+	/**
+	 * The IDs to exclude come from the request, so a long list must not make
+	 * the query fetch a matching number of extra rows.
+	 */
+	public function test_search_with_a_long_exclude_list_keeps_the_query_limit(): void {
+		$queries = array();
+		$logger  = static function ( $query ) use ( &$queries ) {
+			$queries[] = $query;
+			return $query;
+		};
+		add_filter( 'query', $logger );
+
+		$this->dispatch(
+			'GET',
+			'/search',
+			array(
+				'term'    => 'zoninator_exclude_canary',
+				'limit'   => 2,
+				'exclude' => range( 1000000, 1004999 ),
+			)
+		);
+
+		remove_filter( 'query', $logger );
+		$limits = array();
+		foreach ( $queries as $query ) {
+			if ( preg_match( '/LIMIT \d+, (\d+)/', $query, $matches ) ) {
+				$limits[] = (int) $matches[1];
+			}
+		}
+		$this->assertNotEmpty( $limits );
+		$this->assertLessThanOrEqual( 102, max( $limits ) );
+	}
+
 	/**
 	 * Sites change the search with these filters, so they must get the same
 	 * arguments as from the AJAX action.
@@ -936,16 +1035,14 @@ final class ZoninatorRestContractTest extends TestCase {
 	}
 
 	public function test_lock_zone_reports_a_zone_locked_by_someone_else(): void {
-		$zone_id = $this->create_zone( 'locked' );
-		Zoninator()->lock_zone(
-			$zone_id,
-			self::factory()->user->create(
-				array(
-					'role'         => 'editor',
-					'display_name' => 'Lock Holder',
-				)
+		$zone_id   = $this->create_zone( 'locked' );
+		$holder_id = self::factory()->user->create(
+			array(
+				'role'         => 'editor',
+				'display_name' => 'Lock Holder',
 			)
 		);
+		Zoninator()->lock_zone( $zone_id, $holder_id );
 
 		$response = $this->dispatch( 'PUT', "/zones/$zone_id/lock" );
 
@@ -960,6 +1057,7 @@ final class ZoninatorRestContractTest extends TestCase {
 			),
 			$response->get_data()
 		);
+		$this->assertSame( $holder_id, Zoninator()->is_zone_locked( $zone_id ) );
 	}
 
 	public function test_lock_zone_with_zone_id_zero_is_a_bad_request(): void {
