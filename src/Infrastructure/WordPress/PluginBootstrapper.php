@@ -70,13 +70,13 @@ final class PluginBootstrapper {
 		$taxonomy      = $container->add( new Taxonomy() );
 		$capabilities  = $container->add( new Capabilities( $taxonomy ) );
 		$request       = $container->add( new Request( $capabilities ) );
-		$locker        = $container->add( new ZoneLocker( $container->add( new TransientLockStore() ), $settings ) );
 		$terms         = $container->add( new TermZoneRepository( $settings ) );
+		$locker        = $container->add( new ZoneLocker( $container->add( new TransientLockStore() ), $settings, $terms ) );
 		$zone_posts    = $container->add( new PostMetaZonePostsRepository( $terms, $taxonomy ) );
 		$manager       = $container->add( new ZoneManager( $terms, $settings ) );
 		$remover       = $container->add( new ZoneRemover( $terms, $zone_posts, $locker ) );
 		$curator       = $container->add( new ZoneCurator( $terms, $zone_posts ) );
-		$guard         = $container->add( new ZoneGuard( $capabilities, $locker ) );
+		$guard         = $container->add( new ZoneGuard( $capabilities, $locker, $terms ) );
 		$guarded_zones = $container->add( new GuardedZoneManager( $manager, $remover, $guard ) );
 		$guarded_posts = $container->add( new GuardedZoneCurator( $curator, $guard ) );
 		$zones         = $container->add( new Zones( $taxonomy, $capabilities, $terms ) );
