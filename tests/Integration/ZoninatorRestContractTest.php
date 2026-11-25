@@ -472,7 +472,7 @@ final class ZoninatorRestContractTest extends TestCase {
 		$response = $this->dispatch( 'POST', "/zones/$zone_id/posts/$post_id" );
 
 		ob_start();
-		Zoninator()->admin_page_zone_post( get_post( $post_id ), Zoninator()->get_zone( $zone_id ) );
+		self::admin_screen()->render_zone_post( get_post( $post_id ), Zoninator()->get_zone( $zone_id ) );
 		$row = ob_get_clean();
 
 		$this->assertSame( 201, $response->get_status() );

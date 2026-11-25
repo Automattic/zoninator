@@ -90,7 +90,7 @@ Arguments passed to `get_zones()` when rendering the admin Zones list page.
 
 ### `zoninator_zone_post_columns` (filter)
 
-Columns rendered for each post inside the zone editor: column key => callback, which receives `$post` and `$zone` and prints the cell. Two call sites: one in `src/admin/class-screen.php` for HTML output, used by the Zones screen and `POST /zoninator/v1/zones/{zone_id}/posts/{post_id}`, and one in `src/class-zoninator.php` for the array returned by `get_admin_zone_post()`.
+Columns rendered for each post inside the zone editor: column key => callback, which receives `$post` and `$zone` and prints the cell. Fires from `src/admin/class-screen.php`, for the Zones screen and the row `POST /zoninator/v1/zones/{zone_id}/posts/{post_id}` returns.
 
 - **Parameters:** `array $columns`, `WP_Post $post`, `WP_Term $zone`
 
@@ -270,13 +270,13 @@ add_filter( 'zoninator_zone_posts_widget_html', function ( $html, $posts ) {
 }, 10, 2 );
 ```
 
-### `zone_posts_widget_block_save_cache_seconds` (filter)
+### `zoninator_zone_posts_widget_block_save_cache_seconds` (filter)
 
 Fires from `src/class-zoninator-zoneposts-widget.php`. How long (in seconds) the widget cache is locked against re-population after a flush. Defaults to `5`. Set to `0` to disable the lock.
 
 - **Parameters:** `int $seconds`
 
-> **Naming note.** This hook predates the `zoninator_` prefix convention and cannot be renamed without breaking sites that use it.
+Before 1.0.0 this filter was `zone_posts_widget_block_save_cache_seconds`.
 
 ## See also
 

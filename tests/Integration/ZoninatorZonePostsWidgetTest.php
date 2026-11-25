@@ -134,6 +134,18 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 		);
 	}
 
+	/**
+	 * A value of 0 turns off the pause after the cache is cleared.
+	 */
+	public function test_save_pause_filter_can_turn_the_pause_off(): void {
+		add_filter( 'zoninator_zone_posts_widget_block_save_cache_seconds', '__return_zero' );
+
+		( new Zoninator_ZonePosts_Widget() )->flush_widget_cache();
+
+		remove_filter( 'zoninator_zone_posts_widget_block_save_cache_seconds', '__return_zero' );
+		$this->assertFalse( wp_cache_get( 'widget-zone-posts-save_blocked', 'widget' ) );
+	}
+
 	public function test_widget_for_an_empty_zone_outputs_nothing(): void {
 		$this->assertSame( '', $this->render( array( 'show_description' => 0 ) ) );
 	}

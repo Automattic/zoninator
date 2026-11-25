@@ -281,11 +281,9 @@ final class ZoninatorAdminControllerTest extends TestCase {
 	 * @param bool   $with_nonce Whether to send a valid nonce.
 	 */
 	private function set_request( string $action, array $fields, bool $with_nonce ): void {
-		$zoninator = \Zoninator();
-
 		$_POST = $fields;
 		if ( $with_nonce ) {
-			$_POST['_wpnonce'] = wp_create_nonce( $zoninator->_get_nonce_key( $action ) );
+			$_POST['_wpnonce'] = wp_create_nonce( \Automattic\Zoninator\Request::get_nonce_key( $action ) );
 		}
 
 		$_REQUEST = array_merge(

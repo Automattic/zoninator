@@ -149,8 +149,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 	public function flush_widget_cache() {
 		$cache_key = 'widget-zone-posts';
 
-		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- breaking change to rename this filter with the correct prefix.
-		$block_save_cache_seconds = absint( apply_filters( 'zone_posts_widget_block_save_cache_seconds', 5 ) );
+		$block_save_cache_seconds = absint( apply_filters( 'zoninator_zone_posts_widget_block_save_cache_seconds', 5 ) );
 		if ( $block_save_cache_seconds > 0 ) {
 			// This key will block updating the cache for n seconds so the following cache delete can propagate
 			// phpcs:ignore -- WordPressVIPMinimum.Performance.LowExpiryCacheTime.CacheTimeUndetermined -- not changing behavior now.

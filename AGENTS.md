@@ -52,7 +52,7 @@ zoninator/
 
 ### Key Classes and Files
 
-- `src/class-zoninator.php` — `Zoninator` class: builds every other class, hands each the ones it needs, and registers every hook. Nothing else depends on `Zoninator`. Its settings getters (such as `get_zone_lock_period()`), its underscore request, capability and sanitizing helpers, and its zone data, lock, feed and admin screen methods are all thin delegates. `Zoninator::ZONE_TAXONOMY` and `Zoninator::ZONE_META_PREFIX` are public aliases of `Taxonomy::NAME` and `Zones::META_PREFIX`. The old public properties still work through `__get()` and `__set()`, with a notice, until 1.0.0, and writes reach `Settings`. The delegates stay so `array( Zoninator(), 'method' )` callbacks and existing calls keep working.
+- `src/class-zoninator.php` — `Zoninator` class: builds every other class, hands each the ones it needs, and registers every hook. Nothing else depends on `Zoninator`. It holds only the public API: the zone, zone post, lock and post type methods, the settings getters (such as `get_zone_lock_period()`), and the hook callbacks, all thin delegates. `Zoninator::ZONE_TAXONOMY` and `Zoninator::ZONE_META_PREFIX` are public aliases of `Taxonomy::NAME` and `Zones::META_PREFIX`. The hook callbacks stay so `array( Zoninator(), 'method' )` keeps working for sites that unhook them.
 - `src/class-settings.php` — `Automattic\Zoninator\Settings`: the lock periods, results per page and zone detail defaults, filtered on `init`, and the Zones screen's messages.
 - `src/class-capabilities.php` — `Automattic\Zoninator\Capabilities`: the add, edit and manage capability checks (and their filters), and whether the user may put a given post in a zone.
 - `src/class-request.php` — `Automattic\Zoninator\Request`: reads and sanitizes request variables, validates the search filters, and checks nonces and access, stopping the request if either fails.
@@ -131,4 +131,4 @@ See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key point
 - **Admin UI uses jQuery drag-and-drop**: test UI changes in a browser, not just with automated tests.
 - **`zoninator_zones` taxonomy is intentionally not public**: it has no front-end archive. Don't flip `public => true` to "fix" missing archives — themes are expected to render zones via template tags or `z_get_zone_query()`.
 - **Two version strings**: bump `zoninator.php` (header + `ZONINATOR_VERSION`), `package.json`, `package-lock.json`, and the `Stable tag` in `README.md`. The `npm run bump:*` scripts cover most of this.
-- **Don't add new hooks under the `zone_posts_widget_*` prefix**: that prefix is grandfathered. Use `zoninator_*` for any new hook (search the codebase before naming).
+- **Prefix every hook `zoninator_`**: 1.0.0 renamed the last hook without it, `zone_posts_widget_block_save_cache_seconds`. Search the codebase before naming a new one.

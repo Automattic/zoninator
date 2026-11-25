@@ -37,7 +37,7 @@ class ZoninatorAdminAccessibilityTest extends TestCase {
 
 		return $this->capture(
 			static function () use ( $post, $zone ) {
-				Zoninator()->admin_page_zone_post( $post, $zone );
+				self::admin_screen()->render_zone_post( $post, $zone );
 			}
 		);
 	}
@@ -47,7 +47,7 @@ class ZoninatorAdminAccessibilityTest extends TestCase {
 
 		return $this->capture(
 			static function () use ( $zone ) {
-				Zoninator()->admin_page_zone_edit( $zone );
+				self::admin_screen()->render_zone_edit( $zone );
 			}
 		);
 	}
@@ -92,7 +92,7 @@ class ZoninatorAdminAccessibilityTest extends TestCase {
 	public function test_filter_toggle_is_a_button_that_reports_its_state(): void {
 		$output = $this->capture(
 			static function () {
-				Zoninator()->zone_advanced_search_filters();
+				self::admin_screen()->render_search_filters();
 			}
 		);
 
