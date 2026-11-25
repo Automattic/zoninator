@@ -16,7 +16,7 @@ use WP_Error;
  * The bootstrapper hooks it, and the container builds it the first time one of its hooks fires.
  *
  * @since 1.0.0
- * @internal Use Zoninator(), the template tags and the hooks instead.
+ * @internal Use the template tags, the Application classes and the hooks instead.
  */
 final class Abilities {
 

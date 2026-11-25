@@ -20,7 +20,7 @@ use Automattic\Zoninator\Infrastructure\WordPress\Zones;
  * zoninator_container()->get( Screen::class ) to unhook them.
  *
  * @since 0.12.0
- * @internal Use Zoninator(), the template tags and the hooks instead.
+ * @internal Use the template tags, the Application classes and the hooks instead.
  */
 final class Screen {
 

@@ -25,7 +25,7 @@ use WP_REST_Server;
  * Zones, their posts and their locks.
  *
  * @since 0.12.0
- * @internal Use Zoninator(), the template tags and the hooks instead.
+ * @internal Use the template tags, the Application classes and the hooks instead.
  */
 final class ZonesController extends WP_REST_Controller {
 	public const ZONE_ITEM_URL_REGEX = '/zones/(?P<zone_id>[\d]+)';
@@ -247,7 +247,7 @@ final class ZonesController extends WP_REST_Controller {
 	public function get_zones( $request ) {
 		$results = $this->zones->get_all();
 
-		// Zoninator::get_zones() returns false, not a WP_Error, when the zones can't be read.
+		// Zones::get_all() returns false, not a WP_Error, when the zones can't be read.
 		if ( ! is_array( $results ) ) {
 			return $this->bad_request( self::ZONES_READ_ERROR, __( 'Zones could not be read.', 'zoninator' ) );
 		}

@@ -40,7 +40,6 @@ define( 'ZONINATOR_FILE', __FILE__ );
 
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/src/class-zoninator-zoneposts-widget.php';
-require_once __DIR__ . '/src/class-zoninator.php';
 
 // Loads the classes under Automattic\Zoninator\ from src/, by PSR-4, when they're first used.
 spl_autoload_register(
@@ -80,15 +79,6 @@ function zoninator_container() {
 	}
 
 	return $container;
-}
-
-/**
- * Zoninator's public API. Called before plugins_loaded, it boots Zoninator early.
- *
- * @return Zoninator
- */
-function Zoninator() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid -- Windows is case-sensitive, so changing this is a breaking change.
-	return zoninator_container()->get( Zoninator::class );
 }
 
 // Some themes load plugins from functions.php, after plugins_loaded has fired.

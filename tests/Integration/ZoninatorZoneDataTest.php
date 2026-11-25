@@ -30,23 +30,23 @@ class ZoninatorZoneDataTest extends TestCase {
 	public function set_up(): void {
 		parent::set_up();
 
-		$zone           = Zoninator()->insert_zone( 'data-zone', 'Data zone', array( 'description' => 'Kept' ) );
+		$zone           = self::zones()->insert( 'data-zone', 'Data zone', array( 'description' => 'Kept' ) );
 		$this->zone_id  = (int) $zone['term_id'];
 		$this->post_ids = self::factory()->post->create_many( 3 );
-		Zoninator()->add_zone_posts( $this->zone_id, $this->post_ids );
+		self::zones()->add_posts( $this->zone_id, $this->post_ids );
 	}
 
 	public function test_insert_zone_needs_a_slug(): void {
-		$result = Zoninator()->insert_zone( '' );
+		$result = self::zones()->insert( '' );
 
 		$this->assertInstanceOf( WP_Error::class, $result );
 		$this->assertSame( 'zone-empty-slug', $result->get_error_code() );
 	}
 
 	public function test_insert_zone_names_the_zone_after_its_slug_by_default(): void {
-		$zone = Zoninator()->insert_zone( 'unnamed-zone' );
+		$zone = self::zones()->insert( 'unnamed-zone' );
 
-		$this->assertSame( 'unnamed-zone', Zoninator()->get_zone( (int) $zone['term_id'] )->name );
+		$this->assertSame( 'unnamed-zone', self::zones()->get( (int) $zone['term_id'] )->name );
 	}
 
 	public function test_insert_zone_filters_the_term_args(): void {
@@ -56,22 +56,22 @@ class ZoninatorZoneDataTest extends TestCase {
 		};
 		add_filter( 'zoninator_insert_zone', $filter );
 
-		$zone = Zoninator()->insert_zone( 'original-slug', 'Filtered' );
+		$zone = self::zones()->insert( 'original-slug', 'Filtered' );
 
 		remove_filter( 'zoninator_insert_zone', $filter );
-		$this->assertSame( 'filtered-slug', Zoninator()->get_zone( (int) $zone['term_id'] )->slug );
+		$this->assertSame( 'filtered-slug', self::zones()->get( (int) $zone['term_id'] )->slug );
 	}
 
 	public function test_update_zone_with_an_empty_description_clears_it(): void {
-		Zoninator()->update_zone( $this->zone_id, array( 'details' => array( 'description' => '' ) ) );
+		self::zones()->update( $this->zone_id, array( 'details' => array( 'description' => '' ) ) );
 
-		$this->assertSame( '', Zoninator()->get_zone( $this->zone_id )->description );
+		$this->assertSame( '', self::zones()->get( $this->zone_id )->description );
 	}
 
 	public function test_update_zone_keeps_details_it_was_not_sent(): void {
-		Zoninator()->update_zone( $this->zone_id, array( 'name' => 'Renamed' ) );
+		self::zones()->update( $this->zone_id, array( 'name' => 'Renamed' ) );
 
-		$zone = Zoninator()->get_zone( $this->zone_id );
+		$zone = self::zones()->get( $this->zone_id );
 		$this->assertSame( 'Renamed', $zone->name );
 		$this->assertSame( 'Kept', $zone->description );
 	}
@@ -84,14 +84,14 @@ class ZoninatorZoneDataTest extends TestCase {
 		};
 		add_filter( 'zoninator_update_zone', $filter, 10, 3 );
 
-		Zoninator()->update_zone( $this->zone_id, array( 'name' => 'Renamed' ) );
+		self::zones()->update( $this->zone_id, array( 'name' => 'Renamed' ) );
 
 		remove_filter( 'zoninator_update_zone', $filter, 10 );
 		$this->assertSame( array( $this->zone_id, $this->zone_id ), $seen );
 	}
 
 	public function test_update_and_delete_refuse_a_missing_zone(): void {
-		foreach ( array( Zoninator()->update_zone( 999999 ), Zoninator()->delete_zone( 999999 ) ) as $result ) {
+		foreach ( array( self::zones()->update( 999999 ), self::zones()->delete( 999999 ) ) as $result ) {
 			$this->assertInstanceOf( WP_Error::class, $result );
 			$this->assertSame( 'invalid-zone', $result->get_error_code() );
 		}
@@ -104,21 +104,21 @@ class ZoninatorZoneDataTest extends TestCase {
 		};
 		add_action( 'zoninator_delete_zone', $action );
 
-		$result = Zoninator()->delete_zone( $this->zone_id );
+		$result = self::zones()->delete( $this->zone_id );
 
 		remove_action( 'zoninator_delete_zone', $action );
 		$this->assertTrue( $result );
 		$this->assertSame( $this->zone_id, $deleted );
-		$this->assertFalse( Zoninator()->zone_exists( $this->zone_id ) );
+		$this->assertFalse( self::zones()->exists( $this->zone_id ) );
 	}
 
 	public function test_add_zone_posts_appends_or_replaces(): void {
 		$new_id = self::factory()->post->create();
 
-		Zoninator()->add_zone_posts( $this->zone_id, $new_id, true );
+		self::zones()->add_posts( $this->zone_id, $new_id, true );
 		$this->assertSame( array_merge( $this->post_ids, array( $new_id ) ), $this->zone_post_ids() );
 
-		Zoninator()->add_zone_posts( $this->zone_id, array( $new_id, $this->post_ids[0] ) );
+		self::zones()->add_posts( $this->zone_id, array( $new_id, $this->post_ids[0] ) );
 		$this->assertSame( array( $new_id, $this->post_ids[0] ), $this->zone_post_ids() );
 	}
 
@@ -134,8 +134,8 @@ class ZoninatorZoneDataTest extends TestCase {
 		add_action( 'zoninator_remove_zone_posts', $record, 10, 2 );
 
 		$new_id = self::factory()->post->create();
-		Zoninator()->add_zone_posts( $this->zone_id, $new_id, true );
-		Zoninator()->remove_zone_posts( $this->zone_id, $new_id );
+		self::zones()->add_posts( $this->zone_id, $new_id, true );
+		self::zones()->remove_posts( $this->zone_id, $new_id );
 
 		remove_action( 'zoninator_add_zone_posts', $record, 10 );
 		remove_action( 'zoninator_remove_zone_posts', $record, 10 );
@@ -149,29 +149,29 @@ class ZoninatorZoneDataTest extends TestCase {
 	}
 
 	public function test_remove_zone_posts_without_posts_empties_the_zone(): void {
-		Zoninator()->remove_zone_posts( $this->zone_id );
+		self::zones()->remove_posts( $this->zone_id );
 
 		$this->assertSame( array(), $this->zone_post_ids() );
 	}
 
 	public function test_first_and_last_post_in_zone(): void {
-		$this->assertSame( $this->post_ids[0], Zoninator()->get_first_post_in_zone( $this->zone_id )->ID );
-		$this->assertSame( $this->post_ids[2], Zoninator()->get_last_post_in_zone( $this->zone_id )->ID );
+		$this->assertSame( $this->post_ids[0], self::zones()->get_first_post( $this->zone_id )->ID );
+		$this->assertSame( $this->post_ids[2], self::zones()->get_last_post( $this->zone_id )->ID );
 	}
 
 	public function test_first_post_in_an_empty_zone_is_false(): void {
-		$zone = Zoninator()->insert_zone( 'empty-zone' );
+		$zone = self::zones()->insert( 'empty-zone' );
 
-		$this->assertFalse( Zoninator()->get_first_post_in_zone( (int) $zone['term_id'] ) );
+		$this->assertFalse( self::zones()->get_first_post( (int) $zone['term_id'] ) );
 	}
 
 	public function test_post_order_is_its_position_in_the_zone(): void {
-		$this->assertSame( '2', Zoninator()->get_post_order( $this->post_ids[1], $this->zone_id ) );
-		$this->assertSame( '', Zoninator()->get_post_order( self::factory()->post->create(), $this->zone_id ) );
+		$this->assertSame( '2', self::zones()->get_post_order( $this->post_ids[1], $this->zone_id ) );
+		$this->assertSame( '', self::zones()->get_post_order( self::factory()->post->create(), $this->zone_id ) );
 	}
 
 	public function test_zone_query_always_orders_by_zone_position(): void {
-		$query = Zoninator()->get_zone_query(
+		$query = self::zones()->get_query(
 			$this->zone_id,
 			array(
 				'orderby'  => 'title',
@@ -180,35 +180,35 @@ class ZoninatorZoneDataTest extends TestCase {
 		);
 
 		$this->assertSame( 'meta_value_num', $query->get( 'orderby' ) );
-		$this->assertSame( Zoninator()->get_zone_meta_key( $this->zone_id ), $query->get( 'meta_key' ) );
+		$this->assertSame( self::zones()->get_meta_key( $this->zone_id ), $query->get( 'meta_key' ) );
 		$this->assertSame( $this->post_ids, wp_list_pluck( $query->posts, 'ID' ) );
 	}
 
 	public function test_zone_lookups_accept_an_id_slug_or_term(): void {
-		$zone = Zoninator()->get_zone( $this->zone_id );
+		$zone = self::zones()->get( $this->zone_id );
 
 		foreach ( array( $this->zone_id, 'data-zone', $zone ) as $reference ) {
-			$this->assertSame( $this->zone_id, Zoninator()->get_zone_id( $reference ) );
-			$this->assertSame( '_zoninator_order_' . $this->zone_id, Zoninator()->get_zone_meta_key( $reference ) );
-			$this->assertSame( 'data-zone', Zoninator()->get_zone_slug( $reference ) );
-			$this->assertTrue( Zoninator()->zone_exists( $reference ) );
+			$this->assertSame( $this->zone_id, self::zones()->get_id( $reference ) );
+			$this->assertSame( '_zoninator_order_' . $this->zone_id, self::zones()->get_meta_key( $reference ) );
+			$this->assertSame( 'data-zone', self::zones()->get_slug( $reference ) );
+			$this->assertTrue( self::zones()->exists( $reference ) );
 		}
 
-		$this->assertSame( 0, Zoninator()->get_zone_id( 'no-such-zone' ) );
-		$this->assertFalse( Zoninator()->zone_exists( 'no-such-zone' ) );
+		$this->assertSame( 0, self::zones()->get_id( 'no-such-zone' ) );
+		$this->assertFalse( self::zones()->exists( 'no-such-zone' ) );
 	}
 
 	public function test_get_post_id_accepts_an_id_array_or_object(): void {
 		$post = get_post( $this->post_ids[0] );
 
-		$this->assertSame( $post->ID, Zoninator()->get_post_id( $post->ID ) );
-		$this->assertSame( $post->ID, Zoninator()->get_post_id( array( 'ID' => (string) $post->ID ) ) );
-		$this->assertSame( $post->ID, Zoninator()->get_post_id( $post ) );
-		$this->assertFalse( Zoninator()->get_post_id( (string) $post->ID ) );
+		$this->assertSame( $post->ID, self::zones()->get_post_id( $post->ID ) );
+		$this->assertSame( $post->ID, self::zones()->get_post_id( array( 'ID' => (string) $post->ID ) ) );
+		$this->assertSame( $post->ID, self::zones()->get_post_id( $post ) );
+		$this->assertFalse( self::zones()->get_post_id( (string) $post->ID ) );
 	}
 
 	public function test_split_shared_term_moves_the_posts_to_the_new_zone(): void {
-		$new_zone = Zoninator()->insert_zone( 'split-zone' );
+		$new_zone = self::zones()->insert( 'split-zone' );
 		$new_id   = (int) $new_zone['term_id'];
 		$fired    = array();
 		$record   = static function ( ...$args ) use ( &$fired ) {
@@ -222,7 +222,7 @@ class ZoninatorZoneDataTest extends TestCase {
 		remove_action( 'zoninator_split_shared_term', $record, 10 );
 		remove_action( 'zoninator_did_split_shared_term', $record, 10 );
 		$this->assertSame( array(), $this->zone_post_ids() );
-		$this->assertSame( $this->post_ids, wp_list_pluck( Zoninator()->get_zone_posts( $new_id ), 'ID' ) );
+		$this->assertSame( $this->post_ids, wp_list_pluck( self::zones()->get_posts( $new_id ), 'ID' ) );
 		$this->assertSame(
 			array(
 				array( 'zoninator_split_shared_term', $this->zone_id, $new_id, 123 ),
@@ -252,7 +252,7 @@ class ZoninatorZoneDataTest extends TestCase {
 	public function test_setting_zone_posts_clears_a_post_that_query_filters_hide(): void {
 		$filter = $this->hide_post_from_query_filters( $this->post_ids[2] );
 
-		Zoninator()->add_zone_posts( $this->zone_id, array( $this->post_ids[1], $this->post_ids[0] ) );
+		self::zones()->add_posts( $this->zone_id, array( $this->post_ids[1], $this->post_ids[0] ) );
 
 		remove_filter( 'posts_where', $filter );
 		$this->assertSame( array( $this->post_ids[1], $this->post_ids[0] ), $this->zone_post_ids() );
@@ -262,14 +262,14 @@ class ZoninatorZoneDataTest extends TestCase {
 		$filter = $this->hide_post_from_query_filters( $this->post_ids[2] );
 		$new_id = self::factory()->post->create();
 
-		Zoninator()->add_zone_posts( $this->zone_id, array( $new_id ), true );
+		self::zones()->add_posts( $this->zone_id, array( $new_id ), true );
 
 		remove_filter( 'posts_where', $filter );
-		$this->assertSame( '4', Zoninator()->get_post_order( $new_id, $this->zone_id ) );
+		$this->assertSame( '4', self::zones()->get_post_order( $new_id, $this->zone_id ) );
 	}
 
 	public function test_split_shared_term_moves_a_post_that_query_filters_hide(): void {
-		$new_zone = Zoninator()->insert_zone( 'split-zone' );
+		$new_zone = self::zones()->insert( 'split-zone' );
 		$new_id   = (int) $new_zone['term_id'];
 		$filter   = $this->hide_post_from_query_filters( $this->post_ids[2] );
 
@@ -277,7 +277,7 @@ class ZoninatorZoneDataTest extends TestCase {
 
 		remove_filter( 'posts_where', $filter );
 		$this->assertSame( array(), $this->zone_post_ids() );
-		$this->assertSame( $this->post_ids, wp_list_pluck( Zoninator()->get_zone_posts( $new_id ), 'ID' ) );
+		$this->assertSame( $this->post_ids, wp_list_pluck( self::zones()->get_posts( $new_id ), 'ID' ) );
 	}
 
 	public function test_split_shared_term_moves_a_scheduled_post_too(): void {
@@ -287,18 +287,18 @@ class ZoninatorZoneDataTest extends TestCase {
 				'post_date'   => gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
 			)
 		);
-		Zoninator()->add_zone_posts( $this->zone_id, array( $scheduled_id ), true );
-		$new_zone = Zoninator()->insert_zone( 'split-scheduled-zone' );
+		self::zones()->add_posts( $this->zone_id, array( $scheduled_id ), true );
+		$new_zone = self::zones()->insert( 'split-scheduled-zone' );
 		$new_id   = (int) $new_zone['term_id'];
 
 		zoninator_container()->get( Zones::class )->split_shared_term( $this->zone_id, $new_id, 123, 'zoninator_zones' );
 
-		$this->assertSame( '', get_post_meta( $scheduled_id, Zoninator()->get_zone_meta_key( $this->zone_id ), true ) );
-		$this->assertSame( '4', get_post_meta( $scheduled_id, Zoninator()->get_zone_meta_key( $new_id ), true ) );
+		$this->assertSame( '', get_post_meta( $scheduled_id, self::zones()->get_meta_key( $this->zone_id ), true ) );
+		$this->assertSame( '4', get_post_meta( $scheduled_id, self::zones()->get_meta_key( $new_id ), true ) );
 	}
 
 	public function test_split_shared_term_ignores_other_taxonomies(): void {
-		$new_zone = Zoninator()->insert_zone( 'split-zone' );
+		$new_zone = self::zones()->insert( 'split-zone' );
 
 		zoninator_container()->get( Zones::class )->split_shared_term( $this->zone_id, (int) $new_zone['term_id'], 123, 'category' );
 
@@ -309,6 +309,6 @@ class ZoninatorZoneDataTest extends TestCase {
 	 * @return int[] IDs of the posts in the test zone, in order.
 	 */
 	private function zone_post_ids(): array {
-		return wp_list_pluck( Zoninator()->get_zone_posts( $this->zone_id ), 'ID' );
+		return wp_list_pluck( self::zones()->get_posts( $this->zone_id ), 'ID' );
 	}
 }

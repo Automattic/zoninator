@@ -16,7 +16,7 @@ use WP_Post;
  * filters.
  *
  * @since 0.12.0
- * @internal Use Zoninator(), the template tags and the hooks instead.
+ * @internal Use the template tags, the Application classes and the hooks instead.
  */
 final class Capabilities {
 

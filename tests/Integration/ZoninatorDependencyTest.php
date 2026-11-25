@@ -32,7 +32,6 @@ use Automattic\Zoninator\Infrastructure\WordPress\TransientLockStore;
 use Automattic\Zoninator\Infrastructure\WordPress\Zones;
 use ReflectionClass;
 use ReflectionNamedType;
-use Zoninator;
 
 final class ZoninatorDependencyTest extends TestCase {
 
@@ -54,39 +53,6 @@ final class ZoninatorDependencyTest extends TestCase {
 			$this->assertInstanceOf( ReflectionNamedType::class, $type );
 			$this->assertNotSame( 'Zoninator', $type->getName(), "{$class_name} takes Zoninator." );
 		}
-	}
-
-	/**
-	 * Zoninator builds nothing itself, so tests can hand it parts of their own.
-	 */
-	public function test_zoninator_works_with_parts_it_is_given(): void {
-		$settings     = new Settings();
-		$taxonomy     = new Taxonomy();
-		$capabilities = new Capabilities( $taxonomy );
-		$locker       = new ZoneLocker( new TransientLockStore(), $settings );
-		$terms        = new TermZoneRepository( $settings );
-		$zone_posts   = new PostMetaZonePostsRepository( $terms, $taxonomy );
-		$zones        = new Zones(
-			$taxonomy,
-			$capabilities,
-			$terms,
-			new ZoneManager( $terms, $settings ),
-			new ZoneRemover( $terms, $zone_posts, $locker ),
-			new ZoneCurator( $terms, $zone_posts )
-		);
-		$zoninator    = new Zoninator(
-			$settings,
-			$taxonomy,
-			$capabilities,
-			new Request( $capabilities ),
-			$zones,
-			$locker,
-			new Feed( $zones )
-		);
-		$zone      = $zoninator->insert_zone( 'parts-zone', 'Parts zone' );
-
-		$this->assertSame( 'Parts zone', $zoninator->get_zone( (int) $zone['term_id'] )->name );
-		$this->assertSame( 30, $zoninator->get_zone_lock_period() );
 	}
 
 	/**
@@ -113,7 +79,6 @@ final class ZoninatorDependencyTest extends TestCase {
 			Screen::class,
 			ZonesController::class,
 			Abilities::class,
-			Zoninator::class,
 			PluginBootstrapper::class,
 		);
 

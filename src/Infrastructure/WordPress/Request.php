@@ -12,7 +12,7 @@ namespace Automattic\Zoninator\Infrastructure\WordPress;
  * and capabilities before a request handler does any work.
  *
  * @since 0.12.0
- * @internal Use Zoninator(), the template tags and the hooks instead.
+ * @internal Use the template tags, the Application classes and the hooks instead.
  */
 final class Request {
 

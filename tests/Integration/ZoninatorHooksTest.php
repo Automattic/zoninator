@@ -22,7 +22,6 @@ use Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper;
 use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
 use Automattic\Zoninator\Infrastructure\WordPress\Zones;
-use Zoninator;
 use Zoninator_ZonePosts_Widget;
 
 class ZoninatorHooksTest extends TestCase {
@@ -70,7 +69,7 @@ class ZoninatorHooksTest extends TestCase {
 						continue;
 					}
 					$class = is_object( $function[0] ) ? get_class( $function[0] ) : (string) $function[0];
-					if ( 'Zoninator' === $class || 'Zoninator_ZonePosts_Widget' === $class || ( str_starts_with( $class, 'Automattic\\Zoninator\\' ) && ! str_starts_with( $class, 'Automattic\\Zoninator\\Tests\\' ) ) ) {
+					if ( 'Zoninator_ZonePosts_Widget' === $class || ( str_starts_with( $class, 'Automattic\\Zoninator\\' ) && ! str_starts_with( $class, 'Automattic\\Zoninator\\Tests\\' ) ) ) {
 						$found[ $hook ][] = $class . '::' . $function[1] . ' ' . $priority . ' ' . $callback['accepted_args'];
 					}
 				}
@@ -174,12 +173,6 @@ class ZoninatorHooksTest extends TestCase {
 		$this->assertNull( zoninator_container()->get( 'WP_Query' ) );
 	}
 
-	public function test_zoninator_and_the_global_are_the_containers_instance(): void {
-		$this->assertSame( zoninator_container()->get( Zoninator::class ), Zoninator() );
-		$this->assertSame( Zoninator(), $GLOBALS['zoninator'] );
-		$this->assertSame( Zoninator(), z_get_zoninator() );
-	}
-
 	/**
 	 * The Zones screen uses the REST API, and 1.0.0 removed these actions.
 	 *
@@ -215,7 +208,7 @@ class ZoninatorHooksTest extends TestCase {
 
 	public function test_zone_post_columns_default_to_the_screen(): void {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
-		$zone = Zoninator()->insert_zone( 'pinned-zone', 'Pinned zone' );
+		$zone = self::zones()->insert( 'pinned-zone', 'Pinned zone' );
 
 		$columns = null;
 		$spy     = static function ( $value ) use ( &$columns ) {
@@ -225,7 +218,7 @@ class ZoninatorHooksTest extends TestCase {
 		add_filter( 'zoninator_zone_post_columns', $spy );
 
 		ob_start();
-		zoninator_container()->get( Screen::class )->render_zone_post( get_post( self::factory()->post->create() ), Zoninator()->get_zone( (int) $zone['term_id'] ) );
+		zoninator_container()->get( Screen::class )->render_zone_post( get_post( self::factory()->post->create() ), self::zones()->get( (int) $zone['term_id'] ) );
 		ob_end_clean();
 
 		remove_filter( 'zoninator_zone_post_columns', $spy );

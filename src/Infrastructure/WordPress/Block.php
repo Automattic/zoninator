@@ -20,7 +20,7 @@ use WP_REST_Request;
  * reach it with zoninator_container()->get( Block::class ) to unhook them.
  *
  * @since 1.0.0
- * @internal Use Zoninator(), the template tags and the hooks instead.
+ * @internal Use the template tags, the Application classes and the hooks instead.
  */
 final class Block {
 

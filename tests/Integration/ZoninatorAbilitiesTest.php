@@ -21,7 +21,7 @@ final class ZoninatorAbilitiesTest extends TestCase {
 	public function set_up(): void {
 		parent::set_up();
 
-		$zone          = Zoninator()->insert_zone( 'abilities-zone', 'Abilities zone', array( 'description' => 'For the abilities tests' ) );
+		$zone          = self::zones()->insert( 'abilities-zone', 'Abilities zone', array( 'description' => 'For the abilities tests' ) );
 		$this->zone_id = (int) $zone['term_id'];
 
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
@@ -83,7 +83,7 @@ final class ZoninatorAbilitiesTest extends TestCase {
 	public function test_get_zone_posts_returns_the_posts_in_order(): void {
 		$first  = self::factory()->post->create( array( 'post_title' => 'First' ) );
 		$second = self::factory()->post->create( array( 'post_title' => 'Second' ) );
-		Zoninator()->add_zone_posts( $this->zone_id, array( $second, $first ) );
+		self::zones()->add_posts( $this->zone_id, array( $second, $first ) );
 
 		$result = wp_get_ability( 'zoninator/get-zone-posts' )->execute( array( 'zone_id' => $this->zone_id ) );
 
@@ -100,7 +100,7 @@ final class ZoninatorAbilitiesTest extends TestCase {
 			)
 		);
 		$draft     = self::factory()->post->create( array( 'post_status' => 'draft' ) );
-		Zoninator()->add_zone_posts( $this->zone_id, array( $scheduled, $draft ) );
+		self::zones()->add_posts( $this->zone_id, array( $scheduled, $draft ) );
 
 		$result = wp_get_ability( 'zoninator/get-zone-posts' )->execute( array( 'zone_id' => $this->zone_id ) );
 
@@ -117,7 +117,7 @@ final class ZoninatorAbilitiesTest extends TestCase {
 				'post_date'   => gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ),
 			)
 		);
-		Zoninator()->add_zone_posts( $this->zone_id, array( $readable, $unreadable ) );
+		self::zones()->add_posts( $this->zone_id, array( $readable, $unreadable ) );
 
 		add_filter(
 			'map_meta_cap',
@@ -136,7 +136,7 @@ final class ZoninatorAbilitiesTest extends TestCase {
 
 	public function test_get_zone_posts_returns_only_the_summary_fields(): void {
 		$post_id = self::factory()->post->create( array( 'post_content' => 'Long body' ) );
-		Zoninator()->add_zone_posts( $this->zone_id, array( $post_id ) );
+		self::zones()->add_posts( $this->zone_id, array( $post_id ) );
 
 		$result = wp_get_ability( 'zoninator/get-zone-posts' )->execute( array( 'zone_id' => $this->zone_id ) );
 
@@ -146,7 +146,7 @@ final class ZoninatorAbilitiesTest extends TestCase {
 
 	public function test_get_zone_posts_ignores_the_feed_filters(): void {
 		$post_id = self::factory()->post->create();
-		Zoninator()->add_zone_posts( $this->zone_id, array( $post_id ) );
+		self::zones()->add_posts( $this->zone_id, array( $post_id ) );
 
 		$reshape = static fn() => array( array( 'reshaped' => true ) );
 		add_filter( 'zoninator_json_feed_results', $reshape );
@@ -212,7 +212,7 @@ final class ZoninatorAbilitiesTest extends TestCase {
 
 	public function test_get_zone_posts_accepts_object_input(): void {
 		$post_id = self::factory()->post->create();
-		Zoninator()->add_zone_posts( $this->zone_id, array( $post_id ) );
+		self::zones()->add_posts( $this->zone_id, array( $post_id ) );
 
 		$result = wp_get_ability( 'zoninator/get-zone-posts' )->execute( (object) array( 'zone_id' => $this->zone_id ) );
 

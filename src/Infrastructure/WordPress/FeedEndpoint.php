@@ -14,7 +14,7 @@ namespace Automattic\Zoninator\Infrastructure\WordPress;
  * zoninator_container()->get( FeedEndpoint::class ) to unhook them.
  *
  * @since 1.0.0
- * @internal Use Zoninator(), the template tags and the hooks instead.
+ * @internal Use the template tags, the Application classes and the hooks instead.
  */
 final class FeedEndpoint {
 

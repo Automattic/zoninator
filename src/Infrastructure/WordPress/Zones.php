@@ -31,13 +31,13 @@ use WP_Term;
  * zoninator_container()->get( Zones::class ) to unhook it.
  *
  * @since 0.12.0
- * @internal Use Zoninator(), the template tags and the hooks instead.
+ * @internal Use the template tags, the Application classes and the hooks instead.
  */
 final class Zones {
 
 	/**
 	 * Prefix of the post meta key that holds a post's position in a zone. The
-	 * zone's term ID follows it. Zoninator::ZONE_META_PREFIX is its public name.
+	 * zone's term ID follows it. Stored zone posts depend on it, so it can't change.
 	 */
 	public const META_PREFIX = '_zoninator_order_';
 

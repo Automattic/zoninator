@@ -16,7 +16,7 @@ use WP_Error;
  * /zones/{slug}/feed.json, and GET /zoninator/v1/zones/{zone_id}/posts returns it.
  *
  * @since 0.12.0
- * @internal Use Zoninator(), the template tags and the hooks instead.
+ * @internal Use the template tags, the Application classes and the hooks instead.
  */
 final class Feed {
 
