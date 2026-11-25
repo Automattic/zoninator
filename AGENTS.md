@@ -40,12 +40,14 @@ zoninator/
 ├── js/                              # Admin JavaScript (jQuery sortable, autocomplete)
 ├── tests/
 │   ├── bootstrap.php                # PHPUnit bootstrap (yoast/wp-test-utils)
-│   └── Integration/                 # Integration tests + TestCase base
+│   ├── Integration/                 # Integration tests + TestCase base
+│   └── e2e/                         # Playwright tests of the Zones screen, with axe checks
 ├── docs/                            # Audience-targeted documentation
 ├── languages/                       # Translation files
 ├── .wordpress-org/                  # WP.org assets (screenshots)
-├── .github/workflows/               # CI: cs-lint, integration, release, deploy
-└── .phpcs.xml.dist                  # PHPCS configuration
+├── .github/workflows/               # CI: cs-lint, integration, e2e, release, deploy
+├── .phpcs.xml.dist                  # PHPCS configuration
+└── playwright.config.js             # Playwright config (extends @wordpress/scripts)
 ```
 
 ### Key Classes and Files
@@ -74,6 +76,7 @@ Zones are terms in the `zoninator_zones` taxonomy, with their details (such as t
 
 - **Runtime**: `composer/installers` (only required for non-Composer-aware sites).
 - **Dev**: `automattic/vipwpcs`, `yoast/wp-test-utils`, `phpunit/phpunit`, `php-parallel-lint/php-parallel-lint`, `phpcompatibility/phpcompatibility-wp`, `rector/rector`.
+- **Dev (npm)**: `@wordpress/env`, and for the E2E tests `@playwright/test`, `@wordpress/scripts`, `@wordpress/e2e-test-utils-playwright` and `@axe-core/playwright`.
 
 ## Commands
 
@@ -88,12 +91,14 @@ composer test:integration-ms     # Run integration tests in multisite mode
 composer coverage                # Run tests with HTML coverage report (build/coverage-html)
 composer coverage-ci             # Run tests, print text coverage summary
 
-npm ci                           # Install @wordpress/env (pinned in package.json)
+npm ci                           # Install @wordpress/env and Playwright (pinned in package.json)
 npx --no wp-env start            # Start the local WordPress environment
 npx --no wp-env stop             # Stop it
+npx --no playwright install chromium  # Download the browser for the E2E tests (once)
+npm run test:e2e                 # Run the Playwright E2E tests (requires wp-env)
 ```
 
-**Note:** This plugin has integration tests only — no separate unit test suite.
+**Note:** This plugin has integration and E2E tests — no separate unit test suite.
 
 ## Conventions
 
@@ -101,7 +106,7 @@ See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key point
 
 - **Commits**: Every commit must be signed; `develop` and `main` reject unsigned commits. Use a [Conventional Commits](https://www.conventionalcommits.org/) prefix (`fix:`, `feat:`, `test:`, `docs:`, `ci:`, `chore:` and so on) with an imperative subject of about 50 characters, and a body that explains why the change was needed rather than what changed. One concern per commit.
 - **PRs**: Open against `develop`. The title describes the outcome in sentence case, without a conventional commit prefix. The description explains the problem first, then how the PR solves it. PRs land as merge commits (squash and rebase merging are disabled), so every commit message reaches `develop` as written.
-- **Testing**: Integration tests only, run inside `wp-env` against a real WordPress install. Extend `Automattic\Zoninator\Tests\Integration\TestCase`, or `WP_Ajax_UnitTestCase` for admin-ajax handlers.
+- **Testing**: Integration tests run inside `wp-env` against a real WordPress install. Extend `Automattic\Zoninator\Tests\Integration\TestCase`, or `WP_Ajax_UnitTestCase` for admin-ajax handlers. E2E tests in `tests/e2e/` cover only what a browser shows on the Zones screen; they share the development site's database, so create test data with the `zoninator` fixture, which deletes it afterwards, and never empty the site.
 - **Code style**: WordPress coding standards via PHPCS (with VIP rules). Tabs for indentation.
 - **i18n**: All user-facing strings must use the `zoninator` text domain.
 

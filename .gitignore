@@ -8,6 +8,8 @@
 # Tests
 /.phpunit.cache/
 /build/
+/artifacts/
+/playwright-report/
 
 # Local config overrides
 /.phpcs.xml
