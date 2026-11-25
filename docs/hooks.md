@@ -171,7 +171,7 @@ Each search result, including the latest content offered before anything is type
 
 ## Zone CRUD
 
-These fire from `src/Infrastructure/WordPress/TermZoneRepository.php`, for zones, and `src/Infrastructure/WordPress/PostMetaZonePostsRepository.php`, for the posts in them.
+These fire from `src/Infrastructure/WordPress/TermZoneRepository.php`, for zones, and `src/Infrastructure/WordPress/PostMetaZonePostsRepository.php`, for the posts in them. The one exception is `zoninator_zone_detail_defaults`, which fires from `src/Infrastructure/WordPress/Settings.php`.
 
 ### `zoninator_insert_zone` (filter)
 
@@ -223,7 +223,7 @@ Fires after one or more posts have been removed from a zone.
 
 ## Term splitting (WordPress 4.2 carry-over)
 
-These fire from `src/Infrastructure/WordPress/Zones.php`.
+These fire from `src/Infrastructure/WordPress/TermSplitHandler.php`.
 
 ### `zoninator_split_shared_term` (action)
 
