@@ -89,14 +89,6 @@ final class Request {
 		return htmlspecialchars( stripslashes( $value ) );
 	}
 
-	public static function is_valid_date_filter( $date ) {
-		return preg_match( '/(\d{4})-(\d{2})-(\d{2})/', $date );
-	}
-
-	public static function is_valid_category_filter( $cat ) {
-		return $cat && get_term_by( 'id', $cat, 'category' );
-	}
-
 	/**
 	 * Gets the nonce action for one of the Zones screen's actions.
 	 *

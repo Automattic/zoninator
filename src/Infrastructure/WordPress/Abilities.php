@@ -40,23 +40,23 @@ final class Abilities {
 	private $capabilities;
 
 	/**
-	 * Returns the REST controller, whose search the search ability uses.
+	 * Finds posts to offer for a zone.
 	 *
-	 * @var callable
+	 * @var Search
 	 */
-	private $search_controller;
+	private $search;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param Zones        $zones             Zones and the posts in them.
-	 * @param Capabilities $capabilities      The capability checks.
-	 * @param callable     $search_controller Returns the REST controller, whose search the search ability uses.
+	 * @param Zones        $zones        Zones and the posts in them.
+	 * @param Capabilities $capabilities The capability checks.
+	 * @param Search       $search       Finds posts to offer for a zone.
 	 */
-	public function __construct( Zones $zones, Capabilities $capabilities, callable $search_controller ) {
-		$this->zones             = $zones;
-		$this->capabilities      = $capabilities;
-		$this->search_controller = $search_controller;
+	public function __construct( Zones $zones, Capabilities $capabilities, Search $search ) {
+		$this->zones        = $zones;
+		$this->capabilities = $capabilities;
+		$this->search       = $search;
 	}
 
 	/**
@@ -310,9 +310,7 @@ final class Abilities {
 			return $this->zone_not_found();
 		}
 
-		$controller = call_user_func( $this->search_controller );
-
-		return $controller->find_posts(
+		return $this->search->find_posts(
 			(string) $input['term'],
 			(int) $input['cat'],
 			$input['date'],
