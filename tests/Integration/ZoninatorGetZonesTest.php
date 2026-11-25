@@ -15,7 +15,7 @@ namespace Automattic\Zoninator\Tests\Integration;
 class ZoninatorGetZonesTest extends TestCase {
 
 	public function test_get_zones_fills_zone_details() {
-		self::zones()->insert( 'zone-details', 'Zone Details', array( 'description' => 'Hello zone' ) );
+		self::insert_zone( 'zone-details', 'Zone Details', array( 'description' => 'Hello zone' ) );
 
 		$zones = self::zones()->get_all();
 
@@ -26,7 +26,7 @@ class ZoninatorGetZonesTest extends TestCase {
 	}
 
 	public function test_get_zones_with_fields_ids_returns_ids() {
-		$result  = self::zones()->insert( 'zone-ids', 'Zone Ids' );
+		$result  = self::insert_zone( 'zone-ids', 'Zone Ids' );
 		$zone_id = (int) $result['term_id'];
 
 		$zones = self::zones()->get_all( array( 'fields' => 'ids' ) );
@@ -35,7 +35,7 @@ class ZoninatorGetZonesTest extends TestCase {
 	}
 
 	public function test_get_zones_ignores_a_taxonomy_arg() {
-		$result  = self::zones()->insert( 'zone-only', 'Zone Only' );
+		$result  = self::insert_zone( 'zone-only', 'Zone Only' );
 		$zone_id = (int) $result['term_id'];
 		self::factory()->category->create( array( 'name' => 'Not a zone' ) );
 

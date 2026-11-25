@@ -7,28 +7,16 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
-use Automattic\Zoninator\Application\ZoneCurator;
-use Automattic\Zoninator\Application\ZoneManager;
-use Automattic\Zoninator\Application\ZoneRemover;
-use Automattic\Zoninator\Domain\InvalidZoneException;
-use Automattic\Zoninator\Domain\ZoneNotFoundException;
-use Automattic\Zoninator\Domain\ZoneNotSavedException;
-use WP_Error;
 use WP_Post;
 use WP_Query;
 use WP_Term;
 
 /**
  * Reads zones and their posts for WordPress code, as WP_Term, WP_Post and
- * WP_Query, and handles a shared term being split.
+ * WP_Query. The template tags are built on it.
  *
- * Its methods that change a zone hand the work to the Application layer
- * (ZoneManager, ZoneRemover and ZoneCurator) and turn the result back into
- * what WordPress code expects: arrays and WP_Error. They stay only until
- * every caller uses those classes.
- *
- * It registers its own hook in register_hooks(), and sites reach it with
- * zoninator_container()->get( Zones::class ) to unhook it.
+ * To change a zone, use the Application layer: ZoneManager, ZoneRemover and
+ * ZoneCurator.
  *
  * @since 0.12.0
  * @internal Use the template tags, the Application classes and the hooks instead.
@@ -40,17 +28,6 @@ final class Zones {
 	 * zone's term ID follows it. Stored zone posts depend on it, so it can't change.
 	 */
 	public const META_PREFIX = '_zoninator_order_';
-
-	/**
-	 * Query args that find every post in a zone, for code that changes a
-	 * zone's posts. Whoever is asking, and whatever query filters other plugins
-	 * add, a post left out here would keep its old position in the zone.
-	 */
-	private const EVERY_POST = array(
-		'post_status'      => 'any',
-		// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters
-		'suppress_filters' => true,
-	);
 
 	/**
 	 * The zone taxonomy.
@@ -74,176 +51,16 @@ final class Zones {
 	private $terms;
 
 	/**
-	 * Creates and changes zones.
-	 *
-	 * @var ZoneManager
-	 */
-	private $manager;
-
-	/**
-	 * Deletes zones.
-	 *
-	 * @var ZoneRemover
-	 */
-	private $remover;
-
-	/**
-	 * Changes the posts in a zone.
-	 *
-	 * @var ZoneCurator
-	 */
-	private $curator;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Taxonomy           $taxonomy     The zone taxonomy.
 	 * @param Capabilities       $capabilities The capability checks.
 	 * @param TermZoneRepository $terms        Zone terms.
-	 * @param ZoneManager        $manager      Creates and changes zones.
-	 * @param ZoneRemover        $remover      Deletes zones.
-	 * @param ZoneCurator        $curator      Changes the posts in a zone.
 	 */
-	public function __construct( Taxonomy $taxonomy, Capabilities $capabilities, TermZoneRepository $terms, ZoneManager $manager, ZoneRemover $remover, ZoneCurator $curator ) {
+	public function __construct( Taxonomy $taxonomy, Capabilities $capabilities, TermZoneRepository $terms ) {
 		$this->taxonomy     = $taxonomy;
 		$this->capabilities = $capabilities;
 		$this->terms        = $terms;
-		$this->manager      = $manager;
-		$this->remover      = $remover;
-		$this->curator      = $curator;
-	}
-
-	/**
-	 * Hooks the handler that keeps zone posts when core splits a shared term. PluginBootstrapper::register_hooks() calls this once.
-	 *
-	 * @since 1.0.0
-	 */
-	public function register_hooks() {
-		add_action( 'split_shared_term', array( $this, 'split_shared_term' ), 10, 4 );
-	}
-
-	/**
-	 * Creates a zone.
-	 *
-	 * @param string $slug    The zone's slug.
-	 * @param string $name    The zone's name, or '' to use the slug.
-	 * @param array  $details Details to set, by name.
-	 * @return array|WP_Error The new term's term_id and term_taxonomy_id, or an error.
-	 */
-	public function insert( $slug, $name = '', $details = array() ) {
-		try {
-			$zone = $this->manager->create( (string) $slug, (string) $name, (array) $details );
-		} catch ( InvalidZoneException $exception ) {
-			return new WP_Error( 'zone-empty-slug', __( 'Slug is a required field.', 'zoninator' ) );
-		} catch ( ZoneNotSavedException $exception ) {
-			return new WP_Error( $exception->get_error_code(), $exception->getMessage() );
-		}
-
-		return $this->get_term_ids( (int) $zone->get_id() );
-	}
-
-	/**
-	 * Changes a zone.
-	 *
-	 * @param int|string|WP_Term $zone Zone.
-	 * @param array              $data The name, slug and details to change.
-	 * @return array|WP_Error The term's term_id and term_taxonomy_id, or an error.
-	 */
-	public function update( $zone, $data = array() ) {
-		$zone_id = $this->get_id( $zone );
-
-		try {
-			$this->manager->update( $zone_id, (array) $data );
-		} catch ( ZoneNotFoundException $exception ) {
-			return $this->invalid_zone();
-		} catch ( ZoneNotSavedException $exception ) {
-			return new WP_Error( $exception->get_error_code(), $exception->getMessage() );
-		}
-
-		return $this->get_term_ids( $zone_id );
-	}
-
-	/**
-	 * Deletes a zone, and takes its posts out of it.
-	 *
-	 * @param int|string|WP_Term $zone Zone.
-	 * @return true|WP_Error
-	 */
-	public function delete( $zone ) {
-		try {
-			$this->remover->remove( $this->get_id( $zone ) );
-		} catch ( ZoneNotFoundException $exception ) {
-			return $this->invalid_zone();
-		} catch ( ZoneNotSavedException $exception ) {
-			return new WP_Error( 'delete-zone', __( "Sorry, we couldn't delete the zone.", 'zoninator' ) );
-		}
-
-		return true;
-	}
-
-	/**
-	 * Adds posts to a zone, or sets the zone's posts.
-	 *
-	 * @param int|string|WP_Term $zone   Zone.
-	 * @param mixed              $posts  A post or posts, as IDs, WP_Post objects or arrays with an ID.
-	 * @param bool               $append Whether to add the posts to the end. Otherwise they replace the zone's posts.
-	 * @return true|WP_Error
-	 */
-	public function add_posts( $zone, $posts, $append = false ) {
-		$zone_id  = $this->get_id( $zone );
-		$post_ids = array_map( array( $this, 'get_post_id' ), (array) $posts );
-
-		try {
-			if ( $append ) {
-				$this->curator->add_posts( $zone_id, $post_ids );
-			} else {
-				$this->curator->set_posts( $zone_id, $post_ids );
-			}
-		} catch ( ZoneNotFoundException $exception ) {
-			return $this->invalid_zone();
-		}
-
-		return true;
-	}
-
-	/**
-	 * Takes posts out of a zone.
-	 *
-	 * @param int|string|WP_Term $zone  Zone.
-	 * @param mixed              $posts A post or posts, as IDs, WP_Post objects or arrays with an ID. Leave out to empty the zone.
-	 */
-	public function remove_posts( $zone, $posts = null ) {
-		$zone_id = $this->get_id( $zone );
-
-		try {
-			if ( $posts ) {
-				$this->curator->remove_posts( $zone_id, array_map( array( $this, 'get_post_id' ), (array) $posts ) );
-			} else {
-				$this->curator->clear_posts( $zone_id );
-			}
-		} catch ( ZoneNotFoundException $exception ) {
-			return;
-		}
-	}
-
-	/**
-	 * @return WP_Error The error for a zone that doesn't exist.
-	 */
-	private function invalid_zone() {
-		return new WP_Error( 'invalid-zone', __( "Sorry, that zone doesn't exist.", 'zoninator' ) );
-	}
-
-	/**
-	 * @param int $zone_id Zone ID.
-	 * @return array The zone's term_id and term_taxonomy_id, as wp_insert_term() and wp_update_term() return them.
-	 */
-	private function get_term_ids( $zone_id ) {
-		$term = get_term( $zone_id, Taxonomy::NAME );
-
-		return array(
-			'term_id'          => $term->term_id,
-			'term_taxonomy_id' => $term->term_taxonomy_id,
-		);
 	}
 
 	public function get_posts( $zone, $args = array() ) {
@@ -527,21 +344,5 @@ final class Zones {
 
 	public function fill_details( $zone ) {
 		return $this->terms->fill_details( $zone );
-	}
-
-	// Handle 4.2 term-splitting
-	public function split_shared_term( $old_term_id, $new_term_id, $term_taxonomy_id, $taxonomy ) {
-		if ( Taxonomy::NAME === $taxonomy ) {
-			do_action( 'zoninator_split_shared_term', $old_term_id, $new_term_id, $term_taxonomy_id );
-
-			// Quick, easy switcheroo; add posts to new zone id and remove from the old one.
-			$posts = $this->get_posts( $old_term_id, self::EVERY_POST );
-			if ( ! empty( $posts ) ) {
-				$this->add_posts( $new_term_id, $posts );
-				$this->remove_posts( $old_term_id );
-			}
-
-			do_action( 'zoninator_did_split_shared_term', $old_term_id, $new_term_id, $term_taxonomy_id );
-		}
 	}
 }

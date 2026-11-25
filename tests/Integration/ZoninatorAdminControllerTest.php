@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace Automattic\Zoninator\Tests\Integration;
 
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm;
 use Automattic\Zoninator\Infrastructure\WordPress\Request;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
 use RuntimeException;
@@ -25,7 +26,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$zone          = self::zones()->insert( 'form-zone', 'Form zone', array( 'description' => 'Before' ) );
+		$zone          = self::insert_zone( 'form-zone', 'Form zone', array( 'description' => 'Before' ) );
 		$this->zone_id = (int) $zone['term_id'];
 
 		// The handler redirects and exits on success, so stop it at the redirect.
@@ -131,7 +132,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 
 	public function test_delete_removes_the_zone_and_its_posts(): void {
 		$post_id = self::factory()->post->create();
-		self::zones()->add_posts( $this->zone_id, array( $post_id ) );
+		self::add_zone_posts( $this->zone_id, array( $post_id ) );
 		$meta_key = self::zones()->get_meta_key( $this->zone_id );
 
 		$location = $this->submit( 'delete', array( 'zone_id' => $this->zone_id ) );
@@ -225,7 +226,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->set_request( $action, $fields, true );
 
 		try {
-			zoninator_container()->get( Screen::class )->handle_request();
+			zoninator_container()->get( ZoneForm::class )->handle_request();
 		} catch ( RuntimeException $e ) {
 			return $e->getMessage();
 		}
@@ -244,7 +245,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->set_request( $action, $fields, true );
 
 		try {
-			zoninator_container()->get( Screen::class )->handle_request();
+			zoninator_container()->get( ZoneForm::class )->handle_request();
 		} catch ( RuntimeException | WPDieException $e ) {
 			return;
 		}
@@ -268,7 +269,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		);
 
 		try {
-			zoninator_container()->get( Screen::class )->handle_request();
+			zoninator_container()->get( ZoneForm::class )->handle_request();
 			$this->fail( 'Expected the handler to stop the request.' );
 		} catch ( WPDieException $e ) {
 			$this->assertSame( esc_html( "Sorry, you're not supposed to do that..." ), $e->getMessage() );

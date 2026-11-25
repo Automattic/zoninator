@@ -140,11 +140,11 @@ Up to 0.12.x, every Zoninator hook was registered on the `Zoninator` object, wit
 | `template_redirect` | `array( Zoninator(), 'do_zoninator_feeds' )` | `remove_action( 'template_redirect', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class ), 'serve' ) )` |
 | `rest_api_init` | `array( Zoninator(), 'register_rest_routes' )` | `remove_action( 'rest_api_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper::class ), 'register_rest_routes' ) )` |
 | `widgets_init` | `array( Zoninator(), 'widgets_init' )` | `remove_action( 'widgets_init', array( 'Zoninator_ZonePosts_Widget', 'register' ) )` |
-| `split_shared_term` | `array( Zoninator(), 'split_shared_term' )` | `remove_action( 'split_shared_term', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Zones::class ), 'split_shared_term' ) )` |
+| `split_shared_term` | `array( Zoninator(), 'split_shared_term' )` | `remove_action( 'split_shared_term', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\TermSplitHandler::class ), 'move_zone_posts' ) )` |
 | `query_loop_block_query_vars` | `array( Zoninator(), 'zone_block_query_vars' )` | `remove_filter( 'query_loop_block_query_vars', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class ), 'filter_query_vars' ) )` |
 | `rest_post_query` | `array( Zoninator(), 'zone_block_rest_query' )` | `remove_filter( 'rest_post_query', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class ), 'filter_rest_query' ) )` |
 | `enqueue_block_editor_assets` | `array( Zoninator(), 'zone_block_editor_assets' )` | `remove_action( 'enqueue_block_editor_assets', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class ), 'enqueue_editor_assets' ) )` |
-| `admin_init` | `array( Zoninator(), 'admin_controller' )` | `remove_action( 'admin_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'handle_request' ) )` |
+| `admin_init` | `array( Zoninator(), 'admin_controller' )` | `remove_action( 'admin_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm::class ), 'handle_request' ) )` |
 | `admin_init` | `array( Zoninator(), 'admin_init' )`, which added the two `admin_enqueue_scripts` callbacks | Nothing to unhook: the two callbacks below are now added directly |
 | `admin_enqueue_scripts` | `array( Zoninator(), 'admin_enqueue_scripts' )` | `remove_action( 'admin_enqueue_scripts', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'enqueue_scripts' ) )` |
 | `admin_enqueue_scripts` | `array( Zoninator(), 'admin_enqueue_styles' )` | `remove_action( 'admin_enqueue_scripts', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'enqueue_styles' ) )` |
@@ -186,9 +186,15 @@ The classes 0.12.0 added under `Automattic\Zoninator\` are internal, but if your
 
 The files moved with them, from `src/class-*.php` to paths such as `src/Infrastructure/WordPress/Feed.php`. If your code loads one with `require`, remove that line: the class loads itself when it's first used. The sections of this guide for 0.12.0 use the new names.
 
-### A zone's lock can't be taken from someone else
+### Zone locks now stop every change, not only the Zones screen
 
-Locking a zone used to replace a lock that another user held. `ZoneLocker::lock()` now leaves that lock in place and throws `ZoneLockedException`. To take a zone over, call `ZoneLocker::unlock()` first. The REST route and the Zones screen already refused to lock a zone someone else was editing, so nothing changes there.
+A zone's lock used to stop a second person opening the zone on the Zones screen, and nothing else. The REST API saved whatever it was sent, even while someone else was editing the zone.
+
+Now every change made for a user is checked in one place: the user may make it, may use each post, and isn't kept out by someone else's lock. That covers the Zones screen, its zone form and every REST route that changes a zone or its posts.
+
+- **REST clients:** a write to a zone someone else is editing gets `400` with the code `zone-locked`, and the message names them. Retry later, or have the client take the lock first with `PUT /zoninator/v1/zones/{zone_id}/lock`. Requests made as the lock holder go through.
+- **PHP code:** `GuardedZoneManager` and `GuardedZoneCurator`, under `Automattic\Zoninator\Application\`, make a change for a user with these checks; each method takes the user's ID first. `ZoneManager`, `ZoneRemover` and `ZoneCurator` do the same work with no checks, for code that isn't acting for a user, such as a scheduled job.
+- **Taking a lock:** `ZoneLocker::lock()` no longer replaces a lock another user holds; it throws `ZoneLockedException`. To take a zone over, call `ZoneLocker::unlock()` first.
 
 ### The zone post actions always pass post IDs
 

@@ -15,6 +15,14 @@ namespace Automattic\Zoninator\Domain;
 interface ZonePostsRepositoryInterface {
 
 	/**
+	 * Gets every post in a zone, in order, whatever its status.
+	 *
+	 * @param int $zone_id Zone ID.
+	 * @return int[] Post IDs.
+	 */
+	public function get_post_ids( int $zone_id ): array;
+
+	/**
 	 * Adds posts to the end of a zone, in the order given.
 	 *
 	 * @param int   $zone_id  Zone ID.

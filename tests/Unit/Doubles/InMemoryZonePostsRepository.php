@@ -23,6 +23,10 @@ final class InMemoryZonePostsRepository implements ZonePostsRepositoryInterface 
 	 */
 	public $post_ids = array();
 
+	public function get_post_ids( int $zone_id ): array {
+		return $this->post_ids[ $zone_id ] ?? array();
+	}
+
 	public function append( int $zone_id, array $post_ids ): void {
 		$this->post_ids[ $zone_id ] = array_merge( $this->post_ids[ $zone_id ] ?? array(), $post_ids );
 	}

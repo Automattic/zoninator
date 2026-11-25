@@ -7,14 +7,22 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 
+use Automattic\Zoninator\Application\GuardedZoneCurator;
+use Automattic\Zoninator\Application\GuardedZoneManager;
 use Automattic\Zoninator\Application\ZoneLocker;
+use Automattic\Zoninator\Domain\AccessDeniedException;
+use Automattic\Zoninator\Domain\InvalidZoneException;
+use Automattic\Zoninator\Domain\PostNotAllowedException;
 use Automattic\Zoninator\Domain\ZoneLockedException;
+use Automattic\Zoninator\Domain\ZoneNotFoundException;
+use Automattic\Zoninator\Domain\ZoneNotSavedException;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
 use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
 use Automattic\Zoninator\Infrastructure\WordPress\Feed;
 use Automattic\Zoninator\Infrastructure\WordPress\Search;
 use Automattic\Zoninator\Infrastructure\WordPress\Settings;
 use Automattic\Zoninator\Infrastructure\WordPress\Zones;
+use Throwable;
 use WP_Error;
 use WP_REST_Controller;
 use WP_REST_Request;
@@ -61,6 +69,20 @@ final class ZonesController extends WP_REST_Controller {
 	 * @var Search
 	 */
 	private $search;
+
+	/**
+	 * Creates, changes and deletes zones for the current user.
+	 *
+	 * @var GuardedZoneManager
+	 */
+	private $manager;
+
+	/**
+	 * Changes the posts in a zone for the current user.
+	 *
+	 * @var GuardedZoneCurator
+	 */
+	private $curator;
 
 	/**
 	 * Zone locks.
@@ -113,9 +135,11 @@ final class ZonesController extends WP_REST_Controller {
 	 * @param Settings     $settings     Zoninator's settings.
 	 * @param Capabilities $capabilities The capability checks.
 	 * @param Screen       $screen       The Zones screen.
-	 * @param Search       $search       Finds posts to offer for a zone.
+	 * @param Search             $search       Finds posts to offer for a zone.
+	 * @param GuardedZoneManager $manager      Creates, changes and deletes zones for the current user.
+	 * @param GuardedZoneCurator $curator      Changes the posts in a zone for the current user.
 	 */
-	public function __construct( Zones $zones, ZoneLocker $locker, Feed $feed, Settings $settings, Capabilities $capabilities, Screen $screen, Search $search ) {
+	public function __construct( Zones $zones, ZoneLocker $locker, Feed $feed, Settings $settings, Capabilities $capabilities, Screen $screen, Search $search, GuardedZoneManager $manager, GuardedZoneCurator $curator ) {
 		$this->zones        = $zones;
 		$this->locker       = $locker;
 		$this->feed         = $feed;
@@ -123,6 +147,8 @@ final class ZonesController extends WP_REST_Controller {
 		$this->capabilities = $capabilities;
 		$this->screen       = $screen;
 		$this->search       = $search;
+		$this->manager      = $manager;
+		$this->curator      = $curator;
 		$this->namespace    = 'zoninator/v1';
 	}
 
@@ -268,21 +294,13 @@ final class ZonesController extends WP_REST_Controller {
 		$slug        = $this->get_param( $request, 'slug', $name );
 		$description = $this->get_param( $request, 'description', '' );
 
-		$result = $this->zones->insert(
-			$slug,
-			$name,
-			array(
-				'description' => $description,
-			)
-		);
-
-		if ( is_wp_error( $result ) ) {
-			return $this->bad_request( $result->get_error_code(), $result->get_error_message() );
+		try {
+			$zone = $this->manager->create( get_current_user_id(), (string) $slug, (string) $name, array( 'description' => $description ) );
+		} catch ( Throwable $exception ) {
+			return $this->error_response( $exception, 0 );
 		}
 
-		$zone = $this->zones->get( $result['term_id'] );
-
-		return $this->created( $this->_filter_zone_properties( $zone ) );
+		return $this->created( $this->_filter_zone_properties( $this->zones->get( (int) $zone->get_id() ) ) );
 	}
 
 	/**
@@ -316,10 +334,10 @@ final class ZonesController extends WP_REST_Controller {
 			$update_params['details'] = array( 'description' => (string) $request->get_param( 'description' ) );
 		}
 
-		$result = $this->zones->update( $zone, $update_params );
-
-		if ( is_wp_error( $result ) ) {
-			return $this->bad_request( $result->get_error_code(), $result->get_error_message() );
+		try {
+			$this->manager->update( get_current_user_id(), $zone_id, $update_params );
+		} catch ( Throwable $exception ) {
+			return $this->error_response( $exception, $zone_id );
 		}
 
 		return $this->ok( array( 'success' => true ) );
@@ -340,10 +358,10 @@ final class ZonesController extends WP_REST_Controller {
 			return $this->zone_not_found();
 		}
 
-		$result = $this->zones->delete( $zone );
-
-		if ( is_wp_error( $result ) ) {
-			return $this->bad_request( $result->get_error_code(), $result->get_error_message() );
+		try {
+			$this->manager->remove( get_current_user_id(), $zone_id );
+		} catch ( Throwable $exception ) {
+			return $this->error_response( $exception, $zone_id );
 		}
 
 		return $this->ok( array( 'success' => true ) );
@@ -385,16 +403,10 @@ final class ZonesController extends WP_REST_Controller {
 			return $this->zone_not_found();
 		}
 
-		$posts = array_map( 'get_post', $post_ids );
-
-		if ( count( $posts ) !== count( array_filter( $posts, array( $this->capabilities, 'current_user_can_add_post_to_zone' ) ) ) ) {
-			return $this->bad_request( self::INVALID_POST_ID, $this->translations[ self::INVALID_POST_ID ] );
-		}
-
-		$result = $this->zones->add_posts( $zone_id, $posts );
-
-		if ( is_wp_error( $result ) ) {
-			return $this->respond( $result, 500 );
+		try {
+			$this->curator->set_posts( get_current_user_id(), $zone_id, array_map( 'absint', (array) $post_ids ) );
+		} catch ( Throwable $exception ) {
+			return $this->error_response( $exception, $zone_id );
 		}
 
 		return $this->ok( array( 'success' => true ) );
@@ -414,11 +426,11 @@ final class ZonesController extends WP_REST_Controller {
 			return $this->zone_not_found();
 		}
 
-		if ( ! $this->capabilities->current_user_can_add_post_to_zone( $post_id ) ) {
-			return $this->bad_request( self::INVALID_POST_ID, $this->translations[ self::INVALID_POST_ID ] );
+		try {
+			$this->curator->add_posts( get_current_user_id(), (int) $zone->term_id, array( $post_id ) );
+		} catch ( Throwable $exception ) {
+			return $this->error_response( $exception, (int) $zone->term_id );
 		}
-
-		$this->zones->add_posts( $zone, $post_id, true );
 
 		// Render the row with the zoninator_zone_post_columns callbacks, so columns sites add still show.
 		ob_start();
@@ -441,11 +453,11 @@ final class ZonesController extends WP_REST_Controller {
 			return $this->zone_not_found();
 		}
 
-		if ( ! $this->capabilities->current_user_can_add_post_to_zone( $post_id ) ) {
-			return $this->bad_request( self::INVALID_POST_ID, $this->translations[ self::INVALID_POST_ID ] );
+		try {
+			$this->curator->remove_posts( get_current_user_id(), (int) $zone->term_id, array( $post_id ) );
+		} catch ( Throwable $exception ) {
+			return $this->error_response( $exception, (int) $zone->term_id );
 		}
-
-		$this->zones->remove_posts( $zone, $post_id );
 
 		return $this->ok( array( 'success' => true ) );
 	}
@@ -489,22 +501,7 @@ final class ZonesController extends WP_REST_Controller {
 		try {
 			$this->locker->lock( $zone_id, get_current_user_id() );
 		} catch ( ZoneLockedException $exception ) {
-			// Core's REST error shape, keeping zone_id and blocked, which this
-			// response had before it had a code.
-			$locking_user = get_userdata( $exception->get_holder_id() );
-			return new WP_REST_Response(
-				array(
-					'code'    => self::ZONE_LOCKED,
-					'message' => sprintf(
-						$this->settings->get_message( 'error-zone-lock' ),
-						$locking_user ? $locking_user->display_name : __( 'another user', 'zoninator' )
-					),
-					'data'    => array( 'status' => 400 ),
-					'zone_id' => $this->zones->get_id( $zone ),
-					'blocked' => true,
-				),
-				400
-			);
+			return $this->error_response( $exception, $zone_id );
 		}
 
 		return new WP_REST_Response(
@@ -790,7 +787,61 @@ final class ZonesController extends WP_REST_Controller {
 	}
 
 	/**
-	 * The error for a zone that doesn't exist.
+	 * Turns what the Application layer threw into this API's response.
+	 *
+	 * @param Throwable $exception What was thrown.
+	 * @param int       $zone_id   The zone being changed, for the locked response.
+	 * @return WP_Error|WP_REST_Response
+	 *
+	 * @throws Throwable If it isn't one of Zoninator's own exceptions.
+	 */
+	private function error_response( Throwable $exception, $zone_id ) {
+		if ( $exception instanceof ZoneLockedException ) {
+			// Core's REST error shape, keeping zone_id and blocked, which the lock
+			// route's response had before it had a code.
+			$locking_user = get_userdata( $exception->get_holder_id() );
+
+			return new WP_REST_Response(
+				array(
+					'code'    => self::ZONE_LOCKED,
+					'message' => sprintf(
+						$this->settings->get_message( 'error-zone-lock' ),
+						$locking_user ? $locking_user->display_name : __( 'another user', 'zoninator' )
+					),
+					'data'    => array( 'status' => 400 ),
+					'zone_id' => $zone_id,
+					'blocked' => true,
+				),
+				400
+			);
+		}
+
+		if ( $exception instanceof ZoneNotFoundException ) {
+			return $this->zone_not_found();
+		}
+
+		if ( $exception instanceof PostNotAllowedException ) {
+			return $this->bad_request( self::INVALID_POST_ID, $this->translations[ self::INVALID_POST_ID ] );
+		}
+
+		if ( $exception instanceof AccessDeniedException ) {
+			return new WP_Error( self::PERMISSION_DENIED, __( "Sorry, you're not supposed to do that...", 'zoninator' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
+		if ( $exception instanceof InvalidZoneException ) {
+			return $this->bad_request( 'zone-empty-slug', __( 'Slug is a required field.', 'zoninator' ) );
+		}
+
+		if ( $exception instanceof ZoneNotSavedException ) {
+			return $this->bad_request( $exception->get_error_code(), $exception->getMessage() );
+		}
+
+		// Not one of ours, so not something to turn into a response.
+		throw $exception;
+	}
+
+	/**
+	 * Create a 404 response
 	 *
 	 * @return WP_Error
 	 */

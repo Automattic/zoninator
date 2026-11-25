@@ -1,0 +1,25 @@
+<?php
+/**
+ * Thrown when a user may not do what was asked.
+ *
+ * @package Automattic\Zoninator
+ */
+
+namespace Automattic\Zoninator\Domain;
+
+use RuntimeException;
+
+/**
+ * The user may not make this change to zones.
+ *
+ * @since 1.0.0
+ */
+final class AccessDeniedException extends RuntimeException {
+
+	/**
+	 * Constructor.
+	 */
+	public function __construct() {
+		parent::__construct( 'The user may not make this change.' );
+	}
+}

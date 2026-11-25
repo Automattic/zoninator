@@ -37,7 +37,7 @@ final class ZoninatorZoneFeedTest extends TestCase {
 		$zone_id  = $this->create_zone();
 		$post_ids = self::factory()->post->create_many( 2 );
 		$draft_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
-		self::zones()->add_posts( $zone_id, array( $post_ids[1], $draft_id, $post_ids[0] ) );
+		self::add_zone_posts( $zone_id, array( $post_ids[1], $draft_id, $post_ids[0] ) );
 
 		$feed = self::feed()->get( 'feed-zone' );
 
@@ -57,7 +57,7 @@ final class ZoninatorZoneFeedTest extends TestCase {
 				'post_password' => 'secret',
 			)
 		);
-		self::zones()->add_posts( $zone_id, array( $post_id ) );
+		self::add_zone_posts( $zone_id, array( $post_id ) );
 
 		$feed = self::feed()->get( 'feed-zone' );
 
@@ -67,7 +67,7 @@ final class ZoninatorZoneFeedTest extends TestCase {
 
 	public function test_feed_fields_filter_limits_the_fields(): void {
 		$zone_id = $this->create_zone();
-		self::zones()->add_posts( $zone_id, array( self::factory()->post->create() ) );
+		self::add_zone_posts( $zone_id, array( self::factory()->post->create() ) );
 		add_filter(
 			'zoninator_zone_feed_fields',
 			static function () {
@@ -89,7 +89,7 @@ final class ZoninatorZoneFeedTest extends TestCase {
 
 	public function test_feed_filters_get_the_zone_they_were_asked_for(): void {
 		$zone_id = $this->create_zone();
-		self::zones()->add_posts( $zone_id, array( self::factory()->post->create() ) );
+		self::add_zone_posts( $zone_id, array( self::factory()->post->create() ) );
 		$seen    = array();
 		$args    = static function ( $args, $zone ) use ( &$seen ) {
 			$seen[] = array( 'args', $args, $zone );
@@ -122,7 +122,7 @@ final class ZoninatorZoneFeedTest extends TestCase {
 	}
 
 	private function create_zone(): int {
-		$zone = self::zones()->insert( 'feed-zone', 'Feed zone' );
+		$zone = self::insert_zone( 'feed-zone', 'Feed zone' );
 
 		return (int) $zone['term_id'];
 	}

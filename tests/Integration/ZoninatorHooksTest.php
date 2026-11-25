@@ -16,11 +16,13 @@ namespace Automattic\Zoninator\Tests\Integration;
 use ArrayObject;
 use Automattic\Zoninator\Infrastructure\DI\Container;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm;
 use Automattic\Zoninator\Infrastructure\WordPress\Block;
 use Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint;
 use Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper;
 use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use Automattic\Zoninator\Infrastructure\WordPress\TermSplitHandler;
 use Automattic\Zoninator\Infrastructure\WordPress\Zones;
 use Zoninator_ZonePosts_Widget;
 
@@ -33,7 +35,7 @@ class ZoninatorHooksTest extends TestCase {
 		'init'                             => array( Taxonomy::class . '::register 10 1', FeedEndpoint::class . '::add_rewrite_rule 10 1' ),
 		'widgets_init'                     => array( Zoninator_ZonePosts_Widget::class . '::register 10 1' ),
 		'template_redirect'                => array( FeedEndpoint::class . '::serve 10 1' ),
-		'split_shared_term'                => array( Zones::class . '::split_shared_term 10 4' ),
+		'split_shared_term'                => array( TermSplitHandler::class . '::move_zone_posts 10 4' ),
 		'query_loop_block_query_vars'      => array( Block::class . '::filter_query_vars 10 2' ),
 		'rest_post_query'                  => array( Block::class . '::filter_rest_query 10 2' ),
 		'enqueue_block_editor_assets'      => array( Block::class . '::enqueue_editor_assets 10 1' ),
@@ -41,7 +43,7 @@ class ZoninatorHooksTest extends TestCase {
 		'rest_api_init'                    => array( PluginBootstrapper::class . '::register_rest_routes 10 1' ),
 		'wp_abilities_api_categories_init' => array( PluginBootstrapper::class . '::register_ability_categories 10 1' ),
 		'wp_abilities_api_init'            => array( PluginBootstrapper::class . '::register_abilities 10 1' ),
-		'admin_init'                       => array( Screen::class . '::handle_request 10 1' ),
+		'admin_init'                       => array( ZoneForm::class . '::handle_request 10 1' ),
 		'admin_enqueue_scripts'            => array( Screen::class . '::enqueue_scripts 10 1', Screen::class . '::enqueue_styles 10 1' ),
 		'admin_menu'                       => array( Screen::class . '::register_menu_page 10 1' ),
 		'zoninator_advanced_search_fields' => array( Screen::class . '::render_category_filter 10 1', Screen::class . '::render_date_filter 20 1' ),
@@ -110,14 +112,14 @@ class ZoninatorHooksTest extends TestCase {
 			'widget'           => array( 'widgets_init', array( 'Zoninator_ZonePosts_Widget', 'register' ), 10 ),
 			'feed rewrite'     => array( 'init', array( $feed, 'add_rewrite_rule' ), 10 ),
 			'feed'             => array( 'template_redirect', array( $feed, 'serve' ), 10 ),
-			'term split'       => array( 'split_shared_term', array( zoninator_container()->get( Zones::class ), 'split_shared_term' ), 10 ),
+			'term split'       => array( 'split_shared_term', array( zoninator_container()->get( TermSplitHandler::class ), 'move_zone_posts' ), 10 ),
 			'block query'      => array( 'query_loop_block_query_vars', array( $block, 'filter_query_vars' ), 10 ),
 			'block preview'    => array( 'rest_post_query', array( $block, 'filter_rest_query' ), 10 ),
 			'block editor'     => array( 'enqueue_block_editor_assets', array( $block, 'enqueue_editor_assets' ), 10 ),
 			'REST routes'      => array( 'rest_api_init', array( zoninator_container()->get( PluginBootstrapper::class ), 'register_rest_routes' ), 10 ),
 			'ability category' => array( 'wp_abilities_api_categories_init', array( zoninator_container()->get( PluginBootstrapper::class ), 'register_ability_categories' ), 10 ),
 			'abilities'        => array( 'wp_abilities_api_init', array( zoninator_container()->get( PluginBootstrapper::class ), 'register_abilities' ), 10 ),
-			'form handling'    => array( 'admin_init', array( $screen, 'handle_request' ), 10 ),
+			'form handling'    => array( 'admin_init', array( zoninator_container()->get( ZoneForm::class ), 'handle_request' ), 10 ),
 			'scripts'          => array( 'admin_enqueue_scripts', array( $screen, 'enqueue_scripts' ), 10 ),
 			'styles'           => array( 'admin_enqueue_scripts', array( $screen, 'enqueue_styles' ), 10 ),
 			'menu'             => array( 'admin_menu', array( $screen, 'register_menu_page' ), 10 ),
@@ -208,7 +210,7 @@ class ZoninatorHooksTest extends TestCase {
 
 	public function test_zone_post_columns_default_to_the_screen(): void {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
-		$zone = self::zones()->insert( 'pinned-zone', 'Pinned zone' );
+		$zone = self::insert_zone( 'pinned-zone', 'Pinned zone' );
 
 		$columns = null;
 		$spy     = static function ( $value ) use ( &$columns ) {

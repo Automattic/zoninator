@@ -73,6 +73,27 @@ final class ZoneCuratorTest extends TestCase {
 	}
 
 	/**
+	 * A zone's posts follow it when its ID changes, and the old ID needn't be a zone any more.
+	 */
+	public function test_move_posts_takes_every_post_to_the_other_zone_in_order(): void {
+		$this->zone_posts->replace( 99, array( 7, 5 ) );
+		$this->curator->set_posts( $this->zone_id, array( 6 ) );
+
+		$this->curator->move_posts( 99, $this->zone_id );
+
+		$this->assertSame( array( 7, 5 ), $this->zone_posts->post_ids[ $this->zone_id ] );
+		$this->assertArrayNotHasKey( 99, $this->zone_posts->post_ids );
+	}
+
+	public function test_move_posts_leaves_the_other_zone_alone_when_there_is_nothing_to_move(): void {
+		$this->curator->set_posts( $this->zone_id, array( 6 ) );
+
+		$this->curator->move_posts( 99, $this->zone_id );
+
+		$this->assertSame( array( 6 ), $this->zone_posts->post_ids[ $this->zone_id ] );
+	}
+
+	/**
 	 * A post is in a zone once, and only real post IDs count.
 	 */
 	public function test_repeated_and_invalid_ids_are_left_out(): void {

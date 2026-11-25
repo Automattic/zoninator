@@ -204,7 +204,7 @@ Errors use core's REST error shape, with a `code`, a `message` in the site's lan
 | `400` | `rest_invalid_param` | A parameter fails validation, such as a non-numeric `post_ids` entry. |
 | `400` | from WordPress, such as `term_exists` | A zone couldn't be created, updated or deleted. Creating a zone with neither `name` nor `slug` gives `zone-empty-slug`. |
 | `400` | `zone-id-required` | `PUT /zones/0/lock`: the lock endpoint needs a zone ID. |
-| `400` | `zone-locked` | `PUT /zones/{zone_id}/lock`: another user holds the zone's lock. |
+| `400` | `zone-locked` | Another user holds the zone's lock. Since 1.0.0 every route that changes a zone or its posts gives this, not only `PUT /zones/{zone_id}/lock`. The lock holder's own requests go through. |
 | `400` | `zones-read-error` | `GET /zones` couldn't read the zones. |
 | `400` | `zone-feed-error` | `GET /zones/{zone_id}/posts` couldn't assemble the zone's posts. |
 | `401` / `403` | `permission-denied` | The capability check failed: `401` when logged out, `403` when logged in. |

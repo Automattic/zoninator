@@ -124,7 +124,6 @@ final class Request {
 	 * @param int|null $zone_id Zone ID, for 'update' and 'delete'.
 	 */
 	public function verify_access( $action = '', $zone_id = null ) {
-		// Zone locks aren't checked on writes yet. See https://github.com/Automattic/zoninator/issues/215.
 		if ( ! $this->capabilities->check( $action, $zone_id ) ) {
 			$this->unauthorized_access();
 		}

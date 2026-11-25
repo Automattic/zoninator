@@ -7,12 +7,16 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
+use Automattic\Zoninator\Application\GuardedZoneCurator;
+use Automattic\Zoninator\Application\GuardedZoneManager;
 use Automattic\Zoninator\Application\ZoneCurator;
+use Automattic\Zoninator\Application\ZoneGuard;
 use Automattic\Zoninator\Application\ZoneLocker;
 use Automattic\Zoninator\Application\ZoneManager;
 use Automattic\Zoninator\Application\ZoneRemover;
 use Automattic\Zoninator\Infrastructure\DI\Container;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm;
 use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
 use Zoninator_ZonePosts_Widget;
 
@@ -62,28 +66,33 @@ final class PluginBootstrapper {
 		// So sites can unhook the callbacks below.
 		$container->add( $this );
 
-		$settings     = $container->add( new Settings() );
-		$taxonomy     = $container->add( new Taxonomy() );
-		$capabilities = $container->add( new Capabilities( $taxonomy ) );
-		$request      = $container->add( new Request( $capabilities ) );
-		$locker       = $container->add( new ZoneLocker( $container->add( new TransientLockStore() ), $settings ) );
-		$terms        = $container->add( new TermZoneRepository( $settings ) );
-		$zone_posts   = $container->add( new PostMetaZonePostsRepository( $terms, $taxonomy ) );
-		$manager      = $container->add( new ZoneManager( $terms, $settings ) );
-		$remover      = $container->add( new ZoneRemover( $terms, $zone_posts, $locker ) );
-		$curator      = $container->add( new ZoneCurator( $terms, $zone_posts ) );
-		$zones        = $container->add( new Zones( $taxonomy, $capabilities, $terms, $manager, $remover, $curator ) );
-		$feed         = $container->add( new Feed( $zones ) );
-		$screen       = $container->add( new Screen( $zones, $locker, $settings, $capabilities, $request ) );
-		$search       = $container->add( new Search( $taxonomy, $settings, $capabilities, $zones ) );
+		$settings      = $container->add( new Settings() );
+		$taxonomy      = $container->add( new Taxonomy() );
+		$capabilities  = $container->add( new Capabilities( $taxonomy ) );
+		$request       = $container->add( new Request( $capabilities ) );
+		$locker        = $container->add( new ZoneLocker( $container->add( new TransientLockStore() ), $settings ) );
+		$terms         = $container->add( new TermZoneRepository( $settings ) );
+		$zone_posts    = $container->add( new PostMetaZonePostsRepository( $terms, $taxonomy ) );
+		$manager       = $container->add( new ZoneManager( $terms, $settings ) );
+		$remover       = $container->add( new ZoneRemover( $terms, $zone_posts, $locker ) );
+		$curator       = $container->add( new ZoneCurator( $terms, $zone_posts ) );
+		$guard         = $container->add( new ZoneGuard( $capabilities, $locker ) );
+		$guarded_zones = $container->add( new GuardedZoneManager( $manager, $remover, $guard ) );
+		$guarded_posts = $container->add( new GuardedZoneCurator( $curator, $guard ) );
+		$zones         = $container->add( new Zones( $taxonomy, $capabilities, $terms ) );
+		$container->add( new TermSplitHandler( $curator ) );
+		$feed   = $container->add( new Feed( $zones ) );
+		$screen = $container->add( new Screen( $zones, $locker, $settings, $capabilities, $request ) );
+		$container->add( new ZoneForm( $screen, $request, $guarded_zones ) );
+		$search = $container->add( new Search( $taxonomy, $settings, $capabilities, $zones ) );
 		$container->add( new FeedEndpoint( $feed ) );
 		$container->add( new Block( $zones ) );
 
 		// Only REST and Abilities API requests need these, so they're built, and their files loaded, then.
 		$container->factory(
 			ZonesController::class,
-			static function () use ( $zones, $locker, $feed, $settings, $capabilities, $screen, $search ) {
-				return new ZonesController( $zones, $locker, $feed, $settings, $capabilities, $screen, $search );
+			static function () use ( $zones, $locker, $feed, $settings, $capabilities, $screen, $search, $guarded_zones, $guarded_posts ) {
+				return new ZonesController( $zones, $locker, $feed, $settings, $capabilities, $screen, $search, $guarded_zones, $guarded_posts );
 			}
 		);
 		$container->factory(
@@ -102,10 +111,11 @@ final class PluginBootstrapper {
 	public function register_hooks() {
 		Zoninator_ZonePosts_Widget::register_hooks();
 		$this->container->get( Taxonomy::class )->register_hooks();
-		$this->container->get( Zones::class )->register_hooks();
+		$this->container->get( TermSplitHandler::class )->register_hooks();
 		$this->container->get( FeedEndpoint::class )->register_hooks();
 		$this->container->get( Block::class )->register_hooks();
 		$this->container->get( Screen::class )->register_hooks();
+		$this->container->get( ZoneForm::class )->register_hooks();
 
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 		add_action( 'wp_abilities_api_categories_init', array( $this, 'register_ability_categories' ) );

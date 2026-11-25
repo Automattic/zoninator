@@ -30,11 +30,11 @@ class ZoninatorZonePostsCacheTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$zone          = self::zones()->insert( 'cache-zone', 'Cache Zone' );
+		$zone          = self::insert_zone( 'cache-zone', 'Cache Zone' );
 		$this->zone_id = $zone['term_id'];
 
 		$this->post_ids = self::factory()->post->create_many( 3 );
-		self::zones()->add_posts( $this->zone_id, array( $this->post_ids[0], $this->post_ids[1] ) );
+		self::add_zone_posts( $this->zone_id, array( $this->post_ids[0], $this->post_ids[1] ) );
 	}
 
 	/**
@@ -61,7 +61,7 @@ class ZoninatorZonePostsCacheTest extends TestCase {
 	public function test_added_post_shows_right_away() {
 		$this->get_zone_post_ids();
 
-		self::zones()->add_posts( $this->zone_id, array( $this->post_ids[2] ), true );
+		self::add_zone_posts( $this->zone_id, array( $this->post_ids[2] ), true );
 
 		$this->assertSame( $this->post_ids, $this->get_zone_post_ids() );
 	}
@@ -69,7 +69,7 @@ class ZoninatorZonePostsCacheTest extends TestCase {
 	public function test_removed_post_is_gone_right_away() {
 		$this->get_zone_post_ids();
 
-		self::zones()->remove_posts( $this->zone_id, array( $this->post_ids[0] ) );
+		self::remove_zone_posts( $this->zone_id, array( $this->post_ids[0] ) );
 
 		$this->assertSame( array( $this->post_ids[1] ), $this->get_zone_post_ids() );
 	}
@@ -77,7 +77,7 @@ class ZoninatorZonePostsCacheTest extends TestCase {
 	public function test_new_order_shows_right_away() {
 		$this->get_zone_post_ids();
 
-		self::zones()->add_posts( $this->zone_id, array( $this->post_ids[1], $this->post_ids[0] ) );
+		self::add_zone_posts( $this->zone_id, array( $this->post_ids[1], $this->post_ids[0] ) );
 
 		$this->assertSame( array( $this->post_ids[1], $this->post_ids[0] ), $this->get_zone_post_ids() );
 	}

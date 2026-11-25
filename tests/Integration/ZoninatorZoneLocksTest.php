@@ -26,7 +26,7 @@ class ZoninatorZoneLocksTest extends TestCase {
 	public function set_up(): void {
 		parent::set_up();
 
-		$zone           = self::zones()->insert( 'locked-zone', 'Locked zone' );
+		$zone           = self::insert_zone( 'locked-zone', 'Locked zone' );
 		$this->zone_id  = (int) $zone['term_id'];
 		$this->other_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
@@ -84,7 +84,8 @@ class ZoninatorZoneLocksTest extends TestCase {
 	public function test_deleting_a_zone_releases_its_lock(): void {
 		self::locker()->lock( $this->zone_id, $this->other_id );
 
-		$this->assertTrue( self::zones()->delete( $this->zone_id ) );
+		self::delete_zone( $this->zone_id );
+
 		$this->assertFalse( get_transient( self::zones()->get_meta_key( $this->zone_id ) ) );
 	}
 }
