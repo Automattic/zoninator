@@ -62,8 +62,14 @@ zoninator/
 │   │       ├── Admin/
 │   │       │   ├── Screen.php       # Zones admin screen (markup, assets)
 │   │       │   └── ZoneForm.php     # Saves the screen's zone form
-│   │       └── Rest/
-│   │           └── ZonesController.php # REST endpoints (/zoninator/v1/zones)
+│   │       └── Rest/                # The zoninator/v1 REST API
+│   │           ├── ZonesController.php     # /zones and /zones/{zone_id}
+│   │           ├── ZonePostsController.php # A zone's posts
+│   │           ├── SearchController.php    # /search
+│   │           ├── LockController.php      # A zone's lock
+│   │           ├── Permissions.php         # The routes' permission callbacks
+│   │           ├── RespondsToRequests.php  # Trait: param reading and responses
+│   │           └── ErrorCodes.php          # The error codes clients match on
 │   └── class-zoninator-zoneposts-widget.php  # Zone Posts widget (global class)
 ├── css/                             # Admin stylesheets
 ├── js/                              # Admin JavaScript (jQuery sortable, autocomplete) and the block editor script
@@ -106,7 +112,7 @@ zoninator/
 - `src/Infrastructure/WordPress/Admin/ZoneForm.php` — `Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm`: saves the screen's zone form (create, update, delete) through `GuardedZoneManager`, then redirects.
 - `functions.php` — The template tags themes use to read zones: `zoninator_get_zones()`, `zoninator_get_zone()`, `zoninator_get_posts_in_zone()`, `zoninator_get_zone_query()`, `zoninator_get_next_post_in_zone()`, `zoninator_get_prev_post_in_zone()` and `zoninator_get_post_zones()`, plus `zoninator_disable_locks()`. They return `WP_Term`, `WP_Post` and `WP_Query`. Before 1.0.0 they began with `z_`.
 - `src/class-zoninator-zoneposts-widget.php` — Classic widget (`Zoninator_ZonePosts_Widget`). It takes `Zones` in its constructor; WordPress builds widgets itself with no arguments, so it falls back to the container's.
-- `src/Infrastructure/WordPress/Rest/ZonesController.php` — `Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController`, a `WP_REST_Controller` that registers the `zoninator/v1` routes, including the ones the Zones screen uses. Its search route calls `Search`. `PluginBootstrapper::register_rest_routes()` gets it from the container, which loads it, on `rest_api_init`.
+- `src/Infrastructure/WordPress/Rest/` — the `zoninator/v1` REST API, one `WP_REST_Controller` for each resource: `ZonesController` (`/zones`, `/zones/{zone_id}`), `ZonePostsController` (a zone's posts), `SearchController` (`/search`) and `LockController` (a zone's lock). Each takes what it works on plus `Permissions`, which holds the routes' permission callbacks. The `RespondsToRequests` trait gives them the same param reading and responses, including `error_response()`, which turns a `Domain` exception into the API's error. `ErrorCodes` holds the error codes clients match on. `PluginBootstrapper::register_rest_routes()` gets the controllers from the container, which loads them, on `rest_api_init`.
 - `tests/Integration/TestCase.php` — Base class for integration tests. Its static helpers (`zones()`, `locker()`, `taxonomy()`, `settings()` and `feed()`) return the plugin's own objects from the container.
 
 ### Storage model
@@ -158,7 +164,7 @@ See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key point
 - **Taxonomy and post meta storage**: Zones are custom taxonomy terms; each post's position in a zone is post meta, which the zone query orders by. This uses WordPress's built-in caching and query infrastructure. Do not switch to custom database tables.
 - **Template tags in `functions.php`**: Theme developers consume zones through these functions. They are part of the public API — do not rename or change signatures without a deprecation cycle.
 - **Namespaces and layers**: Classes go under `Automattic\Zoninator\`, in `src/`, named and placed for PSR-4 (`Automattic\Zoninator\Infrastructure\WordPress\Feed` is `src/Infrastructure/WordPress/Feed.php`). A small autoloader in `zoninator.php` loads them on first use, as the release package has no Composer autoloader. The layers follow `plugin-standards/ARCHITECTURE.md` and legacy-redirector: `Domain` (zone rules, no WordPress), `Application` (use cases) and `Infrastructure` (WordPress and wiring). `Domain` and `Application` must run without WordPress: `Domain` names no other layer, `Application` names only `Domain`, and `tests/Unit/LayersTest.php` checks both. They report failure by throwing a domain exception, which `Infrastructure` turns into a `WP_Error` or a response. Zone locks, and creating, changing, deleting and curating zones, are there so far. Reading zones and their posts is still in `Infrastructure`, because themes are given `WP_Term`, `WP_Post` and `WP_Query`. Classes are `final` unless a site has a reason to extend them. The two legacy global classes, `Zoninator` and `Zoninator_ZonePosts_Widget`, stay in `class-*.php` files loaded with `require_once`.
-- **REST controller on core**: The REST API extends core's `WP_REST_Controller` directly. `ZoninatorRestContractTest` pins its routes, methods, args and response bodies; change them only on purpose.
+- **REST controllers on core**: Each REST controller extends core's `WP_REST_Controller` directly, and covers one resource. A controller parses the request, calls an `Application` class (a guarded one for any change) and builds the response; it holds no rules of its own. `ZoninatorRestContractTest` pins its routes, methods, args and response bodies; change them only on purpose.
 - **Each class registers the hooks it handles** in a `register_hooks()` method, with callbacks on itself. Constructors don't add hooks (except the widget's, as WordPress builds widgets itself); `PluginBootstrapper::register_hooks()` calls each `register_hooks()` once. Sites unhook through `zoninator_container()->get()`, on `plugins_loaded` at priority 20. Moving a callback breaks a site's `remove_action()` silently, so `ZoninatorHooksTest` pins every hook's callback, priority and accepted args; change it only with a row in the upgrade guide's unhooking table.
 - **No hidden dependencies**: a class calls another only through an object it was given in its constructor, never through a static method, a global or a template tag. The widget's fallback to the container is the one exception, because WordPress builds it.
 - **Dependencies run one way**: `PluginBootstrapper::build()` builds every class by hand and passes each the objects it needs in its constructor. It's a small container of its own, not a library: the release ships without Composer's autoloader, and a bundled container would need scoping to avoid clashing with other plugins. Add a class by building it in `PluginBootstrapper::build()`, or as a factory there if only some requests need it. `tests/Unit/LayersTest.php` checks that `Domain` and `Application` don't name a layer above them.

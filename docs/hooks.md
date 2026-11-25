@@ -60,7 +60,7 @@ Per-zone editing check. `$has_cap` is whether the user has the `zoninator_edit_z
 
 ### `zoninator_rest_get_zones_permissions_check` (filter)
 
-Fires from `src/Infrastructure/WordPress/Rest/ZonesController.php`. Whether the `GET /zoninator/v1/zones` endpoint authorizes the current request. Defaults to `is_user_logged_in()` since 0.11.0; return `true` to restore the historical anonymous behavior.
+Fires from `src/Infrastructure/WordPress/Rest/Permissions.php`. Whether the `GET /zoninator/v1/zones` endpoint authorizes the current request. Defaults to `is_user_logged_in()` since 0.11.0; return `true` to restore the historical anonymous behavior.
 
 - **Parameters:** `bool $authorized`, `WP_REST_Request $request`
 

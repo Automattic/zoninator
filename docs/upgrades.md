@@ -180,7 +180,7 @@ The classes 0.12.0 added under `Automattic\Zoninator\` are internal, but if your
 | 0.12.x | 1.0.0 |
 |---|---|
 | `Automattic\Zoninator\Admin\Screen` | `Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen` |
-| `Automattic\Zoninator\REST\Zones_Controller` | `Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController` |
+| `Automattic\Zoninator\REST\Zones_Controller` | Four controllers under `Automattic\Zoninator\Infrastructure\WordPress\Rest\`: `ZonesController`, `ZonePostsController`, `SearchController` and `LockController`. Its error code constants are on `ErrorCodes` |
 | `Automattic\Zoninator\Settings`, `Taxonomy`, `Capabilities`, `Request`, `Zones` and `Feed` | The same class name under `Automattic\Zoninator\Infrastructure\WordPress\` |
 | `Automattic\Zoninator\Locks` | `Automattic\Zoninator\Application\ZoneLocker`, whose `lock()` and `get_blocker_id()` take a zone ID and a user ID |
 
@@ -239,7 +239,7 @@ Zoninator no longer bundles the Mixtape REST library. The routes, their argument
 
 - The `Zoninator_Api`, `Zoninator_Api_Controller`, `Zoninator_Api_Filter_Search`, `Zoninator_Api_Schema_Converter` and `Zoninator_REST_*` classes are gone.
 - The `mixtape_*`, `mt_*` and `rest_api_schema_properties` hooks are gone. To change a route, use core's REST hooks, such as `rest_endpoints` or `rest_pre_dispatch`.
-- `Zoninator()->rest_api` is now an `Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController`. It's set on `rest_api_init`, so it's `null` before then.
+- `Zoninator()->rest_api` is now the REST controller, set on `rest_api_init`, so it's `null` before then. (1.0.0 removes it.)
 
 What changes for REST clients:
 
