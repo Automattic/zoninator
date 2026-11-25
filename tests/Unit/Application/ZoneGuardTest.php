@@ -69,7 +69,7 @@ final class ZoneGuardTest extends TestCase {
 		$this->locker     = new ZoneLocker( new InMemoryLockStore(), $settings, $this->zones );
 		$this->zone_posts = new InMemoryZonePostsRepository();
 		$guard            = new ZoneGuard( $this->access, $this->locker, $this->zones );
-		$curator          = new ZoneCurator( $this->zones, $this->zone_posts );
+		$curator          = new ZoneCurator( $this->zones, $this->zone_posts, $settings );
 		$this->manager    = new GuardedZoneManager( new ZoneManager( $this->zones, $settings ), new ZoneRemover( $this->zones, $this->zone_posts, $this->locker ), $guard );
 		$this->curator    = new GuardedZoneCurator( $curator, $guard );
 

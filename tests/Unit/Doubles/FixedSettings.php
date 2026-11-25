@@ -17,8 +17,19 @@ use Automattic\Zoninator\Domain\ZoneSettingsInterface;
  */
 final class FixedSettings implements LockSettingsInterface, ZoneSettingsInterface {
 
+	/**
+	 * The most posts a zone may hold, or 0 for no limit.
+	 *
+	 * @var int
+	 */
+	public $post_limit = 0;
+
 	public function get_lock_period(): int {
 		return 30;
+	}
+
+	public function get_post_limit( int $zone_id ): int {
+		return $this->post_limit;
 	}
 
 	public function get_detail_defaults(): array {

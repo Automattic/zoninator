@@ -10,6 +10,7 @@ namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 use Automattic\Zoninator\Domain\AccessDeniedException;
 use Automattic\Zoninator\Domain\InvalidZoneException;
 use Automattic\Zoninator\Domain\PostNotAllowedException;
+use Automattic\Zoninator\Domain\ZoneFullException;
 use Automattic\Zoninator\Domain\ZoneLockedException;
 use Automattic\Zoninator\Domain\ZoneNotFoundException;
 use Automattic\Zoninator\Domain\ZoneNotSavedException;
@@ -131,6 +132,10 @@ trait RespondsToRequests {
 
 		if ( $exception instanceof ZoneNotFoundException ) {
 			return $this->zone_not_found();
+		}
+
+		if ( $exception instanceof ZoneFullException ) {
+			return $this->bad_request( ErrorCodes::ZONE_FULL, __( 'Sorry, another item cannot be added to this zone.', 'zoninator' ) );
 		}
 
 		if ( $exception instanceof PostNotAllowedException ) {

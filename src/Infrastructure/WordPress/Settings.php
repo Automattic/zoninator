@@ -81,6 +81,24 @@ final class Settings implements LockSettingsInterface, ZoneSettingsInterface {
 	}
 
 	/**
+	 * The most posts a zone may hold.
+	 *
+	 * @param int $zone_id Zone ID.
+	 * @return int The limit, or 0 for no limit.
+	 */
+	public function get_post_limit( int $zone_id ): int {
+		/**
+		 * Filters the most posts a zone may hold.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param int $limit   The limit. 0, the default, means no limit.
+		 * @param int $zone_id Zone ID.
+		 */
+		return max( 0, (int) apply_filters( 'zoninator_post_count_limit', 0, $zone_id ) );
+	}
+
+	/**
 	 * Gets one of the Zones screen's messages.
 	 *
 	 * @param string $message_id Message ID, such as 'error-zone-lock'.
