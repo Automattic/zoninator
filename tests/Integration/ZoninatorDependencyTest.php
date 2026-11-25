@@ -21,10 +21,6 @@ final class ZoninatorDependencyTest extends TestCase {
 	 * @param string $class_name Class to check.
 	 */
 	public function test_class_does_not_take_zoninator( string $class_name ): void {
-		// These two load only when needed.
-		require_once dirname( __DIR__, 2 ) . '/src/rest/class-zones-controller.php';
-		require_once dirname( __DIR__, 2 ) . '/src/class-abilities.php';
-
 		$constructor = ( new ReflectionClass( $class_name ) )->getConstructor();
 		$parameters  = $constructor ? $constructor->getParameters() : array();
 
@@ -43,18 +39,18 @@ final class ZoninatorDependencyTest extends TestCase {
 	 * Zoninator builds nothing itself, so tests can hand it parts of their own.
 	 */
 	public function test_zoninator_works_with_parts_it_is_given(): void {
-		$settings     = new \Automattic\Zoninator\Settings();
-		$taxonomy     = new \Automattic\Zoninator\Taxonomy();
-		$capabilities = new \Automattic\Zoninator\Capabilities( $taxonomy );
-		$zones        = new \Automattic\Zoninator\Zones( $settings, $taxonomy, $capabilities );
+		$settings     = new \Automattic\Zoninator\Infrastructure\WordPress\Settings();
+		$taxonomy     = new \Automattic\Zoninator\Infrastructure\WordPress\Taxonomy();
+		$capabilities = new \Automattic\Zoninator\Infrastructure\WordPress\Capabilities( $taxonomy );
+		$zones        = new \Automattic\Zoninator\Infrastructure\WordPress\Zones( $settings, $taxonomy, $capabilities );
 		$zoninator    = new \Zoninator(
 			$settings,
 			$taxonomy,
 			$capabilities,
-			new \Automattic\Zoninator\Request( $capabilities ),
+			new \Automattic\Zoninator\Infrastructure\WordPress\Request( $capabilities ),
 			$zones,
-			new \Automattic\Zoninator\Locks( $zones, $settings ),
-			new \Automattic\Zoninator\Feed( $zones )
+			new \Automattic\Zoninator\Infrastructure\WordPress\Locks( $zones, $settings ),
+			new \Automattic\Zoninator\Infrastructure\WordPress\Feed( $zones )
 		);
 		$zone      = $zoninator->insert_zone( 'parts-zone', 'Parts zone' );
 
@@ -67,19 +63,19 @@ final class ZoninatorDependencyTest extends TestCase {
 	 */
 	public function data_classes(): array {
 		$classes = array(
-			\Automattic\Zoninator\Settings::class,
-			\Automattic\Zoninator\Taxonomy::class,
-			\Automattic\Zoninator\Capabilities::class,
-			\Automattic\Zoninator\Request::class,
-			\Automattic\Zoninator\Zones::class,
-			\Automattic\Zoninator\Locks::class,
-			\Automattic\Zoninator\Feed::class,
-			\Automattic\Zoninator\Block::class,
-			\Automattic\Zoninator\Admin\Screen::class,
-			\Automattic\Zoninator\REST\Zones_Controller::class,
-			\Automattic\Zoninator\Abilities::class,
+			\Automattic\Zoninator\Infrastructure\WordPress\Settings::class,
+			\Automattic\Zoninator\Infrastructure\WordPress\Taxonomy::class,
+			\Automattic\Zoninator\Infrastructure\WordPress\Capabilities::class,
+			\Automattic\Zoninator\Infrastructure\WordPress\Request::class,
+			\Automattic\Zoninator\Infrastructure\WordPress\Zones::class,
+			\Automattic\Zoninator\Infrastructure\WordPress\Locks::class,
+			\Automattic\Zoninator\Infrastructure\WordPress\Feed::class,
+			\Automattic\Zoninator\Infrastructure\WordPress\Block::class,
+			\Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class,
+			\Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController::class,
+			\Automattic\Zoninator\Infrastructure\WordPress\Abilities::class,
 			\Zoninator::class,
-			\Automattic\Zoninator\Bootstrapper::class,
+			\Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper::class,
 		);
 
 		return array_combine( $classes, array_map( static fn( $class_name ) => array( $class_name ), $classes ) );

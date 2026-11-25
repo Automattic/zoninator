@@ -19,21 +19,21 @@ class ZoninatorHooksTest extends TestCase {
 	 * Every hook the plugin registers, as hook => list of "Class::method priority accepted_args".
 	 */
 	private const HOOKS = array(
-		'init'                             => array( 'Automattic\\Zoninator\\Taxonomy::register 10 1', 'Automattic\\Zoninator\\Feed::add_rewrite_rule 10 1' ),
+		'init'                             => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Taxonomy::register 10 1', 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Feed::add_rewrite_rule 10 1' ),
 		'widgets_init'                     => array( 'Zoninator_ZonePosts_Widget::register 10 1' ),
-		'template_redirect'                => array( 'Automattic\\Zoninator\\Feed::serve 10 1' ),
-		'split_shared_term'                => array( 'Automattic\\Zoninator\\Zones::split_shared_term 10 4' ),
-		'query_loop_block_query_vars'      => array( 'Automattic\\Zoninator\\Block::filter_query_vars 10 2' ),
-		'rest_post_query'                  => array( 'Automattic\\Zoninator\\Block::filter_rest_query 10 2' ),
-		'enqueue_block_editor_assets'      => array( 'Automattic\\Zoninator\\Block::enqueue_editor_assets 10 1' ),
+		'template_redirect'                => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Feed::serve 10 1' ),
+		'split_shared_term'                => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Zones::split_shared_term 10 4' ),
+		'query_loop_block_query_vars'      => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Block::filter_query_vars 10 2' ),
+		'rest_post_query'                  => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Block::filter_rest_query 10 2' ),
+		'enqueue_block_editor_assets'      => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Block::enqueue_editor_assets 10 1' ),
 		'plugins_loaded'                   => array( 'zoninator_container 10 1' ),
-		'rest_api_init'                    => array( 'Automattic\\Zoninator\\Bootstrapper::register_rest_routes 10 1' ),
-		'wp_abilities_api_categories_init' => array( 'Automattic\\Zoninator\\Bootstrapper::register_ability_categories 10 1' ),
-		'wp_abilities_api_init'            => array( 'Automattic\\Zoninator\\Bootstrapper::register_abilities 10 1' ),
-		'admin_init'                       => array( 'Automattic\\Zoninator\\Admin\\Screen::handle_request 10 1' ),
-		'admin_enqueue_scripts'            => array( 'Automattic\\Zoninator\\Admin\\Screen::enqueue_scripts 10 1', 'Automattic\\Zoninator\\Admin\\Screen::enqueue_styles 10 1' ),
-		'admin_menu'                       => array( 'Automattic\\Zoninator\\Admin\\Screen::register_menu_page 10 1' ),
-		'zoninator_advanced_search_fields' => array( 'Automattic\\Zoninator\\Admin\\Screen::render_category_filter 10 1', 'Automattic\\Zoninator\\Admin\\Screen::render_date_filter 20 1' ),
+		'rest_api_init'                    => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\PluginBootstrapper::register_rest_routes 10 1' ),
+		'wp_abilities_api_categories_init' => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\PluginBootstrapper::register_ability_categories 10 1' ),
+		'wp_abilities_api_init'            => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\PluginBootstrapper::register_abilities 10 1' ),
+		'admin_init'                       => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Admin\\Screen::handle_request 10 1' ),
+		'admin_enqueue_scripts'            => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Admin\\Screen::enqueue_scripts 10 1', 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Admin\\Screen::enqueue_styles 10 1' ),
+		'admin_menu'                       => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Admin\\Screen::register_menu_page 10 1' ),
+		'zoninator_advanced_search_fields' => array( 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Admin\\Screen::render_category_filter 10 1', 'Automattic\\Zoninator\\Infrastructure\\WordPress\\Admin\\Screen::render_date_filter 20 1' ),
 		// The widget registers these on itself when it's built.
 		'save_post'                        => array( 'Zoninator_ZonePosts_Widget::flush_widget_cache 10 1' ),
 		'deleted_post'                     => array( 'Zoninator_ZonePosts_Widget::flush_widget_cache 10 1' ),
@@ -90,22 +90,22 @@ class ZoninatorHooksTest extends TestCase {
 	 * @return array<string, array{string, callable, int}>
 	 */
 	public function data_unhook_calls(): array {
-		$screen = zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class );
-		$feed   = zoninator_container()->get( \Automattic\Zoninator\Feed::class );
-		$block  = zoninator_container()->get( \Automattic\Zoninator\Block::class );
+		$screen = zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class );
+		$feed   = zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Feed::class );
+		$block  = zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class );
 
 		return array(
-			'taxonomy'         => array( 'init', array( zoninator_container()->get( \Automattic\Zoninator\Taxonomy::class ), 'register' ), 10 ),
+			'taxonomy'         => array( 'init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Taxonomy::class ), 'register' ), 10 ),
 			'widget'           => array( 'widgets_init', array( 'Zoninator_ZonePosts_Widget', 'register' ), 10 ),
 			'feed rewrite'     => array( 'init', array( $feed, 'add_rewrite_rule' ), 10 ),
 			'feed'             => array( 'template_redirect', array( $feed, 'serve' ), 10 ),
-			'term split'       => array( 'split_shared_term', array( zoninator_container()->get( \Automattic\Zoninator\Zones::class ), 'split_shared_term' ), 10 ),
+			'term split'       => array( 'split_shared_term', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Zones::class ), 'split_shared_term' ), 10 ),
 			'block query'      => array( 'query_loop_block_query_vars', array( $block, 'filter_query_vars' ), 10 ),
 			'block preview'    => array( 'rest_post_query', array( $block, 'filter_rest_query' ), 10 ),
 			'block editor'     => array( 'enqueue_block_editor_assets', array( $block, 'enqueue_editor_assets' ), 10 ),
-			'REST routes'      => array( 'rest_api_init', array( zoninator_container()->get( \Automattic\Zoninator\Bootstrapper::class ), 'register_rest_routes' ), 10 ),
-			'ability category' => array( 'wp_abilities_api_categories_init', array( zoninator_container()->get( \Automattic\Zoninator\Bootstrapper::class ), 'register_ability_categories' ), 10 ),
-			'abilities'        => array( 'wp_abilities_api_init', array( zoninator_container()->get( \Automattic\Zoninator\Bootstrapper::class ), 'register_abilities' ), 10 ),
+			'REST routes'      => array( 'rest_api_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper::class ), 'register_rest_routes' ), 10 ),
+			'ability category' => array( 'wp_abilities_api_categories_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper::class ), 'register_ability_categories' ), 10 ),
+			'abilities'        => array( 'wp_abilities_api_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper::class ), 'register_abilities' ), 10 ),
 			'form handling'    => array( 'admin_init', array( $screen, 'handle_request' ), 10 ),
 			'scripts'          => array( 'admin_enqueue_scripts', array( $screen, 'enqueue_scripts' ), 10 ),
 			'styles'           => array( 'admin_enqueue_scripts', array( $screen, 'enqueue_styles' ), 10 ),
@@ -120,10 +120,10 @@ class ZoninatorHooksTest extends TestCase {
 	 * bootstrapper control when hooks are added.
 	 */
 	public function test_building_the_classes_adds_no_hooks(): void {
-		$container    = new \Automattic\Zoninator\Container();
-		$bootstrapper = new \Automattic\Zoninator\Bootstrapper( $container );
+		$container    = new \Automattic\Zoninator\Infrastructure\DI\Container();
+		$bootstrapper = new \Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper( $container );
 		$bootstrapper->build();
-		$callback = array( $container->get( \Automattic\Zoninator\Admin\Screen::class ), 'register_menu_page' );
+		$callback = array( $container->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'register_menu_page' );
 
 		$this->assertFalse( has_action( 'admin_menu', $callback ) );
 
@@ -136,27 +136,27 @@ class ZoninatorHooksTest extends TestCase {
 	 * The REST controller is only built when first asked for, and then kept.
 	 */
 	public function test_container_builds_lazy_classes_once(): void {
-		$container = new \Automattic\Zoninator\Container();
-		( new \Automattic\Zoninator\Bootstrapper( $container ) )->build();
+		$container = new \Automattic\Zoninator\Infrastructure\DI\Container();
+		( new \Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper( $container ) )->build();
 
-		$this->assertTrue( $container->has( \Automattic\Zoninator\REST\Zones_Controller::class ) );
-		$this->assertSame( $container->get( \Automattic\Zoninator\REST\Zones_Controller::class ), $container->get( \Automattic\Zoninator\REST\Zones_Controller::class ) );
+		$this->assertTrue( $container->has( \Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController::class ) );
+		$this->assertSame( $container->get( \Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController::class ), $container->get( \Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController::class ) );
 	}
 
 	/**
 	 * The container knows nothing about Zoninator's classes, so it can hold a stand-in.
 	 */
 	public function test_container_holds_whatever_it_is_given(): void {
-		$container = new \Automattic\Zoninator\Container();
+		$container = new \Automattic\Zoninator\Infrastructure\DI\Container();
 		$stand_in  = new \ArrayObject();
 
 		$this->assertSame( $stand_in, $container->add( $stand_in ) );
 		$this->assertSame( $stand_in, $container->get( \ArrayObject::class ) );
-		$this->assertFalse( $container->has( \Automattic\Zoninator\Zones::class ) );
+		$this->assertFalse( $container->has( \Automattic\Zoninator\Infrastructure\WordPress\Zones::class ) );
 	}
 
 	public function test_get_returns_null_with_a_notice_for_a_class_it_did_not_build(): void {
-		$this->setExpectedIncorrectUsage( 'Automattic\Zoninator\Container::get' );
+		$this->setExpectedIncorrectUsage( 'Automattic\Zoninator\Infrastructure\DI\Container::get' );
 
 		$this->assertFalse( zoninator_container()->has( 'WP_Query' ) );
 		$this->assertNull( zoninator_container()->get( 'WP_Query' ) );
@@ -196,9 +196,9 @@ class ZoninatorHooksTest extends TestCase {
 	public function test_menu_page_renders_with_the_screen(): void {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 
-		zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class )->register_menu_page();
+		zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class )->register_menu_page();
 
-		$this->assertSame( 10, has_action( 'toplevel_page_zoninator', array( zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class ), 'render' ) ) );
+		$this->assertSame( 10, has_action( 'toplevel_page_zoninator', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'render' ) ) );
 	}
 
 	public function test_zone_post_columns_default_to_the_screen(): void {
@@ -213,14 +213,14 @@ class ZoninatorHooksTest extends TestCase {
 		add_filter( 'zoninator_zone_post_columns', $spy );
 
 		ob_start();
-		zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class )->render_zone_post( get_post( self::factory()->post->create() ), Zoninator()->get_zone( (int) $zone['term_id'] ) );
+		zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class )->render_zone_post( get_post( self::factory()->post->create() ), Zoninator()->get_zone( (int) $zone['term_id'] ) );
 		ob_end_clean();
 
 		remove_filter( 'zoninator_zone_post_columns', $spy );
 		$this->assertSame(
 			array(
-				'position' => array( zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class ), 'render_position_column' ),
-				'info'     => array( zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class ), 'render_info_column' ),
+				'position' => array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'render_position_column' ),
+				'info'     => array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'render_info_column' ),
 			),
 			$columns
 		);
@@ -231,7 +231,7 @@ class ZoninatorHooksTest extends TestCase {
 		$screen = get_current_screen();
 		set_current_screen( 'toplevel_page_zoninator' );
 
-		zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class )->enqueue_scripts();
+		zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class )->enqueue_scripts();
 
 		$GLOBALS['current_screen'] = $screen; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		$this->assertTrue( wp_script_is( 'zoninator-js', 'enqueued' ) );

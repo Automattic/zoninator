@@ -5,7 +5,7 @@
  * @package Automattic\Zoninator
  */
 
-namespace Automattic\Zoninator;
+namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 /**
  * Registers the zoninator_zones taxonomy, which stores the zones, and
@@ -26,7 +26,7 @@ final class Taxonomy {
 	public const NAME = 'zoninator_zones';
 
 	/**
-	 * Gives posts zone support, and hooks the taxonomy's registration. Bootstrapper::register_hooks() calls this once.
+	 * Gives posts zone support, and hooks the taxonomy's registration. PluginBootstrapper::register_hooks() calls this once.
 	 *
 	 * @since 1.0.0
 	 */

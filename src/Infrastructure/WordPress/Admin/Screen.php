@@ -5,19 +5,19 @@
  * @package Automattic\Zoninator
  */
 
-namespace Automattic\Zoninator\Admin;
+namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 
-use Automattic\Zoninator\Capabilities;
-use Automattic\Zoninator\Locks;
-use Automattic\Zoninator\Request;
-use Automattic\Zoninator\Settings;
-use Automattic\Zoninator\Zones;
+use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
+use Automattic\Zoninator\Infrastructure\WordPress\Locks;
+use Automattic\Zoninator\Infrastructure\WordPress\Request;
+use Automattic\Zoninator\Infrastructure\WordPress\Settings;
+use Automattic\Zoninator\Infrastructure\WordPress\Zones;
 
 /**
  * Renders the Zones admin screen, saves its zone form, and loads its assets.
  *
  * It registers its own hooks in register_hooks(). Sites reach it with
- * zoninator_container()->get( \Automattic\Zoninator\Admin\Screen::class ) to unhook them.
+ * zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ) to unhook them.
  *
  * @since 0.12.0
  * @internal Use Zoninator(), the template tags and the hooks instead.
@@ -83,7 +83,7 @@ final class Screen {
 
 	/**
 	 * Hooks the screen's form handling, assets, menu page and default search
-	 * fields. Bootstrapper::register_hooks() calls this once.
+	 * fields. PluginBootstrapper::register_hooks() calls this once.
 	 *
 	 * @since 1.0.0
 	 */

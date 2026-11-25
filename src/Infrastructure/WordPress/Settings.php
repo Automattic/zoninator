@@ -5,7 +5,7 @@
  * @package Automattic\Zoninator
  */
 
-namespace Automattic\Zoninator;
+namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 /**
  * The values sites tune with filters (lock periods, results per page, zone

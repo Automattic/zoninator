@@ -5,7 +5,7 @@
  * @package Automattic\Zoninator
  */
 
-namespace Automattic\Zoninator;
+namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 use stdClass;
 use WP_Error;
@@ -14,7 +14,7 @@ use WP_Error;
  * Serves each zone's published posts as JSON at /zones/{slug}/feed.json.
  *
  * Zoninator::get_zone_feed() delegates to get(). It registers its own hooks in register_hooks(), and
- * sites reach it with zoninator_container()->get( \Automattic\Zoninator\Feed::class ) to unhook them.
+ * sites reach it with zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Feed::class ) to unhook them.
  *
  * @since 0.12.0
  * @internal Use Zoninator(), the template tags and the hooks instead.
@@ -38,7 +38,7 @@ final class Feed {
 	}
 
 	/**
-	 * Hooks the feed's rewrite rule and its response. Bootstrapper::register_hooks() calls this once.
+	 * Hooks the feed's rewrite rule and its response. PluginBootstrapper::register_hooks() calls this once.
 	 *
 	 * @since 1.0.0
 	 */

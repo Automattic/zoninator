@@ -116,7 +116,7 @@ class ZoninatorTaxonomyTest extends TestCase {
 	}
 
 	public function test_a_new_taxonomy_works_out_its_post_types(): void {
-		$taxonomy = new \Automattic\Zoninator\Taxonomy();
+		$taxonomy = new \Automattic\Zoninator\Infrastructure\WordPress\Taxonomy();
 
 		$this->assertContains( 'post', $taxonomy->get_post_types() );
 	}

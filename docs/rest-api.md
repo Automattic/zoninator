@@ -1,6 +1,6 @@
 # REST API
 
-Zoninator registers a single namespace, `zoninator/v1`, in `src/rest/class-zones-controller.php`. All endpoints sit under `/wp-json/zoninator/v1/`.
+Zoninator registers a single namespace, `zoninator/v1`, in `src/Infrastructure/WordPress/Rest/ZonesController.php`. All endpoints sit under `/wp-json/zoninator/v1/`.
 
 There is also a non-REST JSON feed at `/zones/{slug}/feed.json` — see the [theme developer guide](theme-developers.md) for that.
 
@@ -210,11 +210,11 @@ Errors use core's REST error shape, with a `code`, a `message` in the site's lan
 | `401` / `403` | `permission-denied` | The capability check failed: `401` when logged out, `403` when logged in. |
 | `404` | `zone-not-found` | The zone in the path doesn't exist. |
 
-The codes are constants on `Automattic\Zoninator\REST\Zones_Controller`, such as `Zones_Controller::ZONE_NOT_FOUND`. Since 0.12.0 every error has a code; before, the `400` and `404` responses had only a `message`, and refused requests got `500`.
+The codes are constants on `Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController`, such as `ZonesController::ZONE_NOT_FOUND`. Since 0.12.0 every error has a code; before, the `400` and `404` responses had only a `message`, and refused requests got `500`.
 
 ## Implementation notes
 
-- The endpoints are registered by `Automattic\Zoninator\REST\Zones_Controller` (`src/rest/class-zones-controller.php`), which extends core's `WP_REST_Controller`. The file loads only on `rest_api_init`.
+- The endpoints are registered by `Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController` (`src/Infrastructure/WordPress/Rest/ZonesController.php`), which extends core's `WP_REST_Controller`. The file loads only on `rest_api_init`.
 - The update routes (`/zones/{zone_id}`, `/zones/{zone_id}/posts` and `/zones/{zone_id}/lock`) accept `POST`, `PUT` and `PATCH`.
 - The Zones screen uses these routes through `wp.apiFetch()`. They replaced its admin-ajax actions, which were deprecated in 0.12.0 and removed in 1.0.0. See the [upgrade guide](upgrades.md#the-zones-screens-admin-ajax-actions-are-gone).
 - A lock is a transient keyed against the zone, holding the locking user's ID. It survives page reloads, and expires when `zoninator_zone_lock_period` lapses without a renewal.

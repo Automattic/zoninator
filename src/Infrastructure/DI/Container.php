@@ -5,13 +5,13 @@
  * @package Automattic\Zoninator
  */
 
-namespace Automattic\Zoninator;
+namespace Automattic\Zoninator\Infrastructure\DI;
 
 use Closure;
 
 /**
  * Holds objects by class name. It knows nothing about the classes it holds:
- * Bootstrapper decides what goes in it.
+ * PluginBootstrapper decides what goes in it.
  *
  * Its get() and has() are shaped like PSR-11's. zoninator_container() returns
  * the plugin's one container, which sites use to reach the object that
