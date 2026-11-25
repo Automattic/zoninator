@@ -146,6 +146,9 @@ final class Zones {
 			if ( ! $delete ) {
 				return new WP_Error( 'delete-zone', __( "Sorry, we couldn't delete the zone.", 'zoninator' ) );
 			} else {
+				// Release the zone's lock, which Locks keeps in a transient under the zone's meta key.
+				delete_transient( $this->get_meta_key( $zone_id ) );
+
 				do_action( 'zoninator_delete_zone', $zone_id );
 				return $delete;
 			}
