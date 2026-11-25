@@ -7,6 +7,7 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
+use Automattic\Zoninator\Application\ZoneLocker;
 use Automattic\Zoninator\Infrastructure\DI\Container;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
 use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
@@ -66,20 +67,20 @@ final class PluginBootstrapper {
 		$taxonomy     = $container->add( new Taxonomy() );
 		$capabilities = $container->add( new Capabilities( $taxonomy ) );
 		$request      = $container->add( new Request( $capabilities ) );
-		$zones        = $container->add( new Zones( $settings, $taxonomy, $capabilities ) );
-		$locks        = $container->add( new Locks( $zones, $settings ) );
+		$locker       = $container->add( new ZoneLocker( $container->add( new TransientLockStore() ), $settings ) );
+		$zones        = $container->add( new Zones( $settings, $taxonomy, $capabilities, $locker ) );
 		$feed         = $container->add( new Feed( $zones ) );
-		$screen       = $container->add( new Screen( $zones, $locks, $settings, $capabilities, $request ) );
+		$screen       = $container->add( new Screen( $zones, $locker, $settings, $capabilities, $request ) );
 		$search       = $container->add( new Search( $taxonomy, $settings, $capabilities, $zones ) );
 		$container->add( new FeedEndpoint( $feed ) );
 		$container->add( new Block( $zones ) );
-		$container->add( new Zoninator( $settings, $taxonomy, $capabilities, $request, $zones, $locks, $feed ) );
+		$container->add( new Zoninator( $settings, $taxonomy, $capabilities, $request, $zones, $locker, $feed ) );
 
 		// Only REST and Abilities API requests need these, so they're built, and their files loaded, then.
 		$container->factory(
 			ZonesController::class,
-			static function () use ( $zones, $locks, $feed, $settings, $capabilities, $screen, $search ) {
-				return new ZonesController( $zones, $locks, $feed, $settings, $capabilities, $screen, $search );
+			static function () use ( $zones, $locker, $feed, $settings, $capabilities, $screen, $search ) {
+				return new ZonesController( $zones, $locker, $feed, $settings, $capabilities, $screen, $search );
 			}
 		);
 		$container->factory(

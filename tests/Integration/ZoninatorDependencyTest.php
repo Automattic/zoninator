@@ -10,19 +10,20 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Automattic\Zoninator\Application\ZoneLocker;
 use Automattic\Zoninator\Infrastructure\WordPress\Abilities;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
 use Automattic\Zoninator\Infrastructure\WordPress\Block;
 use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
 use Automattic\Zoninator\Infrastructure\WordPress\Feed;
 use Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint;
-use Automattic\Zoninator\Infrastructure\WordPress\Locks;
 use Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper;
 use Automattic\Zoninator\Infrastructure\WordPress\Request;
 use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
 use Automattic\Zoninator\Infrastructure\WordPress\Search;
 use Automattic\Zoninator\Infrastructure\WordPress\Settings;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use Automattic\Zoninator\Infrastructure\WordPress\TransientLockStore;
 use Automattic\Zoninator\Infrastructure\WordPress\Zones;
 use ReflectionClass;
 use ReflectionNamedType;
@@ -57,14 +58,15 @@ final class ZoninatorDependencyTest extends TestCase {
 		$settings     = new Settings();
 		$taxonomy     = new Taxonomy();
 		$capabilities = new Capabilities( $taxonomy );
-		$zones        = new Zones( $settings, $taxonomy, $capabilities );
+		$locker       = new ZoneLocker( new TransientLockStore(), $settings );
+		$zones        = new Zones( $settings, $taxonomy, $capabilities, $locker );
 		$zoninator    = new Zoninator(
 			$settings,
 			$taxonomy,
 			$capabilities,
 			new Request( $capabilities ),
 			$zones,
-			new Locks( $zones, $settings ),
+			$locker,
 			new Feed( $zones )
 		);
 		$zone      = $zoninator->insert_zone( 'parts-zone', 'Parts zone' );
@@ -83,7 +85,8 @@ final class ZoninatorDependencyTest extends TestCase {
 			Capabilities::class,
 			Request::class,
 			Zones::class,
-			Locks::class,
+			ZoneLocker::class,
+			TransientLockStore::class,
 			Feed::class,
 			FeedEndpoint::class,
 			Search::class,

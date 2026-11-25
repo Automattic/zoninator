@@ -21,6 +21,13 @@ zoninator/
 ├── zoninator.php                    # Main plugin file (header, bootstrap)
 ├── functions.php                    # Template tag functions (z_*)
 ├── src/
+│   ├── Domain/                      # Zone rules, with no WordPress: entities, and interfaces for storage
+│   │   ├── ZoneLock.php             # A zone's lock: who holds it, who it keeps out, how long it lasts
+│   │   ├── LockStoreInterface.php   # Where locks are kept
+│   │   ├── LockSettingsInterface.php # How long a lock is valid for
+│   │   └── ZoneLockedException.php  # Someone else holds the zone's lock
+│   ├── Application/                 # Use cases, with no WordPress
+│   │   └── ZoneLocker.php           # Locks, checks and unlocks zones
 │   ├── Infrastructure/              # Everything that talks to WordPress, and the wiring
 │   │   ├── DI/
 │   │   │   └── Container.php        # Holds the built objects by class name
@@ -31,7 +38,7 @@ zoninator/
 │   │       ├── Request.php          # Request variables, sanitizing, nonces and access checks
 │   │       ├── Taxonomy.php         # Registers the zone taxonomy; which post types support zones
 │   │       ├── Zones.php            # Zone CRUD, zone posts and their order
-│   │       ├── Locks.php            # Zone edit locks
+│   │       ├── TransientLockStore.php # Keeps zone locks in transients
 │   │       ├── Feed.php             # The JSON feed's data: a zone's published posts, feed fields only
 │   │       ├── FeedEndpoint.php     # Serves the feed at /zones/{slug}/feed.json
 │   │       ├── Search.php           # Finds posts to offer for a zone
@@ -47,6 +54,7 @@ zoninator/
 ├── js/                              # Admin JavaScript (jQuery sortable, autocomplete) and the block editor script
 ├── tests/
 │   ├── bootstrap.php                # PHPUnit bootstrap (yoast/wp-test-utils)
+│   ├── Unit/                        # Unit tests of Domain and Application, which need no WordPress
 │   ├── Integration/                 # Integration tests + TestCase base
 │   └── e2e/                         # Playwright tests of the Zones screen, with axe checks
 ├── docs/                            # Audience-targeted documentation
@@ -68,7 +76,7 @@ zoninator/
 - `src/Infrastructure/WordPress/Request.php` — `Automattic\Zoninator\Infrastructure\WordPress\Request`: reads and sanitizes request variables, validates the search filters, and checks nonces and access, stopping the request if either fails. Its helpers are instance methods, so a class that uses one takes `Request` in its constructor.
 - `src/Infrastructure/WordPress/Taxonomy.php` — `Automattic\Zoninator\Infrastructure\WordPress\Taxonomy`: registers the `zoninator_zones` taxonomy (`Taxonomy::NAME`) on `init`, with no object types, and gives posts zone support when the plugin boots. A post type supports zones if it has the `zoninator_zones` post type feature; `get_post_types()` asks core each time, with no cache.
 - `src/Infrastructure/WordPress/Zones.php` — `Automattic\Zoninator\Infrastructure\WordPress\Zones`: creates, reads, updates and deletes zones, and stores each zone's posts in order under post meta keys starting `Zones::META_PREFIX`. It reads the detail defaults from `Settings`.
-- `src/Infrastructure/WordPress/Locks.php` — `Automattic\Zoninator\Infrastructure\WordPress\Locks`: takes, reports and releases the transient that stops two people editing a zone at once.
+- `src/Application/ZoneLocker.php` — `Automattic\Zoninator\Application\ZoneLocker`: locks a zone for a user, says who is keeping a user out, and unlocks it. It throws `Domain\ZoneLockedException` when someone else holds the lock; the REST route and the Zones screen turn that into their own responses. `Domain\ZoneLock` holds the rules. `Infrastructure\WordPress\TransientLockStore` keeps the locks in transients, and `Settings` supplies the lock period through `Domain\LockSettingsInterface`.
 - `src/Infrastructure/WordPress/Abilities.php` — `Automattic\Zoninator\Infrastructure\WordPress\Abilities`: the read-only Abilities API abilities (`zoninator/list-zones`, `zoninator/get-zone-posts`, `zoninator/search-posts`) in the `zoninator` category. The bootstrapper hooks `wp_abilities_api_categories_init` and `wp_abilities_api_init`, and the container builds it the first time either fires. Like the REST route callbacks, the ability callbacks live on this class; sites remove an ability with `wp_unregister_ability()`.
 - `src/Infrastructure/WordPress/Feed.php` — `Automattic\Zoninator\Infrastructure\WordPress\Feed`: a zone's published posts as the JSON feed lists them, limited to the feed's fields and passed through its filters. It has no hooks. `FeedEndpoint` and the REST route `GET /zones/{zone_id}/posts` both return it.
 - `src/Infrastructure/WordPress/FeedEndpoint.php` — `Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint`: the rewrite rule and response for the JSON feed at `/zones/{slug}/feed.json`.
@@ -98,6 +106,7 @@ composer cs-fix                  # Auto-fix code standard violations
 composer lint                    # PHP parallel-lint (syntax)
 composer lint-ci                 # PHP parallel-lint with checkstyle output
 composer i18n                    # Generate languages/zoninator.pot (requires wp-cli)
+composer test:unit               # Run unit tests (no WordPress or wp-env needed)
 composer test:integration        # Run integration tests (requires wp-env)
 composer test:integration-ms     # Run integration tests in multisite mode
 composer coverage                # Run tests with HTML coverage report (build/coverage-html)
@@ -110,7 +119,7 @@ npx --no playwright install chromium  # Download the browser for the E2E tests (
 npm run test:e2e                 # Run the Playwright E2E tests (requires wp-env)
 ```
 
-**Note:** This plugin has integration and E2E tests — no separate unit test suite.
+**Note:** Unit tests cover the `Domain` and `Application` layers, with stand-ins for storage. Integration and E2E tests cover everything that touches WordPress.
 
 ## Conventions
 
@@ -118,7 +127,7 @@ See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key point
 
 - **Commits**: Every commit must be signed; `develop` and `main` reject unsigned commits. Use a [Conventional Commits](https://www.conventionalcommits.org/) prefix (`fix:`, `feat:`, `test:`, `docs:`, `ci:`, `chore:` and so on) with an imperative subject of about 50 characters, and a body that explains why the change was needed rather than what changed. One concern per commit.
 - **PRs**: Open against `develop`. The title describes the outcome in sentence case, without a conventional commit prefix. The description explains the problem first, then how the PR solves it. PRs land as merge commits (squash and rebase merging are disabled), so every commit message reaches `develop` as written.
-- **Testing**: Integration tests run inside `wp-env` against a real WordPress install. Extend `Automattic\Zoninator\Tests\Integration\TestCase`. E2E tests in `tests/e2e/` cover only what a browser shows on the Zones screen; they share the development site's database, so create test data with the `zoninator` fixture, which deletes it afterwards, and never empty the site.
+- **Testing**: Unit tests in `tests/Unit/` extend PHPUnit's `TestCase` and run with `composer test:unit`, without WordPress; put a stand-in for an interface in `tests/Unit/Doubles/`. Integration tests run inside `wp-env` against a real WordPress install. Extend `Automattic\Zoninator\Tests\Integration\TestCase`. E2E tests in `tests/e2e/` cover only what a browser shows on the Zones screen; they share the development site's database, so create test data with the `zoninator` fixture, which deletes it afterwards, and never empty the site.
 - **Code style**: WordPress coding standards via PHPCS (with VIP rules). Tabs for indentation.
 - **Imports**: Name a class from another namespace with a `use` statement at the top of the file, then its short name, in code and docblocks alike. Write a fully qualified name inline only where a `use` can't help, such as an example of code a site would write.
 - **i18n**: All user-facing strings must use the `zoninator` text domain.
@@ -127,7 +136,7 @@ See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key point
 
 - **Taxonomy and post meta storage**: Zones are custom taxonomy terms; each post's position in a zone is post meta, which the zone query orders by. This uses WordPress's built-in caching and query infrastructure. Do not switch to custom database tables.
 - **Template tags in `functions.php`**: Theme developers consume zones through these functions. They are part of the public API — do not rename or change signatures without a deprecation cycle.
-- **Namespaces and layers**: Classes go under `Automattic\Zoninator\`, in `src/`, named and placed for PSR-4 (`Automattic\Zoninator\Infrastructure\WordPress\Feed` is `src/Infrastructure/WordPress/Feed.php`). A small autoloader in `zoninator.php` loads them on first use, as the release package has no Composer autoloader. The layers follow `plugin-standards/ARCHITECTURE.md` and legacy-redirector: `Domain` (zone rules, no WordPress), `Application` (use cases) and `Infrastructure` (WordPress and wiring). Today every class is in `Infrastructure`, because each one calls WordPress; the `Domain` and `Application` layers get filled as that code is separated out. A class may depend on its own layer or one below it, never one above. Classes are `final` unless a site has a reason to extend them. The two legacy global classes, `Zoninator` and `Zoninator_ZonePosts_Widget`, stay in `class-*.php` files loaded with `require_once`.
+- **Namespaces and layers**: Classes go under `Automattic\Zoninator\`, in `src/`, named and placed for PSR-4 (`Automattic\Zoninator\Infrastructure\WordPress\Feed` is `src/Infrastructure/WordPress/Feed.php`). A small autoloader in `zoninator.php` loads them on first use, as the release package has no Composer autoloader. The layers follow `plugin-standards/ARCHITECTURE.md` and legacy-redirector: `Domain` (zone rules, no WordPress), `Application` (use cases) and `Infrastructure` (WordPress and wiring). `Domain` and `Application` must run without WordPress: `Domain` names no other layer, `Application` names only `Domain`, and `tests/Unit/LayersTest.php` checks both. They report failure by throwing a domain exception, which `Infrastructure` turns into a `WP_Error` or a response. Zone locks are there so far; the rest of the classes are still in `Infrastructure`, because each one calls WordPress, and move as their rules are separated out. Classes are `final` unless a site has a reason to extend them. The two legacy global classes, `Zoninator` and `Zoninator_ZonePosts_Widget`, stay in `class-*.php` files loaded with `require_once`.
 - **REST controller on core**: The REST API extends core's `WP_REST_Controller` directly. `ZoninatorRestContractTest` pins its routes, methods, args and response bodies; change them only on purpose.
 - **Each class registers the hooks it handles** in a `register_hooks()` method, with callbacks on itself. Constructors don't add hooks (except the widget's, as WordPress builds widgets itself); `PluginBootstrapper::register_hooks()` calls each `register_hooks()` once. Sites unhook through `zoninator_container()->get()`, on `plugins_loaded` at priority 20. Moving a callback breaks a site's `remove_action()` silently, so `ZoninatorHooksTest` pins every hook's callback, priority and accepted args; change it only with a row in the upgrade guide's unhooking table.
 - **No hidden dependencies**: a class calls another only through an object it was given in its constructor, never through a static method, a global or a template tag. The widget's fallback to the container is the one exception, because WordPress builds it.

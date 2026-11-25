@@ -3,9 +3,10 @@
  * Main Zoninator class
  */
 
+use Automattic\Zoninator\Application\ZoneLocker;
+use Automattic\Zoninator\Domain\ZoneLockedException;
 use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
 use Automattic\Zoninator\Infrastructure\WordPress\Feed;
-use Automattic\Zoninator\Infrastructure\WordPress\Locks;
 use Automattic\Zoninator\Infrastructure\WordPress\Request;
 use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
 use Automattic\Zoninator\Infrastructure\WordPress\Settings;
@@ -59,9 +60,9 @@ final class Zoninator {
 	/**
 	 * Zone locks. The lock methods here delegate to it.
 	 *
-	 * @var Locks
+	 * @var ZoneLocker
 	 */
-	private $locks;
+	private $locker;
 
 	/**
 	 * The JSON feed. get_zone_feed() delegates to it.
@@ -99,7 +100,7 @@ final class Zoninator {
 	 * @param Capabilities $capabilities The capability checks.
 	 * @param Request      $request      Reads and checks requests.
 	 * @param Zones        $zones        Zones and the posts in them.
-	 * @param Locks        $locks        Zone locks.
+	 * @param ZoneLocker   $locker       Zone locks.
 	 * @param Feed         $feed         The JSON feed.
 	 */
 	public function __construct(
@@ -108,7 +109,7 @@ final class Zoninator {
 		Capabilities $capabilities,
 		Request $request,
 		Zones $zones,
-		Locks $locks,
+		ZoneLocker $locker,
 		Feed $feed
 	) {
 		$this->settings     = $settings;
@@ -116,7 +117,7 @@ final class Zoninator {
 		$this->capabilities = $capabilities;
 		$this->request      = $request;
 		$this->zones        = $zones;
-		$this->locks        = $locks;
+		$this->locker       = $locker;
 		$this->feed         = $feed;
 	}
 
@@ -274,17 +275,57 @@ final class Zoninator {
 		return $this->zones->get( $zone );
 	}
 
+	/**
+	 * Locks a zone for a user.
+	 *
+	 * @param int|string|WP_Term $zone    Zone.
+	 * @param int                $user_id User ID. Defaults to the current user.
+	 * @return false|null False if there's no such zone or someone else holds its lock, null otherwise.
+	 */
 	public function lock_zone( $zone, $user_id = 0 ) {
-		return $this->locks->lock( $zone, $user_id );
+		$zone_id = $this->zones->get_id( $zone );
+
+		if ( ! $zone_id ) {
+			return false;
+		}
+
+		try {
+			$this->locker->lock( $zone_id, $user_id ? (int) $user_id : get_current_user_id() );
+		} catch ( ZoneLockedException $exception ) {
+			return false;
+		}
+
+		return null;
 	}
 
-	// Not really needed with transients...
+	/**
+	 * Releases a zone's lock.
+	 *
+	 * @param int|string|WP_Term $zone Zone.
+	 * @return false|null False if there's no such zone, null otherwise.
+	 */
 	public function unlock_zone( $zone ) {
-		return $this->locks->unlock( $zone );
+		$zone_id = $this->zones->get_id( $zone );
+
+		if ( ! $zone_id ) {
+			return false;
+		}
+
+		$this->locker->unlock( $zone_id );
+
+		return null;
 	}
 
+	/**
+	 * Gets who is keeping the current user out of a zone.
+	 *
+	 * @param int|string|WP_Term $zone Zone.
+	 * @return int|false ID of the user holding the zone's lock, or false if the current user may edit it.
+	 */
 	public function is_zone_locked( $zone ) {
-		return $this->locks->is_locked( $zone );
+		$zone_id = $this->zones->get_id( $zone );
+
+		return $zone_id ? ( $this->locker->get_blocker_id( $zone_id, get_current_user_id() ) ?? false ) : false;
 	}
 
 	public function zone_exists( $zone ) {

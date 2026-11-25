@@ -7,8 +7,8 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 
+use Automattic\Zoninator\Application\ZoneLocker;
 use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
-use Automattic\Zoninator\Infrastructure\WordPress\Locks;
 use Automattic\Zoninator\Infrastructure\WordPress\Request;
 use Automattic\Zoninator\Infrastructure\WordPress\Settings;
 use Automattic\Zoninator\Infrastructure\WordPress\Zones;
@@ -39,9 +39,9 @@ final class Screen {
 	/**
 	 * Zone locks.
 	 *
-	 * @var Locks
+	 * @var ZoneLocker
 	 */
-	private $locks;
+	private $locker;
 
 	/**
 	 * Zoninator's settings.
@@ -68,14 +68,14 @@ final class Screen {
 	 * Constructor.
 	 *
 	 * @param Zones $zones Zones and the posts in them.
-	 * @param Locks $locks Zone locks.
+	 * @param ZoneLocker $locker Zone locks.
 	 * @param Settings $settings Zoninator's settings.
 	 * @param Capabilities $capabilities The capability checks.
 	 * @param Request $request Reads and checks requests.
 	 */
-	public function __construct( Zones $zones, Locks $locks, Settings $settings, Capabilities $capabilities, Request $request ) {
+	public function __construct( Zones $zones, ZoneLocker $locker, Settings $settings, Capabilities $capabilities, Request $request ) {
 		$this->zones        = $zones;
-		$this->locks        = $locks;
+		$this->locker       = $locker;
 		$this->settings     = $settings;
 		$this->capabilities = $capabilities;
 		$this->request      = $request;
@@ -343,7 +343,7 @@ final class Screen {
 
 		$zone_posts = $zone_id ? $this->zones->get_posts( $zone ) : array();
 
-		$zone_locked = $this->locks->is_locked( $zone_id );
+		$zone_locked = $zone_id ? ( $this->locker->get_blocker_id( $zone_id, get_current_user_id() ) ?? false ) : false;
 
 		$delete_link = $this->get_page_url(
 			array(

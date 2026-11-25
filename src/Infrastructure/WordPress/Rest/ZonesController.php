@@ -7,18 +7,19 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 
+use Automattic\Zoninator\Application\ZoneLocker;
+use Automattic\Zoninator\Domain\ZoneLockedException;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
+use Automattic\Zoninator\Infrastructure\WordPress\Feed;
+use Automattic\Zoninator\Infrastructure\WordPress\Search;
+use Automattic\Zoninator\Infrastructure\WordPress\Settings;
+use Automattic\Zoninator\Infrastructure\WordPress\Zones;
 use WP_Error;
 use WP_REST_Controller;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
-use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
-use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
-use Automattic\Zoninator\Infrastructure\WordPress\Feed;
-use Automattic\Zoninator\Infrastructure\WordPress\Locks;
-use Automattic\Zoninator\Infrastructure\WordPress\Search;
-use Automattic\Zoninator\Infrastructure\WordPress\Settings;
-use Automattic\Zoninator\Infrastructure\WordPress\Zones;
 
 /**
  * Zones, their posts and their locks.
@@ -64,9 +65,9 @@ final class ZonesController extends WP_REST_Controller {
 	/**
 	 * Zone locks.
 	 *
-	 * @var Locks
+	 * @var ZoneLocker
 	 */
-	private $locks;
+	private $locker;
 
 	/**
 	 * The JSON feed.
@@ -107,16 +108,16 @@ final class ZonesController extends WP_REST_Controller {
 	 * Constructor.
 	 *
 	 * @param Zones        $zones        Zones and the posts in them.
-	 * @param Locks        $locks        Zone locks.
+	 * @param ZoneLocker   $locker       Zone locks.
 	 * @param Feed         $feed         The JSON feed.
 	 * @param Settings     $settings     Zoninator's settings.
 	 * @param Capabilities $capabilities The capability checks.
 	 * @param Screen       $screen       The Zones screen.
 	 * @param Search       $search       Finds posts to offer for a zone.
 	 */
-	public function __construct( Zones $zones, Locks $locks, Feed $feed, Settings $settings, Capabilities $capabilities, Screen $screen, Search $search ) {
+	public function __construct( Zones $zones, ZoneLocker $locker, Feed $feed, Settings $settings, Capabilities $capabilities, Screen $screen, Search $search ) {
 		$this->zones        = $zones;
-		$this->locks        = $locks;
+		$this->locker       = $locker;
 		$this->feed         = $feed;
 		$this->settings     = $settings;
 		$this->capabilities = $capabilities;
@@ -485,11 +486,12 @@ final class ZonesController extends WP_REST_Controller {
 			return $this->zone_not_found();
 		}
 
-		$zone_locked = $this->locks->is_locked( $zone );
-		if ( $zone_locked ) {
+		try {
+			$this->locker->lock( $zone_id, get_current_user_id() );
+		} catch ( ZoneLockedException $exception ) {
 			// Core's REST error shape, keeping zone_id and blocked, which this
 			// response had before it had a code.
-			$locking_user = get_userdata( $zone_locked );
+			$locking_user = get_userdata( $exception->get_holder_id() );
 			return new WP_REST_Response(
 				array(
 					'code'    => self::ZONE_LOCKED,
@@ -505,7 +507,6 @@ final class ZonesController extends WP_REST_Controller {
 			);
 		}
 
-		$this->locks->lock( $zone_id );
 		return new WP_REST_Response(
 			array(
 				'zone_id'         => $this->zones->get_id( $zone ),

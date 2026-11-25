@@ -118,9 +118,14 @@ The classes 0.12.0 added under `Automattic\Zoninator\` are internal, but if your
 |---|---|
 | `Automattic\Zoninator\Admin\Screen` | `Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen` |
 | `Automattic\Zoninator\REST\Zones_Controller` | `Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController` |
-| `Automattic\Zoninator\Settings`, `Taxonomy`, `Capabilities`, `Request`, `Zones`, `Locks` and `Feed` | The same class name under `Automattic\Zoninator\Infrastructure\WordPress\` |
+| `Automattic\Zoninator\Settings`, `Taxonomy`, `Capabilities`, `Request`, `Zones` and `Feed` | The same class name under `Automattic\Zoninator\Infrastructure\WordPress\` |
+| `Automattic\Zoninator\Locks` | `Automattic\Zoninator\Application\ZoneLocker`, whose `lock()` and `get_blocker_id()` take a zone ID and a user ID |
 
 The files moved with them, from `src/class-*.php` to paths such as `src/Infrastructure/WordPress/Feed.php`. If your code loads one with `require`, remove that line: the class loads itself when it's first used. The sections of this guide for 0.12.0 use the new names.
+
+### A zone's lock can't be taken from someone else
+
+`Zoninator()->lock_zone()` used to replace a lock that another user held. It now leaves that lock in place and returns `false`. To take a zone over, call `Zoninator()->unlock_zone()` first. The REST route and the Zones screen already refused to lock a zone someone else was editing, so nothing changes there.
 
 ### The widget's cache filter has a new name
 
