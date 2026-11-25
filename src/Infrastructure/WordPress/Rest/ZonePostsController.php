@@ -8,7 +8,6 @@
 namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 
 use Automattic\Zoninator\Application\GuardedZoneCurator;
-use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
 use Automattic\Zoninator\Infrastructure\WordPress\Feed;
 use Throwable;
 use WP_Error;
@@ -43,13 +42,6 @@ final class ZonePostsController extends WP_REST_Controller {
 	private $curator;
 
 	/**
-	 * The Zones screen, which renders a zone post's row for the screen's own requests.
-	 *
-	 * @var Screen
-	 */
-	private $screen;
-
-	/**
 	 * Says who may call each route.
 	 *
 	 * @var Permissions
@@ -61,13 +53,11 @@ final class ZonePostsController extends WP_REST_Controller {
 	 *
 	 * @param Feed               $feed    The feed's data.
 	 * @param GuardedZoneCurator $curator Changes the posts in a zone for the current user.
-	 * @param Screen             $screen  The Zones screen.
 	 * @param Permissions $permissions Says who may call each route.
 	 */
-	public function __construct( Feed $feed, GuardedZoneCurator $curator, Screen $screen, Permissions $permissions ) {
+	public function __construct( Feed $feed, GuardedZoneCurator $curator, Permissions $permissions ) {
 		$this->feed        = $feed;
 		$this->curator     = $curator;
-		$this->screen      = $screen;
 		$this->permissions = $permissions;
 	}
 
@@ -152,7 +142,7 @@ final class ZonePostsController extends WP_REST_Controller {
 	 * Add a post to the end of a zone.
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_Error|WP_REST_Response 201 with the post's row for the Zones screen, as HTML.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function add_zone_post( $request ) {
 		$zone_id = (int) $request['zone_id'];
@@ -164,8 +154,7 @@ final class ZonePostsController extends WP_REST_Controller {
 			return $this->error_response( $exception, $zone_id );
 		}
 
-		// The row runs the zoninator_zone_post_columns callbacks, so columns sites add still show.
-		return $this->created( array( 'html' => $this->screen->get_zone_post_html( $post_id, $zone_id ) ) );
+		return $this->created( array( 'success' => true ) );
 	}
 
 	/**

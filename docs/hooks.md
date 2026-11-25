@@ -97,7 +97,7 @@ Arguments passed to `get_zones()` when rendering the admin Zones list page.
 
 ### `zoninator_zone_post_columns` (filter)
 
-Columns rendered for each post inside the zone editor: column key => callback, which receives `$post` and `$zone` and prints the cell. Fires from `src/Infrastructure/WordPress/Admin/Screen.php`, for the Zones screen and the row `POST /zoninator/v1/zones/{zone_id}/posts/{post_id}` returns.
+Columns rendered for each post inside the zone editor: column key => callback, which receives `$post` and `$zone` and prints the cell. Fires from `src/Infrastructure/WordPress/Admin/ZonePostRow.php`, for each row the Zones screen prints, and for the row it fetches after a post is added.
 
 - **Parameters:** `array $columns`, `WP_Post $post`, `WP_Term $zone`
 

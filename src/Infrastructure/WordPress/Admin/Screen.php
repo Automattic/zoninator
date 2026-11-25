@@ -65,20 +65,29 @@ final class Screen {
 	private $request;
 
 	/**
+	 * Renders a zone post's row.
+	 *
+	 * @var ZonePostRow
+	 */
+	private $row;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param Zones $zones Zones and the posts in them.
-	 * @param ZoneLocker $locker Zone locks.
-	 * @param Settings $settings Zoninator's settings.
+	 * @param Zones        $zones        Zones and the posts in them.
+	 * @param ZoneLocker   $locker       Zone locks.
+	 * @param Settings     $settings     Zoninator's settings.
 	 * @param Capabilities $capabilities The capability checks.
-	 * @param Request $request Reads and checks requests.
+	 * @param Request      $request      Reads and checks requests.
+	 * @param ZonePostRow  $row          Renders a zone post's row.
 	 */
-	public function __construct( Zones $zones, ZoneLocker $locker, Settings $settings, Capabilities $capabilities, Request $request ) {
+	public function __construct( Zones $zones, ZoneLocker $locker, Settings $settings, Capabilities $capabilities, Request $request, ZonePostRow $row ) {
 		$this->zones        = $zones;
 		$this->locker       = $locker;
 		$this->settings     = $settings;
 		$this->capabilities = $capabilities;
 		$this->request      = $request;
+		$this->row          = $row;
 	}
 
 	/**
@@ -427,107 +436,11 @@ final class Screen {
 			<div class="zone-posts-list">
 				<?php
 				foreach ( $zone_posts as $post ) {
-					$this->render_zone_post( $post, $zone );
+					$this->row->render( $post, $zone );
 				}
 				?>
 			</div>
 		</div>
-	</div>
-		<?php
-	}
-
-	/**
-	 * Gets a zone post's row, as the Zones screen shows it.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param int $post_id Post ID.
-	 * @param int $zone_id Zone ID.
-	 * @return string HTML.
-	 */
-	public function get_zone_post_html( $post_id, $zone_id ) {
-		ob_start();
-		$this->render_zone_post( get_post( $post_id ), $this->zones->get( (int) $zone_id ) );
-
-		return (string) ob_get_clean();
-	}
-
-	public function render_zone_post( $post, $zone ) {
-		$columns = apply_filters(
-			'zoninator_zone_post_columns',
-			array(
-				'position' => array( $this, 'render_position_column' ),
-				'info'     => array( $this, 'render_info_column' ),
-			),
-			$post,
-			$zone
-		);
-		?>
-	<div id="zone-post-<?php echo esc_attr( $post->ID ); ?>" class="zone-post" data-post-id="<?php echo esc_attr( $post->ID ); ?>">
-		<table role="presentation">
-			<tr>
-				<?php foreach ( $columns as $column_key => $column_callback ) : ?>
-					<?php if ( is_callable( $column_callback ) ) : ?>
-						<td class="zone-post-col zone-post-<?php echo sanitize_html_class( $column_key ); ?>">
-							<?php call_user_func( $column_callback, $post, $zone ); ?>
-						</td>
-						<?php
-					endif;
-				endforeach;
-				?>
-			</tr>
-		</table>
-		<input type="hidden" name="zone-post-id" value="<?php echo esc_attr( $post->ID ); ?>" />
-	</div>
-		<?php
-	}
-
-	public function render_position_column( $post, $zone ) {
-		$current_position = $this->zones->get_post_order( $post->ID, $zone );
-		?>
-	<span title="<?php esc_attr_e( 'Drag to change the position of this item, or use Move up and Move down.', 'zoninator' ); ?>">
-		<?php echo esc_html( $current_position ); ?>
-	</span>
-		<?php
-	}
-
-	public function render_info_column( $post, $zone ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
-		// Each accessible name is one string, so translators can put the title where their language needs it.
-		$labels = array(
-			/* translators: %s: post title. */
-			'edit'      => __( 'Edit “%s” (opens in a new tab)', 'zoninator' ),
-			/* translators: %s: post title. */
-			'move-up'   => __( 'Move up “%s”', 'zoninator' ),
-			/* translators: %s: post title. */
-			'move-down' => __( 'Move down “%s”', 'zoninator' ),
-			/* translators: %s: post title. */
-			'remove'    => __( 'Remove “%s”', 'zoninator' ),
-			/* translators: %s: post title. */
-			'view'      => __( 'View “%s” (opens in a new tab)', 'zoninator' ),
-		);
-		foreach ( $labels as $action => $label ) {
-			$labels[ $action ] = esc_attr( sprintf( $label, $post->post_title ) );
-		}
-
-		$action_links = array(
-			sprintf( '<button type="button" class="button-link move-up" aria-label="%s">%s</button>', $labels['move-up'], esc_html__( 'Move up', 'zoninator' ) ),
-			sprintf( '<button type="button" class="button-link move-down" aria-label="%s">%s</button>', $labels['move-down'], esc_html__( 'Move down', 'zoninator' ) ),
-			sprintf( '<button type="button" class="button-link button-link-delete delete" aria-label="%s">%s</button>', $labels['remove'], esc_html__( 'Remove', 'zoninator' ) ),
-			sprintf( '<a href="%s" class="view" target="_blank" aria-label="%s">%s</a>', esc_url( get_permalink( $post->ID ) ), $labels['view'], esc_html__( 'View', 'zoninator' ) ),
-		);
-
-		// Zone managers can curate posts they can't edit, and get no edit link for those. It goes
-		// after the move buttons, so ordering, this screen's main job, comes first, and the move
-		// buttons stay in the same place in every row.
-		$edit_link = get_edit_post_link( $post->ID );
-		if ( $edit_link ) {
-			array_splice( $action_links, 2, 0, sprintf( '<a href="%s" class="edit" target="_blank" aria-label="%s">%s</a>', esc_url( $edit_link ), $labels['edit'], esc_html__( 'Edit', 'zoninator' ) ) );
-		}
-		?>
-		<?php printf( '%s <span class="zone-post-status">(%s)</span>', esc_html( $post->post_title ), esc_html( $this->zones->get_post_status_label( $post ) ) ); ?>
-
-	<div class="row-actions">
-		<?php echo wp_kses_post( implode( ' | ', $action_links ) ); ?>
 	</div>
 		<?php
 	}

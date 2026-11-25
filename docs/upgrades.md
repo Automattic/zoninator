@@ -155,7 +155,7 @@ Up to 0.12.x, every Zoninator hook was registered on the `Zoninator` object, wit
 
 Zoninator adds all of these when it boots, on `plugins_loaded` at priority 10 (see [Zoninator boots on `plugins_loaded`](#zoninator-boots-on-plugins_loaded)). The admin ones used to wait for `init` at priority 99. Remove them on `plugins_loaded` at priority 20, which works for every hook in the table. The exception is `toplevel_page_zoninator`, which is added on `admin_menu`, so remove it on `admin_menu` at priority 11 or later.
 
-The default callbacks in [`zoninator_zone_post_columns`](hooks.md#zoninator_zone_post_columns-filter) have moved the same way: `array( Zoninator(), 'admin_page_zone_post_col_position' )` and `array( Zoninator(), 'admin_page_zone_post_col_info' )` are now `array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'render_position_column' )` and `array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'render_info_column' )`. If your filter compares them or calls them directly, update it.
+The default callbacks in [`zoninator_zone_post_columns`](hooks.md#zoninator_zone_post_columns-filter) have moved the same way: `array( Zoninator(), 'admin_page_zone_post_col_position' )` and `array( Zoninator(), 'admin_page_zone_post_col_info' )` are now `array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\ZonePostRow::class ), 'render_position_column' )` and `array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\ZonePostRow::class ), 'render_info_column' )`. If your filter compares them or calls them directly, update it.
 
 ### Zoninator boots on `plugins_loaded`
 
@@ -185,6 +185,12 @@ The classes 0.12.0 added under `Automattic\Zoninator\` are internal, but if your
 | `Automattic\Zoninator\Locks` | `Automattic\Zoninator\Application\ZoneLocker`, whose `lock()` and `get_blocker_id()` take a zone ID and a user ID |
 
 The files moved with them, from `src/class-*.php` to paths such as `src/Infrastructure/WordPress/Feed.php`. If your code loads one with `require`, remove that line: the class loads itself when it's first used. The sections of this guide for 0.12.0 use the new names.
+
+### Adding a post over REST no longer returns its row
+
+`POST /zoninator/v1/zones/{zone_id}/posts/{post_id}` returned the post's row for the Zones screen, as HTML. It now returns `{ "success": true }`, like the other routes that change a zone, so the API gives data only. If your client used the `html`, read the zone's posts with `GET /zoninator/v1/zones/{zone_id}/posts` instead.
+
+The [`zoninator_zone_post_columns`](hooks.md#zoninator_zone_post_columns-filter) filter is unaffected: the Zones screen still shows the columns you add, for posts already in the zone and for ones just added.
 
 ### Zone locks now stop every change, not only the Zones screen
 

@@ -8,6 +8,7 @@
 namespace Automattic\Zoninator\Tests\Integration;
 
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZonePostRow;
 
 class ZoninatorAdminAccessibilityTest extends TestCase {
 
@@ -39,7 +40,7 @@ class ZoninatorAdminAccessibilityTest extends TestCase {
 
 		return $this->capture(
 			static function () use ( $post, $zone ) {
-				zoninator_container()->get( Screen::class )->render_zone_post( $post, $zone );
+				zoninator_container()->get( ZonePostRow::class )->render( $post, $zone );
 			}
 		);
 	}

@@ -161,7 +161,13 @@ var zoninator = {};
 		zoninator.rest('add_post', 'POST', zoninator.zonePostPath(postId), {
 			zone_id  : zoninator.getZoneId()
 			, post_id: postId
-		}, zoninator.addPostSuccessCallback);
+		}, function() {
+			// The post is in the zone. The REST API returns data only, so the row to show for it comes
+			// from the screen's own route, which runs the columns sites add in PHP.
+			wp.apiFetch({ path: zoninator.zonePostPath(postId) + '/row' }).then(zoninator.addPostSuccessCallback, function(error) {
+				zoninator.ajaxErrorCallback({ status: 0, content: error && error.message }, { action: zoninator.getAjaxAction('add_post') });
+			});
+		});
 
 	}
 
