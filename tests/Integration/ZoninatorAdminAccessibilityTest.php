@@ -8,6 +8,7 @@
 namespace Automattic\Zoninator\Tests\Integration;
 
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\SearchForm;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZonePostRow;
 
 class ZoninatorAdminAccessibilityTest extends TestCase {
@@ -48,11 +49,7 @@ class ZoninatorAdminAccessibilityTest extends TestCase {
 	private function render_zone_edit(): string {
 		list( $zone ) = $this->create_zone_with_post();
 
-		return $this->capture(
-			static function () use ( $zone ) {
-				zoninator_container()->get( Screen::class )->render_zone_edit( $zone );
-			}
-		);
+		return self::render_zone_editor( (int) $zone->term_id );
 	}
 
 	public function test_zone_items_have_keyboard_move_and_remove_buttons(): void {
@@ -79,8 +76,8 @@ class ZoninatorAdminAccessibilityTest extends TestCase {
 	}
 
 	public function test_zone_content_controls_are_labelled(): void {
-		add_action( 'zoninator_advanced_search_fields', array( zoninator_container()->get( Screen::class ), 'render_category_filter' ) );
-		add_action( 'zoninator_advanced_search_fields', array( zoninator_container()->get( Screen::class ), 'render_date_filter' ) );
+		add_action( 'zoninator_advanced_search_fields', array( zoninator_container()->get( SearchForm::class ), 'render_category_filter' ) );
+		add_action( 'zoninator_advanced_search_fields', array( zoninator_container()->get( SearchForm::class ), 'render_date_filter' ) );
 
 		$output = $this->render_zone_edit();
 
@@ -95,7 +92,7 @@ class ZoninatorAdminAccessibilityTest extends TestCase {
 	public function test_filter_toggle_is_a_button_that_reports_its_state(): void {
 		$output = $this->capture(
 			static function () {
-				zoninator_container()->get( Screen::class )->render_search_filters();
+				zoninator_container()->get( SearchForm::class )->render_filters();
 			}
 		);
 

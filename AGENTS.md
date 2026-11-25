@@ -59,11 +59,22 @@ zoninator/
 │   │       ├── Block.php            # The Zone Posts Query Loop variation's queries and editor script
 │   │       ├── Abilities.php        # Read-only Abilities API abilities
 │   │       ├── CurationAbilities.php # Abilities that change a zone's posts
-│   │       ├── Admin/
-│   │       │   ├── Screen.php       # Zones admin screen (markup, assets)
-│   │       │   ├── ZonePostRow.php  # A zone post's row on the screen
-│   │       │   ├── ZonePostRowController.php # The screen's own route for a row's HTML
-│   │       │   └── ZoneForm.php     # Saves the screen's zone form
+│   │       ├── Admin/               # The Zones admin screen
+│   │       │   ├── Screen.php           # The menu page's callback: loads the data, hands it to the view
+│   │       │   ├── ScreenData.php       # What the screen shows for one request
+│   │       │   ├── ScreenDataLoader.php # Gathers a ScreenData for the current user
+│   │       │   ├── ScreenView.php       # Prints the page: title, notices, zone list, editor
+│   │       │   ├── ZoneEditorView.php   # Prints the open zone's editor
+│   │       │   ├── ZoneContentView.php  # Prints the box that holds a zone's content
+│   │       │   ├── ZoneDetailsView.php  # Prints a zone's name and description, as a form or text
+│   │       │   ├── ZonePostRow.php      # Prints one post's row
+│   │       │   ├── SearchForm.php       # Prints the "Add content" field and its filters
+│   │       │   ├── ScreenLocation.php   # The screen's slug and URL
+│   │       │   ├── Messages.php         # The screen's notices
+│   │       │   ├── Menu.php             # Adds Zones to the admin menu
+│   │       │   ├── Assets.php           # Loads the screen's script and styles
+│   │       │   ├── ZoneForm.php         # Saves the zone form
+│   │       │   └── ZonePostRowController.php # The screen's own route for a row's HTML
 │   │       └── Rest/                # The zoninator/v1 REST API
 │   │           ├── ZonesController.php     # /zones and /zones/{zone_id}
 │   │           ├── ZonePostsController.php # A zone's posts
@@ -93,7 +104,7 @@ zoninator/
 - `zoninator.php` — Loads the template tags and the widget, registers the autoloader, and defines `zoninator_container()`. That function boots the plugin the first time it's called, by making a `Container` and calling `PluginBootstrapper::boot()`, and returns the container. Boot happens on `plugins_loaded` (straight away if that has fired, for themes that load plugins late), or earlier if `zoninator_container()` or a template tag is called first.
 - `src/Infrastructure/WordPress/PluginBootstrapper.php` — `Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper`: the composition root. `build()` builds every class by hand, in dependency order, and adds each to the container; the REST controller and `Abilities` go in as factories, so their files load only when needed. `register_hooks()` calls `register_hooks()` on each class that has hooks, and hooks its own methods that register the REST routes and the abilities. `boot()` runs both.
 - `src/Infrastructure/DI/Container.php` — `Automattic\Zoninator\Infrastructure\DI\Container`: holds objects by class name and knows nothing about them. `add()` stores an object, `factory()` stores a builder that `get()` calls the first time it's asked, and `get()` and `has()` are shaped like PSR-11's. Sites reach the object that handles a hook through `zoninator_container()->get( Feed::class )` and the like. It's the one class under `Automattic\Zoninator\` that isn't `@internal`.
-- `src/Infrastructure/WordPress/Settings.php` — `Automattic\Zoninator\Infrastructure\WordPress\Settings`: the lock periods, results per page and zone detail defaults, each filtered when read, and the Zones screen's messages.
+- `src/Infrastructure/WordPress/Settings.php` — `Automattic\Zoninator\Infrastructure\WordPress\Settings`: the lock periods, results per page, zone detail defaults and post limit, each filtered when read.
 - `src/Infrastructure/WordPress/Capabilities.php` — `Automattic\Zoninator\Infrastructure\WordPress\Capabilities`: the add, edit and manage capability checks (and their filters), and whether the user may put a given post in a zone.
 - `src/Infrastructure/WordPress/Request.php` — `Automattic\Zoninator\Infrastructure\WordPress\Request`: reads and sanitizes request variables, validates the search filters, and checks nonces and access, stopping the request if either fails. Its helpers are instance methods, so a class that uses one takes `Request` in its constructor.
 - `src/Infrastructure/WordPress/Taxonomy.php` — `Automattic\Zoninator\Infrastructure\WordPress\Taxonomy`: registers the `zoninator_zones` taxonomy (`Taxonomy::NAME`) on `init`, with no object types, and gives posts zone support when the plugin boots. A post type supports zones if it has the `zoninator_zones` post type feature; `get_post_types()` asks core each time, with no cache.
@@ -110,9 +121,9 @@ zoninator/
 - `src/Infrastructure/WordPress/FeedEndpoint.php` — `Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint`: the rewrite rule and response for the JSON feed at `/zones/{slug}/feed.json`.
 - `src/Infrastructure/WordPress/Search.php` — `Automattic\Zoninator\Infrastructure\WordPress\Search`: finds posts to offer for a zone, by text or the latest content. The REST search route and the `zoninator/search-posts` ability both call its `find_posts()`.
 - `src/Infrastructure/WordPress/Block.php` — `Automattic\Zoninator\Infrastructure\WordPress\Block`: the Zone Posts variation of core's Query Loop block. `js/zoninator-block.js` (plain JS, no build step) registers the variation and its zone picker, which saves the zone ID as `zoninatorZone` in the block's query. `Block` turns that into `Zones::get_query_args()` on `query_loop_block_query_vars` for the front end and on `rest_post_query` for the editor preview.
-- `src/Infrastructure/WordPress/Admin/Screen.php` — `Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen`: renders the Zones screen (`Screen::PAGE_SLUG`, `admin.php?page=zoninator`) and loads its assets.
+- `src/Infrastructure/WordPress/Admin/` — the Zones screen (`admin.php?page=zoninator`), split so that one class gathers what to show and the rest only print it. `Screen::render()` is the menu page's callback: it reads the zone and notice the request asks for, has `ScreenDataLoader` build a `ScreenData` (the zones, the open zone, its posts, who is editing it, what the user may do), and hands it to `ScreenView`. `ScreenView` prints the page and the zone list, and uses `ZoneEditorView`, which uses `ZoneContentView` (with `SearchForm` and `ZonePostRow`) and `ZoneDetailsView`. **A view takes `ScreenData` and decides nothing: it makes no capability check and no query.** `ScreenLocation` has the slug and URL, `Messages` the notices, `Menu` the menu item and `Assets` the script and styles.
 - `src/Infrastructure/WordPress/Admin/ZonePostRow.php` and `ZonePostRowController.php` — `ZonePostRow` renders one post's row, running the `zoninator_zone_post_columns` callbacks. `ZonePostRowController` is the screen's own route, `GET /zoninator/v1/zones/{zone_id}/posts/{post_id}/row`, which the screen's JavaScript calls after it adds a post. **The REST controllers under `Rest/` return data only and must not depend on anything under `Admin/`**; HTML for the screen comes from routes the screen owns.
-- `src/Infrastructure/WordPress/Admin/ZoneForm.php` — `Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm`: saves the screen's zone form (create, update, delete) through `GuardedZoneManager`, then redirects.
+- `src/Infrastructure/WordPress/Admin/ZoneForm.php` — saves the screen's zone form (create, update, delete) through `GuardedZoneManager`, then redirects.
 - `functions.php` — The template tags themes use to read zones: `zoninator_get_zones()`, `zoninator_get_zone()`, `zoninator_get_posts_in_zone()`, `zoninator_get_zone_query()`, `zoninator_get_next_post_in_zone()`, `zoninator_get_prev_post_in_zone()` and `zoninator_get_post_zones()`, plus `zoninator_disable_locks()`. They return `WP_Term`, `WP_Post` and `WP_Query`. Before 1.0.0 they began with `z_`.
 - `src/class-zoninator-zoneposts-widget.php` — Classic widget (`Zoninator_ZonePosts_Widget`), the one global class. Its constructor takes `Zones`, so WordPress can't build it from its class name. `PluginBootstrapper::register_widget()` builds it on `widgets_init` and files it in core's widget factory under its class name, which keeps `unregister_widget( 'Zoninator_ZonePosts_Widget' )` and `the_widget( 'Zoninator_ZonePosts_Widget' )` working; `register_widget()` given an object would file it under an object ID. Don't rename the class: saved widgets are keyed by an ID base derived from it.
 - `src/Infrastructure/WordPress/Rest/` — the `zoninator/v1` REST API, one `WP_REST_Controller` for each resource: `ZonesController` (`/zones`, `/zones/{zone_id}`), `ZonePostsController` (a zone's posts), `SearchController` (`/search`) and `LockController` (a zone's lock). Each takes what it works on plus `Permissions`, which holds the routes' permission callbacks. The `RespondsToRequests` trait gives them the same param reading and responses, including `error_response()`, which turns a `Domain` exception into the API's error. `ErrorCodes` holds the error codes clients match on. `PluginBootstrapper::register_rest_routes()` gets the controllers from the container, which loads them, on `rest_api_init`.

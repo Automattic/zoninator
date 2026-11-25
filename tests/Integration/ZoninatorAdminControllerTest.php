@@ -9,7 +9,7 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Tests\Integration;
 
-use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenLocation;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm;
 use Automattic\Zoninator\Infrastructure\WordPress\Request;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
@@ -293,7 +293,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$_REQUEST = array_merge(
 			$_POST,
 			array(
-				'page'   => Screen::PAGE_SLUG,
+				'page'   => ScreenLocation::SLUG,
 				'action' => $action,
 			)
 		);

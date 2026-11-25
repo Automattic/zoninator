@@ -87,7 +87,7 @@ add_filter( 'zoninator_rest_get_zones_permissions_check', '__return_true' );
 
 ## Admin UI
 
-These fire from `src/Infrastructure/WordPress/Admin/Screen.php`, except where noted.
+These fire from the classes under `src/Infrastructure/WordPress/Admin/`, which print the Zones screen.
 
 ### `zoninator_admin_page_get_zones_args` (filter)
 

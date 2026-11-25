@@ -9,7 +9,6 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Tests\Integration;
 
-use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
 
 class ZoninatorZoneLockNoticeTest extends TestCase {
 
@@ -26,9 +25,7 @@ class ZoninatorZoneLockNoticeTest extends TestCase {
 		$zone = self::insert_zone( 'locked-zone', 'Locked zone' );
 		self::locker()->lock( (int) $zone['term_id'], $locker_id );
 
-		ob_start();
-		zoninator_container()->get( Screen::class )->render_zone_edit( self::zones()->get( (int) $zone['term_id'] ) );
-		$output = ob_get_clean();
+		$output = self::render_zone_editor( (int) $zone['term_id'] );
 
 		$this->assertStringContainsString( 'Zone Locker', $output );
 		$this->assertStringNotContainsString( 'zoninator-locker@example.com', $output );

@@ -15,7 +15,17 @@ use Automattic\Zoninator\Application\ZoneLocker;
 use Automattic\Zoninator\Application\ZoneManager;
 use Automattic\Zoninator\Application\ZoneRemover;
 use Automattic\Zoninator\Infrastructure\DI\Container;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\Assets;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\Menu;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\Messages;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenDataLoader;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenLocation;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenView;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\SearchForm;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneContentView;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneDetailsView;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneEditorView;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZonePostRow;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZonePostRowController;
@@ -87,10 +97,19 @@ final class PluginBootstrapper {
 		$guarded_posts = $container->add( new GuardedZoneCurator( $curator, $guard ) );
 		$zones         = $container->add( new Zones( $taxonomy, $capabilities, $terms ) );
 		$container->add( new TermSplitHandler( $curator ) );
-		$feed   = $container->add( new Feed( $zones ) );
-		$row    = $container->add( new ZonePostRow( $zones ) );
-		$screen = $container->add( new Screen( $zones, $locker, $settings, $capabilities, $request, $row ) );
-		$container->add( new ZoneForm( $screen, $request, $guarded_zones ) );
+		$feed = $container->add( new Feed( $zones ) );
+		// The Zones admin screen.
+		$location = $container->add( new ScreenLocation() );
+		$messages = $container->add( new Messages() );
+		$row      = $container->add( new ZonePostRow( $zones ) );
+		$content  = new ZoneContentView( $container->add( new SearchForm( $request ) ), $row );
+		$editor   = $container->add( new ZoneEditorView( $messages, $content, new ZoneDetailsView( $location, $request ) ) );
+		$loader   = $container->add( new ScreenDataLoader( $zones, $capabilities, $locker ) );
+		$screen   = $container->add( new Screen( $request, $loader, new ScreenView( $messages, $location, $editor ) ) );
+		$container->add( new Menu( $capabilities, $location, $screen ) );
+		$container->add( new Assets( $location, $settings, $messages ) );
+		$container->add( new ZoneForm( $location, $request, $guarded_zones ) );
+
 		$search = $container->add( new Search( $taxonomy, $settings, $capabilities, $zones ) );
 		$container->add( new FeedEndpoint( $feed ) );
 		$container->add( new Block( $zones ) );
@@ -165,7 +184,9 @@ final class PluginBootstrapper {
 		$this->container->get( TermSplitHandler::class )->register_hooks();
 		$this->container->get( FeedEndpoint::class )->register_hooks();
 		$this->container->get( Block::class )->register_hooks();
-		$this->container->get( Screen::class )->register_hooks();
+		$this->container->get( Menu::class )->register_hooks();
+		$this->container->get( Assets::class )->register_hooks();
+		$this->container->get( SearchForm::class )->register_hooks();
 		$this->container->get( ZoneForm::class )->register_hooks();
 
 		add_action( 'widgets_init', array( $this, 'register_widget' ) );

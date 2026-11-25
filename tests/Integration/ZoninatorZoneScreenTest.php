@@ -8,15 +8,14 @@
 namespace Automattic\Zoninator\Tests\Integration;
 
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\SearchForm;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZonePostRow;
 use WP_Term;
 
 class ZoninatorZoneScreenTest extends TestCase {
 
 	private function render_zone_edit( $zone = null ): string {
-		ob_start();
-		zoninator_container()->get( Screen::class )->render_zone_edit( $zone );
-		return (string) ob_get_clean();
+		return self::render_zone_editor( $zone ? (int) $zone->term_id : 0 );
 	}
 
 	private function create_zone(): WP_Term {
@@ -91,7 +90,7 @@ class ZoninatorZoneScreenTest extends TestCase {
 
 	public function test_date_filter_shows_labels(): void {
 		ob_start();
-		zoninator_container()->get( Screen::class )->render_date_filter();
+		zoninator_container()->get( SearchForm::class )->render_date_filter();
 		$output = (string) ob_get_clean();
 
 		$this->assertStringContainsString( '>All dates</option>', $output );
