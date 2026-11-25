@@ -13,7 +13,7 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
-use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZonePostRow;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -465,7 +465,7 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( array(), self::zones()->get_posts( $zone_id ) );
 	}
 
-	public function test_add_zone_post_appends_the_post_and_returns_its_row(): void {
+	public function test_add_zone_post_appends_the_post(): void {
 		$zone_id  = $this->create_zone( 'appended' );
 		$first_id = self::factory()->post->create();
 		$post_id  = self::factory()->post->create();
@@ -473,17 +473,31 @@ final class ZoninatorRestContractTest extends TestCase {
 
 		$response = $this->dispatch( 'POST', "/zones/$zone_id/posts/$post_id" );
 
-		ob_start();
-		zoninator_container()->get( Screen::class )->render_zone_post( get_post( $post_id ), self::zones()->get( $zone_id ) );
-		$row = ob_get_clean();
-
 		$this->assertSame( 201, $response->get_status() );
-		$this->assertStringContainsString( 'data-post-id="' . $post_id . '"', $row );
-		$this->assertSame( array( 'html' => $row ), $response->get_data() );
+		$this->assertSame( array( 'success' => true ), $response->get_data() );
 		$this->assertSame( array( $first_id, $post_id ), wp_list_pluck( self::zones()->get_posts( $zone_id ), 'ID' ) );
 	}
 
-	public function test_add_zone_post_renders_columns_sites_add(): void {
+	/**
+	 * The Zones screen gets the row to show for a post from its own route.
+	 */
+	public function test_row_route_returns_the_posts_row_as_the_screen_renders_it(): void {
+		$zone_id = $this->create_zone( 'rows' );
+		$post_id = self::factory()->post->create();
+		self::add_zone_posts( $zone_id, array( $post_id ) );
+
+		$response = $this->dispatch( 'GET', "/zones/$zone_id/posts/$post_id/row" );
+
+		ob_start();
+		zoninator_container()->get( ZonePostRow::class )->render( get_post( $post_id ), self::zones()->get( $zone_id ) );
+		$row = ob_get_clean();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertStringContainsString( 'data-post-id="' . $post_id . '"', $row );
+		$this->assertSame( array( 'html' => $row ), $response->get_data() );
+	}
+
+	public function test_row_route_renders_columns_sites_add(): void {
 		$zone_id = $this->create_zone( 'columns' );
 		$post_id = self::factory()->post->create();
 		add_filter(
@@ -496,9 +510,21 @@ final class ZoninatorRestContractTest extends TestCase {
 			}
 		);
 
-		$response = $this->dispatch( 'POST', "/zones/$zone_id/posts/$post_id" );
+		$response = $this->dispatch( 'GET', "/zones/$zone_id/posts/$post_id/row" );
 
 		$this->assertStringContainsString( 'zoninator-custom-column', $response->get_data()['html'] );
+	}
+
+	public function test_row_route_refuses_a_missing_zone_a_post_that_cannot_go_in_a_zone_and_a_user_who_cannot_manage_zones(): void {
+		$zone_id = $this->create_zone( 'guarded-rows' );
+		$post_id = self::factory()->post->create();
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+
+		$this->assertSame( 'zone-not-found', $this->dispatch( 'GET', "/zones/999999/posts/$post_id/row" )->get_data()['code'] );
+		$this->assertSame( 'invalid-post-id', $this->dispatch( 'GET', "/zones/$zone_id/posts/$page_id/row" )->get_data()['code'] );
+
+		wp_set_current_user( $this->subscriber_id );
+		$this->assertSame( 403, $this->dispatch( 'GET', "/zones/$zone_id/posts/$post_id/row" )->get_status() );
 	}
 
 	/**
@@ -1311,6 +1337,12 @@ final class ZoninatorRestContractTest extends TestCase {
 				array(
 					'methods' => $editable,
 					'args'    => array( 'zone_id' => $zone_id ),
+				),
+			),
+			'/zoninator/v1/zones/(?P<zone_id>[\d]+)/posts/(?P<post_id>\d+)/row' => array(
+				array(
+					'methods' => array( 'GET' ),
+					'args'    => $zone_post,
 				),
 			),
 		);

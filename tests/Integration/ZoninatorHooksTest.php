@@ -17,6 +17,7 @@ use ArrayObject;
 use Automattic\Zoninator\Infrastructure\DI\Container;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZonePostRow;
 use Automattic\Zoninator\Infrastructure\WordPress\Block;
 use Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint;
 use Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper;
@@ -208,7 +209,7 @@ class ZoninatorHooksTest extends TestCase {
 		$this->assertSame( 10, has_action( 'toplevel_page_zoninator', array( zoninator_container()->get( Screen::class ), 'render' ) ) );
 	}
 
-	public function test_zone_post_columns_default_to_the_screen(): void {
+	public function test_zone_post_columns_default_to_the_row(): void {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 		$zone = self::insert_zone( 'pinned-zone', 'Pinned zone' );
 
@@ -220,14 +221,14 @@ class ZoninatorHooksTest extends TestCase {
 		add_filter( 'zoninator_zone_post_columns', $spy );
 
 		ob_start();
-		zoninator_container()->get( Screen::class )->render_zone_post( get_post( self::factory()->post->create() ), self::zones()->get( (int) $zone['term_id'] ) );
+		zoninator_container()->get( ZonePostRow::class )->render( get_post( self::factory()->post->create() ), self::zones()->get( (int) $zone['term_id'] ) );
 		ob_end_clean();
 
 		remove_filter( 'zoninator_zone_post_columns', $spy );
 		$this->assertSame(
 			array(
-				'position' => array( zoninator_container()->get( Screen::class ), 'render_position_column' ),
-				'info'     => array( zoninator_container()->get( Screen::class ), 'render_info_column' ),
+				'position' => array( zoninator_container()->get( ZonePostRow::class ), 'render_position_column' ),
+				'info'     => array( zoninator_container()->get( ZonePostRow::class ), 'render_info_column' ),
 			),
 			$columns
 		);

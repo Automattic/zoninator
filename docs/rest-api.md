@@ -99,13 +99,13 @@ Adds a post to the end of a zone. Since 0.12.0.
 
 **Permission:** `zoninator_manage_zone_cap`.
 
-**Response:** `201` with the post's row for the Zones screen, rendered by the [`zoninator_zone_post_columns`](hooks.md) callbacks:
+**Response:** `201`:
 
 ```json
-{
-  "html": "<div id=\"zone-post-42\" class=\"zone-post\" …>…</div>"
-}
+{ "success": true }
 ```
+
+Before 1.0.0 the response held the post's row for the Zones screen, as HTML. The screen now gets that from its own route, `GET /zoninator/v1/zones/{zone_id}/posts/{post_id}/row`, which isn't part of this API's contract and may change with the screen.
 
 `400` if the post isn't of a zone post type that the user can read, `404` if the zone does not exist.
 
