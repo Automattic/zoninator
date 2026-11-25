@@ -107,6 +107,14 @@ The `zoninator_recent_posts_args` and `zoninator_search_args` filters in [hooks.
 - The `WP_Query` returned by `z_get_zone_query()` is a fresh query — if you call it twice with the same arguments, that's two queries. Cache the result in a variable.
 - Zoninator orders posts by a meta value behind the scenes, which means a `JOIN` against `postmeta`. Keep zones small (the admin UI is built for tens of posts, not thousands).
 
+## The Zone Posts block
+
+Since 1.0.0, block themes and the block editor can show a zone with the **Zone Posts** block, a variation of core's Query Loop block. Insert it, pick the zone under **Zone** in the block settings, and design each item with the Post Template, Post Title, Post Featured Image and other blocks as you would for any Query Loop. Zoninator adds no markup of its own, so the theme styles it like any other query.
+
+The block uses the same query as `z_get_zone_query()`: published posts in the zone, in zone order. The block's items per page, offset and max pages still apply. Until a zone is picked, it shows no posts.
+
+The editor preview reads posts through the `/wp/v2/posts` REST route, so it only shows the zone's posts of the `post` post type. A zone of pages or other post types previews with fewer posts, or none, but the front end shows them all.
+
 ## The Zone Posts widget
 
 For sidebars, the bundled Zone Posts widget renders a list without any code. It registers under **Appearance → Widgets** with the title "Zone Posts" and exposes a zone selector and a "show description" toggle.

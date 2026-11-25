@@ -29,6 +29,7 @@ zoninator/
 │   ├── class-zones.php              # Zones: zone CRUD, zone posts and their order
 │   ├── class-locks.php              # Locks: zone edit locks
 │   ├── class-feed.php               # Feed: the JSON feed at /zones/{slug}/feed.json
+│   ├── class-block.php              # Block: the Zone Posts Query Loop variation's queries and editor script
 │   ├── class-abilities.php          # Abilities: read-only Abilities API abilities
 │   ├── admin/
 │   │   ├── class-screen.php         # Zones admin screen (markup, form handling, assets)
@@ -37,7 +38,7 @@ zoninator/
 │   └── rest/
 │       └── class-zones-controller.php # REST endpoints (/zoninator/v1/zones)
 ├── css/                             # Admin stylesheets
-├── js/                              # Admin JavaScript (jQuery sortable, autocomplete)
+├── js/                              # Admin JavaScript (jQuery sortable, autocomplete) and the block editor script
 ├── tests/
 │   ├── bootstrap.php                # PHPUnit bootstrap (yoast/wp-test-utils)
 │   ├── Integration/                 # Integration tests + TestCase base
@@ -61,6 +62,7 @@ zoninator/
 - `src/class-locks.php` — `Automattic\Zoninator\Locks`: takes, reports and releases the transient that stops two people editing a zone at once.
 - `src/class-abilities.php` — `Automattic\Zoninator\Abilities`: the read-only Abilities API abilities (`zoninator/list-zones`, `zoninator/get-zone-posts`, `zoninator/search-posts`) in the `zoninator` category. `Zoninator` hooks it on `wp_abilities_api_categories_init` and `wp_abilities_api_init`, and loads it the first time either fires. Like the REST route callbacks, the ability callbacks live on this class; sites remove an ability with `wp_unregister_ability()`.
 - `src/class-feed.php` — `Automattic\Zoninator\Feed`: the rewrite rule and response for the JSON feed at `/zones/{slug}/feed.json`.
+- `src/class-block.php` — `Automattic\Zoninator\Block`: the Zone Posts variation of core's Query Loop block. `js/zoninator-block.js` (plain JS, no build step) registers the variation and its zone picker, which saves the zone ID as `zoninatorZone` in the block's query. `Block` turns that into `Zones::get_query_args()` on `query_loop_block_query_vars` for the front end and on `rest_post_query` for the editor preview.
 - `src/admin/class-screen.php` — `Automattic\Zoninator\Admin\Screen`: renders the Zones screen (`Screen::PAGE_SLUG`, `admin.php?page=zoninator`), saves its zone form and loads its assets.
 - `src/admin/class-ajax.php` — `Automattic\Zoninator\Admin\Ajax`: the screen's old admin-ajax handlers, which all check `Ajax::NONCE_ACTION`. Since 0.12.0 the screen uses the REST API for everything, so every action here is deprecated and the class goes in 1.0.0.
 - `functions.php` — Public template tags: `z_get_zones()`, `z_get_zone()`, `z_get_posts_in_zone()`, `z_get_zone_query()`, `z_get_next_post_in_zone()`, `z_get_prev_post_in_zone()`, `z_get_post_zones()`. Used by themes in production.
