@@ -63,8 +63,13 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 			$cache = array();
 		}
 
-		if ( isset( $cache[ $args['widget_id'] ] ) ) {
-			echo wp_kses_post( $cache[ $args['widget_id'] ] );
+		// the_widget() prints a widget that isn't in a sidebar, so it has no ID to
+		// cache its output under. One shared entry would show the first zone
+		// printed in place of every other, so that output isn't cached.
+		$widget_id = $args['widget_id'] ?? '';
+
+		if ( '' !== $widget_id && isset( $cache[ $widget_id ] ) ) {
+			echo wp_kses_post( $cache[ $widget_id ] );
 			return;
 		}
 
@@ -122,7 +127,13 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 
 		<?php echo wp_kses_post( $args['after_widget'] ); ?>
 		<?php
-		$cache[ $args['widget_id'] ] = ob_get_flush();
+		$output = ob_get_flush();
+
+		if ( '' === $widget_id ) {
+			return;
+		}
+
+		$cache[ $widget_id ] = $output;
 
 		$save_blocked = wp_cache_get( $cache_key . '-save_blocked', 'widget' );
 		if ( $save_blocked ) {

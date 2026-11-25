@@ -158,6 +158,34 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 		$this->assertSame( $wp_widget_factory->widgets[ Zoninator_ZonePosts_Widget::class ], $wp_widget_factory->get_widget_object( 'zoninator_zoneposts_widget' ) );
 	}
 
+	public function test_the_widget_prints_the_widget_by_its_class_name(): void {
+		self::add_zone_posts( $this->zone_id, self::factory()->post->create() );
+
+		ob_start();
+		the_widget( Zoninator_ZonePosts_Widget::class, array( 'zone_id' => $this->zone_id ) );
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'Widget zone', $html );
+	}
+
+	/**
+	 * the_widget() gives the widget no ID, so two zones printed that way must
+	 * not share a cache entry.
+	 */
+	public function test_the_widget_prints_each_zone_it_is_asked_for(): void {
+		$other = self::insert_zone( 'other-widget-zone', 'Other zone' );
+		self::add_zone_posts( $this->zone_id, self::factory()->post->create() );
+		self::add_zone_posts( (int) $other['term_id'], self::factory()->post->create() );
+
+		ob_start();
+		the_widget( Zoninator_ZonePosts_Widget::class, array( 'zone_id' => $this->zone_id ) );
+		the_widget( Zoninator_ZonePosts_Widget::class, array( 'zone_id' => (int) $other['term_id'] ) );
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'Widget zone', $html );
+		$this->assertStringContainsString( 'Other zone', $html );
+	}
+
 	public function test_unregister_widget_removes_the_widget_by_its_class_name(): void {
 		global $wp_widget_factory;
 		$widget = $wp_widget_factory->widgets[ Zoninator_ZonePosts_Widget::class ];
