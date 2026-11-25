@@ -16,6 +16,7 @@ namespace Automattic\Zoninator;
  * register_zone_post_type() for add_post_types()), which delegates here.
  *
  * @since 0.12.0
+ * @internal Use Zoninator(), the template tags and the hooks instead.
  */
 final class Taxonomy {
 
@@ -25,28 +26,30 @@ final class Taxonomy {
 	public const NAME = 'zoninator_zones';
 
 	/**
-	 * Cache of the post types that support zones, or null to work it out again.
+	 * Gives posts zone support, and hooks the taxonomy's registration. Bootstrapper::register_hooks() calls this once.
 	 *
-	 * @var string[]|null
+	 * @since 1.0.0
 	 */
-	private $post_types;
+	public function register_hooks() {
+		// This only writes to core's list of post type features, so it works before
+		// core registers the post type on init. Sites opt posts out with
+		// remove_post_type_support( 'post', 'zoninator_zones' ).
+		add_post_type_support( 'post', self::NAME );
+
+		add_action( 'init', array( $this, 'register' ) );
+	}
 
 	/**
-	 * Adds zone support to the default post types, and registers the taxonomy.
+	 * Registers the taxonomy.
 	 *
-	 * @param string[] $default_post_types Post types that support zones by default.
+	 * It has no object types: a post's place in a zone is post meta, never a
+	 * term relationship, so the taxonomy doesn't need to know the post types.
 	 */
-	public function register( array $default_post_types ) {
-		// Default post type support
-		foreach ( $default_post_types as $post_type ) {
-			add_post_type_support( $post_type, self::NAME );
-		}
-
-		// Register taxonomy
+	public function register() {
 		if ( ! taxonomy_exists( self::NAME ) ) {
 			register_taxonomy(
 				self::NAME,
-				$this->get_post_types(),
+				array(),
 				array(
 					'label'        => __( 'Zones', 'zoninator' ),
 					'hierarchical' => false,
@@ -67,20 +70,13 @@ final class Taxonomy {
 		}
 	}
 
+	/**
+	 * The registered post types that support zones, in the order they were registered.
+	 *
+	 * @return string[]
+	 */
 	public function get_post_types() {
-		if ( null !== $this->post_types ) {
-			return $this->post_types;
-		}
-
-		$this->post_types = array();
-
-		foreach ( get_post_types() as $post_type ) {
-			if ( post_type_supports( $post_type, self::NAME ) ) {
-				$this->post_types[] = $post_type;
-			}
-		}
-
-		return $this->post_types;
+		return array_values( array_intersect( get_post_types(), get_post_types_by_support( self::NAME ) ) );
 	}
 
 	/**
@@ -103,10 +99,6 @@ final class Taxonomy {
 			}
 
 			add_post_type_support( $post_type, self::NAME );
-			register_taxonomy_for_object_type( self::NAME, $post_type );
-
-			// Clear Zoninator supported post types cache
-			$this->post_types = null;
 
 			$did_register_post_types = true;
 		}

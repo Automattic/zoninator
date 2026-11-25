@@ -11,53 +11,28 @@ namespace Automattic\Zoninator;
  * The values sites tune with filters (lock periods, results per page, zone
  * details) and the messages the Zones screen shows.
  *
- * The filters apply on init, as they always have.
+ * Each getter applies its filter when it's called, so a filter added at any
+ * point before then counts.
  *
  * @since 0.12.0
+ * @internal Use Zoninator(), the template tags and the hooks instead.
  */
 final class Settings {
 
 	/**
-	 * Current values.
-	 *
-	 * @var array
+	 * Default number of seconds a zone lock lasts without being renewed.
 	 */
-	private $values = array(
-		// Number of seconds a lock is valid for.
-		'zone_lock_period'     => 30,
-		// Max number of seconds for all locks in a session.
-		'zone_max_lock_period' => 600,
-		// Number of posts shown in zone searches and the latest content.
-		'posts_per_page'       => 10,
-		// Zone details saved in the zone term, with their default values. Add
-		// your own with the zoninator_zone_detail_defaults filter.
-		'zone_detail_defaults' => array(
-			'description' => '',
-		),
-		// Set on init, so the messages are translated.
-		'zone_messages'        => null,
-	);
+	private const LOCK_PERIOD = 30;
 
 	/**
-	 * Sets the messages and applies the settings filters. Runs on init.
+	 * Default number of seconds the Zones screen keeps a zone locked while the user makes no changes, before asking whether they're still working.
 	 */
-	public function init() {
-		$this->values['zone_messages'] = array(
-			'insert-success'      => __( 'The zone was successfully created.', 'zoninator' ),
-			'update-success'      => __( 'The zone was successfully updated.', 'zoninator' ),
-			'delete-success'      => __( 'The zone was successfully deleted.', 'zoninator' ),
-			'error-general'       => __( 'Sorry, something went wrong! Please try again?', 'zoninator' ),
-			'error-delete-zone'   => __( "Sorry, we couldn't delete the zone.", 'zoninator' ),
-			'error-invalid-zone'  => __( "Sorry, that zone doesn't exist.", 'zoninator' ),
-			/* translators: %s: the locking user's display name, or "another user". */
-			'error-zone-lock'     => __( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
-			'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard.', 'zoninator' ),
-		);
+	private const MAX_LOCK_PERIOD = 600;
 
-		$this->values['zone_lock_period']     = apply_filters( 'zoninator_zone_lock_period', $this->values['zone_lock_period'] );
-		$this->values['zone_max_lock_period'] = apply_filters( 'zoninator_zone_max_lock_period', $this->values['zone_max_lock_period'] );
-		$this->values['posts_per_page']       = apply_filters( 'zoninator_posts_per_page', $this->values['posts_per_page'] );
-	}
+	/**
+	 * Default number of posts in a zone search or the latest content.
+	 */
+	private const POSTS_PER_PAGE = 10;
 
 	/**
 	 * Number of seconds a lock is valid for.
@@ -65,7 +40,7 @@ final class Settings {
 	 * @return int
 	 */
 	public function get_lock_period() {
-		return $this->values['zone_lock_period'];
+		return apply_filters( 'zoninator_zone_lock_period', self::LOCK_PERIOD );
 	}
 
 	/**
@@ -74,7 +49,7 @@ final class Settings {
 	 * @return int
 	 */
 	public function get_max_lock_period() {
-		return $this->values['zone_max_lock_period'];
+		return apply_filters( 'zoninator_zone_max_lock_period', self::MAX_LOCK_PERIOD );
 	}
 
 	/**
@@ -83,7 +58,7 @@ final class Settings {
 	 * @return int
 	 */
 	public function get_posts_per_page() {
-		return $this->values['posts_per_page'];
+		return apply_filters( 'zoninator_posts_per_page', self::POSTS_PER_PAGE );
 	}
 
 	/**
@@ -99,7 +74,7 @@ final class Settings {
 		 *
 		 * @param array $defaults Detail name => default value. Includes 'description'.
 		 */
-		return (array) apply_filters( 'zoninator_zone_detail_defaults', $this->values['zone_detail_defaults'] );
+		return (array) apply_filters( 'zoninator_zone_detail_defaults', array( 'description' => '' ) );
 	}
 
 	/**
@@ -110,16 +85,20 @@ final class Settings {
 	 * @return string The message, or '' if there's none with that ID.
 	 */
 	public function get_message( $message_id, $encode = false ) {
-		$message = '';
+		$messages = array(
+			'insert-success'      => __( 'The zone was successfully created.', 'zoninator' ),
+			'update-success'      => __( 'The zone was successfully updated.', 'zoninator' ),
+			'delete-success'      => __( 'The zone was successfully deleted.', 'zoninator' ),
+			'error-general'       => __( 'Sorry, something went wrong! Please try again?', 'zoninator' ),
+			'error-delete-zone'   => __( "Sorry, we couldn't delete the zone.", 'zoninator' ),
+			'error-invalid-zone'  => __( "Sorry, that zone doesn't exist.", 'zoninator' ),
+			/* translators: %s: the locking user's display name, or "another user". */
+			'error-zone-lock'     => __( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
+			'error-zone-lock-max' => __( 'Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard.', 'zoninator' ),
+		);
 
-		if ( ! empty( $this->values['zone_messages'][ $message_id ] ) ) {
-			$message = $this->values['zone_messages'][ $message_id ];
-		}
+		$message = $messages[ $message_id ] ?? '';
 
-		if ( $encode ) {
-			$message = urlencode( $message );
-		}
-
-		return $message;
+		return $encode ? urlencode( $message ) : $message;
 	}
 }

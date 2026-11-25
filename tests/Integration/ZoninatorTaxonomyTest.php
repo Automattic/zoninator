@@ -13,19 +13,9 @@ class ZoninatorTaxonomyTest extends TestCase {
 
 	public function tear_down(): void {
 		remove_post_type_support( 'page', 'zoninator_zones' );
-		unregister_taxonomy_for_object_type( 'zoninator_zones', 'page' );
-		Zoninator()->default_post_types = array( 'post' );
-		$this->clear_post_types_cache();
+		add_post_type_support( 'post', 'zoninator_zones' );
 
 		parent::tear_down();
-	}
-
-	/**
-	 * Clear the cached list of zone post types, so later tests see only posts again.
-	 */
-	private function clear_post_types_cache(): void {
-		$taxonomy = \Closure::bind( fn() => $this->taxonomy, Zoninator(), \Zoninator::class )();
-		\Closure::bind( fn() => $this->post_types = null, $taxonomy, \Automattic\Zoninator\Taxonomy::class )();
 	}
 
 	public function test_the_taxonomy_is_a_private_data_store(): void {
@@ -36,7 +26,8 @@ class ZoninatorTaxonomyTest extends TestCase {
 		$this->assertFalse( $taxonomy->query_var );
 		$this->assertFalse( $taxonomy->rewrite );
 		$this->assertFalse( $taxonomy->public );
-		$this->assertSame( array( 'post' ), $taxonomy->object_type );
+		// Zone posts are post meta, not terms, so the taxonomy needs no post types.
+		$this->assertSame( array(), $taxonomy->object_type );
 	}
 
 	/**
@@ -96,7 +87,6 @@ class ZoninatorTaxonomyTest extends TestCase {
 		$this->assertTrue( Zoninator()->register_zone_post_type( 'page' ) );
 
 		$this->assertTrue( post_type_supports( 'page', 'zoninator_zones' ) );
-		$this->assertContains( 'page', get_taxonomy( 'zoninator_zones' )->object_type );
 		$this->assertSame( array( 'post', 'page' ), Zoninator()->get_supported_post_types() );
 	}
 
@@ -105,22 +95,26 @@ class ZoninatorTaxonomyTest extends TestCase {
 		$this->assertTrue( Zoninator()->register_zone_post_type( array( 'no_such_type', 'page' ) ) );
 	}
 
-	public function test_pre_init_can_add_default_post_types(): void {
-		$add_page = static function () {
-			Zoninator()->default_post_types[] = 'page';
-		};
-		add_action( 'zoninator_pre_init', $add_page );
+	public function test_a_site_can_take_zones_away_from_posts(): void {
+		remove_post_type_support( 'post', 'zoninator_zones' );
 
-		Zoninator()->init();
-
-		remove_action( 'zoninator_pre_init', $add_page );
-		$this->assertTrue( post_type_supports( 'page', 'zoninator_zones' ) );
+		$this->assertSame( array(), Zoninator()->get_supported_post_types() );
 	}
 
 	/**
-	 * The plugin's own instance works out its post types before any test runs,
-	 * so only a fresh one shows whether the cache starts out declared.
+	 * Post types registered after the zone taxonomy count too, so it can be
+	 * registered at the default priority.
 	 */
+	public function test_a_post_type_registered_later_with_zone_support_counts(): void {
+		Zoninator()->get_supported_post_types();
+		register_post_type( 'zoninator_late', array( 'supports' => array( 'title', 'zoninator_zones' ) ) );
+
+		$post_types = Zoninator()->get_supported_post_types();
+
+		unregister_post_type( 'zoninator_late' );
+		$this->assertSame( array( 'post', 'zoninator_late' ), $post_types );
+	}
+
 	public function test_a_new_taxonomy_works_out_its_post_types(): void {
 		$taxonomy = new \Automattic\Zoninator\Taxonomy();
 

@@ -47,14 +47,44 @@ require_once __DIR__ . '/src/class-feed.php';
 require_once __DIR__ . '/src/class-block.php';
 require_once __DIR__ . '/src/admin/class-screen.php';
 require_once __DIR__ . '/src/class-zoninator.php';
+require_once __DIR__ . '/src/class-container.php';
+require_once __DIR__ . '/src/class-bootstrapper.php';
 
-function Zoninator() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid, Universal.Files.SeparateFunctionsFromOO.Mixed -- Windows is case-sensitive, so changing this is a breaking change.
-	global $zoninator;
-	if ( ! isset( $zoninator ) || null === $zoninator ) {
-		$zoninator = new Zoninator();
+/**
+ * Boots Zoninator the first time it's called, and returns its container.
+ *
+ * Use the container's get() to reach the object that handles one of
+ * Zoninator's hooks, to unhook it, for example on plugins_loaded at priority 20:
+ * remove_action( 'template_redirect', array( zoninator_container()->get( \Automattic\Zoninator\Feed::class ), 'serve' ) ).
+ *
+ * @since 1.0.0
+ *
+ * @return \Automattic\Zoninator\Container
+ */
+function zoninator_container() {
+	static $container = null;
+
+	if ( null === $container ) {
+		$container = new \Automattic\Zoninator\Container();
+
+		( new \Automattic\Zoninator\Bootstrapper( $container ) )->boot();
 	}
 
-	return $zoninator;
+	return $container;
 }
 
-Zoninator();
+/**
+ * Zoninator's public API. Called before plugins_loaded, it boots Zoninator early.
+ *
+ * @return Zoninator
+ */
+function Zoninator() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid -- Windows is case-sensitive, so changing this is a breaking change.
+	return zoninator_container()->get( Zoninator::class );
+}
+
+// Some themes load plugins from functions.php, after plugins_loaded has fired.
+if ( did_action( 'plugins_loaded' ) ) {
+	zoninator_container();
+} else {
+	add_action( 'plugins_loaded', 'zoninator_container' );
+}

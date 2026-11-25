@@ -4,9 +4,12 @@
  */
 
 /**
- * Main Zoninator class.
+ * Zoninator's public API, which Zoninator() returns: zones and their posts,
+ * zone locks, the post types that support zones, and the settings.
+ *
+ * Automattic\Zoninator\Bootstrapper builds it and the classes it delegates to.
  */
-class Zoninator {
+final class Zoninator {
 
 	/**
 	 * The zone taxonomy's name. Taxonomy owns it; this is its public name.
@@ -24,23 +27,11 @@ class Zoninator {
 	public const ZONE_META_PREFIX = \Automattic\Zoninator\Zones::META_PREFIX;
 
 	/**
-	* The REST controller, set on rest_api_init.
+	* The REST controller. Bootstrapper::register_rest_routes() sets it on rest_api_init.
 	*
 	* @var \Automattic\Zoninator\REST\Zones_Controller|null
 	*/
 	public $rest_api;
-
-	/**
-	* @var array|string[] Default post types that support zones.
-	*/
-	public $default_post_types = array( 'post' );
-
-	/**
-	 * Renders the Zones admin screen and handles its hooks.
-	 *
-	 * @var \Automattic\Zoninator\Admin\Screen
-	 */
-	private $admin_screen;
 
 	/**
 	 * Zones and the posts in them. The zone data methods here delegate to it.
@@ -64,18 +55,11 @@ class Zoninator {
 	private $locks;
 
 	/**
-	 * The JSON feed, which handles its own hooks.
+	 * The JSON feed. get_zone_feed() delegates to it.
 	 *
 	 * @var \Automattic\Zoninator\Feed
 	 */
 	private $feed;
-
-	/**
-	 * The Zone Posts Query Loop variation, which handles its own hooks.
-	 *
-	 * @var \Automattic\Zoninator\Block
-	 */
-	private $block;
 
 	/**
 	 * The settings sites tune with filters, and the screen's messages.
@@ -92,13 +76,6 @@ class Zoninator {
 	private $capabilities;
 
 	/**
-	 * The Abilities API abilities, built when the API first asks for them.
-	 *
-	 * @var \Automattic\Zoninator\Abilities|null
-	 */
-	private $abilities;
-
-	/**
 	 * Reads and checks requests. The verify_* methods here delegate to it.
 	 *
 	 * @var \Automattic\Zoninator\Request
@@ -106,40 +83,32 @@ class Zoninator {
 	private $request;
 
 	/**
-	 * Builds each part of the plugin and hands it what it needs. Nothing but
-	 * this class depends on Zoninator, so the parts can be used and tested on
-	 * their own.
+	 * Constructor. Automattic\Zoninator\Bootstrapper builds the arguments.
+	 *
+	 * @param \Automattic\Zoninator\Settings     $settings     The settings sites tune with filters.
+	 * @param \Automattic\Zoninator\Taxonomy     $taxonomy     The zone taxonomy.
+	 * @param \Automattic\Zoninator\Capabilities $capabilities The capability checks.
+	 * @param \Automattic\Zoninator\Request      $request      Reads and checks requests.
+	 * @param \Automattic\Zoninator\Zones        $zones        Zones and the posts in them.
+	 * @param \Automattic\Zoninator\Locks        $locks        Zone locks.
+	 * @param \Automattic\Zoninator\Feed         $feed         The JSON feed.
 	 */
-	public function __construct() {
-		$this->settings     = new \Automattic\Zoninator\Settings();
-		$this->taxonomy     = new \Automattic\Zoninator\Taxonomy();
-		$this->capabilities = new \Automattic\Zoninator\Capabilities( $this->taxonomy );
-		$this->request      = new \Automattic\Zoninator\Request( $this->capabilities );
-		$this->zones        = new \Automattic\Zoninator\Zones( $this->settings, $this->taxonomy, $this->capabilities );
-		$this->locks        = new \Automattic\Zoninator\Locks( $this->zones, $this->settings );
-		$this->feed         = new \Automattic\Zoninator\Feed( $this->zones );
-		$this->block        = new \Automattic\Zoninator\Block( $this->zones );
-		$this->admin_screen = new \Automattic\Zoninator\Admin\Screen(
-			$this->zones,
-			$this->locks,
-			$this->settings,
-			$this->capabilities,
-			$this->request
-		);
-
-		add_action( 'init', array( $this, 'init' ), 99 ); // init later after other post types have been registered
-
-		// Each class registers the hooks it handles. Sites reach those objects
-		// through the get_*() methods below to unhook them.
-		\Zoninator_ZonePosts_Widget::register_hooks();
-		$this->zones->register_hooks();
-		$this->feed->register_hooks();
-		$this->block->register_hooks();
-
-		$this->maybe_add_rest_api();
-
-		add_action( 'wp_abilities_api_categories_init', array( $this, 'register_ability_categories' ) );
-		add_action( 'wp_abilities_api_init', array( $this, 'register_abilities' ) );
+	public function __construct(
+		\Automattic\Zoninator\Settings $settings,
+		\Automattic\Zoninator\Taxonomy $taxonomy,
+		\Automattic\Zoninator\Capabilities $capabilities,
+		\Automattic\Zoninator\Request $request,
+		\Automattic\Zoninator\Zones $zones,
+		\Automattic\Zoninator\Locks $locks,
+		\Automattic\Zoninator\Feed $feed
+	) {
+		$this->settings     = $settings;
+		$this->taxonomy     = $taxonomy;
+		$this->capabilities = $capabilities;
+		$this->request      = $request;
+		$this->zones        = $zones;
+		$this->locks        = $locks;
+		$this->feed         = $feed;
 	}
 
 	/**
@@ -184,141 +153,6 @@ class Zoninator {
 	 */
 	public function get_zone_detail_defaults() {
 		return $this->settings->get_detail_defaults();
-	}
-
-	/**
-	 * The Zones admin screen, which handles the screen's hooks. Use it to unhook them,
-	 * as in remove_action( 'admin_init', array( Zoninator()->get_admin_screen(), 'handle_request' ) ).
-	 * Its other methods are internal.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return \Automattic\Zoninator\Admin\Screen
-	 */
-	public function get_admin_screen() {
-		return $this->admin_screen;
-	}
-
-	/**
-	 * The JSON feed, which handles the feed's hooks. Use it to unhook them,
-	 * as in remove_action( 'template_redirect', array( Zoninator()->get_feed(), 'serve' ) ).
-	 * Its other methods are internal.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return \Automattic\Zoninator\Feed
-	 */
-	public function get_feed() {
-		return $this->feed;
-	}
-
-	/**
-	 * The Zone Posts Query Loop variation, which handles the block's hooks. Use it to
-	 * unhook them. Its other methods are internal.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return \Automattic\Zoninator\Block
-	 */
-	public function get_block() {
-		return $this->block;
-	}
-
-	/**
-	 * The zone store, which handles split_shared_term. Use it to unhook that. Its
-	 * other methods are internal; use the zone methods on Zoninator instead.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return \Automattic\Zoninator\Zones
-	 */
-	public function get_zone_store() {
-		return $this->zones;
-	}
-
-	public function maybe_add_rest_api() {
-		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
-	}
-
-	/**
-	 * Load the REST controller only when the REST API is in use, and register its routes.
-	 *
-	 * @since 0.12.0
-	 */
-	public function register_rest_routes() {
-		$this->rest_api = $this->make_rest_controller();
-		$this->rest_api->register_routes();
-	}
-
-	/**
-	 * Builds the REST controller, loading its class first.
-	 *
-	 * @return \Automattic\Zoninator\REST\Zones_Controller
-	 */
-	private function make_rest_controller() {
-		require_once __DIR__ . '/rest/class-zones-controller.php';
-
-		return new \Automattic\Zoninator\REST\Zones_Controller(
-			$this->zones,
-			$this->taxonomy,
-			$this->locks,
-			$this->feed,
-			$this->settings,
-			$this->capabilities,
-			$this->admin_screen
-		);
-	}
-
-	/**
-	 * Register the zone ability category.
-	 *
-	 * @since 1.0.0
-	 */
-	public function register_ability_categories() {
-		$this->get_abilities()->register_category();
-	}
-
-	/**
-	 * Register the zone abilities.
-	 *
-	 * @since 1.0.0
-	 */
-	public function register_abilities() {
-		$this->get_abilities()->register();
-	}
-
-	/**
-	 * Builds the abilities the first time they're needed, loading their class first.
-	 *
-	 * @return \Automattic\Zoninator\Abilities
-	 */
-	private function get_abilities() {
-		if ( null === $this->abilities ) {
-			require_once __DIR__ . '/class-abilities.php';
-
-			$this->abilities = new \Automattic\Zoninator\Abilities(
-				$this->zones,
-				$this->capabilities,
-				function () {
-					return $this->rest_api ?? $this->make_rest_controller();
-				}
-			);
-		}
-
-		return $this->abilities;
-	}
-
-	public function init() {
-		$this->settings->init();
-
-		do_action( 'zoninator_pre_init' );
-
-		$this->taxonomy->register( $this->default_post_types );
-
-		// Here rather than in the constructor, so unhooking init turns off the screen too.
-		$this->admin_screen->register_hooks();
-
-		do_action( 'zoninator_post_init' );
 	}
 
 	/**

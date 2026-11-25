@@ -13,12 +13,11 @@ use WP_Error;
 /**
  * Serves each zone's published posts as JSON at /zones/{slug}/feed.json.
  *
- * Zoninator keeps a public method for each of these under its original name
- * (do_zoninator_feeds() for serve(), get_zone_feed() for get(), and so on),
- * which delegates here. It registers its own hooks in register_hooks(), and
- * sites reach it with Zoninator()->get_feed() to unhook them.
+ * Zoninator::get_zone_feed() delegates to get(). It registers its own hooks in register_hooks(), and
+ * sites reach it with zoninator_container()->get( \Automattic\Zoninator\Feed::class ) to unhook them.
  *
  * @since 0.12.0
+ * @internal Use Zoninator(), the template tags and the hooks instead.
  */
 final class Feed {
 
@@ -39,7 +38,7 @@ final class Feed {
 	}
 
 	/**
-	 * Hooks the feed's rewrite rule and its response. Zoninator calls this once.
+	 * Hooks the feed's rewrite rule and its response. Bootstrapper::register_hooks() calls this once.
 	 *
 	 * @since 1.0.0
 	 */

@@ -24,14 +24,16 @@ class ZoninatorSettingsTest extends TestCase {
 		$this->assertSame( array( 'description' => '' ), $zoninator->get_zone_detail_defaults() );
 	}
 
-	public function test_settings_filters_change_the_values_on_init(): void {
+	/**
+	 * The getters apply their filters when called, so a filter added after init still counts.
+	 */
+	public function test_settings_filters_change_the_values_when_read(): void {
+		$this->assertTrue( did_action( 'init' ) > 0 );
 		add_filter( 'zoninator_zone_lock_period', static fn() => 45 );
 		add_filter( 'zoninator_zone_max_lock_period', static fn() => 900 );
 		add_filter( 'zoninator_posts_per_page', static fn() => 25 );
 
-		// A fresh instance, so the plugin's own settings are left alone.
 		$settings = new Settings();
-		$settings->init();
 
 		$this->assertSame( 45, $settings->get_lock_period() );
 		$this->assertSame( 900, $settings->get_max_lock_period() );
