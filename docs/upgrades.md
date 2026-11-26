@@ -210,7 +210,8 @@ The classes 0.12.0 added under `Automattic\Zoninator\` are internal, but if your
 |---|---|
 | `Automattic\Zoninator\Admin\Screen` | Several classes under `Automattic\Zoninator\Infrastructure\WordPress\Admin\`, each with one part of the screen. `Screen` still prints the page, and its `PAGE_SLUG` constant is now `ScreenLocation::SLUG` |
 | `Automattic\Zoninator\REST\Zones_Controller` | Four controllers under `Automattic\Zoninator\Infrastructure\WordPress\Rest\`: `ZonesController`, `ZonePostsController`, `SearchController` and `LockController`. Its error code constants are on `ErrorCodes` |
-| `Automattic\Zoninator\Settings`, `Taxonomy`, `Capabilities`, `Request`, `Zones` and `Feed` | The same class name under `Automattic\Zoninator\Infrastructure\WordPress\` |
+| `Automattic\Zoninator\Settings`, `Taxonomy`, `Capabilities`, `Zones` and `Feed` | The same class name under `Automattic\Zoninator\Infrastructure\WordPress\` |
+| `Automattic\Zoninator\Request` | Nothing; the Zones screen reads its own requests. Its `NONCE_PREFIX` constant is now `ScreenLocation::NONCE_PREFIX` |
 | `Automattic\Zoninator\Locks` | `Automattic\Zoninator\Application\ZoneLocker`, whose `lock()` and `get_blocker_id()` take a zone ID and a user ID |
 
 The files moved with them, from `src/class-*.php` to paths such as `src/Infrastructure/WordPress/Feed.php`. If your code loads one with `require`, remove that line: the class loads itself when it's first used. The sections of this guide for 0.12.0 use the new names.

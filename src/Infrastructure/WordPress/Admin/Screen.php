@@ -7,8 +7,6 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 
-use Automattic\Zoninator\Infrastructure\WordPress\Request;
-
 /**
  * Shows the Zones admin screen. It reads which zone and which notice the
  * request asks for, has ScreenDataLoader gather what to show, and hands that
@@ -21,13 +19,6 @@ use Automattic\Zoninator\Infrastructure\WordPress\Request;
  * @internal Use the template tags, the Application classes and the hooks instead.
  */
 final class Screen {
-
-	/**
-	 * Reads requests.
-	 *
-	 * @var Request
-	 */
-	private $request;
 
 	/**
 	 * Gathers what the screen shows.
@@ -46,24 +37,24 @@ final class Screen {
 	/**
 	 * Constructor.
 	 *
-	 * @param Request          $request Reads requests.
 	 * @param ScreenDataLoader $loader  Gathers what the screen shows.
 	 * @param ScreenView       $view    Prints the screen.
 	 */
-	public function __construct( Request $request, ScreenDataLoader $loader, ScreenView $view ) {
-		$this->request = $request;
-		$this->loader  = $loader;
-		$this->view    = $view;
+	public function __construct( ScreenDataLoader $loader, ScreenView $view ) {
+		$this->loader = $loader;
+		$this->view   = $view;
 	}
 
 	/**
 	 * Prints the screen for the current request.
 	 */
 	public function render() {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Choosing which zone and notice to show changes nothing.
 		$this->view->render(
-			$this->loader->load( $this->request->get_request_var( 'zone_id', 0, 'absint' ) ),
-			$this->request->get_get_var( 'message', '', 'sanitize_key' ),
-			$this->request->get_get_var( 'error', '', 'sanitize_key' )
+			$this->loader->load( isset( $_GET['zone_id'] ) ? absint( $_GET['zone_id'] ) : 0 ),
+			isset( $_GET['message'] ) ? sanitize_key( $_GET['message'] ) : '',
+			isset( $_GET['error'] ) ? sanitize_key( $_GET['error'] ) : ''
 		);
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 	}
 }

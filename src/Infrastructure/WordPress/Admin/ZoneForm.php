@@ -8,10 +8,10 @@
 namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 
 use Automattic\Zoninator\Application\GuardedZoneManager;
+use Automattic\Zoninator\Domain\AccessDeniedException;
 use Automattic\Zoninator\Domain\ZoneLockedException;
 use Automattic\Zoninator\Domain\ZoneNotFoundException;
 use Automattic\Zoninator\Domain\ZoninatorExceptionInterface;
-use Automattic\Zoninator\Infrastructure\WordPress\Request;
 
 /**
  * Saves the Zones screen's zone form: creating a zone, changing its name,
@@ -33,13 +33,6 @@ final class ZoneForm {
 	private $location;
 
 	/**
-	 * Reads and checks requests.
-	 *
-	 * @var Request
-	 */
-	private $request;
-
-	/**
 	 * Creates, changes and deletes zones for the current user.
 	 *
 	 * @var GuardedZoneManager
@@ -50,12 +43,10 @@ final class ZoneForm {
 	 * Constructor.
 	 *
 	 * @param ScreenLocation     $location Where the Zones screen is.
-	 * @param Request            $request Reads and checks requests.
 	 * @param GuardedZoneManager $manager Creates, changes and deletes zones for the current user.
 	 */
-	public function __construct( ScreenLocation $location, Request $request, GuardedZoneManager $manager ) {
+	public function __construct( ScreenLocation $location, GuardedZoneManager $manager ) {
 		$this->location = $location;
-		$this->request  = $request;
 		$this->manager  = $manager;
 	}
 
@@ -74,19 +65,23 @@ final class ZoneForm {
 			return;
 		}
 
-		$action = $this->request->get_request_var( 'action' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only says which nonce to check, just below.
+		$action = isset( $_REQUEST['action'] ) ? sanitize_key( $_REQUEST['action'] ) : '';
 
 		if ( ! in_array( $action, array( 'insert', 'update', 'delete' ), true ) ) {
 			return;
 		}
 
-		$zone_id = 'delete' === $action ? $this->request->get_request_var( 'zone_id', 0, 'absint' ) : $this->request->get_post_var( 'zone_id', 0, 'absint' );
+		check_admin_referer( $this->location->get_nonce_action( $action ) );
 
-		$this->request->verify_nonce( $action );
-		$this->request->verify_access( $action, $zone_id );
+		// The delete link sends the zone in the URL; the form posts it.
+		$source  = 'delete' === $action ? $_REQUEST : $_POST;
+		$zone_id = isset( $source['zone_id'] ) ? absint( $source['zone_id'] ) : 0;
 
 		try {
 			$url = $this->location->get_url( $this->save( $action, $zone_id ) );
+		} catch ( AccessDeniedException $exception ) {
+			wp_die( esc_html__( "Sorry, you're not supposed to do that...", 'zoninator' ) );
 		} catch ( ZoneLockedException $exception ) {
 			// The zone's own page says who is editing it.
 			$url = $this->location->get_url(
@@ -108,7 +103,7 @@ final class ZoneForm {
 	}
 
 	/**
-	 * Does what the form asked.
+	 * Does what the form asked, for the current user. GuardedZoneManager checks that they may.
 	 *
 	 * @param string $action  'insert', 'update' or 'delete'.
 	 * @param int    $zone_id The zone to change or delete.
@@ -123,12 +118,15 @@ final class ZoneForm {
 			return array( 'message' => 'delete-success' );
 		}
 
-		// The storage encodes these for itself, so they only need the slashes WordPress adds to a request taken off.
-		$name    = $this->request->get_post_var( 'name', '', 'wp_unslash' );
-		$slug    = $this->request->get_post_var( 'slug', sanitize_title( $name ) );
+		// handle_request() has checked the nonce. The storage encodes the name and description for
+		// itself, so they only need the slashes WordPress adds to a request taken off.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$name    = empty( $_POST['name'] ) ? '' : (string) wp_unslash( $_POST['name'] );
+		$slug    = empty( $_POST['slug'] ) ? sanitize_title( $name ) : sanitize_title( wp_unslash( $_POST['slug'] ) );
 		$details = array(
-			'description' => $this->request->get_post_var( 'description', '', 'wp_unslash' ),
+			'description' => empty( $_POST['description'] ) ? '' : (string) wp_unslash( $_POST['description'] ),
 		);
+		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 		// Go by the action that was checked, not by whether a zone ID was sent.
 		if ( 'update' === $action ) {
@@ -142,7 +140,7 @@ final class ZoneForm {
 				)
 			);
 		} else {
-			$zone_id = (int) $this->manager->create( $user_id, (string) $slug, (string) $name, $details )->get_id();
+			$zone_id = (int) $this->manager->create( $user_id, $slug, $name, $details )->get_id();
 		}
 
 		return array(

@@ -80,7 +80,6 @@ final class PluginBootstrapper {
 		$settings      = $container->add( new Settings() );
 		$taxonomy      = $container->add( new Taxonomy() );
 		$capabilities  = $container->add( new Capabilities( $taxonomy ) );
-		$request       = $container->add( new Request( $capabilities ) );
 		$terms         = $container->add( new TermZoneRepository( $settings ) );
 		$locker        = $container->add( new ZoneLocker( $container->add( new TransientLockStore() ), $settings, $terms ) );
 		$zone_posts    = $container->add( new PostMetaZonePostsRepository( $terms, $taxonomy ) );
@@ -97,12 +96,12 @@ final class PluginBootstrapper {
 		$messages = $container->add( new Messages() );
 		$row      = $container->add( new ZonePostRow( $zones ) );
 		$content  = new ZoneContentView( $container->add( new SearchForm() ), $row );
-		$editor   = $container->add( new ZoneEditorView( $messages, $content, new ZoneDetailsView( $location, $request ) ) );
+		$editor   = $container->add( new ZoneEditorView( $messages, $content, new ZoneDetailsView( $location ) ) );
 		$loader   = $container->add( new ScreenDataLoader( $zones, $capabilities, $locker ) );
-		$screen   = $container->add( new Screen( $request, $loader, new ScreenView( $messages, $location, $editor ) ) );
+		$screen   = $container->add( new Screen( $loader, new ScreenView( $messages, $location, $editor ) ) );
 		$container->add( new Menu( $capabilities, $location, $screen ) );
 		$container->add( new Assets( $location, $settings, $messages ) );
-		$container->add( new ZoneForm( $location, $request, $guarded_zones ) );
+		$container->add( new ZoneForm( $location, $guarded_zones ) );
 
 		$search = $container->add( new Search( $taxonomy, $settings, $capabilities ) );
 		$container->add( new FeedEndpoint( $feed ) );
