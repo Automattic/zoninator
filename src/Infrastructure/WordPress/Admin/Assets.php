@@ -70,6 +70,10 @@ final class Assets {
 			'postRemoved'       => __( 'Item removed from the zone.', 'zoninator' ),
 			/* translators: 1: new position of the item in the zone, 2: number of items in the zone. */
 			'postMoved'         => __( 'Item moved to position %1$d of %2$d.', 'zoninator' ),
+			/* translators: Shown between a search result's post type, date and status. Keep the spaces your language needs. */
+			'metaSeparator'     => _x( ' · ', 'search result details separator', 'zoninator' ),
+			/* translators: Read out by screen readers between a search result's title, post type, date and status. Keep the spaces your language needs. */
+			'listSeparator'     => _x( ', ', 'search result accessible name separator', 'zoninator' ),
 		);
 		wp_localize_script( 'zoninator-js', 'zoninatorOptions', $options );
 
