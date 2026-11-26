@@ -115,6 +115,24 @@ class ZoninatorZonePostAccessTest extends TestCase {
 	}
 
 	/**
+	 * Saving the zone's order sends every post in it. One the user may not
+	 * read is already there, so it isn't being added, and the order is saved.
+	 */
+	public function test_rest_update_reorders_a_zone_that_holds_a_post_the_user_cannot_read(): void {
+		wp_set_current_user( $this->editor_id );
+		$readable_id = self::factory()->post->create();
+		self::add_zone_posts( $this->zone_id, array( $this->secret_id, $readable_id ) );
+
+		$request = new WP_REST_Request( 'PUT', '/zoninator/v1/zones/' . $this->zone_id . '/posts' );
+		$request->set_param( 'post_ids', array( $readable_id, $this->secret_id ) );
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '1', $this->zone_order( $readable_id ) );
+		$this->assertSame( '2', $this->zone_order( $this->secret_id ) );
+	}
+
+	/**
 	 * The screen lists every post in the zone, or saving the zone's order
 	 * would drop the ones left out. A post the user may not read keeps its
 	 * row, which says nothing about it.

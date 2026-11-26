@@ -196,7 +196,7 @@ Errors use core's REST error shape, with a `code`, a `message` in the site's lan
 
 | Status | Code | When |
 |---|---|---|
-| `400` | `invalid-post-id` | A post isn't of a zone post type that the user can read. |
+| `400` | `invalid-post-id` | A post isn't of a zone post type that the user can read. `PUT /zones/{zone_id}/posts` checks only the posts new to the zone, so a zone that already holds such a post can still be reordered. |
 | `400` | `rest_invalid_param` | A parameter fails validation, such as a non-numeric `post_ids` entry. |
 | `400` | from WordPress, such as `term_exists` | A zone couldn't be created or updated. Creating a zone with neither `name` nor `slug` gives `zone-empty-slug`, and a zone that couldn't be deleted gives `delete-zone`. |
 | `400` | `zone-id-required` | `PUT /zones/0/lock`: the lock endpoint needs a zone ID. |
