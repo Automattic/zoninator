@@ -195,10 +195,10 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->assertStringContainsString( 'message=delete-success', $location );
 	}
 
+	/**
+	 * The user may add zones, so only the action keeps this from adding one.
+	 */
 	public function test_update_without_a_zone_does_not_add_one(): void {
-		// The user may edit zones, but not add them.
-		add_filter( 'zoninator_add_zone_cap', static fn() => 'manage_options' );
-
 		$this->attempt(
 			'update',
 			array(
@@ -210,16 +210,10 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->assertFalse( self::zones()->get( 'added-zone' ) );
 	}
 
+	/**
+	 * The user may edit this zone, so only the action keeps this from changing it.
+	 */
 	public function test_insert_with_a_zone_does_not_change_it(): void {
-		// The user may add zones, but not edit this one.
-		$zone_id = $this->zone_id;
-		add_filter(
-			'zoninator_current_user_can_edit_zone',
-			static fn( $can, $id ) => (int) $id === $zone_id ? false : $can,
-			10,
-			2
-		);
-
 		$this->attempt(
 			'insert',
 			array(
@@ -232,6 +226,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$zone = self::zones()->get( $this->zone_id );
 		$this->assertSame( 'Form zone', $zone->name );
 		$this->assertSame( 'Before', $zone->description );
+		$this->assertSame( 'Changed', self::zones()->get( 'changed-zone' )->description );
 	}
 
 	/**

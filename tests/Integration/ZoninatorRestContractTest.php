@@ -110,6 +110,15 @@ final class ZoninatorRestContractTest extends TestCase {
 			$params['post_ids'] = array( self::factory()->post->create() );
 		}
 		wp_set_current_user( $this->subscriber_id );
+		// Core applies this filter only once the route's permission callback has passed.
+		$dispatched = false;
+		add_filter(
+			'rest_dispatch_request',
+			static function ( $result ) use ( &$dispatched ) {
+				$dispatched = true;
+				return $result;
+			}
+		);
 
 		$response = $this->dispatch( $method, sprintf( $path, $zone_id ), $params );
 
@@ -117,10 +126,11 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( 'permission-denied', $response->get_data()['code'] );
 		$this->assertSame( "Sorry, you're not supposed to do that...", $response->get_data()['message'] );
 		// Refused before the callback runs, so nothing changed.
+		$this->assertFalse( $dispatched );
 		$this->assertSame( 'Denied', self::zones()->get( $zone_id )->name );
 		$this->assertFalse( self::zones()->get( 'new-zone' ) );
 		$this->assertSame( array(), self::zones()->get_posts( $zone_id ) );
-		$this->assertNull( self::locker()->get_blocker_id( $zone_id, get_current_user_id() ) );
+		$this->assertNull( self::locker()->get_blocker_id( $zone_id, $this->admin_id ) );
 	}
 
 	/**
@@ -650,6 +660,7 @@ final class ZoninatorRestContractTest extends TestCase {
 			'remove zone post'  => array( 'DELETE', '/zones/%1$d/posts/%2$d', array(), 'manage', 200 ),
 			'search posts'      => array( 'GET', '/search', array(), 'manage', 200 ),
 			'lock zone'         => array( 'PUT', '/zones/%1$d/lock', array(), 'manage', 200 ),
+			'zone post row'     => array( 'GET', '/zones/%1$d/posts/%2$d/row', array(), 'manage', 200 ),
 		);
 
 		$cases = array();
