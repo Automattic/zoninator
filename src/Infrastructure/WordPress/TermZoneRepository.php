@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 use Automattic\Zoninator\Domain\Zone;
@@ -56,7 +58,7 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 	public function find( int $zone_id ): ?Zone {
 		$term = get_term_by( 'id', $zone_id, Taxonomy::NAME );
 
-		return $term ? new Zone( $term->term_id, $term->slug, $this->decode( $term->name ), $this->decode( $this->read_details( $term->description ) ) ) : null;
+		return $term ? new Zone( (int) $term->term_id, (string) $term->slug, $this->decode( (string) $term->name ), $this->decode( $this->read_details( (string) $term->description ) ) ) : null;
 	}
 
 	/**
@@ -228,7 +230,7 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 	 * @return string
 	 */
 	private function repair_serialized_lengths( $serialized ) {
-		return preg_replace_callback(
+		return (string) preg_replace_callback(
 			'/s:\d+:"(.*?)";/s',
 			static function ( $matches ) {
 				return 's:' . strlen( $matches[1] ) . ':"' . $matches[1] . '";';

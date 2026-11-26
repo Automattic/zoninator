@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 use WP_Post;
@@ -201,7 +203,10 @@ final class Zones {
 
 		$zone_ids = array();
 		foreach ( array_keys( get_post_meta( $post->ID ) ) as $meta_key ) {
-			if ( 0 === strpos( $meta_key, self::META_PREFIX ) ) {
+			// PHP turns an all-digit array key into an integer, so a meta key such as "2024" arrives as one.
+			$meta_key = (string) $meta_key;
+
+			if ( str_starts_with( $meta_key, self::META_PREFIX ) ) {
 				$zone_ids[] = absint( substr( $meta_key, strlen( self::META_PREFIX ) ) );
 			}
 		}

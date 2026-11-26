@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 use WP_Post;
@@ -44,7 +46,7 @@ final class Search {
 	 * @param int    $zone_id Zone being edited, or 0. Passed to the query args filters.
 	 * @return array[] Results, each passed through the zoninator_search_results_post filter.
 	 */
-	public function find_posts( $term, $cat, $date, $exclude, $limit = 0, $zone_id = 0 ) {
+	public function find_posts( string $term, int $cat, string $date, array $exclude, int $limit = 0, int $zone_id = 0 ): array {
 		$post_types = $this->taxonomy->get_post_types();
 
 		if ( '' === $term ) {

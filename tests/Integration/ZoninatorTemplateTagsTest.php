@@ -166,6 +166,16 @@ final class ZoninatorTemplateTagsTest extends TestCase {
 		$this->assertSame( array(), zoninator_get_post_zones( $this->post_ids[0] ) );
 	}
 
+	/**
+	 * PHP turns an all-digit array key into an integer, so a meta key such as
+	 * "2024" reaches the code as one. Under strict types that was a fatal error.
+	 */
+	public function test_z_get_post_zones_copes_with_a_post_meta_key_that_is_a_number(): void {
+		update_post_meta( $this->post_ids[0], '2024', 'a number for a key' );
+
+		$this->assertSame( array( $this->zone_id ), wp_list_pluck( zoninator_get_post_zones( $this->post_ids[0] ), 'term_id' ) );
+	}
+
 	public function test_z_get_post_zones_ignores_order_meta_for_a_deleted_zone(): void {
 		add_post_meta( $this->post_ids[0], Zones::META_PREFIX . '999999', 1 );
 

@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 use WP_Error;
@@ -301,7 +303,7 @@ final class Abilities {
 		return $this->search->find_posts(
 			(string) $input['term'],
 			(int) $input['cat'],
-			$input['date'],
+			(string) $input['date'],
 			wp_parse_id_list( $input['exclude'] ),
 			(int) $input['limit'],
 			(int) $input['zone_id']

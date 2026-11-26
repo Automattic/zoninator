@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 
 /**
@@ -97,7 +99,7 @@ final class SearchForm {
 				$output = array_key_exists( 'value', $date ) ? $date['value'] : 0;
 				$label  = array_key_exists( 'label', $date ) ? $date['label'] : $output;
 			} else {
-				$timestamp = strtotime( $date );
+				$timestamp = strtotime( (string) $date );
 				// phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 				$output = ( $timestamp ) ? date( 'Y-m-d', $timestamp ) : 0;
 				$label  = $date_labels[ $date ] ?? $date;
