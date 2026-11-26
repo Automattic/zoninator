@@ -62,8 +62,9 @@ final class ScreenDataLoader {
 	 * @return ScreenData
 	 */
 	public function load( int $zone_id ): ScreenData {
+		$user_id       = get_current_user_id();
 		$zones         = $this->get_zones();
-		$can_add_zones = $this->capabilities->current_user_can_add_zones();
+		$can_add_zones = $this->capabilities->can_create_zones( $user_id );
 
 		// Someone who can't add a zone has nothing to do without one open, so open the first.
 		if ( ! $zone_id && ! $can_add_zones && $zones ) {
@@ -73,15 +74,19 @@ final class ScreenDataLoader {
 		$zone = $zone_id ? $this->zones->get( $zone_id ) : null;
 		$zone = $zone instanceof WP_Term ? $zone : null;
 
+		$locked_by = $zone ? (int) $this->locker->get_blocker_id( (int) $zone->term_id, $user_id ) : 0;
+		$holder    = $locked_by ? get_userdata( $locked_by ) : false;
+
 		return new ScreenData(
 			$zones,
 			$zone_id,
 			$zone,
 			$zone ? $this->zones->get_posts( $zone ) : array(),
-			$zone ? (int) $this->locker->get_blocker_id( (int) $zone->term_id, get_current_user_id() ) : 0,
+			$locked_by,
+			$holder ? $holder->display_name : '',
 			$can_add_zones,
-			$this->capabilities->current_user_can_edit_zones( $zone ? (int) $zone->term_id : 0 ),
-			$this->capabilities->current_user_can_manage_zones()
+			$this->capabilities->can_edit_zone( $user_id, $zone ? (int) $zone->term_id : 0 ),
+			$this->capabilities->can_curate_zones( $user_id )
 		);
 	}
 

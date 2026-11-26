@@ -8,7 +8,7 @@
 namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 
 /**
- * The Zones admin screen's slug and URL, and whether a request is for it.
+ * The Zones admin screen's slug, URL and nonce actions, and whether a request is for it.
  *
  * @since 1.0.0
  * @internal Use the template tags, the Application classes and the hooks instead.
@@ -19,6 +19,21 @@ final class ScreenLocation {
 	 * The screen's slug, as in admin.php?page=zoninator.
 	 */
 	public const SLUG = 'zoninator';
+
+	/**
+	 * Prefix of the nonce action for each thing the zone form does.
+	 */
+	public const NONCE_PREFIX = 'zone-nonce';
+
+	/**
+	 * Gets the nonce action for one of the zone form's actions.
+	 *
+	 * @param string $action 'insert', 'update' or 'delete'.
+	 * @return string
+	 */
+	public function get_nonce_action( string $action ): string {
+		return self::NONCE_PREFIX . '-' . $action;
+	}
 
 	/**
 	 * Gets the URL of the Zones screen, with any query arguments added.

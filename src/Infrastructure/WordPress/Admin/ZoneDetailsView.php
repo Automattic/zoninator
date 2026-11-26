@@ -7,8 +7,6 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 
-use Automattic\Zoninator\Infrastructure\WordPress\Request;
-
 /**
  * Prints a zone's name and description: as a form for a user who may change
  * them, and as text for anyone else, or while someone else is editing the
@@ -20,28 +18,19 @@ use Automattic\Zoninator\Infrastructure\WordPress\Request;
 final class ZoneDetailsView {
 
 	/**
-	 * Where the Zones screen is, for the form's page and the delete link.
+	 * Where the Zones screen is, for the form's page, its nonces and the delete link.
 	 *
 	 * @var ScreenLocation
 	 */
 	private $location;
 
 	/**
-	 * Reads and checks requests, for the form's nonces.
-	 *
-	 * @var Request
-	 */
-	private $request;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ScreenLocation $location Where the Zones screen is.
-	 * @param Request        $request  Reads and checks requests.
 	 */
-	public function __construct( ScreenLocation $location, Request $request ) {
+	public function __construct( ScreenLocation $location ) {
 		$this->location = $location;
-		$this->request  = $request;
 	}
 
 	/**
@@ -87,9 +76,9 @@ final class ZoneDetailsView {
 
 				<?php if ( $zone_id ) : ?>
 					<input type="hidden" name="zone_id" id="zone_id" value="<?php echo esc_attr( $zone_id ); ?>" />
-					<?php wp_nonce_field( $this->request->get_nonce_key( 'update' ) ); ?>
+					<?php wp_nonce_field( $this->location->get_nonce_action( 'update' ) ); ?>
 				<?php else : ?>
-					<?php wp_nonce_field( $this->request->get_nonce_key( 'insert' ) ); ?>
+					<?php wp_nonce_field( $this->location->get_nonce_action( 'insert' ) ); ?>
 				<?php endif; ?>
 
 				<p class="submit submitbox">
@@ -144,7 +133,7 @@ final class ZoneDetailsView {
 					'zone_id' => $zone_id,
 				)
 			),
-			$this->request->get_nonce_key( 'delete' )
+			$this->location->get_nonce_action( 'delete' )
 		);
 	}
 }

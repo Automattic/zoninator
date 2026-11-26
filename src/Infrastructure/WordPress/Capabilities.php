@@ -8,13 +8,15 @@
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 use Automattic\Zoninator\Domain\ZoneAccessInterface;
-use WP_Post;
 
 /**
- * The capability checks for adding, editing and managing zones, and for
- * putting a post in one. Sites change the capabilities with the
+ * Says what a user may do to zones, and which posts they may put in one,
+ * by asking WordPress. Sites change the capabilities with the
  * zoninator_add_zone_cap, zoninator_edit_zone_cap and zoninator_manage_zone_cap
  * filters.
+ *
+ * Every check takes the user's ID. An entry point that acts for whoever is
+ * logged in passes get_current_user_id().
  *
  * @since 0.12.0
  * @internal Use the template tags, the Application classes and the hooks instead.
@@ -37,47 +39,13 @@ final class Capabilities implements ZoneAccessInterface {
 		$this->taxonomy = $taxonomy;
 	}
 
-	public function get_add_zones_cap() {
-		return apply_filters( 'zoninator_add_zone_cap', 'edit_others_posts' );
-	}
-
-	public function get_edit_zones_cap() {
-		return apply_filters( 'zoninator_edit_zone_cap', 'edit_others_posts' );
-	}
-
-	public function get_manage_zones_cap() {
-		return apply_filters( 'zoninator_manage_zone_cap', 'edit_others_posts' );
-	}
-
-	public function current_user_can_add_zones() {
-		return current_user_can( $this->get_add_zones_cap() );
-	}
-
-	public function current_user_can_edit_zones( $zone_id ) {
-		$has_cap = current_user_can( $this->get_edit_zones_cap() );
-		return apply_filters( 'zoninator_current_user_can_edit_zone', $has_cap, $zone_id, get_current_user_id() );
-	}
-
-	public function current_user_can_manage_zones() {
-		return current_user_can( $this->get_manage_zones_cap() );
-	}
-
 	/**
-	 * Whether the current user may put a post in a zone.
+	 * Gets the capability a user needs to curate zones, which is also what the Zones menu item needs.
 	 *
-	 * Request handlers take post IDs from the user, so they check here that
-	 * each ID is a post of a zone post type that the user can read.
-	 *
-	 * @param int|WP_Post $post Post ID or object.
-	 * @return bool
+	 * @return string
 	 */
-	public function current_user_can_add_post_to_zone( $post ) {
-		// get_post() falls back to the global post when given an empty value.
-		$post = empty( $post ) ? null : get_post( $post );
-
-		return $post
-			&& in_array( $post->post_type, $this->taxonomy->get_post_types(), true )
-			&& current_user_can( 'read_post', $post->ID );
+	public function get_manage_zones_cap(): string {
+		return (string) apply_filters( 'zoninator_manage_zone_cap', 'edit_others_posts' );
 	}
 
 	/**
@@ -87,7 +55,7 @@ final class Capabilities implements ZoneAccessInterface {
 	 * @return bool
 	 */
 	public function can_create_zones( int $user_id ): bool {
-		return user_can( $user_id, $this->get_add_zones_cap() );
+		return user_can( $user_id, (string) apply_filters( 'zoninator_add_zone_cap', 'edit_others_posts' ) );
 	}
 
 	/**
@@ -98,7 +66,7 @@ final class Capabilities implements ZoneAccessInterface {
 	 * @return bool
 	 */
 	public function can_edit_zone( int $user_id, int $zone_id ): bool {
-		return (bool) apply_filters( 'zoninator_current_user_can_edit_zone', user_can( $user_id, $this->get_edit_zones_cap() ), $zone_id, $user_id );
+		return (bool) apply_filters( 'zoninator_current_user_can_edit_zone', user_can( $user_id, (string) apply_filters( 'zoninator_edit_zone_cap', 'edit_others_posts' ) ), $zone_id, $user_id );
 	}
 
 	/**
@@ -126,24 +94,5 @@ final class Capabilities implements ZoneAccessInterface {
 		return $post
 			&& in_array( $post->post_type, $this->taxonomy->get_post_types(), true )
 			&& user_can( $user_id, 'read_post', $post->ID );
-	}
-
-	/**
-	 * Whether the current user may take an action on zones.
-	 *
-	 * @param string   $action  'insert', 'update' or 'delete'. Anything else checks for managing zones.
-	 * @param int|null $zone_id Zone ID, for 'update' and 'delete'.
-	 * @return bool
-	 */
-	public function check( $action = '', $zone_id = null ) {
-		if ( 'insert' === $action ) {
-			return $this->current_user_can_add_zones();
-		}
-
-		if ( 'update' === $action || 'delete' === $action ) {
-			return $this->current_user_can_edit_zones( $zone_id );
-		}
-
-		return $this->current_user_can_manage_zones();
 	}
 }

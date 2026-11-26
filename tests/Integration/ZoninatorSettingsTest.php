@@ -8,7 +8,6 @@
 namespace Automattic\Zoninator\Tests\Integration;
 
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenLocation;
-use Automattic\Zoninator\Infrastructure\WordPress\Request;
 use Automattic\Zoninator\Infrastructure\WordPress\Settings;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
 use Automattic\Zoninator\Infrastructure\WordPress\Zones;
@@ -52,11 +51,11 @@ class ZoninatorSettingsTest extends TestCase {
 		$this->assertSame( 'zoninator_zones', Taxonomy::NAME );
 		$this->assertSame( '_zoninator_order_', Zones::META_PREFIX );
 		$this->assertSame( 'zoninator', ScreenLocation::SLUG );
-		$this->assertSame( 'zone-nonce', Request::NONCE_PREFIX );
+		$this->assertSame( 'zone-nonce', ScreenLocation::NONCE_PREFIX );
 	}
 
 	public function test_nonce_keys_keep_their_prefix(): void {
-		$this->assertSame( 'zone-nonce-update', zoninator_container()->get( Request::class )->get_nonce_key( 'update' ) );
+		$this->assertSame( 'zone-nonce-update', zoninator_container()->get( ScreenLocation::class )->get_nonce_action( 'update' ) );
 	}
 
 	public function test_detail_defaults_filter_adds_a_zone_detail(): void {

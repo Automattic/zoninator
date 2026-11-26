@@ -10,6 +10,7 @@ namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 use Automattic\Zoninator\Application\ZoneLocker;
 use Automattic\Zoninator\Domain\ZoneLockedException;
 use Automattic\Zoninator\Domain\ZoneNotFoundException;
+use Automattic\Zoninator\Infrastructure\WordPress\Errors;
 use Automattic\Zoninator\Infrastructure\WordPress\Settings;
 use WP_Error;
 use WP_REST_Controller;
@@ -49,16 +50,25 @@ final class LockController extends WP_REST_Controller {
 	private $permissions;
 
 	/**
+	 * Builds the error for each thing that can go wrong.
+	 *
+	 * @var Errors
+	 */
+	private $errors;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ZoneLocker  $locker      Zone locks.
 	 * @param Settings    $settings    Zoninator's settings.
 	 * @param Permissions $permissions Says who may call each route.
+	 * @param Errors $errors Builds the error for each thing that can go wrong.
 	 */
-	public function __construct( ZoneLocker $locker, Settings $settings, Permissions $permissions ) {
+	public function __construct( ZoneLocker $locker, Settings $settings, Permissions $permissions, Errors $errors ) {
 		$this->locker      = $locker;
 		$this->settings    = $settings;
 		$this->permissions = $permissions;
+		$this->errors      = $errors;
 	}
 
 	/**
@@ -86,7 +96,7 @@ final class LockController extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function zone_update_lock( $request ) {
-		$zone_id = $this->get_param( $request, 'zone_id', 0, 'absint' );
+		$zone_id = (int) $request['zone_id'];
 
 		if ( ! $zone_id ) {
 			return $this->bad_request( ErrorCodes::ZONE_ID_REQUIRED, __( 'Zone ID is required.', 'zoninator' ) );
@@ -95,7 +105,7 @@ final class LockController extends WP_REST_Controller {
 		try {
 			$this->locker->lock( $zone_id, get_current_user_id() );
 		} catch ( ZoneNotFoundException | ZoneLockedException $exception ) {
-			return $this->error_response( $exception, $zone_id );
+			return $this->errors->from_exception( $exception, $zone_id );
 		}
 
 		return new WP_REST_Response(

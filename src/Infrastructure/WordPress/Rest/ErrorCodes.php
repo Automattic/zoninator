@@ -46,6 +46,11 @@ final class ErrorCodes {
 	public const ZONE_NOT_FOUND = 'zone-not-found';
 
 	/**
+	 * A new zone was given no slug.
+	 */
+	public const ZONE_EMPTY_SLUG = 'zone-empty-slug';
+
+	/**
 	 * The zone can't hold more posts.
 	 */
 	public const ZONE_FULL = 'zone-full';

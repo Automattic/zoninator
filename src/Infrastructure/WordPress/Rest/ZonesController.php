@@ -9,6 +9,7 @@ namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 
 use Automattic\Zoninator\Application\GuardedZoneManager;
 use Automattic\Zoninator\Domain\ZoninatorExceptionInterface;
+use Automattic\Zoninator\Infrastructure\WordPress\Errors;
 use Automattic\Zoninator\Infrastructure\WordPress\Zones;
 use WP_Error;
 use WP_REST_Controller;
@@ -48,16 +49,25 @@ final class ZonesController extends WP_REST_Controller {
 	private $permissions;
 
 	/**
+	 * Builds the error for each thing that can go wrong.
+	 *
+	 * @var Errors
+	 */
+	private $errors;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Zones              $zones   Zones and the posts in them.
 	 * @param GuardedZoneManager $manager Creates, changes and deletes zones for the current user.
 	 * @param Permissions $permissions Says who may call each route.
+	 * @param Errors $errors Builds the error for each thing that can go wrong.
 	 */
-	public function __construct( Zones $zones, GuardedZoneManager $manager, Permissions $permissions ) {
+	public function __construct( Zones $zones, GuardedZoneManager $manager, Permissions $permissions, Errors $errors ) {
 		$this->zones       = $zones;
 		$this->manager     = $manager;
 		$this->permissions = $permissions;
+		$this->errors      = $errors;
 	}
 
 	/**
@@ -114,10 +124,10 @@ final class ZonesController extends WP_REST_Controller {
 
 		// Zones::get_all() returns false, not a WP_Error, when the zones can't be read.
 		if ( ! is_array( $results ) ) {
-			return $this->bad_request( ErrorCodes::ZONES_READ_ERROR, __( 'Zones could not be read.', 'zoninator' ) );
+			return $this->errors->zones_read_error();
 		}
 
-		$zones = array_map( array( $this, 'format_zone' ), $results );
+		$zones = array_map( array( $this->zones, 'get_data' ), $results );
 
 		return $this->ok( $zones );
 	}
@@ -129,17 +139,17 @@ final class ZonesController extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_zone( $request ) {
-		$name        = $this->get_param( $request, 'name', '' );
-		$slug        = $this->get_param( $request, 'slug', $name );
-		$description = $this->get_param( $request, 'description', '' );
+		$name        = (string) $request['name'];
+		$slug        = empty( $request['slug'] ) ? $name : (string) $request['slug'];
+		$description = (string) $request['description'];
 
 		try {
 			$zone = $this->manager->create( get_current_user_id(), (string) $slug, (string) $name, array( 'description' => $description ) );
 		} catch ( ZoninatorExceptionInterface $exception ) {
-			return $this->error_response( $exception, 0 );
+			return $this->errors->from_exception( $exception, 0 );
 		}
 
-		return $this->created( $this->format_zone( $this->zones->get( (int) $zone->get_id() ) ) );
+		return $this->created( $this->zones->get_data( $this->zones->get( (int) $zone->get_id() ) ) );
 	}
 
 	/**
@@ -149,15 +159,15 @@ final class ZonesController extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function update_zone( $request ) {
-		$zone_id = $this->get_param( $request, 'zone_id', 0, 'absint' );
-		$name    = $this->get_param( $request, 'name', '' );
-		$slug    = $this->get_param( $request, 'slug', '' );
+		$zone_id = absint( $request['zone_id'] );
+		$name    = (string) $request['name'];
+		$slug    = (string) $request['slug'];
 
 		$zone          = $this->zones->get( $zone_id );
 		$update_params = array();
 
 		if ( ! $zone ) {
-			return $this->zone_not_found();
+			return $this->errors->zone_not_found();
 		}
 
 		if ( $name ) {
@@ -176,7 +186,7 @@ final class ZonesController extends WP_REST_Controller {
 		try {
 			$this->manager->update( get_current_user_id(), $zone_id, $update_params );
 		} catch ( ZoninatorExceptionInterface $exception ) {
-			return $this->error_response( $exception, $zone_id );
+			return $this->errors->from_exception( $exception, $zone_id );
 		}
 
 		return $this->ok( array( 'success' => true ) );
@@ -189,18 +199,18 @@ final class ZonesController extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function delete_zone( $request ) {
-		$zone_id = $this->get_param( $request, 'zone_id', 0, 'absint' );
+		$zone_id = absint( $request['zone_id'] );
 
 		$zone = $this->zones->get( $zone_id );
 
 		if ( ! $zone ) {
-			return $this->zone_not_found();
+			return $this->errors->zone_not_found();
 		}
 
 		try {
 			$this->manager->remove( get_current_user_id(), $zone_id );
 		} catch ( ZoninatorExceptionInterface $exception ) {
-			return $this->error_response( $exception, $zone_id );
+			return $this->errors->from_exception( $exception, $zone_id );
 		}
 
 		return $this->ok( array( 'success' => true ) );
@@ -240,17 +250,6 @@ final class ZonesController extends WP_REST_Controller {
 				'type'     => 'string',
 				'required' => false,
 			),
-		);
-	}
-
-	private function format_zone( $zone ) {
-		$data = $zone->to_array();
-
-		return array(
-			'term_id'     => $data['term_id'],
-			'slug'        => $data['slug'],
-			'name'        => $data['name'],
-			'description' => $data['description'],
 		);
 	}
 }

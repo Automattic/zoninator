@@ -177,7 +177,7 @@ Up to 0.12.x, every Zoninator hook was registered on the `Zoninator` object, wit
 | `admin_init` | `array( Zoninator(), 'admin_init' )`, which added the two `admin_enqueue_scripts` callbacks | Nothing to unhook: the two callbacks below are now added directly |
 | `admin_enqueue_scripts` | `array( Zoninator(), 'admin_enqueue_scripts' )` | `remove_action( 'admin_enqueue_scripts', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Assets::class ), 'enqueue_scripts' ) )` |
 | `admin_enqueue_scripts` | `array( Zoninator(), 'admin_enqueue_styles' )` | `remove_action( 'admin_enqueue_scripts', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Assets::class ), 'enqueue_styles' ) )` |
-| `admin_menu` | `array( Zoninator(), 'admin_page_init' )` | `remove_action( 'admin_menu', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Menu::class ), 'register' ) )` |
+| `admin_menu` | `array( Zoninator(), 'admin_page_init' )` | `remove_action( 'admin_menu', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'register' ) )` |
 | `toplevel_page_zoninator` | `array( Zoninator(), 'admin_page' )` | `remove_action( 'toplevel_page_zoninator', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen::class ), 'render' ) )` |
 | `zoninator_advanced_search_fields` | `array( Zoninator(), 'zone_advanced_search_cat_filter' )` | `remove_action( 'zoninator_advanced_search_fields', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\SearchForm::class ), 'render_category_filter' ) )` |
 | `zoninator_advanced_search_fields` | `array( Zoninator(), 'zone_advanced_search_date_filter' )`, priority 20 | `remove_action( 'zoninator_advanced_search_fields', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Admin\SearchForm::class ), 'render_date_filter' ), 20 )` |
@@ -210,7 +210,8 @@ The classes 0.12.0 added under `Automattic\Zoninator\` are internal, but if your
 |---|---|
 | `Automattic\Zoninator\Admin\Screen` | Several classes under `Automattic\Zoninator\Infrastructure\WordPress\Admin\`, each with one part of the screen. `Screen` still prints the page, and its `PAGE_SLUG` constant is now `ScreenLocation::SLUG` |
 | `Automattic\Zoninator\REST\Zones_Controller` | Four controllers under `Automattic\Zoninator\Infrastructure\WordPress\Rest\`: `ZonesController`, `ZonePostsController`, `SearchController` and `LockController`. Its error code constants are on `ErrorCodes` |
-| `Automattic\Zoninator\Settings`, `Taxonomy`, `Capabilities`, `Request`, `Zones` and `Feed` | The same class name under `Automattic\Zoninator\Infrastructure\WordPress\` |
+| `Automattic\Zoninator\Settings`, `Taxonomy`, `Capabilities`, `Zones` and `Feed` | The same class name under `Automattic\Zoninator\Infrastructure\WordPress\` |
+| `Automattic\Zoninator\Request` | Nothing; the Zones screen reads its own requests. Its `NONCE_PREFIX` constant is now `ScreenLocation::NONCE_PREFIX` |
 | `Automattic\Zoninator\Locks` | `Automattic\Zoninator\Application\ZoneLocker`, whose `lock()` and `get_blocker_id()` take a zone ID and a user ID |
 
 The files moved with them, from `src/class-*.php` to paths such as `src/Infrastructure/WordPress/Feed.php`. If your code loads one with `require`, remove that line: the class loads itself when it's first used. The sections of this guide for 0.12.0 use the new names.

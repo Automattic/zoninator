@@ -11,7 +11,6 @@ namespace Automattic\Zoninator\Tests\Integration;
 
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenLocation;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm;
-use Automattic\Zoninator\Infrastructure\WordPress\Request;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
 use RuntimeException;
 use WPDieException;
@@ -298,7 +297,8 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			zoninator_container()->get( ZoneForm::class )->handle_request();
 			$this->fail( 'Expected the handler to stop the request.' );
 		} catch ( WPDieException $e ) {
-			$this->assertSame( esc_html( "Sorry, you're not supposed to do that..." ), $e->getMessage() );
+			// A request without a nonce gets WordPress's own refusal; a user who may not gets Zoninator's.
+			$this->assertSame( $with_nonce ? "Sorry, you're not supposed to do that..." : 'The link you followed has expired.', $e->getMessage() );
 		}
 
 		$this->assertSame( 'Form zone', self::zones()->get( $this->zone_id )->name );
@@ -313,7 +313,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 	private function set_request( string $action, array $fields, bool $with_nonce ): void {
 		$_POST = $fields;
 		if ( $with_nonce ) {
-			$_POST['_wpnonce'] = wp_create_nonce( zoninator_container()->get( Request::class )->get_nonce_key( $action ) );
+			$_POST['_wpnonce'] = wp_create_nonce( zoninator_container()->get( ScreenLocation::class )->get_nonce_action( $action ) );
 		}
 
 		$_REQUEST = array_merge(

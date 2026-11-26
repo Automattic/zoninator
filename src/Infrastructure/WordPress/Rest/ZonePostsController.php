@@ -9,6 +9,7 @@ namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 
 use Automattic\Zoninator\Application\GuardedZoneCurator;
 use Automattic\Zoninator\Domain\ZoninatorExceptionInterface;
+use Automattic\Zoninator\Infrastructure\WordPress\Errors;
 use Automattic\Zoninator\Infrastructure\WordPress\Feed;
 use WP_Error;
 use WP_REST_Controller;
@@ -49,16 +50,25 @@ final class ZonePostsController extends WP_REST_Controller {
 	private $permissions;
 
 	/**
+	 * Builds the error for each thing that can go wrong.
+	 *
+	 * @var Errors
+	 */
+	private $errors;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Feed               $feed    The feed's data.
 	 * @param GuardedZoneCurator $curator Changes the posts in a zone for the current user.
 	 * @param Permissions $permissions Says who may call each route.
+	 * @param Errors $errors Builds the error for each thing that can go wrong.
 	 */
-	public function __construct( Feed $feed, GuardedZoneCurator $curator, Permissions $permissions ) {
+	public function __construct( Feed $feed, GuardedZoneCurator $curator, Permissions $permissions, Errors $errors ) {
 		$this->feed        = $feed;
 		$this->curator     = $curator;
 		$this->permissions = $permissions;
+		$this->errors      = $errors;
 	}
 
 	/**
@@ -111,10 +121,10 @@ final class ZonePostsController extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_zone_posts( $request ) {
-		$results = $this->feed->get( $this->get_param( $request, 'zone_id', 0, 'absint' ) );
+		$results = $this->feed->get( (int) $request['zone_id'] );
 
 		if ( is_wp_error( $results ) ) {
-			return 'invalid-zone-supplied' === $results->get_error_code() ? $this->zone_not_found() : $this->bad_request( ErrorCodes::ZONE_FEED_ERROR, $results->get_error_message() );
+			return 'invalid-zone-supplied' === $results->get_error_code() ? $this->errors->zone_not_found() : $this->bad_request( ErrorCodes::ZONE_FEED_ERROR, $results->get_error_message() );
 		}
 
 		return new WP_REST_Response( $results, 200 );
@@ -127,12 +137,12 @@ final class ZonePostsController extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function update_zone_posts( $request ) {
-		$zone_id = $this->get_param( $request, 'zone_id', 0, 'absint' );
+		$zone_id = (int) $request['zone_id'];
 
 		try {
-			$this->curator->set_posts( get_current_user_id(), $zone_id, array_map( 'absint', (array) $this->get_param( $request, 'post_ids', array() ) ) );
+			$this->curator->set_posts( get_current_user_id(), $zone_id, array_map( 'absint', (array) $request['post_ids'] ) );
 		} catch ( ZoninatorExceptionInterface $exception ) {
-			return $this->error_response( $exception, $zone_id );
+			return $this->errors->from_exception( $exception, $zone_id );
 		}
 
 		return $this->ok( array( 'success' => true ) );
@@ -151,7 +161,7 @@ final class ZonePostsController extends WP_REST_Controller {
 		try {
 			$this->curator->add_posts( get_current_user_id(), $zone_id, array( $post_id ) );
 		} catch ( ZoninatorExceptionInterface $exception ) {
-			return $this->error_response( $exception, $zone_id );
+			return $this->errors->from_exception( $exception, $zone_id );
 		}
 
 		return $this->created( array( 'success' => true ) );
@@ -169,13 +179,20 @@ final class ZonePostsController extends WP_REST_Controller {
 		try {
 			$this->curator->remove_posts( get_current_user_id(), $zone_id, array( (int) $request['post_id'] ) );
 		} catch ( ZoninatorExceptionInterface $exception ) {
-			return $this->error_response( $exception, $zone_id );
+			return $this->errors->from_exception( $exception, $zone_id );
 		}
 
 		return $this->ok( array( 'success' => true ) );
 	}
 
-	public function is_numeric_array( $items ) {
+	/**
+	 * Whether a value is a list of post IDs. Core's own check for an array arg
+	 * also takes a comma-separated string, which this API never has.
+	 *
+	 * @param mixed $items The post_ids param.
+	 * @return bool
+	 */
+	public function is_list_of_ids( $items ) {
 		return is_array( $items ) && count( $items ) === count( array_filter( $items, 'is_numeric' ) );
 	}
 
@@ -185,7 +202,7 @@ final class ZonePostsController extends WP_REST_Controller {
 			array(
 				'post_ids' => array(
 					'type'              => 'array',
-					'validate_callback' => array( $this, 'is_numeric_array' ),
+					'validate_callback' => array( $this, 'is_list_of_ids' ),
 					'required'          => true,
 					'items'             => array( 'type' => 'integer' ),
 				),

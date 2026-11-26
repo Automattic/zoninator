@@ -56,6 +56,13 @@ final class ScreenData {
 	public readonly int $locked_by;
 
 	/**
+	 * Display name of that user, or '' if no one is editing the zone or the user is gone.
+	 *
+	 * @var string
+	 */
+	public readonly string $locked_by_name;
+
+	/**
 	 * Whether the user may create zones.
 	 *
 	 * @var bool
@@ -84,16 +91,18 @@ final class ScreenData {
 	 * @param WP_Term|null $active_zone      The zone that's open, or null.
 	 * @param WP_Post[]    $zone_posts       The posts in the open zone, in order.
 	 * @param int          $locked_by        ID of the other user editing the open zone, or 0.
+	 * @param string       $locked_by_name   Display name of that user, or ''.
 	 * @param bool         $can_add_zones    Whether the user may create zones.
 	 * @param bool         $can_edit_zone    Whether the user may change or delete the open zone.
 	 * @param bool         $can_manage_zones Whether the user may curate zones.
 	 */
-	public function __construct( array $zones, int $active_zone_id, ?WP_Term $active_zone, array $zone_posts, int $locked_by, bool $can_add_zones, bool $can_edit_zone, bool $can_manage_zones ) {
+	public function __construct( array $zones, int $active_zone_id, ?WP_Term $active_zone, array $zone_posts, int $locked_by, string $locked_by_name, bool $can_add_zones, bool $can_edit_zone, bool $can_manage_zones ) {
 		$this->zones            = $zones;
 		$this->active_zone_id   = $active_zone_id;
 		$this->active_zone      = $active_zone;
 		$this->zone_posts       = $zone_posts;
 		$this->locked_by        = $locked_by;
+		$this->locked_by_name   = $locked_by_name;
 		$this->can_add_zones    = $can_add_zones;
 		$this->can_edit_zone    = $can_edit_zone;
 		$this->can_manage_zones = $can_manage_zones;

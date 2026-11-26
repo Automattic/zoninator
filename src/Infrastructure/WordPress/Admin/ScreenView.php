@@ -9,7 +9,11 @@ namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 
 /**
  * Prints the Zones screen: its title, any notice, the list of zones, and the
- * editor for the open zone.
+ * editor for the open zone, which is its content and its details.
+ *
+ * It takes a ScreenData and decides nothing: it makes no capability check and
+ * no query. ZoneDetailsView prints the zone form, SearchForm the "Add content"
+ * field, and ZonePostRow each post's row.
  *
  * @since 1.0.0
  * @internal Use the template tags, the Application classes and the hooks instead.
@@ -31,23 +35,41 @@ final class ScreenView {
 	private $location;
 
 	/**
-	 * Prints the editor for the open zone.
+	 * The field that finds content to add.
 	 *
-	 * @var ZoneEditorView
+	 * @var SearchForm
 	 */
-	private $editor;
+	private $search_form;
+
+	/**
+	 * Renders a zone post's row.
+	 *
+	 * @var ZonePostRow
+	 */
+	private $row;
+
+	/**
+	 * Prints the zone's name and description.
+	 *
+	 * @var ZoneDetailsView
+	 */
+	private $details;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param Messages       $messages The screen's messages.
-	 * @param ScreenLocation $location Where the Zones screen is.
-	 * @param ZoneEditorView $editor   Prints the editor for the open zone.
+	 * @param Messages        $messages    The screen's messages.
+	 * @param ScreenLocation  $location    Where the Zones screen is.
+	 * @param SearchForm      $search_form The field that finds content to add.
+	 * @param ZonePostRow     $row         Renders a zone post's row.
+	 * @param ZoneDetailsView $details     Prints the zone's name and description.
 	 */
-	public function __construct( Messages $messages, ScreenLocation $location, ZoneEditorView $editor ) {
-		$this->messages = $messages;
-		$this->location = $location;
-		$this->editor   = $editor;
+	public function __construct( Messages $messages, ScreenLocation $location, SearchForm $search_form, ZonePostRow $row, ZoneDetailsView $details ) {
+		$this->messages    = $messages;
+		$this->location    = $location;
+		$this->search_form = $search_form;
+		$this->row         = $row;
+		$this->details     = $details;
 	}
 
 	/**
@@ -106,7 +128,7 @@ final class ScreenView {
 				</div>
 				<div id="col-right">
 					<div class="col-wrap">
-						<?php $this->editor->render( $data ); ?>
+						<?php $this->render_editor( $data ); ?>
 					</div>
 				</div>
 			</div>
@@ -152,6 +174,89 @@ final class ScreenView {
 			<?php endforeach; ?>
 		</tbody>
 	</table>
+		<?php
+	}
+
+	/**
+	 * Prints the editor for the open zone: who else is editing it, if anyone,
+	 * then its content and its details. With no zone open, it prints the form
+	 * that adds one.
+	 *
+	 * @param ScreenData $data What the screen shows.
+	 */
+	private function render_editor( ScreenData $data ) {
+		$zone_id  = $data->get_zone_id();
+		$can_open = $zone_id ? $data->can_manage_zones : $data->can_add_zones;
+		?>
+	<div id="zone-edit-wrapper">
+		<?php if ( $can_open ) : ?>
+			<?php if ( $data->locked_by ) : ?>
+				<div class="updated below-h2">
+					<p><?php printf( esc_html( $this->messages->get( 'error-zone-lock' ) ), esc_html( '' !== $data->locked_by_name ? $data->locked_by_name : __( 'another user', 'zoninator' ) ) ); ?></p>
+				</div>
+				<input type="hidden" id="zone-locked" name="zone-locked" value="1" />
+				<?php
+			endif;
+
+			if ( $zone_id ) {
+				// Curating content is the main task, so it comes before the zone's details.
+				?>
+				<div class="metabox-holder">
+					<?php $this->render_content( $data ); ?>
+					<div class="postbox zone-col zone-info-col">
+						<div class="postbox-header">
+							<h2 class="hndle"><?php esc_html_e( 'Zone details', 'zoninator' ); ?></h2>
+						</div>
+						<div class="inside">
+							<?php $this->details->render( $data ); ?>
+						</div>
+					</div>
+				</div>
+				<?php
+			} else {
+				?>
+				<div class="col-wrap zone-col zone-info-col">
+					<?php $this->details->render( $data ); ?>
+				</div>
+				<?php
+			}
+		endif;
+		?>
+	</div>
+		<?php
+	}
+
+	/**
+	 * Prints the box for finding, adding and ordering the open zone's content.
+	 * It's read only for a user who can't curate zones, and while someone else
+	 * is editing the zone.
+	 *
+	 * @param ScreenData $data What the screen shows. A zone must be open.
+	 */
+	private function render_content( ScreenData $data ) {
+		?>
+	<div class="postbox zone-col zone-posts-col">
+		<div class="postbox-header">
+			<h2 class="hndle"><?php esc_html_e( 'Zone content', 'zoninator' ); ?></h2>
+			<div class="zone-posts-save-input">
+				<span class="spinner"></span>
+				<p id="zone-posts-save-info" class="zone-posts-save-info" role="status"></p>
+			</div>
+		</div>
+		<div class="inside zone-posts-wrapper <?php echo ! $data->can_manage_zones || $data->locked_by ? 'readonly' : ''; ?>">
+			<div id="zone-posts-notices"></div>
+
+			<?php $this->search_form->render(); ?>
+
+			<div class="zone-posts-list">
+				<?php
+				foreach ( $data->zone_posts as $post ) {
+					$this->row->render( $post, $data->active_zone );
+				}
+				?>
+			</div>
+		</div>
+	</div>
 		<?php
 	}
 }
