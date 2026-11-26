@@ -96,7 +96,7 @@ final class LockController extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function zone_update_lock( $request ) {
-		$zone_id = $this->get_param( $request, 'zone_id', 0, 'absint' );
+		$zone_id = (int) $request['zone_id'];
 
 		if ( ! $zone_id ) {
 			return $this->bad_request( ErrorCodes::ZONE_ID_REQUIRED, __( 'Zone ID is required.', 'zoninator' ) );

@@ -11,8 +11,8 @@ use WP_Error;
 use WP_REST_Response;
 
 /**
- * Hooks the routes, reads request params and builds responses the same way
- * in every zoninator/v1 controller. Errors builds the errors. It keeps no state of its own.
+ * Hooks the routes and builds responses the same way in every zoninator/v1
+ * controller. Errors builds the errors. It keeps no state of its own.
  *
  * @since 1.0.0
  */
@@ -32,39 +32,18 @@ trait RespondsToRequests {
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
 	}
 
-	public function is_numeric( $item ) {
-		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use is_numeric directly.
-		return is_numeric( $item );
-	}
-
+	/**
+	 * The zone ID arg. With a type and no callbacks, core checks it's an integer and makes it one.
+	 *
+	 * @return array
+	 */
 	private function get_zone_id_param() {
 		return array(
 			'zone_id' => array(
-				'type'              => 'integer',
-				'validate_callback' => array( $this, 'is_numeric' ),
-				'sanitize_callback' => 'absint',
-				'required'          => true,
+				'type'     => 'integer',
+				'required' => true,
 			),
 		);
-	}
-
-	/**
-	 * @param WP_REST_Request $rest_request
-	 * @param string          $key               Parameter name.
-	 * @param string          $default_value
-	 * @param string          $sanitize_callback
-	 *
-	 * @return array|mixed|null|string
-	 */
-	private function get_param( $rest_request, $key, $default_value = '', $sanitize_callback = '' ) {
-		$value = $rest_request->get_param( $key );
-		$value = empty( $value ) ? $default_value : $value;
-
-		if ( is_callable( $sanitize_callback ) ) {
-			$value = ( is_array( $value ) ) ? array_map( $sanitize_callback, $value ) : call_user_func( $sanitize_callback, $value );
-		}
-
-		return $value;
 	}
 
 	/**

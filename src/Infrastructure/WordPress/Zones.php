@@ -301,6 +301,23 @@ final class Zones {
 		return get_metadata( 'post', $post_id, $meta_key, true );
 	}
 
+	/**
+	 * Gets a zone as the REST API and the abilities list it: its ID, slug, name and description.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param WP_Term $zone The zone, from get() or get_all().
+	 * @return array{term_id: int, slug: string, name: string, description: string}
+	 */
+	public function get_data( WP_Term $zone ): array {
+		return array(
+			'term_id'     => (int) $zone->term_id,
+			'slug'        => $zone->slug,
+			'name'        => $zone->name,
+			'description' => $zone->description,
+		);
+	}
+
 	public function fill_details( $zone ) {
 		return $this->terms->fill_details( $zone );
 	}

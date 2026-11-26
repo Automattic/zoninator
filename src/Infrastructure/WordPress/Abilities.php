@@ -256,17 +256,7 @@ final class Abilities {
 			return $this->errors->zones_read_error();
 		}
 
-		return array_map(
-			static function ( $zone ) {
-				return array(
-					'term_id'     => (int) $zone->term_id,
-					'slug'        => $zone->slug,
-					'name'        => $zone->name,
-					'description' => $zone->description,
-				);
-			},
-			array_values( $zones )
-		);
+		return array_map( array( $this->zones, 'get_data' ), array_values( $zones ) );
 	}
 
 	/**

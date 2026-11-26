@@ -127,7 +127,7 @@ final class ZonesController extends WP_REST_Controller {
 			return $this->errors->zones_read_error();
 		}
 
-		$zones = array_map( array( $this, 'format_zone' ), $results );
+		$zones = array_map( array( $this->zones, 'get_data' ), $results );
 
 		return $this->ok( $zones );
 	}
@@ -139,9 +139,9 @@ final class ZonesController extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_zone( $request ) {
-		$name        = $this->get_param( $request, 'name', '' );
-		$slug        = $this->get_param( $request, 'slug', $name );
-		$description = $this->get_param( $request, 'description', '' );
+		$name        = (string) $request['name'];
+		$slug        = empty( $request['slug'] ) ? $name : (string) $request['slug'];
+		$description = (string) $request['description'];
 
 		try {
 			$zone = $this->manager->create( get_current_user_id(), (string) $slug, (string) $name, array( 'description' => $description ) );
@@ -149,7 +149,7 @@ final class ZonesController extends WP_REST_Controller {
 			return $this->errors->from_exception( $exception, 0 );
 		}
 
-		return $this->created( $this->format_zone( $this->zones->get( (int) $zone->get_id() ) ) );
+		return $this->created( $this->zones->get_data( $this->zones->get( (int) $zone->get_id() ) ) );
 	}
 
 	/**
@@ -159,9 +159,9 @@ final class ZonesController extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function update_zone( $request ) {
-		$zone_id = $this->get_param( $request, 'zone_id', 0, 'absint' );
-		$name    = $this->get_param( $request, 'name', '' );
-		$slug    = $this->get_param( $request, 'slug', '' );
+		$zone_id = absint( $request['zone_id'] );
+		$name    = (string) $request['name'];
+		$slug    = (string) $request['slug'];
 
 		$zone          = $this->zones->get( $zone_id );
 		$update_params = array();
@@ -199,7 +199,7 @@ final class ZonesController extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function delete_zone( $request ) {
-		$zone_id = $this->get_param( $request, 'zone_id', 0, 'absint' );
+		$zone_id = absint( $request['zone_id'] );
 
 		$zone = $this->zones->get( $zone_id );
 
@@ -250,17 +250,6 @@ final class ZonesController extends WP_REST_Controller {
 				'type'     => 'string',
 				'required' => false,
 			),
-		);
-	}
-
-	private function format_zone( $zone ) {
-		$data = $zone->to_array();
-
-		return array(
-			'term_id'     => $data['term_id'],
-			'slug'        => $data['slug'],
-			'name'        => $data['name'],
-			'description' => $data['description'],
 		);
 	}
 }
