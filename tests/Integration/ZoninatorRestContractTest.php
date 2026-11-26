@@ -435,7 +435,7 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( $ordered, array_map( 'intval', wp_list_pluck( $data, 'ID' ) ) );
 		$this->assertSame(
-			array( 'ID', 'post_date', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'guid' ),
+			array( 'ID', 'post_date', 'post_title', 'post_excerpt', 'post_status', 'guid' ),
 			array_keys( (array) $data[0] )
 		);
 	}
@@ -450,6 +450,8 @@ final class ZoninatorRestContractTest extends TestCase {
 	}
 
 	public function test_get_zone_posts_hides_the_content_of_a_password_protected_post(): void {
+		// The content isn't in the feed unless a site asks for it.
+		add_filter( 'zoninator_zone_feed_fields', static fn( $fields ) => array_merge( $fields, array( 'post_content' ) ) );
 		$zone_id = $this->create_zone( 'protected' );
 		$post_id = self::factory()->post->create(
 			array(

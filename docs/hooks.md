@@ -231,7 +231,22 @@ These fire from `src/Infrastructure/WordPress/Feed.php`, for the JSON feed at `/
 
 ### `zoninator_zone_feed_fields` (filter)
 
-Fields included in each post in the JSON feed. Defaults to `[ 'ID', 'post_date', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'guid' ]`.
+Fields included in each post in the JSON feed. Defaults to `[ 'ID', 'post_date', 'post_title', 'post_excerpt', 'post_status', 'guid' ]`.
+
+The feed is public, and gives each field as it's stored. Before 1.0.0 the defaults included `post_content`. Stored content hasn't been through the site's content filters, so a paywall or membership plugin that holds content back there doesn't apply to it. Add it back only if all of a zone's content is public:
+
+```php
+add_filter(
+	'zoninator_zone_feed_fields',
+	static function ( $fields ) {
+		$fields[] = 'post_content';
+
+		return $fields;
+	}
+);
+```
+
+A password-protected post's content and excerpt are always empty.
 
 - **Parameters:** `string[] $fields`
 

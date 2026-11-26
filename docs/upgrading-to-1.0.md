@@ -138,7 +138,7 @@ If you use [`zoninator_zone_posts_widget_html`](hooks.md#zoninator_zone_posts_wi
 
 ## REST API changes
 
-The routes and their arguments are unchanged. What a client sees has changed in five ways.
+The routes and their arguments are unchanged. What a client sees has changed in six ways.
 
 **Zone locks stop every change.** In 0.12.x a zone's lock only kept a second person out of the zone on the Zones screen, and the REST API saved whatever it was sent. Now every route that changes a zone or its posts is refused with `400` and the code `zone-locked` while someone else holds the zone's lock, and the message names them. Retry later, or have the client take the lock first with `PUT /zoninator/v1/zones/{zone_id}/lock`. Requests made as the lock holder go through.
 
@@ -157,6 +157,8 @@ If your client reads `zone_id` or `blocked` from the top of the response, read `
 **Adding a post returns no HTML.** `POST /zoninator/v1/zones/{zone_id}/posts/{post_id}` returned the post's row for the Zones screen, as `html`. It now returns `{ "success": true }`, like the other routes that change a zone. If your client used the `html`, read the zone's posts with `GET /zoninator/v1/zones/{zone_id}/posts` instead.
 
 **Listing the zones needs more than a login.** `GET /zoninator/v1/zones` answered any logged-in user, subscribers included. It now needs a user who can edit posts, which covers everyone who can use the block editor's zone picker, or who can curate zones. Anyone else gets `403` with the code `rest_forbidden`. To open the list to more users, or to anyone, use the [`zoninator_rest_get_zones_permissions_check`](hooks.md#zoninator_rest_get_zones_permissions_check-filter) filter.
+
+**A zone's posts come without their content.** `GET /zoninator/v1/zones/{zone_id}/posts` no longer has `post_content`; see [The JSON feed leaves out post content](#the-json-feed-leaves-out-post-content).
 
 **A full zone is refused.** A change that would take a zone past its post limit gets `400` with the code `zone-full`; see [A zone holds up to 100 posts](#a-zone-holds-up-to-100-posts).
 
@@ -182,6 +184,25 @@ If your code unhooked one, with `remove_action( 'wp_ajax_zoninator_add_post', â€
 On the Zones screen, the hidden `zone-nonce-ajax-action` nonce field and the `ajaxNonceAction` entry in `zoninatorOptions` are gone, and so are the `zoninator.ajax()`, `zoninator.getAjaxNonce()`, `zoninator.getAjaxNonceField()` and `zoninator.updateAjaxNonce()` JavaScript functions. The screen still fires the `zoninator.ajax` jQuery event on `#zone-post-search` before each REST request, with the action name (such as `add_post`) and the request data, so listeners on it keep working.
 
 The zone form's own nonce has changed too. It's sent in a `zoninator_nonce` field, not `_wpnonce`, and the nonce to change or delete a zone is for that zone only: its action ends with the zone's ID, as in `zone-nonce-update-12` and `zone-nonce-delete-12`. A new zone's is still `zone-nonce-insert`. If your code builds its own link or form that submits to the Zones screen, make its nonce the same way.
+
+## The JSON feed leaves out post content
+
+Each post in a zone's [JSON feed](theme-developers.md#the-json-feed), and in `GET /zoninator/v1/zones/{zone_id}/posts`, had a `post_content` field with the post's content as it's stored. Both are public, and stored content hasn't been through the site's content filters. On a site where a paywall or a membership plugin holds content back with those filters, the feed gave the full text of every post in a zone to anyone.
+
+The field is no longer there by default. The others are unchanged: `ID`, `post_date`, `post_title`, `post_excerpt`, `post_status` and `guid`.
+
+If your client reads `post_content` from the feed, fetch each post's content from core's REST API instead, at `GET /wp/v2/posts/{id}`, which applies the site's content filters and access rules. If all of a zone's content is public, you can put the field back:
+
+```php
+add_filter(
+	'zoninator_zone_feed_fields',
+	static function ( $fields ) {
+		$fields[] = 'post_content';
+
+		return $fields;
+	}
+);
+```
 
 ## A zone holds up to 100 posts
 

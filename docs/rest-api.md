@@ -77,7 +77,7 @@ Returns the posts assigned to a zone, in zone order.
 
 **Permission:** publicly accessible.
 
-**Response:** array of the zone's published post objects, with the fields allowed by the `zoninator_zone_feed_fields` filter (by default: `ID`, `post_date`, `post_title`, `post_content`, `post_excerpt`, `post_status`, `guid`). Content and excerpt are blanked for password-protected posts.
+**Response:** array of the zone's published post objects, with the fields allowed by the `zoninator_zone_feed_fields` filter (by default: `ID`, `post_date`, `post_title`, `post_excerpt`, `post_status`, `guid`). The excerpt is blanked for password-protected posts. For a post's content, use core's `GET /wp/v2/posts/{id}`, which applies the site's content filters and access rules.
 
 ### `PUT /zoninator/v1/zones/{zone_id}/posts`
 

@@ -44,12 +44,31 @@ final class ZoninatorZoneFeedTest extends TestCase {
 
 		$this->assertSame( array( $post_ids[1], $post_ids[0] ), array_map( 'intval', wp_list_pluck( $feed, 'ID' ) ) );
 		$this->assertSame(
-			array( 'ID', 'post_date', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'guid' ),
+			array( 'ID', 'post_date', 'post_title', 'post_excerpt', 'post_status', 'guid' ),
 			array_keys( (array) $feed[0] )
 		);
 	}
 
+	/**
+	 * The feed is public, and it gives a post's fields as they're stored. A
+	 * post's stored content hasn't been through the site's content filters,
+	 * which is where a paywall or a membership plugin holds it back, so the
+	 * feed leaves it out unless a site asks for it.
+	 */
+	public function test_feed_has_a_posts_content_only_when_a_site_asks_for_it(): void {
+		$zone_id = $this->create_zone();
+		self::add_zone_posts( $zone_id, array( self::factory()->post->create( array( 'post_content' => 'The whole story' ) ) ) );
+
+		$by_default = self::feed()->get( 'feed-zone' );
+		add_filter( 'zoninator_zone_feed_fields', static fn( $fields ) => array_merge( $fields, array( 'post_content' ) ) );
+		$asked_for = self::feed()->get( 'feed-zone' );
+
+		$this->assertStringNotContainsString( 'The whole story', wp_json_encode( $by_default ) );
+		$this->assertSame( 'The whole story', $asked_for[0]->post_content );
+	}
+
 	public function test_feed_hides_content_of_password_protected_posts(): void {
+		add_filter( 'zoninator_zone_feed_fields', static fn( $fields ) => array_merge( $fields, array( 'post_content' ) ) );
 		$zone_id = $this->create_zone();
 		$post_id = self::factory()->post->create(
 			array(

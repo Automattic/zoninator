@@ -82,14 +82,20 @@ final class Feed {
 		/**
 		 * Filters the post fields each item in a zone's JSON feed has.
 		 *
+		 * The feed is public, and gives each field as it's stored. post_content
+		 * isn't one of the defaults, as stored content hasn't been through the
+		 * site's content filters, which is where a paywall or a membership
+		 * plugin holds it back. Add it only if all of a zone's content is public.
+		 *
 		 * @since 0.9
+		 * @since 1.0.0 post_content is no longer one of the defaults.
 		 *
 		 * @param string[] $fields WP_Post fields. Default ID, post_date, post_title,
-		 *                         post_content, post_excerpt, post_status and guid.
+		 *                         post_excerpt, post_status and guid.
 		 */
 		$fields = (array) apply_filters(
 			'zoninator_zone_feed_fields',
-			array( 'ID', 'post_date', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'guid' )
+			array( 'ID', 'post_date', 'post_title', 'post_excerpt', 'post_status', 'guid' )
 		);
 		$items  = array();
 
