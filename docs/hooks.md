@@ -251,7 +251,9 @@ Final feed payload before encoding to JSON.
 
 ### `zoninator_zone_posts_widget_html` (filter)
 
-Fires from `src/Infrastructure/WordPress/ZonePostsWidget.php`. Replaces the HTML for the posts in a Zone Posts widget, so a theme can show them its own way, such as with thumbnails or excerpts. Return `false` (the default) to keep the list of links. The widget title, description and wrapper still come from the widget, the HTML is cached with the rest of the widget, and it passes through `wp_kses_post()`. Since 0.12.0.
+Fires from `src/Infrastructure/WordPress/ZonePostsWidget.php`. Replaces the HTML for the posts in a Zone Posts widget, so a theme can show them its own way, such as with thumbnails or excerpts. Return `false` (the default) to keep the list of links. The widget title, description and wrapper still come from the widget, and the HTML passes through `wp_kses_post()`. Since 0.12.0.
+
+The callback runs on every page view that shows the widget. Before 1.0.0 the widget cached its whole output, your HTML included; it no longer does, so cache the result yourself if it's costly to build.
 
 - **Parameters:** `string|false $html`, `WP_Post[] $posts` (the zone's posts, in order), `WP_Query $query` (the zone query that found them)
 
@@ -264,14 +266,6 @@ add_filter( 'zoninator_zone_posts_widget_html', function ( $html, $posts ) {
 	return '<ul class="zone-thumbs">' . implode( '', $items ) . '</ul>';
 }, 10, 2 );
 ```
-
-### `zoninator_zone_posts_widget_block_save_cache_seconds` (filter)
-
-Fires from `src/Infrastructure/WordPress/Widgets.php`. How long (in seconds) the widget cache is locked against re-population after a flush. Defaults to `5`. Set to `0` to disable the lock.
-
-- **Parameters:** `int $seconds`
-
-Before 1.0.0 this filter was `zone_posts_widget_block_save_cache_seconds`.
 
 ## See also
 

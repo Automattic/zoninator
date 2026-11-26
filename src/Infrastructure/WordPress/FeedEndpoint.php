@@ -38,63 +38,32 @@ final class FeedEndpoint {
 		add_action( 'template_redirect', array( $this, 'serve' ) );
 	}
 
+	/**
+	 * Adds the feed's rewrite rule and its query var. Hooked on init.
+	 */
 	public function add_rewrite_rule() {
 		add_rewrite_tag( '%' . Taxonomy::NAME . '%', '([^&]+)' );
 		add_rewrite_rule( '^zones/([^/]+)/feed.json/?$', 'index.php?' . Taxonomy::NAME . '=$matches[1]', 'top' );
 	}
 
+	/**
+	 * Sends the feed, if this request is for one. Hooked on template_redirect.
+	 */
 	public function serve() {
-		$query_var = get_query_var( Taxonomy::NAME );
+		$zone_slug = get_query_var( Taxonomy::NAME );
 
-		if ( ! empty( $query_var ) ) {
-			$zone_slug = get_query_var( Taxonomy::NAME );
-			$results   = $this->feed->get( $zone_slug );
-			if ( is_wp_error( $results ) ) {
-				$this->send_error( $results->get_error_message() );
-			}
-
-			$this->send_json( $results );
-		}
-	}
-
-	/**
-	 * Encode some data and echo it (possibly without cached headers)
-	 *
-	 * @param array $data
-	 */
-	private function send_json( $data ) {
-
-		if ( null == $data ) {
-			return false;
+		if ( empty( $zone_slug ) ) {
+			return;
 		}
 
-		header( 'Content-Type: application/json' );
-		echo wp_json_encode( $data );
-		exit();
-	}
+		$results = $this->feed->get( $zone_slug );
 
-	private function send_error( $message ) {
-		$this->status_header_with_message( 406, $message );
-		exit();
-	}
+		// No such zone, or a zoninator_json_feed_results callback that refused.
+		if ( null === $results || is_wp_error( $results ) ) {
+			status_header( 406 );
+			exit;
+		}
 
-	/**
-	 * Modify the header and description in the global array
-	 *
-	 * @global array $wp_header_to_desc
-	 * @param int    $status
-	 * @param string $message
-	 */
-	private function status_header_with_message( $status, $message ) {
-		global $wp_header_to_desc;
-
-		$status                       = absint( $status );
-		$official_message             = $wp_header_to_desc[ $status ] ?? '';
-		$wp_header_to_desc[ $status ] = $message; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-
-		status_header( $status );
-
-		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-		$wp_header_to_desc[ $status ] = $official_message;
+		wp_send_json( $results );
 	}
 }

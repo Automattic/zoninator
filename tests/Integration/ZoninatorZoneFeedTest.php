@@ -80,11 +80,18 @@ final class ZoninatorZoneFeedTest extends TestCase {
 		$this->assertSame( array( 'ID', 'post_title' ), array_keys( (array) $feed[0] ) );
 	}
 
-	public function test_feed_for_a_missing_zone_is_an_error(): void {
-		$feed = self::feed()->get( 'no-such-zone' );
+	public function test_there_is_no_feed_for_a_missing_zone(): void {
+		$this->assertNull( self::feed()->get( 'no-such-zone' ) );
+	}
 
-		$this->assertWPError( $feed );
-		$this->assertSame( 'invalid-zone-supplied', $feed->get_error_code() );
+	/**
+	 * An empty zone is still a zone. Its feed is an empty list, not nothing.
+	 */
+	public function test_feed_for_an_empty_zone_is_an_empty_list(): void {
+		$zone = self::insert_zone( 'empty-feed-zone' );
+
+		$this->assertSame( array(), self::feed()->get( 'empty-feed-zone' ) );
+		$this->assertSame( array(), self::feed()->get( (int) $zone['term_id'] ) );
 	}
 
 	public function test_feed_filters_get_the_zone_they_were_asked_for(): void {

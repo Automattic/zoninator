@@ -30,9 +30,6 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 		$zone          = self::insert_zone( 'widget-zone', 'Widget zone', array( 'description' => 'About the zone' ) );
 		$this->zone_id = (int) $zone['term_id'];
 		$this->widget  = new ZonePostsWidget();
-
-		wp_cache_delete( 'widget-zone-posts', 'widget' );
-		wp_cache_delete( 'widget-zone-posts-save_blocked', 'widget' );
 	}
 
 	public function test_widget_lists_zone_posts_in_order_under_the_zone_name(): void {
@@ -88,7 +85,7 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 	}
 
 	/**
-	 * The widget caches its output, so a change to the zone must clear it.
+	 * The widget keeps no cache of its own, so it can't show a zone as it was.
 	 *
 	 * @dataProvider data_zone_changes
 	 *
@@ -98,9 +95,6 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 		$first  = self::factory()->post->create( array( 'post_title' => 'First post' ) );
 		$second = self::factory()->post->create( array( 'post_title' => 'Second post' ) );
 		self::add_zone_posts( $this->zone_id, array( $first ) );
-
-		// Creating posts briefly blocks the cache from being saved. Let it save.
-		wp_cache_delete( 'widget-zone-posts-save_blocked', 'widget' );
 		$this->render( array( 'show_description' => 0 ) );
 
 		switch ( $change ) {
@@ -136,15 +130,19 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 	}
 
 	/**
-	 * A value of 0 turns off the pause after the cache is cleared.
+	 * The widget has no cache of its output because WordPress caches the
+	 * zone's query. If a later render ran queries, that reason would be gone.
 	 */
-	public function test_save_pause_filter_can_turn_the_pause_off(): void {
-		add_filter( 'zoninator_zone_posts_widget_block_save_cache_seconds', '__return_zero' );
+	public function test_a_second_render_runs_no_queries(): void {
+		global $wpdb;
+		self::add_zone_posts( $this->zone_id, self::factory()->post->create_many( 3 ) );
 
-		$this->widget->flush_widget_cache();
+		$first   = $this->render( array( 'show_description' => 1 ) );
+		$queries = $wpdb->num_queries;
+		$second  = $this->render( array( 'show_description' => 1 ) );
 
-		remove_filter( 'zoninator_zone_posts_widget_block_save_cache_seconds', '__return_zero' );
-		$this->assertFalse( wp_cache_get( 'widget-zone-posts-save_blocked', 'widget' ) );
+		$this->assertSame( $first, $second );
+		$this->assertSame( $queries, $wpdb->num_queries );
 	}
 
 	/**
@@ -179,7 +177,7 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 
 	/**
 	 * the_widget() gives the widget no ID, so two zones printed that way must
-	 * not share a cache entry.
+	 * each show their own posts.
 	 */
 	public function test_the_widget_prints_each_zone_it_is_asked_for(): void {
 		$other = self::insert_zone( 'other-widget-zone', 'Other zone' );
@@ -204,13 +202,6 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 		$wp_widget_factory->widgets[ ZonePostsWidget::class ] = $widget;
 
 		$this->assertTrue( $removed );
-	}
-
-	/**
-	 * Building a widget must not hook anything, so a second one doesn't flush the cache twice.
-	 */
-	public function test_building_the_widget_adds_no_hooks(): void {
-		$this->assertFalse( has_action( 'save_post', array( $this->widget, 'flush_widget_cache' ) ) );
 	}
 
 	public function test_widget_for_an_empty_zone_outputs_nothing(): void {

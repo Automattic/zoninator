@@ -17,7 +17,7 @@ What to check depends on what your site does:
 | removes one of Zoninator's hooks with `remove_action()` or `remove_filter()` | [Hooks are registered on the objects that handle them](#hooks-are-registered-on-the-objects-that-handle-them) |
 | listens on `zoninator_add_zone_posts` or `zoninator_remove_zone_posts` | [The zone post actions always pass post IDs](#the-zone-post-actions-always-pass-post-ids) |
 | changes zones over the REST API | [Zone locks now stop every change](#zone-locks-now-stop-every-change-not-only-the-zones-screen), [The locked zone error keeps its details under `data`](#the-locked-zone-error-keeps-its-details-under-data) and [Adding a post over REST no longer returns its row](#adding-a-post-over-rest-no-longer-returns-its-row) |
-| prints, removes or extends the Zone Posts widget in code, or filters its cache | [The Zone Posts widget's class has a new name](#the-zone-posts-widgets-class-has-a-new-name) and [The widget's cache filter has a new name](#the-widgets-cache-filter-has-a-new-name) |
+| prints, removes or extends the Zone Posts widget in code, or filters its HTML or its cache | [The Zone Posts widget's class has a new name](#the-zone-posts-widgets-class-has-a-new-name) and [The Zone Posts widget no longer caches its output](#the-zone-posts-widget-no-longer-caches-its-output) |
 | listens on `zoninator_split_shared_term` or `zoninator_did_split_shared_term` | [Zoninator no longer handles shared term splits](#zoninator-no-longer-handles-shared-term-splits) |
 | still calls the old admin-ajax actions | [The Zones screen's admin-ajax actions are gone](#the-zones-screens-admin-ajax-actions-are-gone) |
 
@@ -270,11 +270,17 @@ Widgets already in your sidebars are untouched. The widget keeps its ID base, `z
 
 The file moved with the class, from `src/class-zoninator-zoneposts-widget.php`, and loads itself when the class is first used. If your code loads it with `require`, remove that line.
 
-### The widget's cache filter has a new name
+### The Zone Posts widget no longer caches its output
 
-`zone_posts_widget_block_save_cache_seconds` is now [`zoninator_zone_posts_widget_block_save_cache_seconds`](hooks.md#zoninator_zone_posts_widget_block_save_cache_seconds-filter), with the prefix every other Zoninator hook uses. The old name no longer fires, so rename it in your `add_filter()` call.
+The widget used to keep its rendered HTML in the object cache, and clear it when a post was saved or deleted, the theme changed, or a zone or its posts changed. WordPress caches the zone's query, the costly part, and clears that cache itself when a post or its place in a zone changes. So the widget now builds its output on each page view, and the cache and everything that managed it are removed.
 
-The hooks that clear the cache have moved too. Each widget object used to add them to itself when it was built. Now one object adds them when Zoninator boots: `array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Widgets::class ), 'flush_cache' )`, on `save_post`, `deleted_post`, `switch_theme`, `zoninator_add_zone_posts`, `zoninator_remove_zone_posts` and `edited_zoninator_zones`. If you extend the widget and override `flush_widget_cache()`, those hooks no longer call your method. Hook it yourself, or call `flush_widget_cache()` where you need it.
+| Removed | Use instead |
+|---|---|
+| The `zone_posts_widget_block_save_cache_seconds` filter | Nothing; there is no cache to pause. Remove your `add_filter()` call |
+| `Zoninator_ZonePosts_Widget::flush_widget_cache()` | Nothing; there is no cache to clear. Remove the call, and any override of it in a subclass |
+| The `widget-zone-posts` and `widget-zone-posts-save_blocked` keys in the `widget` cache group | Nothing; they expire, or go when the cache is next flushed |
+
+If you use [`zoninator_zone_posts_widget_html`](hooks.md#zoninator_zone_posts_widget_html-filter), your callback now runs on every page view that shows the widget, where it used to run once until the cache was cleared. If it does costly work, such as a query of its own, cache its result in the callback.
 
 ### Zoninator no longer handles shared term splits
 
