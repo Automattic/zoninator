@@ -138,12 +138,7 @@ final class ZonesController extends WP_REST_Controller {
 		$name    = (string) $request['name'];
 		$slug    = (string) $request['slug'];
 
-		$zone          = $this->zones->get( $zone_id );
 		$update_params = array();
-
-		if ( ! $zone ) {
-			return $this->errors->zone_not_found();
-		}
 
 		if ( $name ) {
 			$update_params['name'] = $name;
@@ -175,12 +170,6 @@ final class ZonesController extends WP_REST_Controller {
 	 */
 	public function delete_zone( $request ): WP_REST_Response|WP_Error {
 		$zone_id = absint( $request['zone_id'] );
-
-		$zone = $this->zones->get( $zone_id );
-
-		if ( ! $zone ) {
-			return $this->errors->zone_not_found();
-		}
 
 		try {
 			$this->manager->remove( get_current_user_id(), $zone_id );
