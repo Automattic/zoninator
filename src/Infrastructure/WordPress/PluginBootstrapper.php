@@ -98,7 +98,7 @@ final class PluginBootstrapper {
 		$location = $container->add( new ScreenLocation() );
 		$messages = $container->add( new Messages() );
 		$row      = $container->add( new ZonePostRow( $zones ) );
-		$content  = new ZoneContentView( $container->add( new SearchForm( $request ) ), $row );
+		$content  = new ZoneContentView( $container->add( new SearchForm() ), $row );
 		$editor   = $container->add( new ZoneEditorView( $messages, $content, new ZoneDetailsView( $location, $request ) ) );
 		$loader   = $container->add( new ScreenDataLoader( $zones, $capabilities, $locker ) );
 		$screen   = $container->add( new Screen( $request, $loader, new ScreenView( $messages, $location, $editor ) ) );
