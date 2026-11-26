@@ -166,6 +166,26 @@ class ZoninatorHooksTest extends TestCase {
 	}
 
 	/**
+	 * A class gets its hooks by having a register_hooks() method, with no list to add it to.
+	 */
+	public function test_the_bootstrapper_hooks_any_class_with_a_register_hooks_method(): void {
+		$container = new Container();
+		$with      = new class() {
+			public $calls = 0;
+
+			public function register_hooks(): void {
+				++$this->calls;
+			}
+		};
+		$container->add( $with );
+		$container->add( new ArrayObject() );
+
+		( new PluginBootstrapper( $container ) )->register_hooks();
+
+		$this->assertSame( 1, $with->calls );
+	}
+
+	/**
 	 * The container knows nothing about Zoninator's classes, so it can hold a stand-in.
 	 */
 	public function test_container_holds_whatever_it_is_given(): void {
@@ -174,6 +194,7 @@ class ZoninatorHooksTest extends TestCase {
 
 		$this->assertSame( $stand_in, $container->add( $stand_in ) );
 		$this->assertSame( $stand_in, $container->get( ArrayObject::class ) );
+		$this->assertSame( array( ArrayObject::class => $stand_in ), $container->all() );
 		$this->assertFalse( $container->has( Zones::class ) );
 	}
 

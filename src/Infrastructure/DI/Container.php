@@ -40,6 +40,17 @@ final class Container {
 	}
 
 	/**
+	 * Gets every object, in the order they were added.
+	 *
+	 * @internal For PluginBootstrapper, which finds the classes that have hooks. Sites use get().
+	 *
+	 * @return array<class-string, object> The objects, keyed by class name.
+	 */
+	public function all() {
+		return $this->objects;
+	}
+
+	/**
 	 * Gets the object of a class.
 	 *
 	 * Shaped like PSR-11's get(), but an unknown ID gives a notice and null

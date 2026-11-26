@@ -124,29 +124,16 @@ final class PluginBootstrapper {
 	}
 
 	/**
-	 * Registers every hook Zoninator uses, by calling register_hooks() on each class that handles some.
+	 * Registers every hook Zoninator uses, by calling register_hooks() on each
+	 * class in the container that has one. A class that handles hooks needs
+	 * nothing more than that method, and its hooks are added in the order
+	 * build() adds the classes.
 	 */
 	public function register_hooks() {
-		$classes = array(
-			Taxonomy::class,
-			FeedEndpoint::class,
-			Block::class,
-			Widgets::class,
-			Abilities::class,
-			CurationAbilities::class,
-			Menu::class,
-			Assets::class,
-			SearchForm::class,
-			ZoneForm::class,
-			ZonesController::class,
-			ZonePostsController::class,
-			SearchController::class,
-			LockController::class,
-			ZonePostRowController::class,
-		);
-
-		foreach ( $classes as $class_name ) {
-			$this->container->get( $class_name )->register_hooks();
+		foreach ( $this->container->all() as $instance ) {
+			if ( method_exists( $instance, 'register_hooks' ) ) {
+				$instance->register_hooks();
+			}
 		}
 	}
 }
