@@ -16,6 +16,7 @@ What to check depends on what your site does:
 | calls `Zoninator()`, or uses the `$zoninator` global | [The `Zoninator` class and `Zoninator()` are gone](#the-zoninator-class-and-zoninator-are-gone) |
 | removes one of Zoninator's hooks with `remove_action()` or `remove_filter()` | [Hooks are registered on the objects that handle them](#hooks-are-registered-on-the-objects-that-handle-them) |
 | listens on `zoninator_add_zone_posts` or `zoninator_remove_zone_posts` | [The zone post actions always pass post IDs](#the-zone-post-actions-always-pass-post-ids) |
+| has a zone that holds, or needs to hold, more than 100 posts | [A zone holds up to 100 posts](#a-zone-holds-up-to-100-posts) |
 | changes zones over the REST API | [Zone locks now stop every change](#zone-locks-now-stop-every-change-not-only-the-zones-screen), [The locked zone error keeps its details under `data`](#the-locked-zone-error-keeps-its-details-under-data) and [Adding a post over REST no longer returns its row](#adding-a-post-over-rest-no-longer-returns-its-row) |
 | prints, removes or extends the Zone Posts widget in code, or filters its HTML or its cache | [The Zone Posts widget's class has a new name](#the-zone-posts-widgets-class-has-a-new-name) and [The Zone Posts widget no longer caches its output](#the-zone-posts-widget-no-longer-caches-its-output) |
 | listens on `zoninator_split_shared_term` or `zoninator_did_split_shared_term` | [Zoninator no longer handles shared term splits](#zoninator-no-longer-handles-shared-term-splits) |
@@ -253,6 +254,16 @@ Now every change made for a user is checked in one place: the user may make it, 
 A post listed twice when a zone's posts are set now keeps its first place, where it used to end up in its last.
 
 Adding a post that's already in the zone now leaves it where it is, whatever its place. It used to move the zone's first post to the end, and leave any other alone. `zoninator_add_zone_posts` passes only the posts that were added, and doesn't fire if every post was in the zone already.
+
+### A zone holds up to 100 posts
+
+A zone had no limit on how many posts it held, and every list of a zone's posts reads them all: the template tags, the widget, the block and the public JSON feed. A zone that editors only ever added to grew with every post, and so did each page that showed it. A zone now holds up to 100 posts, and adding past that is refused with a `zone-full` error.
+
+A zone that already holds more keeps every post, and editors can still reorder it and take posts out; it takes no new ones until it's back under 100. To keep the old behavior, or set another limit, use the [`zoninator_post_count_limit`](hooks.md#zoninator_post_count_limit-filter) filter:
+
+```php
+add_filter( 'zoninator_post_count_limit', '__return_zero' );
+```
 
 ### The Zone Posts widget's class has a new name
 

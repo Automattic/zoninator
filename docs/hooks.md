@@ -30,12 +30,12 @@ Number of posts shown per page in the admin search and recent-posts dropdown. De
 
 ### `zoninator_post_count_limit` (filter)
 
-The most posts a zone may hold. `0`, the default, means no limit. Since 1.0.0.
+The most posts a zone may hold: 100 by default. Return `0` for no limit. Since 1.0.0.
 
 - **Parameters:** `int $limit`, `int $zone_id`
 
 ```php
-// The homepage zone holds five posts; other zones have no limit.
+// The homepage zone holds five posts; other zones keep the default.
 add_filter( 'zoninator_post_count_limit', function ( $limit, $zone_id ) {
 	$homepage = zoninator_get_zone( 'homepage' );
 
