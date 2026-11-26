@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Application;
 
 use Automattic\Zoninator\Domain\InvalidZoneException;
@@ -23,34 +25,6 @@ use Automattic\Zoninator\Domain\ZoneSettingsInterface;
 final class ZoneManager {
 
 	/**
-	 * Where the zones are kept.
-	 *
-	 * @var ZoneRepositoryInterface
-	 */
-	private $zones;
-
-	/**
-	 * Says which details every zone has.
-	 *
-	 * @var ZoneSettingsInterface
-	 */
-	private $settings;
-
-	/**
-	 * Where the posts in each zone are kept.
-	 *
-	 * @var ZonePostsRepositoryInterface
-	 */
-	private $zone_posts;
-
-	/**
-	 * Zone locks.
-	 *
-	 * @var ZoneLocker
-	 */
-	private $locker;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ZoneRepositoryInterface      $zones      Where the zones are kept.
@@ -58,11 +32,12 @@ final class ZoneManager {
 	 * @param ZonePostsRepositoryInterface $zone_posts Where the posts in each zone are kept.
 	 * @param ZoneLocker                   $locker     Zone locks.
 	 */
-	public function __construct( ZoneRepositoryInterface $zones, ZoneSettingsInterface $settings, ZonePostsRepositoryInterface $zone_posts, ZoneLocker $locker ) {
-		$this->zones      = $zones;
-		$this->settings   = $settings;
-		$this->zone_posts = $zone_posts;
-		$this->locker     = $locker;
+	public function __construct(
+		private readonly ZoneRepositoryInterface $zones,
+		private readonly ZoneSettingsInterface $settings,
+		private readonly ZonePostsRepositoryInterface $zone_posts,
+		private readonly ZoneLocker $locker,
+	) {
 	}
 
 	/**

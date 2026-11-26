@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Domain;
 
 /**
@@ -24,19 +26,11 @@ final class ZoneLock {
 	public const GRACE_SECONDS = 1;
 
 	/**
-	 * ID of the user holding the lock.
-	 *
-	 * @var int
-	 */
-	private $holder_id;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param int $holder_id ID of the user holding the lock.
 	 */
-	public function __construct( int $holder_id ) {
-		$this->holder_id = $holder_id;
+	public function __construct( private readonly int $holder_id ) {
 	}
 
 	/**

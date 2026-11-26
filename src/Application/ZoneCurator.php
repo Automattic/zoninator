@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Application;
 
 use Automattic\Zoninator\Domain\ZoneFullException;
@@ -24,37 +26,17 @@ use Automattic\Zoninator\Domain\ZoneSettingsInterface;
 final class ZoneCurator {
 
 	/**
-	 * Where the zones are kept.
-	 *
-	 * @var ZoneRepositoryInterface
-	 */
-	private $zones;
-
-	/**
-	 * Where the posts in each zone are kept.
-	 *
-	 * @var ZonePostsRepositoryInterface
-	 */
-	private $zone_posts;
-
-	/**
-	 * Says how many posts a zone may hold.
-	 *
-	 * @var ZoneSettingsInterface
-	 */
-	private $settings;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ZoneRepositoryInterface      $zones      Where the zones are kept.
 	 * @param ZonePostsRepositoryInterface $zone_posts Where the posts in each zone are kept.
 	 * @param ZoneSettingsInterface        $settings   Says how many posts a zone may hold.
 	 */
-	public function __construct( ZoneRepositoryInterface $zones, ZonePostsRepositoryInterface $zone_posts, ZoneSettingsInterface $settings ) {
-		$this->zones      = $zones;
-		$this->zone_posts = $zone_posts;
-		$this->settings   = $settings;
+	public function __construct(
+		private readonly ZoneRepositoryInterface $zones,
+		private readonly ZonePostsRepositoryInterface $zone_posts,
+		private readonly ZoneSettingsInterface $settings,
+	) {
 	}
 
 	/**

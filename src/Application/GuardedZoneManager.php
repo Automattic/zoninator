@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Application;
 
 use Automattic\Zoninator\Domain\Zone;
@@ -23,28 +25,15 @@ use Automattic\Zoninator\Domain\Zone;
 final class GuardedZoneManager {
 
 	/**
-	 * Creates, changes and deletes zones.
-	 *
-	 * @var ZoneManager
-	 */
-	private $manager;
-
-	/**
-	 * The checks.
-	 *
-	 * @var ZoneGuard
-	 */
-	private $guard;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ZoneManager $manager Creates, changes and deletes zones.
 	 * @param ZoneGuard   $guard   The checks.
 	 */
-	public function __construct( ZoneManager $manager, ZoneGuard $guard ) {
-		$this->manager = $manager;
-		$this->guard   = $guard;
+	public function __construct(
+		private readonly ZoneManager $manager,
+		private readonly ZoneGuard $guard,
+	) {
 	}
 
 	/**

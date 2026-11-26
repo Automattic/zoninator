@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Domain;
 
 use RuntimeException;
@@ -17,21 +19,12 @@ use RuntimeException;
 final class ZoneLockedException extends RuntimeException implements ZoninatorExceptionInterface {
 
 	/**
-	 * The lock that's in the way.
-	 *
-	 * @var ZoneLock
-	 */
-	private $lock;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ZoneLock $lock The lock that's in the way.
 	 */
-	public function __construct( ZoneLock $lock ) {
+	public function __construct( private readonly ZoneLock $lock ) {
 		parent::__construct( 'The zone is locked by another user.' );
-
-		$this->lock = $lock;
 	}
 
 	/**

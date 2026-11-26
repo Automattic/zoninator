@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Application;
 
 use Automattic\Zoninator\Domain\LockSettingsInterface;
@@ -23,37 +25,17 @@ use Automattic\Zoninator\Domain\ZoneRepositoryInterface;
 final class ZoneLocker {
 
 	/**
-	 * Where the locks are kept.
-	 *
-	 * @var LockStoreInterface
-	 */
-	private $store;
-
-	/**
-	 * Says how long a lock is valid for.
-	 *
-	 * @var LockSettingsInterface
-	 */
-	private $settings;
-
-	/**
-	 * Where the zones are kept.
-	 *
-	 * @var ZoneRepositoryInterface
-	 */
-	private $zones;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param LockStoreInterface      $store    Where the locks are kept.
 	 * @param LockSettingsInterface   $settings Says how long a lock is valid for.
 	 * @param ZoneRepositoryInterface $zones    Where the zones are kept.
 	 */
-	public function __construct( LockStoreInterface $store, LockSettingsInterface $settings, ZoneRepositoryInterface $zones ) {
-		$this->store    = $store;
-		$this->settings = $settings;
-		$this->zones    = $zones;
+	public function __construct(
+		private readonly LockStoreInterface $store,
+		private readonly LockSettingsInterface $settings,
+		private readonly ZoneRepositoryInterface $zones,
+	) {
 	}
 
 	/**

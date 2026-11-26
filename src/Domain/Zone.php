@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Domain;
 
 /**
@@ -20,34 +22,6 @@ namespace Automattic\Zoninator\Domain;
 final class Zone {
 
 	/**
-	 * The zone's ID, or null if it hasn't been saved yet.
-	 *
-	 * @var int|null
-	 */
-	private $id;
-
-	/**
-	 * The zone's slug.
-	 *
-	 * @var string
-	 */
-	private $slug;
-
-	/**
-	 * The zone's name.
-	 *
-	 * @var string
-	 */
-	private $name;
-
-	/**
-	 * The zone's details, by name.
-	 *
-	 * @var array<string, mixed>
-	 */
-	private $details;
-
-	/**
 	 * Constructor. To make a new zone with the rules applied, use create().
 	 *
 	 * @param int|null             $id      The zone's ID, or null if it hasn't been saved yet.
@@ -55,11 +29,12 @@ final class Zone {
 	 * @param string               $name    The zone's name.
 	 * @param array<string, mixed> $details The zone's details, by name.
 	 */
-	public function __construct( ?int $id, string $slug, string $name, array $details ) {
-		$this->id      = $id;
-		$this->slug    = $slug;
-		$this->name    = $name;
-		$this->details = $details;
+	public function __construct(
+		private readonly ?int $id,
+		private readonly string $slug,
+		private readonly string $name,
+		private readonly array $details,
+	) {
 	}
 
 	/**

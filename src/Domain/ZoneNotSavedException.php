@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Domain;
 
 use RuntimeException;
@@ -18,22 +20,13 @@ use RuntimeException;
 final class ZoneNotSavedException extends RuntimeException implements ZoninatorExceptionInterface {
 
 	/**
-	 * The storage's own code for what went wrong.
-	 *
-	 * @var string
-	 */
-	private $error_code;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param string $message    The storage's message.
 	 * @param string $error_code The storage's own code for what went wrong.
 	 */
-	public function __construct( string $message, string $error_code ) {
+	public function __construct( string $message, private readonly string $error_code ) {
 		parent::__construct( $message );
-
-		$this->error_code = $error_code;
 	}
 
 	/**

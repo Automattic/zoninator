@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Application;
 
 use Automattic\Zoninator\Domain\AccessDeniedException;
@@ -24,37 +26,17 @@ use Automattic\Zoninator\Domain\ZoneRepositoryInterface;
 final class ZoneGuard {
 
 	/**
-	 * Says what a user may do.
-	 *
-	 * @var ZoneAccessInterface
-	 */
-	private $access;
-
-	/**
-	 * Zone locks.
-	 *
-	 * @var ZoneLocker
-	 */
-	private $locker;
-
-	/**
-	 * Where the zones are kept.
-	 *
-	 * @var ZoneRepositoryInterface
-	 */
-	private $zones;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ZoneAccessInterface     $access Says what a user may do.
 	 * @param ZoneLocker              $locker Zone locks.
 	 * @param ZoneRepositoryInterface $zones  Where the zones are kept.
 	 */
-	public function __construct( ZoneAccessInterface $access, ZoneLocker $locker, ZoneRepositoryInterface $zones ) {
-		$this->access = $access;
-		$this->locker = $locker;
-		$this->zones  = $zones;
+	public function __construct(
+		private readonly ZoneAccessInterface $access,
+		private readonly ZoneLocker $locker,
+		private readonly ZoneRepositoryInterface $zones,
+	) {
 	}
 
 	/**

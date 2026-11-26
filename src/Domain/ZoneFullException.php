@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Domain;
 
 use RuntimeException;
@@ -17,21 +19,12 @@ use RuntimeException;
 final class ZoneFullException extends RuntimeException implements ZoninatorExceptionInterface {
 
 	/**
-	 * The most posts the zone may hold.
-	 *
-	 * @var int
-	 */
-	private $limit;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param int $limit The most posts the zone may hold.
 	 */
-	public function __construct( int $limit ) {
+	public function __construct( private readonly int $limit ) {
 		parent::__construct( sprintf( 'The zone may hold at most %d posts.', $limit ) );
-
-		$this->limit = $limit;
 	}
 
 	/**
