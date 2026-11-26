@@ -17,10 +17,27 @@ use WP_Term;
  * Keeps each zone as a term in the zoninator_zones taxonomy, with its
  * details serialised into the term's description.
  *
+ * It stores a zone's name and details with &, < and > encoded, and gives
+ * them back decoded, so a Zone always holds plain text.
+ *
+ * WordPress filters a term's description when it saves it: it strips tags,
+ * encodes a bare ampersand, and decodes every entity but those three. Each
+ * of those changes the length of a string inside the serialised details,
+ * which then no longer unserialise. Text with only those three characters
+ * encoded, and its quotes left alone, is the one form the filters pass as it
+ * is. Encoding it here, not where a request comes in, covers every way a zone
+ * is saved.
+ *
  * @since 1.0.0
  * @internal Use Automattic\Zoninator\Application\ZoneManager instead.
  */
 final class TermZoneRepository implements ZoneRepositoryInterface {
+
+	/**
+	 * How text is encoded for storage: &, < and > only. WordPress decodes an
+	 * encoded quote when it saves a term, so quotes are stored as they are.
+	 */
+	private const ENCODING = ENT_NOQUOTES | ENT_SUBSTITUTE | ENT_HTML401;
 
 	/**
 	 * Says which details every zone has.
@@ -47,7 +64,7 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 	public function find( int $zone_id ): ?Zone {
 		$term = get_term_by( 'id', $zone_id, Taxonomy::NAME );
 
-		return $term ? new Zone( $term->term_id, $term->slug, $term->name, $this->read_details( $term->description ) ) : null;
+		return $term ? new Zone( $term->term_id, $term->slug, $this->decode( $term->name ), $this->decode( $this->read_details( $term->description ) ) ) : null;
 	}
 
 	/**
@@ -61,14 +78,14 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 	public function insert( Zone $zone ): Zone {
 		$args = array(
 			'slug'        => $zone->get_slug(),
-			'description' => maybe_serialize( $zone->get_details() ),
+			'description' => maybe_serialize( $this->encode( $zone->get_details() ) ),
 		);
 
 		// Filterize to allow other inputs
 		$args = apply_filters( 'zoninator_insert_zone', $args );
 
 		// wp_insert_term() expects slashed data, as it unslashes the name and description.
-		return $this->saved( wp_insert_term( wp_slash( $zone->get_name() ), Taxonomy::NAME, wp_slash( $args ) ) );
+		return $this->saved( wp_insert_term( wp_slash( $this->encode( $zone->get_name() ) ), Taxonomy::NAME, wp_slash( $args ) ) );
 	}
 
 	/**
@@ -82,9 +99,9 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 	public function update( Zone $zone ): Zone {
 		$zone_id = (int) $zone->get_id();
 		$args    = array(
-			'name'        => $zone->get_name(),
+			'name'        => $this->encode( $zone->get_name() ),
 			'slug'        => $zone->get_slug(),
-			'description' => maybe_serialize( $zone->get_details() ),
+			'description' => maybe_serialize( $this->encode( $zone->get_details() ) ),
 		);
 
 		// Filterize to allow other inputs
@@ -174,14 +191,45 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 	}
 
 	/**
+	 * Encodes &, < and > in text, for storage.
+	 *
+	 * @param mixed $value A string, or an array of details. Anything else is returned as it is.
+	 * @return mixed
+	 */
+	private function encode( $value ) {
+		if ( is_array( $value ) ) {
+			return array_map( array( $this, 'encode' ), $value );
+		}
+
+		return is_string( $value ) ? htmlspecialchars( $value, self::ENCODING, 'UTF-8' ) : $value;
+	}
+
+	/**
+	 * Decodes stored text. It decodes every entity, not only the three
+	 * encode() writes: a zone saved before 1.0.0 can hold others, such as
+	 * &quot; or &eacute;, which WordPress would decode, and miscount, the
+	 * next time the zone was saved.
+	 *
+	 * @param mixed $value A string, or an array of details. Anything else is returned as it is.
+	 * @return mixed
+	 */
+	private function decode( $value ) {
+		if ( is_array( $value ) ) {
+			return array_map( array( $this, 'decode' ), $value );
+		}
+
+		return is_string( $value ) ? html_entity_decode( $value, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) : $value;
+	}
+
+	/**
 	 * Recount the string lengths in a serialised value.
 	 *
 	 * Earlier versions stored a description with non-ASCII characters with its
 	 * length counted before core decoded its HTML entities, so it no longer
 	 * unserialised. The text is intact, so recounting recovers it.
 	 *
-	 * Limitation: this assumes no stored string contains `";`. The sanitisers
-	 * encode `"`, so saved zone details don't; if one does, unserialize() still
+	 * Limitation: this assumes no stored string contains `";`. Only a zone
+	 * saved before 1.0.0 needs repairing; if one holds that, unserialize() still
 	 * fails safely and the description reads as empty, as before.
 	 *
 	 * @param string $serialized Serialised value.
