@@ -23,28 +23,15 @@ use WP_Query;
 final class PostMetaZonePostsRepository implements ZonePostsRepositoryInterface {
 
 	/**
-	 * Zone terms, for the zone passed to the actions.
-	 *
-	 * @var TermZoneRepository
-	 */
-	private $terms;
-
-	/**
-	 * The zone taxonomy, for the post types that support zones.
-	 *
-	 * @var Taxonomy
-	 */
-	private $taxonomy;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param TermZoneRepository $terms    Zone terms.
 	 * @param Taxonomy           $taxonomy The zone taxonomy.
 	 */
-	public function __construct( TermZoneRepository $terms, Taxonomy $taxonomy ) {
-		$this->terms    = $terms;
-		$this->taxonomy = $taxonomy;
+	public function __construct(
+		private readonly TermZoneRepository $terms,
+		private readonly Taxonomy $taxonomy,
+	) {
 	}
 
 	/**

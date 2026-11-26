@@ -24,19 +24,11 @@ use Automattic\Zoninator\Domain\ZoneAccessInterface;
 final class Capabilities implements ZoneAccessInterface {
 
 	/**
-	 * The zone taxonomy, for the post types that support zones.
-	 *
-	 * @var Taxonomy
-	 */
-	private $taxonomy;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Taxonomy $taxonomy The zone taxonomy.
 	 */
-	public function __construct( Taxonomy $taxonomy ) {
-		$this->taxonomy = $taxonomy;
+	public function __construct( private readonly Taxonomy $taxonomy ) {
 	}
 
 	/**

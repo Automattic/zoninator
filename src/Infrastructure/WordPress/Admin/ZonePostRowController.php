@@ -34,34 +34,6 @@ final class ZonePostRowController extends WP_REST_Controller {
 	use RespondsToRequests;
 
 	/**
-	 * Renders a zone post's row.
-	 *
-	 * @var ZonePostRow
-	 */
-	private $row;
-
-	/**
-	 * The capability checks, for the posts the user may see a row for.
-	 *
-	 * @var Capabilities
-	 */
-	private $capabilities;
-
-	/**
-	 * Says who may call the route.
-	 *
-	 * @var Permissions
-	 */
-	private $permissions;
-
-	/**
-	 * Builds the error for each thing that can go wrong.
-	 *
-	 * @var Errors
-	 */
-	private $errors;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ZonePostRow  $row          Renders a zone post's row.
@@ -69,11 +41,12 @@ final class ZonePostRowController extends WP_REST_Controller {
 	 * @param Permissions  $permissions  Says who may call the route.
 	 * @param Errors $errors Builds the error for each thing that can go wrong.
 	 */
-	public function __construct( ZonePostRow $row, Capabilities $capabilities, Permissions $permissions, Errors $errors ) {
-		$this->row          = $row;
-		$this->capabilities = $capabilities;
-		$this->permissions  = $permissions;
-		$this->errors       = $errors;
+	public function __construct(
+		private readonly ZonePostRow $row,
+		private readonly Capabilities $capabilities,
+		private readonly Permissions $permissions,
+		private readonly Errors $errors,
+	) {
 	}
 
 	/**

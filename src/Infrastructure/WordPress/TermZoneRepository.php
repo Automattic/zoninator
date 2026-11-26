@@ -40,19 +40,11 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 	private const ENCODING = ENT_NOQUOTES | ENT_SUBSTITUTE | ENT_HTML401;
 
 	/**
-	 * Says which details every zone has.
-	 *
-	 * @var ZoneSettingsInterface
-	 */
-	private $settings;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ZoneSettingsInterface $settings Says which details every zone has.
 	 */
-	public function __construct( ZoneSettingsInterface $settings ) {
-		$this->settings = $settings;
+	public function __construct( private readonly ZoneSettingsInterface $settings ) {
 	}
 
 	/**

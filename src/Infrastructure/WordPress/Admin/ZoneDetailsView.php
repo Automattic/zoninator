@@ -18,19 +18,11 @@ namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 final class ZoneDetailsView {
 
 	/**
-	 * Where the Zones screen is, for the form's page, its nonces and the delete link.
-	 *
-	 * @var ScreenLocation
-	 */
-	private $location;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ScreenLocation $location Where the Zones screen is.
 	 */
-	public function __construct( ScreenLocation $location ) {
-		$this->location = $location;
+	public function __construct( private readonly ScreenLocation $location ) {
 	}
 
 	/**

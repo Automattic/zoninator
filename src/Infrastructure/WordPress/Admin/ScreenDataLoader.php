@@ -22,37 +22,17 @@ use WP_Term;
 final class ScreenDataLoader {
 
 	/**
-	 * Zones and the posts in them.
-	 *
-	 * @var Zones
-	 */
-	private $zones;
-
-	/**
-	 * The capability checks.
-	 *
-	 * @var Capabilities
-	 */
-	private $capabilities;
-
-	/**
-	 * Zone locks.
-	 *
-	 * @var ZoneLocker
-	 */
-	private $locker;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Zones        $zones        Zones and the posts in them.
 	 * @param Capabilities $capabilities The capability checks.
 	 * @param ZoneLocker   $locker       Zone locks.
 	 */
-	public function __construct( Zones $zones, Capabilities $capabilities, ZoneLocker $locker ) {
-		$this->zones        = $zones;
-		$this->capabilities = $capabilities;
-		$this->locker       = $locker;
+	public function __construct(
+		private readonly Zones $zones,
+		private readonly Capabilities $capabilities,
+		private readonly ZoneLocker $locker,
+	) {
 	}
 
 	/**
@@ -78,15 +58,15 @@ final class ScreenDataLoader {
 		$holder    = $locked_by ? get_userdata( $locked_by ) : false;
 
 		return new ScreenData(
-			$zones,
-			$zone_id,
-			$zone,
-			$zone ? $this->zones->get_posts( $zone ) : array(),
-			$locked_by,
-			$holder ? $holder->display_name : '',
-			$can_add_zones,
-			$this->capabilities->can_edit_zone( $user_id, $zone ? (int) $zone->term_id : 0 ),
-			$this->capabilities->can_curate_zones( $user_id )
+			zones: $zones,
+			active_zone_id: $zone_id,
+			active_zone: $zone,
+			zone_posts: $zone ? $this->zones->get_posts( $zone ) : array(),
+			locked_by: $locked_by,
+			locked_by_name: $holder ? $holder->display_name : '',
+			can_add_zones: $can_add_zones,
+			can_edit_zone: $this->capabilities->can_edit_zone( $user_id, $zone ? (int) $zone->term_id : 0 ),
+			can_manage_zones: $this->capabilities->can_curate_zones( $user_id ),
 		);
 	}
 

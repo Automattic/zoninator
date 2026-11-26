@@ -45,19 +45,11 @@ use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
 final class PluginBootstrapper {
 
 	/**
-	 * Where the classes it builds are kept.
-	 *
-	 * @var Container
-	 */
-	private $container;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Container $container An empty container to fill.
 	 */
-	public function __construct( Container $container ) {
-		$this->container = $container;
+	public function __construct( private readonly Container $container ) {
 	}
 
 	/**

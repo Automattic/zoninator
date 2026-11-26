@@ -21,41 +21,6 @@ namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 final class ScreenView {
 
 	/**
-	 * The screen's messages.
-	 *
-	 * @var Messages
-	 */
-	private $messages;
-
-	/**
-	 * Where the Zones screen is, for its links.
-	 *
-	 * @var ScreenLocation
-	 */
-	private $location;
-
-	/**
-	 * The field that finds content to add.
-	 *
-	 * @var SearchForm
-	 */
-	private $search_form;
-
-	/**
-	 * Renders a zone post's row.
-	 *
-	 * @var ZonePostRow
-	 */
-	private $row;
-
-	/**
-	 * Prints the zone's name and description.
-	 *
-	 * @var ZoneDetailsView
-	 */
-	private $details;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Messages        $messages    The screen's messages.
@@ -64,12 +29,13 @@ final class ScreenView {
 	 * @param ZonePostRow     $row         Renders a zone post's row.
 	 * @param ZoneDetailsView $details     Prints the zone's name and description.
 	 */
-	public function __construct( Messages $messages, ScreenLocation $location, SearchForm $search_form, ZonePostRow $row, ZoneDetailsView $details ) {
-		$this->messages    = $messages;
-		$this->location    = $location;
-		$this->search_form = $search_form;
-		$this->row         = $row;
-		$this->details     = $details;
+	public function __construct(
+		private readonly Messages $messages,
+		private readonly ScreenLocation $location,
+		private readonly SearchForm $search_form,
+		private readonly ZonePostRow $row,
+		private readonly ZoneDetailsView $details,
+	) {
 	}
 
 	/**

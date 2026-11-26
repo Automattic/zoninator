@@ -21,69 +21,6 @@ use WP_Term;
 final class ScreenData {
 
 	/**
-	 * Every zone, for the list.
-	 *
-	 * @var WP_Term[]
-	 */
-	public readonly array $zones;
-
-	/**
-	 * ID of the zone that was asked for, or 0 for none. There may be no such zone.
-	 *
-	 * @var int
-	 */
-	public readonly int $active_zone_id;
-
-	/**
-	 * The zone that's open, or null for none.
-	 *
-	 * @var WP_Term|null
-	 */
-	public readonly ?WP_Term $active_zone;
-
-	/**
-	 * The posts in the open zone, in order.
-	 *
-	 * @var WP_Post[]
-	 */
-	public readonly array $zone_posts;
-
-	/**
-	 * ID of the other user who is editing the open zone, or 0 if no one is.
-	 *
-	 * @var int
-	 */
-	public readonly int $locked_by;
-
-	/**
-	 * Display name of that user, or '' if no one is editing the zone or the user is gone.
-	 *
-	 * @var string
-	 */
-	public readonly string $locked_by_name;
-
-	/**
-	 * Whether the user may create zones.
-	 *
-	 * @var bool
-	 */
-	public readonly bool $can_add_zones;
-
-	/**
-	 * Whether the user may change the open zone's name and details, or delete it.
-	 *
-	 * @var bool
-	 */
-	public readonly bool $can_edit_zone;
-
-	/**
-	 * Whether the user may curate zones.
-	 *
-	 * @var bool
-	 */
-	public readonly bool $can_manage_zones;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param WP_Term[]    $zones            Every zone.
@@ -96,16 +33,17 @@ final class ScreenData {
 	 * @param bool         $can_edit_zone    Whether the user may change or delete the open zone.
 	 * @param bool         $can_manage_zones Whether the user may curate zones.
 	 */
-	public function __construct( array $zones, int $active_zone_id, ?WP_Term $active_zone, array $zone_posts, int $locked_by, string $locked_by_name, bool $can_add_zones, bool $can_edit_zone, bool $can_manage_zones ) {
-		$this->zones            = $zones;
-		$this->active_zone_id   = $active_zone_id;
-		$this->active_zone      = $active_zone;
-		$this->zone_posts       = $zone_posts;
-		$this->locked_by        = $locked_by;
-		$this->locked_by_name   = $locked_by_name;
-		$this->can_add_zones    = $can_add_zones;
-		$this->can_edit_zone    = $can_edit_zone;
-		$this->can_manage_zones = $can_manage_zones;
+	public function __construct(
+		public readonly array $zones,
+		public readonly int $active_zone_id,
+		public readonly ?WP_Term $active_zone,
+		public readonly array $zone_posts,
+		public readonly int $locked_by,
+		public readonly string $locked_by_name,
+		public readonly bool $can_add_zones,
+		public readonly bool $can_edit_zone,
+		public readonly bool $can_manage_zones,
+	) {
 	}
 
 	/**

@@ -24,28 +24,15 @@ final class SearchController extends WP_REST_Controller {
 	use RespondsToRequests;
 
 	/**
-	 * Finds posts to offer for a zone.
-	 *
-	 * @var Search
-	 */
-	private $search;
-
-	/**
-	 * Says who may call each route.
-	 *
-	 * @var Permissions
-	 */
-	private $permissions;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Search      $search      Finds posts to offer for a zone.
 	 * @param Permissions $permissions Says who may call each route.
 	 */
-	public function __construct( Search $search, Permissions $permissions ) {
-		$this->search      = $search;
-		$this->permissions = $permissions;
+	public function __construct(
+		private readonly Search $search,
+		private readonly Permissions $permissions,
+	) {
 	}
 
 	/**

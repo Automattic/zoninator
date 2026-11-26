@@ -24,19 +24,11 @@ use WP_Term;
 final class ZonePostRow {
 
 	/**
-	 * Zones and the posts in them.
-	 *
-	 * @var Zones
-	 */
-	private $zones;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Zones $zones Zones and the posts in them.
 	 */
-	public function __construct( Zones $zones ) {
-		$this->zones = $zones;
+	public function __construct( private readonly Zones $zones ) {
 	}
 
 	/**

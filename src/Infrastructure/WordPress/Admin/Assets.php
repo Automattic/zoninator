@@ -21,37 +21,17 @@ use Automattic\Zoninator\Infrastructure\WordPress\Settings;
 final class Assets {
 
 	/**
-	 * Where the Zones screen is.
-	 *
-	 * @var ScreenLocation
-	 */
-	private $location;
-
-	/**
-	 * Zoninator's settings, for the lock periods.
-	 *
-	 * @var Settings
-	 */
-	private $settings;
-
-	/**
-	 * The screen's messages.
-	 *
-	 * @var Messages
-	 */
-	private $messages;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ScreenLocation $location Where the Zones screen is.
 	 * @param Settings       $settings Zoninator's settings.
 	 * @param Messages       $messages The screen's messages.
 	 */
-	public function __construct( ScreenLocation $location, Settings $settings, Messages $messages ) {
-		$this->location = $location;
-		$this->settings = $settings;
-		$this->messages = $messages;
+	public function __construct(
+		private readonly ScreenLocation $location,
+		private readonly Settings $settings,
+		private readonly Messages $messages,
+	) {
 	}
 
 	/**

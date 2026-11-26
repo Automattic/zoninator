@@ -33,37 +33,17 @@ final class Zones {
 	public const META_PREFIX = '_zoninator_order_';
 
 	/**
-	 * The zone taxonomy.
-	 *
-	 * @var Taxonomy
-	 */
-	private $taxonomy;
-
-	/**
-	 * The capability checks.
-	 *
-	 * @var Capabilities
-	 */
-	private $capabilities;
-
-	/**
-	 * Zone terms, for each zone's details.
-	 *
-	 * @var TermZoneRepository
-	 */
-	private $terms;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Taxonomy           $taxonomy     The zone taxonomy.
 	 * @param Capabilities       $capabilities The capability checks.
 	 * @param TermZoneRepository $terms        Zone terms.
 	 */
-	public function __construct( Taxonomy $taxonomy, Capabilities $capabilities, TermZoneRepository $terms ) {
-		$this->taxonomy     = $taxonomy;
-		$this->capabilities = $capabilities;
-		$this->terms        = $terms;
+	public function __construct(
+		private readonly Taxonomy $taxonomy,
+		private readonly Capabilities $capabilities,
+		private readonly TermZoneRepository $terms,
+	) {
 	}
 
 	/**

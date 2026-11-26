@@ -22,28 +22,15 @@ use WP_REST_Request;
 final class Permissions {
 
 	/**
-	 * The capability checks.
-	 *
-	 * @var Capabilities
-	 */
-	private $capabilities;
-
-	/**
-	 * Builds the error for each thing that can go wrong.
-	 *
-	 * @var Errors
-	 */
-	private $errors;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Capabilities $capabilities The capability checks.
 	 * @param Errors $errors Builds the error for each thing that can go wrong.
 	 */
-	public function __construct( Capabilities $capabilities, Errors $errors ) {
-		$this->capabilities = $capabilities;
-		$this->errors       = $errors;
+	public function __construct(
+		private readonly Capabilities $capabilities,
+		private readonly Errors $errors,
+	) {
 	}
 
 	/**

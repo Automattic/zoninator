@@ -20,37 +20,17 @@ use WP_Post;
 final class Search {
 
 	/**
-	 * The zone taxonomy, for the post types that support zones.
-	 *
-	 * @var Taxonomy
-	 */
-	private $taxonomy;
-
-	/**
-	 * Zoninator's settings, for the number of results.
-	 *
-	 * @var Settings
-	 */
-	private $settings;
-
-	/**
-	 * The capability checks, for the posts the user may add.
-	 *
-	 * @var Capabilities
-	 */
-	private $capabilities;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Taxonomy     $taxonomy     The zone taxonomy.
 	 * @param Settings     $settings     Zoninator's settings.
 	 * @param Capabilities $capabilities The capability checks.
 	 */
-	public function __construct( Taxonomy $taxonomy, Settings $settings, Capabilities $capabilities ) {
-		$this->taxonomy     = $taxonomy;
-		$this->settings     = $settings;
-		$this->capabilities = $capabilities;
+	public function __construct(
+		private readonly Taxonomy $taxonomy,
+		private readonly Settings $settings,
+		private readonly Capabilities $capabilities,
+	) {
 	}
 
 	/**
