@@ -147,19 +147,6 @@ final class Zones {
 		return $args;
 	}
 
-	public function get_last_post( $zone ) {
-		return $this->get_single_post(
-			$zone,
-			array(
-				'order' => 'DESC',
-			)
-		);
-	}
-
-	public function get_first_post( $zone ) {
-		return $this->get_single_post( $zone );
-	}
-
 	public function get_prev_post( $zone, $post_id ) {
 		return $this->get_adjacent_post( $zone, $post_id, '<', 'DESC' );
 	}
@@ -196,7 +183,7 @@ final class Zones {
 		);
 	}
 
-	public function get_single_post( $zone, $args = array() ) {
+	private function get_single_post( $zone, $args = array() ) {
 
 		$args = wp_parse_args(
 			$args,
@@ -264,11 +251,6 @@ final class Zones {
 		}
 
 		return $this->fill_details( $zone );
-	}
-
-	public function exists( $zone ) {
-		$zone_id = $this->get_id( $zone );
-		return (bool) term_exists( $zone_id, Taxonomy::NAME );
 	}
 
 	public function get_id( $zone ) {

@@ -83,18 +83,10 @@ class ZoninatorTaxonomyTest extends TestCase {
 		$this->assertSame( array( 'post' ), self::taxonomy()->get_post_types() );
 	}
 
-	public function test_register_zone_post_type_adds_a_post_type(): void {
-		self::taxonomy()->get_post_types();
+	public function test_a_site_can_give_zones_to_another_post_type(): void {
+		add_post_type_support( 'page', 'zoninator_zones' );
 
-		$this->assertTrue( self::taxonomy()->add_post_types( 'page' ) );
-
-		$this->assertTrue( post_type_supports( 'page', 'zoninator_zones' ) );
 		$this->assertSame( array( 'post', 'page' ), self::taxonomy()->get_post_types() );
-	}
-
-	public function test_register_zone_post_type_skips_a_missing_post_type(): void {
-		$this->assertFalse( self::taxonomy()->add_post_types( 'no_such_type' ) );
-		$this->assertTrue( self::taxonomy()->add_post_types( array( 'no_such_type', 'page' ) ) );
 	}
 
 	public function test_a_site_can_take_zones_away_from_posts(): void {
