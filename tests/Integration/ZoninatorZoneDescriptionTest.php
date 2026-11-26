@@ -20,6 +20,13 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 	 */
 	private const TEXT = 'Café “Crème” — brûlée';
 
+	/**
+	 * How many zones insert() has made, to give each its own slug.
+	 *
+	 * @var int
+	 */
+	private $inserted = 0;
+
 	public function test_insert_zone_keeps_non_ascii_text(): void {
 		$zone = $this->insert( self::TEXT );
 
@@ -71,7 +78,7 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 	public function test_the_php_api_stores_text_core_would_change( string $text ): void {
 		wp_set_current_user( 0 );
 
-		$zone = zoninator_container()->get( ZoneManager::class )->create( 'api-' . wp_rand(), $text, array( 'description' => $text ) );
+		$zone = zoninator_container()->get( ZoneManager::class )->create( 'api-zone', $text, array( 'description' => $text ) );
 		clean_term_cache( (int) $zone->get_id(), Taxonomy::NAME );
 		$term   = get_term( (int) $zone->get_id(), Taxonomy::NAME );
 		$stored = unserialize( $term->description, array( 'allowed_classes' => false ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
@@ -163,7 +170,7 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 	 * @return WP_Term
 	 */
 	private function insert( $description ) {
-		return self::zones()->get( self::insert_zone( 'description-' . wp_rand(), 'Zone', array( 'description' => $description ) ) );
+		return self::zones()->get( self::insert_zone( 'description-' . ++$this->inserted, 'Zone', array( 'description' => $description ) ) );
 	}
 
 	/**
