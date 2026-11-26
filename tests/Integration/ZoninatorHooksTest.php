@@ -20,10 +20,16 @@ use Automattic\Zoninator\Infrastructure\WordPress\Admin\Menu;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\SearchForm;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm;
+use Automattic\Zoninator\Infrastructure\WordPress\Abilities;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZonePostRow;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZonePostRowController;
 use Automattic\Zoninator\Infrastructure\WordPress\Block;
+use Automattic\Zoninator\Infrastructure\WordPress\CurationAbilities;
 use Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint;
 use Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper;
+use Automattic\Zoninator\Infrastructure\WordPress\Rest\LockController;
+use Automattic\Zoninator\Infrastructure\WordPress\Rest\SearchController;
+use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonePostsController;
 use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
 use Automattic\Zoninator\Infrastructure\WordPress\Widgets;
@@ -42,9 +48,15 @@ class ZoninatorHooksTest extends TestCase {
 		'rest_post_query'                  => array( Block::class . '::filter_rest_query 10 2' ),
 		'enqueue_block_editor_assets'      => array( Block::class . '::enqueue_editor_assets 10 1' ),
 		'plugins_loaded'                   => array( 'zoninator_container 10 1' ),
-		'rest_api_init'                    => array( PluginBootstrapper::class . '::register_rest_routes 10 1' ),
-		'wp_abilities_api_categories_init' => array( PluginBootstrapper::class . '::register_ability_categories 10 1' ),
-		'wp_abilities_api_init'            => array( PluginBootstrapper::class . '::register_abilities 10 1' ),
+		'rest_api_init'                    => array(
+			ZonesController::class . '::register_routes 10 1',
+			ZonePostsController::class . '::register_routes 10 1',
+			SearchController::class . '::register_routes 10 1',
+			LockController::class . '::register_routes 10 1',
+			ZonePostRowController::class . '::register_routes 10 1',
+		),
+		'wp_abilities_api_categories_init' => array( Abilities::class . '::register_category 10 1' ),
+		'wp_abilities_api_init'            => array( Abilities::class . '::register 10 1', CurationAbilities::class . '::register 10 1' ),
 		'admin_init'                       => array( ZoneForm::class . '::handle_request 10 1' ),
 		'admin_enqueue_scripts'            => array( Assets::class . '::enqueue_scripts 10 1', Assets::class . '::enqueue_styles 10 1' ),
 		'admin_menu'                       => array( Menu::class . '::register 10 1' ),
@@ -105,28 +117,34 @@ class ZoninatorHooksTest extends TestCase {
 	 * @return array<string, array{string, callable, int}>
 	 */
 	public function data_unhook_calls(): array {
-		$assets = zoninator_container()->get( Assets::class );
-		$search = zoninator_container()->get( SearchForm::class );
-		$feed   = zoninator_container()->get( FeedEndpoint::class );
-		$block  = zoninator_container()->get( Block::class );
+		$assets    = zoninator_container()->get( Assets::class );
+		$abilities = zoninator_container()->get( Abilities::class );
+		$search    = zoninator_container()->get( SearchForm::class );
+		$feed      = zoninator_container()->get( FeedEndpoint::class );
+		$block     = zoninator_container()->get( Block::class );
 
 		return array(
-			'taxonomy'         => array( 'init', array( zoninator_container()->get( Taxonomy::class ), 'register' ), 10 ),
-			'widget'           => array( 'widgets_init', array( zoninator_container()->get( Widgets::class ), 'register' ), 10 ),
-			'feed rewrite'     => array( 'init', array( $feed, 'add_rewrite_rule' ), 10 ),
-			'feed'             => array( 'template_redirect', array( $feed, 'serve' ), 10 ),
-			'block query'      => array( 'query_loop_block_query_vars', array( $block, 'filter_query_vars' ), 10 ),
-			'block preview'    => array( 'rest_post_query', array( $block, 'filter_rest_query' ), 10 ),
-			'block editor'     => array( 'enqueue_block_editor_assets', array( $block, 'enqueue_editor_assets' ), 10 ),
-			'REST routes'      => array( 'rest_api_init', array( zoninator_container()->get( PluginBootstrapper::class ), 'register_rest_routes' ), 10 ),
-			'ability category' => array( 'wp_abilities_api_categories_init', array( zoninator_container()->get( PluginBootstrapper::class ), 'register_ability_categories' ), 10 ),
-			'abilities'        => array( 'wp_abilities_api_init', array( zoninator_container()->get( PluginBootstrapper::class ), 'register_abilities' ), 10 ),
-			'form handling'    => array( 'admin_init', array( zoninator_container()->get( ZoneForm::class ), 'handle_request' ), 10 ),
-			'scripts'          => array( 'admin_enqueue_scripts', array( $assets, 'enqueue_scripts' ), 10 ),
-			'styles'           => array( 'admin_enqueue_scripts', array( $assets, 'enqueue_styles' ), 10 ),
-			'menu'             => array( 'admin_menu', array( zoninator_container()->get( Menu::class ), 'register' ), 10 ),
-			'category field'   => array( 'zoninator_advanced_search_fields', array( $search, 'render_category_filter' ), 10 ),
-			'date field'       => array( 'zoninator_advanced_search_fields', array( $search, 'render_date_filter' ), 20 ),
+			'taxonomy'           => array( 'init', array( zoninator_container()->get( Taxonomy::class ), 'register' ), 10 ),
+			'widget'             => array( 'widgets_init', array( zoninator_container()->get( Widgets::class ), 'register' ), 10 ),
+			'feed rewrite'       => array( 'init', array( $feed, 'add_rewrite_rule' ), 10 ),
+			'feed'               => array( 'template_redirect', array( $feed, 'serve' ), 10 ),
+			'block query'        => array( 'query_loop_block_query_vars', array( $block, 'filter_query_vars' ), 10 ),
+			'block preview'      => array( 'rest_post_query', array( $block, 'filter_rest_query' ), 10 ),
+			'block editor'       => array( 'enqueue_block_editor_assets', array( $block, 'enqueue_editor_assets' ), 10 ),
+			'zones routes'       => array( 'rest_api_init', array( zoninator_container()->get( ZonesController::class ), 'register_routes' ), 10 ),
+			'zone posts routes'  => array( 'rest_api_init', array( zoninator_container()->get( ZonePostsController::class ), 'register_routes' ), 10 ),
+			'search route'       => array( 'rest_api_init', array( zoninator_container()->get( SearchController::class ), 'register_routes' ), 10 ),
+			'lock route'         => array( 'rest_api_init', array( zoninator_container()->get( LockController::class ), 'register_routes' ), 10 ),
+			'row route'          => array( 'rest_api_init', array( zoninator_container()->get( ZonePostRowController::class ), 'register_routes' ), 10 ),
+			'ability category'   => array( 'wp_abilities_api_categories_init', array( $abilities, 'register_category' ), 10 ),
+			'reading abilities'  => array( 'wp_abilities_api_init', array( $abilities, 'register' ), 10 ),
+			'curation abilities' => array( 'wp_abilities_api_init', array( zoninator_container()->get( CurationAbilities::class ), 'register' ), 10 ),
+			'form handling'      => array( 'admin_init', array( zoninator_container()->get( ZoneForm::class ), 'handle_request' ), 10 ),
+			'scripts'            => array( 'admin_enqueue_scripts', array( $assets, 'enqueue_scripts' ), 10 ),
+			'styles'             => array( 'admin_enqueue_scripts', array( $assets, 'enqueue_styles' ), 10 ),
+			'menu'               => array( 'admin_menu', array( zoninator_container()->get( Menu::class ), 'register' ), 10 ),
+			'category field'     => array( 'zoninator_advanced_search_fields', array( $search, 'render_category_filter' ), 10 ),
+			'date field'         => array( 'zoninator_advanced_search_fields', array( $search, 'render_date_filter' ), 20 ),
 		);
 	}
 
@@ -145,17 +163,6 @@ class ZoninatorHooksTest extends TestCase {
 		$bootstrapper->register_hooks();
 
 		$this->assertSame( 10, has_action( 'admin_menu', $callback ) );
-	}
-
-	/**
-	 * The REST controller is only built when first asked for, and then kept.
-	 */
-	public function test_container_builds_lazy_classes_once(): void {
-		$container = new Container();
-		( new PluginBootstrapper( $container ) )->build();
-
-		$this->assertTrue( $container->has( ZonesController::class ) );
-		$this->assertSame( $container->get( ZonesController::class ), $container->get( ZonesController::class ) );
 	}
 
 	/**

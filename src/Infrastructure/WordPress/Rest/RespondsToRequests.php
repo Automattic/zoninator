@@ -19,8 +19,8 @@ use WP_Error;
 use WP_REST_Response;
 
 /**
- * Reads request params and builds responses the same way in every
- * zoninator/v1 controller. It keeps no state of its own.
+ * Hooks the routes, reads request params and builds responses the same way
+ * in every zoninator/v1 controller. It keeps no state of its own.
  *
  * @since 1.0.0
  */
@@ -32,6 +32,13 @@ trait RespondsToRequests {
 	 * @var string
 	 */
 	private static $rest_namespace = 'zoninator/v1';
+
+	/**
+	 * Hooks the controller's routes. PluginBootstrapper::register_hooks() calls this once.
+	 */
+	public function register_hooks() {
+		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
+	}
 
 	public function is_numeric( $item ) {
 		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use is_numeric directly.

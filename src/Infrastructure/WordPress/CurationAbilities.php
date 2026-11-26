@@ -23,7 +23,8 @@ use WP_Error;
  * they pass the same checks as the Zones screen and the REST API, the
  * zone's lock included.
  *
- * The bootstrapper hooks it, and the container builds it the first time the hook fires.
+ * It registers its own hook in register_hooks(), and sites reach it with
+ * zoninator_container()->get( CurationAbilities::class ) to unhook it.
  *
  * @since 1.0.0
  * @internal Use the template tags, the Application classes and the hooks instead.
@@ -53,6 +54,13 @@ final class CurationAbilities {
 	public function __construct( GuardedZoneCurator $curator, Capabilities $capabilities ) {
 		$this->curator      = $curator;
 		$this->capabilities = $capabilities;
+	}
+
+	/**
+	 * Hooks the abilities. PluginBootstrapper::register_hooks() calls this once.
+	 */
+	public function register_hooks() {
+		add_action( 'wp_abilities_api_init', array( $this, 'register' ) );
 	}
 
 	/**

@@ -78,9 +78,6 @@ final class PluginBootstrapper {
 	public function build() {
 		$container = $this->container;
 
-		// So sites can unhook the callbacks below.
-		$container->add( $this );
-
 		$settings      = $container->add( new Settings() );
 		$taxonomy      = $container->add( new Taxonomy() );
 		$capabilities  = $container->add( new Capabilities( $taxonomy ) );
@@ -112,103 +109,44 @@ final class PluginBootstrapper {
 		$search = $container->add( new Search( $taxonomy, $settings, $capabilities ) );
 		$container->add( new FeedEndpoint( $feed ) );
 		$container->add( new Block( $zones ) );
-		$container->add( new Widgets() );
 
-		// Only REST and Abilities API requests need these, so they're built, and their files loaded, then.
-		$permissions = static function () use ( $container ) {
-			return $container->get( Permissions::class );
-		};
-		$container->factory(
-			Permissions::class,
-			static function () use ( $capabilities ) {
-				return new Permissions( $capabilities );
-			}
-		);
-		$container->factory(
-			ZonesController::class,
-			static function () use ( $zones, $guarded_zones, $permissions ) {
-				return new ZonesController( $zones, $guarded_zones, $permissions() );
-			}
-		);
-		$container->factory(
-			ZonePostsController::class,
-			static function () use ( $feed, $guarded_posts, $permissions ) {
-				return new ZonePostsController( $feed, $guarded_posts, $permissions() );
-			}
-		);
-		$container->factory(
-			ZonePostRowController::class,
-			static function () use ( $row, $capabilities, $permissions ) {
-				return new ZonePostRowController( $row, $capabilities, $permissions() );
-			}
-		);
-		$container->factory(
-			SearchController::class,
-			static function () use ( $search, $permissions ) {
-				return new SearchController( $search, $permissions() );
-			}
-		);
-		$container->factory(
-			LockController::class,
-			static function () use ( $locker, $settings, $permissions ) {
-				return new LockController( $locker, $settings, $permissions() );
-			}
-		);
-		$container->factory(
-			CurationAbilities::class,
-			static function () use ( $guarded_posts, $capabilities ) {
-				return new CurationAbilities( $guarded_posts, $capabilities );
-			}
-		);
-		$container->factory(
-			Abilities::class,
-			static function () use ( $zones, $capabilities, $search ) {
-				return new Abilities( $zones, $capabilities, $search );
-			}
-		);
+		$container->add( new Widgets() );
+		$container->add( new Abilities( $zones, $capabilities, $search ) );
+		$container->add( new CurationAbilities( $guarded_posts, $capabilities ) );
+
+		// The zoninator/v1 REST API, and the Zones screen's own route.
+		$permissions = new Permissions( $capabilities );
+		$container->add( new ZonesController( $zones, $guarded_zones, $permissions ) );
+		$container->add( new ZonePostsController( $feed, $guarded_posts, $permissions ) );
+		$container->add( new SearchController( $search, $permissions ) );
+		$container->add( new LockController( $locker, $settings, $permissions ) );
+		$container->add( new ZonePostRowController( $row, $capabilities, $permissions ) );
 	}
 
 	/**
-	 * Registers every hook Zoninator uses: each class registers the ones it
-	 * handles, and the methods below load the REST and Abilities API classes
-	 * only when they're needed.
+	 * Registers every hook Zoninator uses, by calling register_hooks() on each class that handles some.
 	 */
 	public function register_hooks() {
-		$this->container->get( Taxonomy::class )->register_hooks();
-		$this->container->get( FeedEndpoint::class )->register_hooks();
-		$this->container->get( Block::class )->register_hooks();
-		$this->container->get( Widgets::class )->register_hooks();
-		$this->container->get( Menu::class )->register_hooks();
-		$this->container->get( Assets::class )->register_hooks();
-		$this->container->get( SearchForm::class )->register_hooks();
-		$this->container->get( ZoneForm::class )->register_hooks();
+		$classes = array(
+			Taxonomy::class,
+			FeedEndpoint::class,
+			Block::class,
+			Widgets::class,
+			Abilities::class,
+			CurationAbilities::class,
+			Menu::class,
+			Assets::class,
+			SearchForm::class,
+			ZoneForm::class,
+			ZonesController::class,
+			ZonePostsController::class,
+			SearchController::class,
+			LockController::class,
+			ZonePostRowController::class,
+		);
 
-		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
-		add_action( 'wp_abilities_api_categories_init', array( $this, 'register_ability_categories' ) );
-		add_action( 'wp_abilities_api_init', array( $this, 'register_abilities' ) );
-	}
-
-	/**
-	 * Registers the zoninator/v1 REST routes. Hooked on rest_api_init.
-	 */
-	public function register_rest_routes() {
-		foreach ( array( ZonesController::class, ZonePostsController::class, SearchController::class, LockController::class, ZonePostRowController::class ) as $controller ) {
-			$this->container->get( $controller )->register_routes();
+		foreach ( $classes as $class_name ) {
+			$this->container->get( $class_name )->register_hooks();
 		}
-	}
-
-	/**
-	 * Registers the zone ability category. Hooked on wp_abilities_api_categories_init.
-	 */
-	public function register_ability_categories() {
-		$this->container->get( Abilities::class )->register_category();
-	}
-
-	/**
-	 * Registers the zone abilities. Hooked on wp_abilities_api_init.
-	 */
-	public function register_abilities() {
-		$this->container->get( Abilities::class )->register();
-		$this->container->get( CurationAbilities::class )->register();
 	}
 }
