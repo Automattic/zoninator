@@ -8,8 +8,8 @@
 namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 
 use Automattic\Zoninator\Application\GuardedZoneManager;
+use Automattic\Zoninator\Domain\ZoninatorExceptionInterface;
 use Automattic\Zoninator\Infrastructure\WordPress\Zones;
-use Throwable;
 use WP_Error;
 use WP_REST_Controller;
 use WP_REST_Request;
@@ -135,7 +135,7 @@ final class ZonesController extends WP_REST_Controller {
 
 		try {
 			$zone = $this->manager->create( get_current_user_id(), (string) $slug, (string) $name, array( 'description' => $description ) );
-		} catch ( Throwable $exception ) {
+		} catch ( ZoninatorExceptionInterface $exception ) {
 			return $this->error_response( $exception, 0 );
 		}
 
@@ -175,7 +175,7 @@ final class ZonesController extends WP_REST_Controller {
 
 		try {
 			$this->manager->update( get_current_user_id(), $zone_id, $update_params );
-		} catch ( Throwable $exception ) {
+		} catch ( ZoninatorExceptionInterface $exception ) {
 			return $this->error_response( $exception, $zone_id );
 		}
 
@@ -199,7 +199,7 @@ final class ZonesController extends WP_REST_Controller {
 
 		try {
 			$this->manager->remove( get_current_user_id(), $zone_id );
-		} catch ( Throwable $exception ) {
+		} catch ( ZoninatorExceptionInterface $exception ) {
 			return $this->error_response( $exception, $zone_id );
 		}
 

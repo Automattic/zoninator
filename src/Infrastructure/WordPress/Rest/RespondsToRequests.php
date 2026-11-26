@@ -14,7 +14,7 @@ use Automattic\Zoninator\Domain\ZoneFullException;
 use Automattic\Zoninator\Domain\ZoneLockedException;
 use Automattic\Zoninator\Domain\ZoneNotFoundException;
 use Automattic\Zoninator\Domain\ZoneNotSavedException;
-use Throwable;
+use Automattic\Zoninator\Domain\ZoninatorExceptionInterface;
 use WP_Error;
 use WP_REST_Response;
 
@@ -109,13 +109,13 @@ trait RespondsToRequests {
 	/**
 	 * Turns what the Application layer threw into this API's response.
 	 *
-	 * @param Throwable $exception What was thrown.
-	 * @param int       $zone_id   The zone being changed, for the locked error's data.
+	 * @param ZoninatorExceptionInterface $exception What was thrown.
+	 * @param int                         $zone_id   The zone being changed, for the locked error's data.
 	 * @return WP_Error
 	 *
-	 * @throws Throwable If it isn't one of Zoninator's own exceptions.
+	 * @throws ZoninatorExceptionInterface If it's an exception this API has no error for yet.
 	 */
-	private function error_response( Throwable $exception, $zone_id ) {
+	private function error_response( ZoninatorExceptionInterface $exception, $zone_id ) {
 		if ( $exception instanceof ZoneLockedException ) {
 			$locking_user = get_userdata( $exception->get_holder_id() );
 
@@ -158,7 +158,7 @@ trait RespondsToRequests {
 			return $this->bad_request( $exception->get_error_code(), $exception->getMessage() );
 		}
 
-		// Not one of ours, so not something to turn into a response.
+		// A new exception with no error of its own yet. Let it be seen, not guessed at.
 		throw $exception;
 	}
 

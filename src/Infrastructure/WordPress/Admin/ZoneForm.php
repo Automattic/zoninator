@@ -8,11 +8,9 @@
 namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 
 use Automattic\Zoninator\Application\GuardedZoneManager;
-use Automattic\Zoninator\Domain\AccessDeniedException;
-use Automattic\Zoninator\Domain\InvalidZoneException;
 use Automattic\Zoninator\Domain\ZoneLockedException;
 use Automattic\Zoninator\Domain\ZoneNotFoundException;
-use Automattic\Zoninator\Domain\ZoneNotSavedException;
+use Automattic\Zoninator\Domain\ZoninatorExceptionInterface;
 use Automattic\Zoninator\Infrastructure\WordPress\Request;
 
 /**
@@ -97,7 +95,7 @@ final class ZoneForm {
 					'zone_id' => $zone_id,
 				)
 			);
-		} catch ( AccessDeniedException | InvalidZoneException | ZoneNotFoundException | ZoneNotSavedException $exception ) {
+		} catch ( ZoninatorExceptionInterface $exception ) {
 			if ( 'delete' === $action ) {
 				$url = $this->location->get_url( array( 'error' => $exception instanceof ZoneNotFoundException ? 'invalid-zone' : 'delete-zone' ) );
 			} else {

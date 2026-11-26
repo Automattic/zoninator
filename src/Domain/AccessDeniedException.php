@@ -14,7 +14,7 @@ use RuntimeException;
  *
  * @since 1.0.0
  */
-final class AccessDeniedException extends RuntimeException {
+final class AccessDeniedException extends RuntimeException implements ZoninatorExceptionInterface {
 
 	/**
 	 * Constructor.

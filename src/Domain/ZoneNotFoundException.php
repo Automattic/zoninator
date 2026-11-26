@@ -14,7 +14,7 @@ use RuntimeException;
  *
  * @since 1.0.0
  */
-final class ZoneNotFoundException extends RuntimeException {
+final class ZoneNotFoundException extends RuntimeException implements ZoninatorExceptionInterface {
 
 	/**
 	 * Constructor.

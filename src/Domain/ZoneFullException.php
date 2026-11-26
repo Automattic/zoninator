@@ -14,7 +14,7 @@ use RuntimeException;
  *
  * @since 1.0.0
  */
-final class ZoneFullException extends RuntimeException {
+final class ZoneFullException extends RuntimeException implements ZoninatorExceptionInterface {
 
 	/**
 	 * The most posts the zone may hold.

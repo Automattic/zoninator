@@ -15,7 +15,7 @@ use RuntimeException;
  *
  * @since 1.0.0
  */
-final class PostNotAllowedException extends RuntimeException {
+final class PostNotAllowedException extends RuntimeException implements ZoninatorExceptionInterface {
 
 	/**
 	 * Constructor.

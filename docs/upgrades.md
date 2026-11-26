@@ -92,6 +92,8 @@ These classes take a zone's ID, not its slug or term; `zoninator_get_zone( 'home
 
 The `Guarded` classes, described under [Zone locks now stop every change](#zone-locks-now-stop-every-change-not-only-the-zones-screen), also throw `AccessDeniedException` and `PostNotAllowedException`.
 
+All seven implement `Automattic\Zoninator\Domain\ZoninatorExceptionInterface`, so `catch ( ZoninatorExceptionInterface $exception )` covers every way a change can be refused.
+
 | `Zoninator()->…` | Use instead |
 |---|---|
 | `insert_zone( $slug, $name, $details )` | `ZoneManager::create( $slug, $name, $details )` |

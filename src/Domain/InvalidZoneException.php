@@ -14,5 +14,5 @@ use InvalidArgumentException;
  *
  * @since 1.0.0
  */
-final class InvalidZoneException extends InvalidArgumentException {
+final class InvalidZoneException extends InvalidArgumentException implements ZoninatorExceptionInterface {
 }

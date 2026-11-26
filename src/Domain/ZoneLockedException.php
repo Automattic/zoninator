@@ -14,7 +14,7 @@ use RuntimeException;
  *
  * @since 1.0.0
  */
-final class ZoneLockedException extends RuntimeException {
+final class ZoneLockedException extends RuntimeException implements ZoninatorExceptionInterface {
 
 	/**
 	 * The lock that's in the way.

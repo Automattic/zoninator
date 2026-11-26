@@ -15,7 +15,7 @@ use RuntimeException;
  *
  * @since 1.0.0
  */
-final class ZoneNotSavedException extends RuntimeException {
+final class ZoneNotSavedException extends RuntimeException implements ZoninatorExceptionInterface {
 
 	/**
 	 * The storage's own code for what went wrong.
