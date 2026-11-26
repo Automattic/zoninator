@@ -9,6 +9,7 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Automattic\Zoninator\Application\GuardedZoneManager;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenData;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenDataLoader;
 use WP_Term;
@@ -81,6 +82,28 @@ final class ZoninatorScreenDataTest extends TestCase {
 
 		$this->assertSame( 0, $mine->locked_by );
 		$this->assertSame( $other_id, $theirs->locked_by );
+	}
+
+	/**
+	 * The filter's name says "current user", but a zone can be changed for
+	 * any user, so a callback needs to be told which one.
+	 */
+	public function test_the_edit_zone_filter_is_told_which_user_is_asked_about(): void {
+		$current_id = get_current_user_id();
+		$other_id   = self::factory()->user->create( array( 'role' => 'editor' ) );
+		$seen       = array();
+		$spy        = static function ( $has_cap, $zone_id, $user_id ) use ( &$seen ) {
+			$seen[] = array( $zone_id, $user_id );
+
+			return $has_cap;
+		};
+		add_filter( 'zoninator_current_user_can_edit_zone', $spy, 10, 3 );
+
+		$this->load( $this->zone_id );
+		zoninator_container()->get( GuardedZoneManager::class )->update( $other_id, $this->zone_id, array( 'name' => 'Renamed' ) );
+
+		remove_filter( 'zoninator_current_user_can_edit_zone', $spy, 10 );
+		$this->assertSame( array( array( $this->zone_id, $current_id ), array( $this->zone_id, $other_id ) ), $seen );
 	}
 
 	public function test_it_says_what_the_user_may_do(): void {

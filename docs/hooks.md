@@ -71,7 +71,9 @@ Capability required to open the Zones admin screen and curate a zone: add, remov
 
 Per-zone editing check. `$has_cap` is whether the user has the `zoninator_edit_zone_cap` capability, and the filter runs whatever its value, so returning `true` lets a user without the capability rename or delete the zone. Use this to stop some users renaming or deleting individual zones, and return `$has_cap` for zones you don't mean to change. It doesn't stop them curating a zone's posts, which `zoninator_manage_zone_cap` governs.
 
-- **Parameters:** `bool $has_cap`, `int $zone_id`
+- **Parameters:** `bool $has_cap`, `int $zone_id`, `int $user_id`
+
+`$user_id` is the user being asked about. Use it in place of `get_current_user_id()`: despite the filter's name, code can change a zone for a user who isn't the one logged in, through `GuardedZoneManager`. `$user_id` was added in 1.0.0.
 
 ## REST API permissions
 

@@ -144,7 +144,7 @@ These methods of `Zoninator`, most of them helpers that were never meant to be p
 | `_get_edit_zones_cap()` | `apply_filters( 'zoninator_edit_zone_cap', 'edit_others_posts' )` |
 | `_get_manage_zones_cap()` | `apply_filters( 'zoninator_manage_zone_cap', 'edit_others_posts' )` |
 | `_current_user_can_add_zones()` | `current_user_can( apply_filters( 'zoninator_add_zone_cap', 'edit_others_posts' ) )` |
-| `_current_user_can_edit_zones( $zone_id )` | `apply_filters( 'zoninator_current_user_can_edit_zone', current_user_can( apply_filters( 'zoninator_edit_zone_cap', 'edit_others_posts' ) ), $zone_id )` |
+| `_current_user_can_edit_zones( $zone_id )` | `apply_filters( 'zoninator_current_user_can_edit_zone', current_user_can( apply_filters( 'zoninator_edit_zone_cap', 'edit_others_posts' ) ), $zone_id, get_current_user_id() )` |
 | `_current_user_can_manage_zones()` | `current_user_can( apply_filters( 'zoninator_manage_zone_cap', 'edit_others_posts' ) )` |
 | `check( $action, $zone_id )` | The matching check above: `'insert'` is the add check, `'update'` and `'delete'` are the edit check for `$zone_id`, and anything else is the manage check |
 | `get_formatted_zone_slug()` and `get_unformatted_zone_slug()` | The slug itself; both returned it unchanged |
