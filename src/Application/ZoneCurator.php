@@ -42,7 +42,8 @@ final class ZoneCurator {
 	}
 
 	/**
-	 * Adds posts to the end of a zone, in the order given.
+	 * Adds posts to the end of a zone, in the order given. A post already in
+	 * the zone stays where it is.
 	 *
 	 * @param int   $zone_id  Zone ID.
 	 * @param int[] $post_ids Post IDs.
@@ -54,10 +55,15 @@ final class ZoneCurator {
 	public function add_posts( int $zone_id, array $post_ids ): void {
 		$this->require_zone( $zone_id );
 
-		$post_ids = $this->clean( $post_ids );
+		// A post already in the zone keeps its place, so it's neither added again nor counted twice.
+		$current  = $this->zone_posts->get_post_ids( $zone_id );
+		$post_ids = array_values( array_diff( $this->clean( $post_ids ), $current ) );
 
-		// A post already in the zone keeps its place, so it doesn't add to the count.
-		$this->require_room( $zone_id, array_unique( array_merge( $this->zone_posts->get_post_ids( $zone_id ), $post_ids ) ) );
+		if ( ! $post_ids ) {
+			return;
+		}
+
+		$this->require_room( $zone_id, array_merge( $current, $post_ids ) );
 		$this->zone_posts->append( $zone_id, $post_ids );
 	}
 

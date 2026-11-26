@@ -249,6 +249,8 @@ Now every change made for a user is checked in one place: the user may make it, 
 
 A post listed twice when a zone's posts are set now keeps its first place, where it used to end up in its last.
 
+Adding a post that's already in the zone now leaves it where it is, whatever its place. It used to move the zone's first post to the end, and leave any other alone. `zoninator_add_zone_posts` passes only the posts that were added, and doesn't fire if every post was in the zone already.
+
 ### The Zone Posts widget's class has a new name
 
 `Zoninator_ZonePosts_Widget` was the last Zoninator class outside the `Automattic\Zoninator\` namespace. It's now `Automattic\Zoninator\Infrastructure\WordPress\ZonePostsWidget`, and the old name no longer exists.

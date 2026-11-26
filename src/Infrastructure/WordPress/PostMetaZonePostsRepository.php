@@ -61,7 +61,7 @@ final class PostMetaZonePostsRepository implements ZonePostsRepositoryInterface 
 	 * Adds posts to the end of a zone, in the order given.
 	 *
 	 * @param int   $zone_id  Zone ID.
-	 * @param int[] $post_ids Post IDs.
+	 * @param int[] $post_ids Post IDs, none of them in the zone already.
 	 */
 	public function append( int $zone_id, array $post_ids ): void {
 		// Start after the highest position, counting every post in the zone, so
@@ -115,7 +115,7 @@ final class PostMetaZonePostsRepository implements ZonePostsRepositoryInterface 
 	private function write( int $zone_id, array $post_ids, int $position ): void {
 		foreach ( $post_ids as $post_id ) {
 			++$position;
-			update_metadata( 'post', $post_id, $this->get_meta_key( $zone_id ), $position, true );
+			update_metadata( 'post', $post_id, $this->get_meta_key( $zone_id ), $position );
 		}
 
 		$this->changed( 'zoninator_add_zone_posts', $zone_id, $post_ids );

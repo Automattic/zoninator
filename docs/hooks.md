@@ -213,6 +213,8 @@ Fires after one or more posts have been added to a zone.
 
 Replacing the zone's posts, rather than appending, first removes every post in the zone, so `zoninator_remove_zone_posts` fires before this.
 
+When posts are appended, `$post_ids` holds only the ones that weren't in the zone already, as those keep their place. If none were new, the action doesn't fire.
+
 ### `zoninator_remove_zone_posts` (action)
 
 Fires after one or more posts have been removed from a zone.

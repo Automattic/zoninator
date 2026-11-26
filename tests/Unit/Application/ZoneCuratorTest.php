@@ -58,6 +58,14 @@ final class ZoneCuratorTest extends TestCase {
 		$this->assertSame( array( 5, 6, 7 ), $this->zone_posts->post_ids[ $this->zone_id ] );
 	}
 
+	public function test_adding_a_post_already_in_the_zone_leaves_it_where_it_is(): void {
+		$this->curator->set_posts( $this->zone_id, array( 5, 6 ) );
+
+		$this->curator->add_posts( $this->zone_id, array( 5, 7, 6 ) );
+
+		$this->assertSame( array( 5, 6, 7 ), $this->zone_posts->post_ids[ $this->zone_id ] );
+	}
+
 	public function test_set_posts_replaces_the_posts_in_the_order_given(): void {
 		$this->curator->set_posts( $this->zone_id, array( 5, 6 ) );
 

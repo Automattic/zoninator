@@ -28,7 +28,7 @@ interface ZonePostsRepositoryInterface {
 	 * Adds posts to the end of a zone, in the order given.
 	 *
 	 * @param int   $zone_id  Zone ID.
-	 * @param int[] $post_ids Post IDs.
+	 * @param int[] $post_ids Post IDs, none of them in the zone already. The caller leaves those out.
 	 */
 	public function append( int $zone_id, array $post_ids ): void;
 
