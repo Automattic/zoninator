@@ -51,8 +51,8 @@ final class Settings implements LockSettingsInterface, ZoneSettingsInterface {
 	 *
 	 * @return int
 	 */
-	public function get_max_lock_period() {
-		return apply_filters( 'zoninator_zone_max_lock_period', self::MAX_LOCK_PERIOD );
+	public function get_max_lock_period(): int {
+		return (int) apply_filters( 'zoninator_zone_max_lock_period', self::MAX_LOCK_PERIOD );
 	}
 
 	/**
@@ -60,8 +60,8 @@ final class Settings implements LockSettingsInterface, ZoneSettingsInterface {
 	 *
 	 * @return int
 	 */
-	public function get_posts_per_page() {
-		return apply_filters( 'zoninator_posts_per_page', self::POSTS_PER_PAGE );
+	public function get_posts_per_page(): int {
+		return (int) apply_filters( 'zoninator_posts_per_page', self::POSTS_PER_PAGE );
 	}
 
 	/**
