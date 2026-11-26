@@ -247,7 +247,7 @@ Final feed payload before encoding to JSON.
 
 ### `zoninator_zone_posts_widget_html` (filter)
 
-Fires from `src/class-zoninator-zoneposts-widget.php`. Replaces the HTML for the posts in a Zone Posts widget, so a theme can show them its own way, such as with thumbnails or excerpts. Return `false` (the default) to keep the list of links. The widget title, description and wrapper still come from the widget, the HTML is cached with the rest of the widget, and it passes through `wp_kses_post()`. Since 0.12.0.
+Fires from `src/Infrastructure/WordPress/ZonePostsWidget.php`. Replaces the HTML for the posts in a Zone Posts widget, so a theme can show them its own way, such as with thumbnails or excerpts. Return `false` (the default) to keep the list of links. The widget title, description and wrapper still come from the widget, the HTML is cached with the rest of the widget, and it passes through `wp_kses_post()`. Since 0.12.0.
 
 - **Parameters:** `string|false $html`, `WP_Post[] $posts` (the zone's posts, in order), `WP_Query $query` (the zone query that found them)
 

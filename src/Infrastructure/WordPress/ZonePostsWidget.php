@@ -1,13 +1,31 @@
 <?php
-// phpcs:ignore WordPress.Files.FileName.InvalidClassFileName
+/**
+ * The Zone Posts widget.
+ *
+ * @package Automattic\Zoninator
+ */
 
-use Automattic\Zoninator\Infrastructure\WordPress\Widgets;
-use Automattic\Zoninator\Infrastructure\WordPress\Zones;
+namespace Automattic\Zoninator\Infrastructure\WordPress;
+
+use WP_Widget;
 
 /**
- * Zone Posts widget class
+ * The classic Zone Posts widget, which lists a zone's posts in a sidebar.
+ *
+ * Unlike the classes around it, it's public: themes print it with
+ * the_widget( ZonePostsWidget::class ), and sites extend it or remove it
+ * with unregister_widget( ZonePostsWidget::class ). Widgets registers it.
+ *
+ * @since 1.0.0 Before, Zoninator_ZonePosts_Widget.
  */
-class Zoninator_ZonePosts_Widget extends WP_Widget {
+class ZonePostsWidget extends WP_Widget {
+
+	/**
+	 * The widget's ID base. Saved widgets and their places in sidebars are
+	 * keyed by it, so it can't change. It's the name WordPress derived from
+	 * the class when the class was Zoninator_ZonePosts_Widget.
+	 */
+	public const ID_BASE = 'zoninator_zoneposts_widget';
 
 	/**
 	 * Constructor. It takes no arguments, as WordPress builds widgets from
@@ -17,7 +35,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		$this->alt_option_name = 'widget_zone_posts';
 
 		parent::__construct(
-			false,
+			self::ID_BASE,
 			__( 'Zone Posts', 'zoninator' ),
 			array(
 				'classname'   => 'widget-zone-posts',

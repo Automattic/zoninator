@@ -85,7 +85,7 @@ class ZoninatorHooksTest extends TestCase {
 						continue;
 					}
 					$class = is_object( $function[0] ) ? get_class( $function[0] ) : (string) $function[0];
-					if ( 'Zoninator_ZonePosts_Widget' === $class || ( str_starts_with( $class, 'Automattic\\Zoninator\\' ) && ! str_starts_with( $class, 'Automattic\\Zoninator\\Tests\\' ) ) ) {
+					if ( str_starts_with( $class, 'Automattic\\Zoninator\\' ) && ! str_starts_with( $class, 'Automattic\\Zoninator\\Tests\\' ) ) {
 						$found[ $hook ][] = $class . '::' . $function[1] . ' ' . $priority . ' ' . $callback['accepted_args'];
 					}
 				}

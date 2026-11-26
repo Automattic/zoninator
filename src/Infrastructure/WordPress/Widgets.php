@@ -7,8 +7,6 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
-use Zoninator_ZonePosts_Widget;
-
 /**
  * Registers the Zone Posts widget, and clears the widget's cached output
  * when something it shows changes.
@@ -45,7 +43,7 @@ final class Widgets {
 	 * Registers the widget. Hooked on widgets_init.
 	 */
 	public function register() {
-		register_widget( Zoninator_ZonePosts_Widget::class );
+		register_widget( ZonePostsWidget::class );
 	}
 
 	/**

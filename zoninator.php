@@ -39,7 +39,6 @@ define( 'ZONINATOR_VERSION', '0.12.0' );
 define( 'ZONINATOR_FILE', __FILE__ );
 
 require_once __DIR__ . '/functions.php';
-require_once __DIR__ . '/src/class-zoninator-zoneposts-widget.php';
 
 // Loads the classes under Automattic\Zoninator\ from src/, by PSR-4, when they're first used.
 spl_autoload_register(

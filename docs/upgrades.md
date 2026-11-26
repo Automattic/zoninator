@@ -17,7 +17,7 @@ What to check depends on what your site does:
 | removes one of Zoninator's hooks with `remove_action()` or `remove_filter()` | [Hooks are registered on the objects that handle them](#hooks-are-registered-on-the-objects-that-handle-them) |
 | listens on `zoninator_add_zone_posts` or `zoninator_remove_zone_posts` | [The zone post actions always pass post IDs](#the-zone-post-actions-always-pass-post-ids) |
 | changes zones over the REST API | [Zone locks now stop every change](#zone-locks-now-stop-every-change-not-only-the-zones-screen), [The locked zone error keeps its details under `data`](#the-locked-zone-error-keeps-its-details-under-data) and [Adding a post over REST no longer returns its row](#adding-a-post-over-rest-no-longer-returns-its-row) |
-| filters the Zone Posts widget's cache, or extends the widget | [The widget's cache filter has a new name](#the-widgets-cache-filter-has-a-new-name) |
+| prints, removes or extends the Zone Posts widget in code, or filters its cache | [The Zone Posts widget's class has a new name](#the-zone-posts-widgets-class-has-a-new-name) and [The widget's cache filter has a new name](#the-widgets-cache-filter-has-a-new-name) |
 | listens on `zoninator_split_shared_term` or `zoninator_did_split_shared_term` | [Zoninator no longer handles shared term splits](#zoninator-no-longer-handles-shared-term-splits) |
 | still calls the old admin-ajax actions | [The Zones screen's admin-ajax actions are gone](#the-zones-screens-admin-ajax-actions-are-gone) |
 
@@ -164,7 +164,7 @@ Up to 0.12.x, every Zoninator hook was registered on the `Zoninator` object, wit
 | `init` | `array( Zoninator(), 'add_zone_feed' )` | `remove_action( 'init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class ), 'add_rewrite_rule' ) )` |
 | `template_redirect` | `array( Zoninator(), 'do_zoninator_feeds' )` | `remove_action( 'template_redirect', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class ), 'serve' ) )` |
 | `rest_api_init` | `array( Zoninator(), 'register_rest_routes' )` | Each controller registers its own routes, so unhook the ones you don't want: `remove_action( 'rest_api_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController::class ), 'register_routes' ) )`, and the same for `Rest\ZonePostsController`, `Rest\SearchController`, `Rest\LockController` and `Admin\ZonePostRowController`, which the Zones screen needs |
-| `widgets_init` | `array( Zoninator(), 'widgets_init' )` | `unregister_widget( 'Zoninator_ZonePosts_Widget' )` on `widgets_init` at priority 11, as before. Or `remove_action( 'widgets_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Widgets::class ), 'register' ) )` |
+| `widgets_init` | `array( Zoninator(), 'widgets_init' )` | `unregister_widget( \Automattic\Zoninator\Infrastructure\WordPress\ZonePostsWidget::class )` on `widgets_init` at priority 11, with the widget's [new class name](#the-zone-posts-widgets-class-has-a-new-name). Or `remove_action( 'widgets_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Widgets::class ), 'register' ) )` |
 | `split_shared_term` | `array( Zoninator(), 'split_shared_term' )` | Nothing to unhook; see [Zoninator no longer handles shared term splits](#zoninator-no-longer-handles-shared-term-splits) |
 | `query_loop_block_query_vars` | `array( Zoninator(), 'zone_block_query_vars' )` | `remove_filter( 'query_loop_block_query_vars', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class ), 'filter_query_vars' ) )` |
 | `rest_post_query` | `array( Zoninator(), 'zone_block_rest_query' )` | `remove_filter( 'rest_post_query', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class ), 'filter_rest_query' ) )` |
@@ -188,7 +188,7 @@ Zoninator used to build itself as soon as WordPress loaded its file. It now buil
 
 - Calling `zoninator_container()` or a template tag before `plugins_loaded`, from a mu-plugin or another plugin's main file, boots Zoninator there and then.
 - If a theme loads Zoninator from its `functions.php`, after `plugins_loaded` has fired, Zoninator boots straight away.
-- The classes under `Automattic\Zoninator\Infrastructure\` are `final` and marked `@internal`, apart from the container. Get them from the container to unhook their callbacks, and for nothing else. For everything else, use the template tags, the classes under `Automattic\Zoninator\Application\` and the hooks.
+- The classes under `Automattic\Zoninator\Infrastructure\` are `final` and marked `@internal`, apart from the container and the [Zone Posts widget](#the-zone-posts-widgets-class-has-a-new-name). Get them from the container to unhook their callbacks, and for nothing else. For everything else, use the template tags, the classes under `Automattic\Zoninator\Application\` and the hooks.
 
 The setup that ran on `init` at priority 99 has changed too:
 
@@ -246,6 +246,22 @@ Now every change made for a user is checked in one place: the user may make it, 
 `zoninator_add_zone_posts` and `zoninator_remove_zone_posts` used to pass their first argument as whatever the caller gave: one post ID, an array of IDs, or `WP_Post` objects. They now always pass an array of post IDs. If your callback handled each form, you can drop that; if it expected `WP_Post` objects, call `get_post()` on each ID. The second argument is still the zone's `WP_Term`.
 
 A post listed twice when a zone's posts are set now keeps its first place, where it used to end up in its last.
+
+### The Zone Posts widget's class has a new name
+
+`Zoninator_ZonePosts_Widget` was the last Zoninator class outside the `Automattic\Zoninator\` namespace. It's now `Automattic\Zoninator\Infrastructure\WordPress\ZonePostsWidget`, and the old name no longer exists.
+
+Widgets already in your sidebars are untouched. The widget keeps its ID base, `zoninator_zoneposts_widget`, so each one stays where it is with the same settings. Only code that names the class needs to change:
+
+| 0.12.x | 1.0.0 |
+|---|---|
+| `the_widget( 'Zoninator_ZonePosts_Widget', $instance )` | `the_widget( \Automattic\Zoninator\Infrastructure\WordPress\ZonePostsWidget::class, $instance )` |
+| `unregister_widget( 'Zoninator_ZonePosts_Widget' )` | `unregister_widget( \Automattic\Zoninator\Infrastructure\WordPress\ZonePostsWidget::class )` |
+| `class My_Zone_Widget extends Zoninator_ZonePosts_Widget` | `class My_Zone_Widget extends \Automattic\Zoninator\Infrastructure\WordPress\ZonePostsWidget` |
+
+**Two of these fail without an error.** `the_widget()` given the old name prints nothing, with only a `_doing_it_wrong()` notice, and `unregister_widget()` given the old name leaves the widget registered. A class that extends the old name stops with a fatal error. A search for `Zoninator_ZonePosts_Widget` across your theme and plugins finds every use.
+
+The file moved with the class, from `src/class-zoninator-zoneposts-widget.php`, and loads itself when the class is first used. If your code loads it with `require`, remove that line.
 
 ### The widget's cache filter has a new name
 

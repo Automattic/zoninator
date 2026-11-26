@@ -83,7 +83,7 @@ Treat anything in the table below as a public contract. Renaming, removing, or c
 | Hooks (`zoninator_*` filters and actions) | See [docs/hooks.md](docs/hooks.md) |
 | REST namespace `zoninator/v1` | See [docs/rest-api.md](docs/rest-api.md) |
 | JSON feed at `/zones/{slug}/feed.json` | `src/Infrastructure/WordPress/Feed.php` |
-| Zone Posts widget | `src/class-zoninator-zoneposts-widget.php` |
+| Zone Posts widget | `src/Infrastructure/WordPress/ZonePostsWidget.php` |
 
 ## Repository layout and architecture
 

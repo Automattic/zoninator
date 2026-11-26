@@ -9,8 +9,8 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Automattic\Zoninator\Infrastructure\WordPress\ZonePostsWidget;
 use WP_Query;
-use Zoninator_ZonePosts_Widget;
 
 final class ZoninatorZonePostsWidgetTest extends TestCase {
 
@@ -20,7 +20,7 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 	private $zone_id;
 
 	/**
-	 * @var Zoninator_ZonePosts_Widget
+	 * @var ZonePostsWidget
 	 */
 	private $widget;
 
@@ -29,7 +29,7 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 
 		$zone          = self::insert_zone( 'widget-zone', 'Widget zone', array( 'description' => 'About the zone' ) );
 		$this->zone_id = (int) $zone['term_id'];
-		$this->widget  = new Zoninator_ZonePosts_Widget();
+		$this->widget  = new ZonePostsWidget();
 
 		wp_cache_delete( 'widget-zone-posts', 'widget' );
 		wp_cache_delete( 'widget-zone-posts-save_blocked', 'widget' );
@@ -154,15 +154,24 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 	public function test_wordpress_knows_the_widget_by_its_class_name(): void {
 		global $wp_widget_factory;
 
-		$this->assertInstanceOf( Zoninator_ZonePosts_Widget::class, $wp_widget_factory->widgets[ Zoninator_ZonePosts_Widget::class ] );
-		$this->assertSame( $wp_widget_factory->widgets[ Zoninator_ZonePosts_Widget::class ], $wp_widget_factory->get_widget_object( 'zoninator_zoneposts_widget' ) );
+		$this->assertInstanceOf( ZonePostsWidget::class, $wp_widget_factory->widgets[ ZonePostsWidget::class ] );
+		$this->assertSame( $wp_widget_factory->widgets[ ZonePostsWidget::class ], $wp_widget_factory->get_widget_object( 'zoninator_zoneposts_widget' ) );
+	}
+
+	/**
+	 * Saved widgets are stored under the name WordPress derived from the old
+	 * class name, Zoninator_ZonePosts_Widget, so the renamed class must keep it.
+	 */
+	public function test_the_widget_keeps_the_id_base_saved_widgets_use(): void {
+		$this->assertSame( 'zoninator_zoneposts_widget', $this->widget->id_base );
+		$this->assertSame( 'widget_zoninator_zoneposts_widget', $this->widget->option_name );
 	}
 
 	public function test_the_widget_prints_the_widget_by_its_class_name(): void {
 		self::add_zone_posts( $this->zone_id, self::factory()->post->create() );
 
 		ob_start();
-		the_widget( Zoninator_ZonePosts_Widget::class, array( 'zone_id' => $this->zone_id ) );
+		the_widget( ZonePostsWidget::class, array( 'zone_id' => $this->zone_id ) );
 		$html = (string) ob_get_clean();
 
 		$this->assertStringContainsString( 'Widget zone', $html );
@@ -178,8 +187,8 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 		self::add_zone_posts( (int) $other['term_id'], self::factory()->post->create() );
 
 		ob_start();
-		the_widget( Zoninator_ZonePosts_Widget::class, array( 'zone_id' => $this->zone_id ) );
-		the_widget( Zoninator_ZonePosts_Widget::class, array( 'zone_id' => (int) $other['term_id'] ) );
+		the_widget( ZonePostsWidget::class, array( 'zone_id' => $this->zone_id ) );
+		the_widget( ZonePostsWidget::class, array( 'zone_id' => (int) $other['term_id'] ) );
 		$html = (string) ob_get_clean();
 
 		$this->assertStringContainsString( 'Widget zone', $html );
@@ -188,11 +197,11 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 
 	public function test_unregister_widget_removes_the_widget_by_its_class_name(): void {
 		global $wp_widget_factory;
-		$widget = $wp_widget_factory->widgets[ Zoninator_ZonePosts_Widget::class ];
+		$widget = $wp_widget_factory->widgets[ ZonePostsWidget::class ];
 
-		unregister_widget( Zoninator_ZonePosts_Widget::class );
-		$removed = ! isset( $wp_widget_factory->widgets[ Zoninator_ZonePosts_Widget::class ] );
-		$wp_widget_factory->widgets[ Zoninator_ZonePosts_Widget::class ] = $widget;
+		unregister_widget( ZonePostsWidget::class );
+		$removed = ! isset( $wp_widget_factory->widgets[ ZonePostsWidget::class ] );
+		$wp_widget_factory->widgets[ ZonePostsWidget::class ] = $widget;
 
 		$this->assertTrue( $removed );
 	}
