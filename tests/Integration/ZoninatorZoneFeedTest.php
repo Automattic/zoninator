@@ -4,8 +4,8 @@ declare( strict_types = 1 );
 /**
  * Integration tests for the public JSON feed at /zones/{slug}/feed.json.
  *
- * do_zoninator_feeds() echoes the feed and exits, so these tests cover the
- * rewrite rule that routes the URL and get_zone_feed(), which builds the body.
+ * They cover the rewrite rule that routes the URL, Feed, which builds the
+ * body, and FeedEndpoint::serve(), which sends it.
  *
  * @package Automattic\Zoninator
  */
@@ -14,6 +14,7 @@ namespace Automattic\Zoninator\Tests\Integration;
 
 use Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use WPDieException;
 
 final class ZoninatorZoneFeedTest extends TestCase {
 
@@ -126,6 +127,64 @@ final class ZoninatorZoneFeedTest extends TestCase {
 		zoninator_container()->get( FeedEndpoint::class )->serve();
 
 		$this->assertSame( '', ob_get_clean() );
+	}
+
+	public function test_serve_sends_the_zone_feed_as_json(): void {
+		$post_id = self::factory()->post->create( array( 'post_title' => 'In the feed' ) );
+		self::add_zone_posts( $this->create_zone(), array( $post_id ) );
+
+		list( $body, $status ) = $this->serve( 'feed-zone' );
+
+		$this->assertSame( 200, $status );
+		$this->assertSame( array( $post_id ), array_column( json_decode( $body, true ), 'ID' ) );
+		$this->assertSame( 'In the feed', json_decode( $body, true )[0]['post_title'] );
+	}
+
+	public function test_serve_refuses_a_zone_that_does_not_exist(): void {
+		list( $body, $status ) = $this->serve( 'no-such-zone' );
+
+		$this->assertSame( 406, $status );
+		$this->assertSame( 'null', $body );
+	}
+
+	/**
+	 * Serves the feed for a zone, as a request for /zones/{slug}/feed.json would.
+	 *
+	 * wp_send_json() ends the request, through wp_die() when it's an Ajax
+	 * request, so make it one and have wp_die() throw.
+	 *
+	 * @param string $slug Zone slug.
+	 * @return array{string, int} The body and the status sent.
+	 */
+	private function serve( string $slug ): array {
+		set_query_var( Taxonomy::NAME, $slug );
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static fn() => static function (): void {
+				throw new WPDieException();
+			}
+		);
+		$status = 200;
+		add_filter(
+			'status_header',
+			static function ( $header, $code ) use ( &$status ) {
+				$status = $code;
+				return $header;
+			},
+			10,
+			2
+		);
+
+		ob_start();
+		try {
+			zoninator_container()->get( FeedEndpoint::class )->serve();
+		} catch ( WPDieException $exception ) {
+			return array( (string) ob_get_clean(), $status );
+		}
+		ob_end_clean();
+
+		$this->fail( 'Expected the feed to end the request.' );
 	}
 
 	private function create_zone(): int {
