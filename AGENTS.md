@@ -62,18 +62,15 @@ zoninator/
 │   │       ├── Widgets.php          # Registers the Zone Posts widget and clears its cache
 │   │       ├── ZonePostsWidget.php  # The classic Zone Posts widget
 │   │       ├── Admin/               # The Zones admin screen
-│   │       │   ├── Screen.php           # The menu page's callback: loads the data, hands it to the view
+│   │       │   ├── Screen.php           # Adds Zones to the admin menu, and shows the screen: loads the data, hands it to the view
 │   │       │   ├── ScreenData.php       # What the screen shows for one request
 │   │       │   ├── ScreenDataLoader.php # Gathers a ScreenData for the current user
-│   │       │   ├── ScreenView.php       # Prints the page: title, notices, zone list, editor
-│   │       │   ├── ZoneEditorView.php   # Prints the open zone's editor
-│   │       │   ├── ZoneContentView.php  # Prints the box that holds a zone's content
+│   │       │   ├── ScreenView.php       # Prints the page: title, notices, zone list, and the open zone's editor
 │   │       │   ├── ZoneDetailsView.php  # Prints a zone's name and description, as a form or text
 │   │       │   ├── ZonePostRow.php      # Prints one post's row
 │   │       │   ├── SearchForm.php       # Prints the "Add content" field and its filters
 │   │       │   ├── ScreenLocation.php   # The screen's slug, URL and nonce actions
 │   │       │   ├── Messages.php         # The screen's notices
-│   │       │   ├── Menu.php             # Adds Zones to the admin menu
 │   │       │   ├── Assets.php           # Loads the screen's script and styles
 │   │       │   ├── ZoneForm.php         # Saves the zone form
 │   │       │   └── ZonePostRowController.php # The screen's own route for a row's HTML
@@ -121,7 +118,7 @@ zoninator/
 - `src/Infrastructure/WordPress/FeedEndpoint.php` — `Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint`: the rewrite rule and response for the JSON feed at `/zones/{slug}/feed.json`.
 - `src/Infrastructure/WordPress/Search.php` — `Automattic\Zoninator\Infrastructure\WordPress\Search`: finds posts to offer for a zone, by text or the latest content. The REST search route and the `zoninator/search-posts` ability both call its `find_posts()`.
 - `src/Infrastructure/WordPress/Block.php` — `Automattic\Zoninator\Infrastructure\WordPress\Block`: the Zone Posts variation of core's Query Loop block. `js/zoninator-block.js` (plain JS, no build step) registers the variation and its zone picker, which saves the zone ID as `zoninatorZone` in the block's query. `Block` turns that into `Zones::get_query_args()` on `query_loop_block_query_vars` for the front end and on `rest_post_query` for the editor preview.
-- `src/Infrastructure/WordPress/Admin/` — the Zones screen (`admin.php?page=zoninator`), split so that one class gathers what to show and the rest only print it. `Screen::render()` is the menu page's callback: it reads the zone and notice the request asks for, has `ScreenDataLoader` build a `ScreenData` (the zones, the open zone, its posts, who is editing it, what the user may do), and hands it to `ScreenView`. `ScreenView` prints the page and the zone list, and uses `ZoneEditorView`, which uses `ZoneContentView` (with `SearchForm` and `ZonePostRow`) and `ZoneDetailsView`. **A view takes `ScreenData` and decides nothing: it makes no capability check and no query.** `ScreenLocation` has the slug, URL and nonce action names, `Messages` the notices, `Menu` the menu item and `Assets` the script and styles.
+- `src/Infrastructure/WordPress/Admin/` — the Zones screen (`admin.php?page=zoninator`), split so that one class gathers what to show and the rest only print it. `Screen` adds the menu item, and its `render()` is the menu page's callback: it reads the zone and notice the request asks for, has `ScreenDataLoader` build a `ScreenData` (the zones, the open zone, its posts, who is editing it and their name, what the user may do), and hands it to `ScreenView`. `ScreenView` prints the page, the zone list and the open zone's editor, and uses `SearchForm`, `ZonePostRow` and `ZoneDetailsView`. **`ScreenView` and `ZoneDetailsView` take `ScreenData` and decide nothing: they make no capability check and no query.** If a view needs something more, `ScreenDataLoader` loads it. `ZonePostRow` is the exception, because its columns are `zoninator_zone_post_columns` callbacks, which are given a post and a zone and nothing else: it looks up the post's position and its edit link itself. `ScreenLocation` has the slug, URL and nonce action names, `Messages` the notices and `Assets` the script and styles.
 - `src/Infrastructure/WordPress/Admin/ZonePostRow.php` and `ZonePostRowController.php` — `ZonePostRow` renders one post's row, running the `zoninator_zone_post_columns` callbacks. `ZonePostRowController` is the screen's own route, `GET /zoninator/v1/zones/{zone_id}/posts/{post_id}/row`, which the screen's JavaScript calls after it adds a post. **The REST controllers under `Rest/` return data only and must not depend on anything under `Admin/`**; HTML for the screen comes from routes the screen owns.
 - `src/Infrastructure/WordPress/Admin/ZoneForm.php` — saves the screen's zone form (create, update, delete) through `GuardedZoneManager`, then redirects. It checks the nonce with `check_admin_referer()` and reads its own fields from the request. It makes no capability check: `GuardedZoneManager` refuses a user who may not, and the form stops the request when it does.
 - `functions.php` — The template tags themes use to read zones: `zoninator_get_zones()`, `zoninator_get_zone()`, `zoninator_get_posts_in_zone()`, `zoninator_get_zone_query()`, `zoninator_get_next_post_in_zone()`, `zoninator_get_prev_post_in_zone()` and `zoninator_get_post_zones()`, plus `zoninator_disable_locks()`. They return `WP_Term`, `WP_Post` and `WP_Query`. Before 1.0.0 they began with `z_`.

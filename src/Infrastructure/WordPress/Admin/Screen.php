@@ -7,18 +7,30 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 
+use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
+
 /**
- * Shows the Zones admin screen. It reads which zone and which notice the
+ * The Zones admin screen: adds it to the admin menu, for users who may curate
+ * zones, and shows it. To show it, it reads which zone and which notice the
  * request asks for, has ScreenDataLoader gather what to show, and hands that
  * to ScreenView to print.
  *
- * Menu makes render() the menu page's callback. The rest of the screen is in
- * the classes beside this one: Assets, SearchForm, ZoneForm and the views.
+ * It registers its own hook in register_hooks(), and sites reach it with
+ * zoninator_container()->get( Screen::class ) to unhook it. The rest of the
+ * screen is in the classes beside this one: Assets, SearchForm, ZoneForm and
+ * the views.
  *
  * @since 0.12.0
  * @internal Use the template tags, the Application classes and the hooks instead.
  */
 final class Screen {
+
+	/**
+	 * The capability checks, for who sees the menu item.
+	 *
+	 * @var Capabilities
+	 */
+	private $capabilities;
 
 	/**
 	 * Gathers what the screen shows.
@@ -37,12 +49,28 @@ final class Screen {
 	/**
 	 * Constructor.
 	 *
+	 * @param Capabilities     $capabilities The capability checks.
 	 * @param ScreenDataLoader $loader  Gathers what the screen shows.
 	 * @param ScreenView       $view    Prints the screen.
 	 */
-	public function __construct( ScreenDataLoader $loader, ScreenView $view ) {
-		$this->loader = $loader;
-		$this->view   = $view;
+	public function __construct( Capabilities $capabilities, ScreenDataLoader $loader, ScreenView $view ) {
+		$this->capabilities = $capabilities;
+		$this->loader       = $loader;
+		$this->view         = $view;
+	}
+
+	/**
+	 * Hooks the menu item. PluginBootstrapper::register_hooks() calls this once.
+	 */
+	public function register_hooks() {
+		add_action( 'admin_menu', array( $this, 'register' ) );
+	}
+
+	/**
+	 * Adds Zones to the admin menu, with render() as its page.
+	 */
+	public function register() {
+		add_menu_page( __( 'Zones', 'zoninator' ), __( 'Zones', 'zoninator' ), $this->capabilities->get_manage_zones_cap(), ScreenLocation::SLUG, array( $this, 'render' ), 'dashicons-layout', 11 );
 	}
 
 	/**

@@ -74,12 +74,16 @@ final class ScreenDataLoader {
 		$zone = $zone_id ? $this->zones->get( $zone_id ) : null;
 		$zone = $zone instanceof WP_Term ? $zone : null;
 
+		$locked_by = $zone ? (int) $this->locker->get_blocker_id( (int) $zone->term_id, $user_id ) : 0;
+		$holder    = $locked_by ? get_userdata( $locked_by ) : false;
+
 		return new ScreenData(
 			$zones,
 			$zone_id,
 			$zone,
 			$zone ? $this->zones->get_posts( $zone ) : array(),
-			$zone ? (int) $this->locker->get_blocker_id( (int) $zone->term_id, $user_id ) : 0,
+			$locked_by,
+			$holder ? $holder->display_name : '',
 			$can_add_zones,
 			$this->capabilities->can_edit_zone( $user_id, $zone ? (int) $zone->term_id : 0 ),
 			$this->capabilities->can_curate_zones( $user_id )
