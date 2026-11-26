@@ -40,6 +40,12 @@ final class Settings implements LockSettingsInterface, ZoneSettingsInterface {
 	private const POSTS_PER_PAGE = 10;
 
 	/**
+	 * The most posts a zone may hold. Every list of a zone's posts, the
+	 * public JSON feed included, reads them all, so this keeps those bounded.
+	 */
+	private const POST_LIMIT = 100;
+
+	/**
 	 * Number of seconds a lock is valid for.
 	 *
 	 * @return int
@@ -94,9 +100,9 @@ final class Settings implements LockSettingsInterface, ZoneSettingsInterface {
 		 *
 		 * @since 1.0.0
 		 *
-		 * @param int $limit   The limit. 0, the default, means no limit.
+		 * @param int $limit   The limit, 100 by default. 0 means no limit.
 		 * @param int $zone_id Zone ID.
 		 */
-		return max( 0, (int) apply_filters( 'zoninator_post_count_limit', 0, $zone_id ) );
+		return max( 0, (int) apply_filters( 'zoninator_post_count_limit', self::POST_LIMIT, $zone_id ) );
 	}
 }

@@ -30,12 +30,12 @@ Number of posts shown per page in the admin search and recent-posts dropdown. De
 
 ### `zoninator_post_count_limit` (filter)
 
-The most posts a zone may hold. `0`, the default, means no limit. Since 1.0.0.
+The most posts a zone may hold: 100 by default. Return `0` for no limit. Since 1.0.0.
 
 - **Parameters:** `int $limit`, `int $zone_id`
 
 ```php
-// The homepage zone holds five posts; other zones have no limit.
+// The homepage zone holds five posts; other zones keep the default.
 add_filter( 'zoninator_post_count_limit', function ( $limit, $zone_id ) {
 	$homepage = zoninator_get_zone( 'homepage' );
 
@@ -43,7 +43,7 @@ add_filter( 'zoninator_post_count_limit', function ( $limit, $zone_id ) {
 }, 10, 2 );
 ```
 
-A change that would take a zone past its limit is refused, on the Zones screen, over the REST API (`400`, `zone-full`) and through the abilities, and the zone is left as it was. Posts already in a zone stay when you lower its limit; the zone takes no more until it's back under.
+A change that would take a zone past its limit is refused, on the Zones screen, over the REST API (`400`, `zone-full`) and through the abilities, and the zone is left as it was. A zone that already holds more than its limit keeps its posts, and can still be reordered or trimmed, but takes no more until it's back under.
 
 ## Capabilities
 
@@ -213,7 +213,7 @@ Fires after one or more posts have been added to a zone.
 
 `$post_ids` is always an array of post IDs, however the posts were added. Before 1.0.0 it was whatever the caller passed: an ID, an array of IDs, or `WP_Post` objects.
 
-Replacing the zone's posts, rather than appending, first removes every post in the zone, so `zoninator_remove_zone_posts` fires before this.
+Replacing the zone's posts, rather than appending, fires `zoninator_remove_zone_posts` with every post that was in the zone, then this with every post now in it. Only the posts that leave the zone or change place are written.
 
 When posts are appended, `$post_ids` holds only the ones that weren't in the zone already, as those keep their place. If none were new, the action doesn't fire.
 

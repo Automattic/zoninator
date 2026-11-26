@@ -127,12 +127,13 @@ final class ZoneCurator {
 	 * @param int   $zone_id  Zone ID.
 	 * @param int[] $post_ids Every post the zone would hold.
 	 *
-	 * @throws ZoneFullException If that's more than the zone may hold.
+	 * @throws ZoneFullException If that's more than the zone may hold, and more than it holds now.
 	 */
 	private function require_room( int $zone_id, array $post_ids ): void {
 		$limit = $this->settings->get_post_limit( $zone_id );
 
-		if ( $limit > 0 && count( $post_ids ) > $limit ) {
+		// A zone already past its limit can still be reordered or trimmed; it just can't grow.
+		if ( $limit > 0 && count( $post_ids ) > $limit && count( $post_ids ) > count( $this->zone_posts->get_post_ids( $zone_id ) ) ) {
 			throw new ZoneFullException( $limit );
 		}
 	}

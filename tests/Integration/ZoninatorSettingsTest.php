@@ -22,6 +22,7 @@ class ZoninatorSettingsTest extends TestCase {
 		$this->assertSame( 600, self::settings()->get_max_lock_period() );
 		$this->assertSame( 10, self::settings()->get_posts_per_page() );
 		$this->assertSame( array( 'description' => '' ), self::settings()->get_detail_defaults() );
+		$this->assertSame( 100, self::settings()->get_post_limit( 1 ) );
 	}
 
 	/**
