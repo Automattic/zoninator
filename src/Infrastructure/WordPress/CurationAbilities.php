@@ -111,7 +111,7 @@ final class CurationAbilities {
 	 * @return bool
 	 */
 	public function permissions_check() {
-		return $this->capabilities->current_user_can_manage_zones();
+		return $this->capabilities->can_curate_zones( get_current_user_id() );
 	}
 
 	/**

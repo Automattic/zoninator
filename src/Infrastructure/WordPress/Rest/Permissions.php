@@ -61,7 +61,7 @@ final class Permissions {
 	 * @return bool|WP_Error
 	 */
 	public function create_zone() {
-		return $this->check( 'insert' );
+		return $this->allow( $this->capabilities->can_create_zones( get_current_user_id() ) );
 	}
 
 	/**
@@ -71,7 +71,7 @@ final class Permissions {
 	 * @return bool|WP_Error
 	 */
 	public function edit_zone( $request ) {
-		return $this->check( 'update', absint( $request->get_param( 'zone_id' ) ) );
+		return $this->allow( $this->capabilities->can_edit_zone( get_current_user_id(), absint( $request->get_param( 'zone_id' ) ) ) );
 	}
 
 	/**
@@ -80,16 +80,15 @@ final class Permissions {
 	 * @return bool|WP_Error
 	 */
 	public function manage_zones() {
-		return $this->check( 'manage' );
+		return $this->allow( $this->capabilities->can_curate_zones( get_current_user_id() ) );
 	}
 
 	/**
-	 * @param string   $action  'insert', 'update' or 'manage'.
-	 * @param int|null $zone_id Zone ID, for 'update'.
-	 * @return bool|WP_Error
+	 * @param bool $allowed Whether the user may.
+	 * @return true|WP_Error True, or the error for a user who may not.
 	 */
-	private function check( $action, $zone_id = null ) {
-		if ( ! $this->capabilities->check( $action, $zone_id ) ) {
+	private function allow( bool $allowed ) {
+		if ( ! $allowed ) {
 			return new WP_Error( ErrorCodes::PERMISSION_DENIED, __( "Sorry, you're not supposed to do that...", 'zoninator' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 

@@ -184,7 +184,7 @@ final class Search {
 			array_filter(
 				get_posts( $args ),
 				function ( $post ) use ( $exclude ) {
-					return ! in_array( $post->ID, $exclude, true ) && $this->capabilities->current_user_can_add_post_to_zone( $post );
+					return ! in_array( $post->ID, $exclude, true ) && $this->capabilities->can_use_post( get_current_user_id(), $post->ID );
 				}
 			)
 		);

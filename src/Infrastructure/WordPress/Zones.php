@@ -83,7 +83,7 @@ final class Zones {
 			return array();
 		}
 
-		if ( 'publish' !== $post->post_status && ( ! is_admin() || ! $this->capabilities->current_user_can_manage_zones() ) ) {
+		if ( 'publish' !== $post->post_status && ( ! is_admin() || ! $this->capabilities->can_curate_zones( get_current_user_id() ) ) ) {
 			return array();
 		}
 
@@ -128,7 +128,7 @@ final class Zones {
 		// Default to published posts, except for zone managers in the admin.
 		// is_admin() alone is true for every admin-ajax.php and admin-post.php
 		// request, including logged-out ones.
-		if ( ! is_admin() || ! $this->capabilities->current_user_can_manage_zones() ) {
+		if ( ! is_admin() || ! $this->capabilities->can_curate_zones( get_current_user_id() ) ) {
 			$defaults['post_status'] = array( 'publish' );
 		}
 

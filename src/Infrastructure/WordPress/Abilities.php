@@ -231,7 +231,7 @@ final class Abilities {
 	 * @return bool
 	 */
 	public function permissions_check() {
-		return $this->capabilities->current_user_can_manage_zones();
+		return $this->capabilities->can_curate_zones( get_current_user_id() );
 	}
 
 	/**
@@ -282,7 +282,13 @@ final class Abilities {
 		);
 
 		// Like the search, leave out posts the user may not read.
-		$posts = array_filter( $posts, array( $this->capabilities, 'current_user_can_add_post_to_zone' ) );
+		$user_id = get_current_user_id();
+		$posts   = array_filter(
+			$posts,
+			function ( $post ) use ( $user_id ) {
+				return $this->capabilities->can_use_post( $user_id, $post->ID );
+			}
+		);
 
 		return array_map(
 			static function ( $post ) {
