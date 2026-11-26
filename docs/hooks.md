@@ -43,7 +43,7 @@ add_filter( 'zoninator_post_count_limit', function ( $limit, $zone_id ) {
 }, 10, 2 );
 ```
 
-A change that would take a zone past its limit is refused, on the Zones screen, over the REST API (`400`, `zone-full`) and through the abilities, and the zone is left as it was. Posts already in a zone stay when you lower its limit; the zone takes no more until it's back under.
+A change that would take a zone past its limit is refused, on the Zones screen, over the REST API (`400`, `zone-full`) and through the abilities, and the zone is left as it was. A zone that already holds more than its limit keeps its posts, and can still be reordered or trimmed, but takes no more until it's back under.
 
 ## Capabilities
 

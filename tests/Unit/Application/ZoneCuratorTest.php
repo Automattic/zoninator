@@ -126,6 +126,21 @@ final class ZoneCuratorTest extends TestCase {
 	}
 
 	/**
+	 * Lowering a limit, or a site upgrading to one, mustn't stop editors
+	 * reordering or trimming a zone that already holds more.
+	 */
+	public function test_a_zone_past_its_limit_can_be_reordered_but_not_grown(): void {
+		$this->curator->set_posts( $this->zone_id, array( 5, 6, 7 ) );
+		$this->settings->post_limit = 2;
+
+		$this->curator->set_posts( $this->zone_id, array( 7, 6, 5 ) );
+		$this->assertSame( array( 7, 6, 5 ), $this->zone_posts->post_ids[ $this->zone_id ] );
+
+		$this->expectException( ZoneFullException::class );
+		$this->curator->set_posts( $this->zone_id, array( 7, 6, 5, 8 ) );
+	}
+
+	/**
 	 * A post is in a zone once, and an ID below 1 is no post's.
 	 */
 	public function test_repeated_ids_and_ids_below_one_are_left_out(): void {
