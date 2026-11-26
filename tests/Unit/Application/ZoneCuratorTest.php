@@ -80,27 +80,6 @@ final class ZoneCuratorTest extends TestCase {
 		$this->assertArrayNotHasKey( $this->zone_id, $this->zone_posts->post_ids );
 	}
 
-	/**
-	 * A zone's posts follow it when its ID changes, and the old ID needn't be a zone any more.
-	 */
-	public function test_move_posts_takes_every_post_to_the_other_zone_in_order(): void {
-		$this->zone_posts->replace( 99, array( 7, 5 ) );
-		$this->curator->set_posts( $this->zone_id, array( 6 ) );
-
-		$this->curator->move_posts( 99, $this->zone_id );
-
-		$this->assertSame( array( 7, 5 ), $this->zone_posts->post_ids[ $this->zone_id ] );
-		$this->assertArrayNotHasKey( 99, $this->zone_posts->post_ids );
-	}
-
-	public function test_move_posts_leaves_the_other_zone_alone_when_there_is_nothing_to_move(): void {
-		$this->curator->set_posts( $this->zone_id, array( 6 ) );
-
-		$this->curator->move_posts( 99, $this->zone_id );
-
-		$this->assertSame( array( 6 ), $this->zone_posts->post_ids[ $this->zone_id ] );
-	}
-
 	public function test_a_zone_takes_posts_up_to_its_limit_and_no_more(): void {
 		$this->settings->post_limit = 2;
 		$this->curator->add_posts( $this->zone_id, array( 5, 6 ) );
@@ -134,18 +113,6 @@ final class ZoneCuratorTest extends TestCase {
 		} catch ( ZoneFullException $exception ) {
 			$this->assertSame( array( 5 ), $this->zone_posts->post_ids[ $this->zone_id ] );
 		}
-	}
-
-	/**
-	 * A zone's posts follow it to its new ID even if a limit was set since they were added.
-	 */
-	public function test_moving_posts_ignores_the_limit(): void {
-		$this->zone_posts->replace( 99, array( 5, 6, 7 ) );
-		$this->settings->post_limit = 2;
-
-		$this->curator->move_posts( 99, $this->zone_id );
-
-		$this->assertSame( array( 5, 6, 7 ), $this->zone_posts->post_ids[ $this->zone_id ] );
 	}
 
 	/**

@@ -120,30 +120,6 @@ final class ZoneCurator {
 	}
 
 	/**
-	 * Moves every post in one zone to another, replacing what the other held,
-	 * and keeping their order. Does nothing if there are no posts to move. The
-	 * zone's post limit doesn't apply: the posts were already in the zone.
-	 *
-	 * The posts' old home needn't be a zone any more: this is how a zone's
-	 * posts follow it when its ID changes.
-	 *
-	 * @param int $from_zone_id ID the posts are filed under.
-	 * @param int $to_zone_id   Zone ID to move them to.
-	 *
-	 * @throws ZoneNotFoundException If there's no zone to move them to.
-	 */
-	public function move_posts( int $from_zone_id, int $to_zone_id ): void {
-		$this->require_zone( $to_zone_id );
-
-		$post_ids = $this->zone_posts->get_post_ids( $from_zone_id );
-
-		if ( $post_ids ) {
-			$this->zone_posts->replace( $to_zone_id, $post_ids );
-			$this->zone_posts->clear( $from_zone_id );
-		}
-	}
-
-	/**
 	 * @param int $zone_id Zone ID.
 	 *
 	 * @throws ZoneNotFoundException If there's no such zone.

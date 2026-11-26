@@ -1080,9 +1080,11 @@ final class ZoninatorRestContractTest extends TestCase {
 			array(
 				'code'    => 'zone-locked',
 				'message' => 'Sorry, this zone is in use by Lock Holder and is currently locked. Please try again later.',
-				'data'    => array( 'status' => 400 ),
-				'zone_id' => $zone_id,
-				'blocked' => true,
+				'data'    => array(
+					'status'  => 400,
+					'zone_id' => $zone_id,
+					'blocked' => true,
+				),
 			),
 			$response->get_data()
 		);

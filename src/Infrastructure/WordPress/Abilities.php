@@ -14,7 +14,8 @@ use WP_Error;
  * list zones, get a zone's posts and search for posts to add. CurationAbilities
  * registers the ones that change a zone's posts.
  *
- * The bootstrapper hooks it, and the container builds it the first time one of its hooks fires.
+ * It registers its own hooks in register_hooks(), and sites reach it with
+ * zoninator_container()->get( Abilities::class ) to unhook them.
  *
  * @since 1.0.0
  * @internal Use the template tags, the Application classes and the hooks instead.
@@ -58,6 +59,14 @@ final class Abilities {
 		$this->zones        = $zones;
 		$this->capabilities = $capabilities;
 		$this->search       = $search;
+	}
+
+	/**
+	 * Hooks the category and the abilities. PluginBootstrapper::register_hooks() calls this once.
+	 */
+	public function register_hooks() {
+		add_action( 'wp_abilities_api_categories_init', array( $this, 'register_category' ) );
+		add_action( 'wp_abilities_api_init', array( $this, 'register' ) );
 	}
 
 	/**

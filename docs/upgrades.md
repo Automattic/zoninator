@@ -16,8 +16,9 @@ What to check depends on what your site does:
 | calls `Zoninator()`, or uses the `$zoninator` global | [The `Zoninator` class and `Zoninator()` are gone](#the-zoninator-class-and-zoninator-are-gone) |
 | removes one of Zoninator's hooks with `remove_action()` or `remove_filter()` | [Hooks are registered on the objects that handle them](#hooks-are-registered-on-the-objects-that-handle-them) |
 | listens on `zoninator_add_zone_posts` or `zoninator_remove_zone_posts` | [The zone post actions always pass post IDs](#the-zone-post-actions-always-pass-post-ids) |
-| changes zones over the REST API | [Zone locks now stop every change](#zone-locks-now-stop-every-change-not-only-the-zones-screen) and [Adding a post over REST no longer returns its row](#adding-a-post-over-rest-no-longer-returns-its-row) |
-| extends the Zone Posts widget, or filters its cache | [A subclass of the Zone Posts widget must be registered as an object](#a-subclass-of-the-zone-posts-widget-must-be-registered-as-an-object) and [The widget's cache filter has a new name](#the-widgets-cache-filter-has-a-new-name) |
+| changes zones over the REST API | [Zone locks now stop every change](#zone-locks-now-stop-every-change-not-only-the-zones-screen), [The locked zone error keeps its details under `data`](#the-locked-zone-error-keeps-its-details-under-data) and [Adding a post over REST no longer returns its row](#adding-a-post-over-rest-no-longer-returns-its-row) |
+| prints, removes or extends the Zone Posts widget in code, or filters its cache | [The Zone Posts widget's class has a new name](#the-zone-posts-widgets-class-has-a-new-name) and [The widget's cache filter has a new name](#the-widgets-cache-filter-has-a-new-name) |
+| listens on `zoninator_split_shared_term` or `zoninator_did_split_shared_term` | [Zoninator no longer handles shared term splits](#zoninator-no-longer-handles-shared-term-splits) |
 | still calls the old admin-ajax actions | [The Zones screen's admin-ajax actions are gone](#the-zones-screens-admin-ajax-actions-are-gone) |
 
 A site that only uses the Zones screen, the Zone Posts widget and the Zone Posts block needs none of these, only the minimum versions below.
@@ -162,9 +163,9 @@ Up to 0.12.x, every Zoninator hook was registered on the `Zoninator` object, wit
 | `init` | `array( Zoninator(), 'init' )`, priority 99, which registered the zone taxonomy | `remove_action( 'init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Taxonomy::class ), 'register' ) )`, now at the default priority |
 | `init` | `array( Zoninator(), 'add_zone_feed' )` | `remove_action( 'init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class ), 'add_rewrite_rule' ) )` |
 | `template_redirect` | `array( Zoninator(), 'do_zoninator_feeds' )` | `remove_action( 'template_redirect', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class ), 'serve' ) )` |
-| `rest_api_init` | `array( Zoninator(), 'register_rest_routes' )` | `remove_action( 'rest_api_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper::class ), 'register_rest_routes' ) )` |
-| `widgets_init` | `array( Zoninator(), 'widgets_init' )` | `unregister_widget( 'Zoninator_ZonePosts_Widget' )` on `widgets_init` at priority 11, as before. Or `remove_action( 'widgets_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper::class ), 'register_widget' ) )` |
-| `split_shared_term` | `array( Zoninator(), 'split_shared_term' )` | `remove_action( 'split_shared_term', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\TermSplitHandler::class ), 'move_zone_posts' ) )` |
+| `rest_api_init` | `array( Zoninator(), 'register_rest_routes' )` | Each controller registers its own routes, so unhook the ones you don't want: `remove_action( 'rest_api_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController::class ), 'register_routes' ) )`, and the same for `Rest\ZonePostsController`, `Rest\SearchController`, `Rest\LockController` and `Admin\ZonePostRowController`, which the Zones screen needs |
+| `widgets_init` | `array( Zoninator(), 'widgets_init' )` | `unregister_widget( \Automattic\Zoninator\Infrastructure\WordPress\ZonePostsWidget::class )` on `widgets_init` at priority 11, with the widget's [new class name](#the-zone-posts-widgets-class-has-a-new-name). Or `remove_action( 'widgets_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Widgets::class ), 'register' ) )` |
+| `split_shared_term` | `array( Zoninator(), 'split_shared_term' )` | Nothing to unhook; see [Zoninator no longer handles shared term splits](#zoninator-no-longer-handles-shared-term-splits) |
 | `query_loop_block_query_vars` | `array( Zoninator(), 'zone_block_query_vars' )` | `remove_filter( 'query_loop_block_query_vars', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class ), 'filter_query_vars' ) )` |
 | `rest_post_query` | `array( Zoninator(), 'zone_block_rest_query' )` | `remove_filter( 'rest_post_query', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class ), 'filter_rest_query' ) )` |
 | `enqueue_block_editor_assets` | `array( Zoninator(), 'zone_block_editor_assets' )` | `remove_action( 'enqueue_block_editor_assets', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class ), 'enqueue_editor_assets' ) )` |
@@ -187,7 +188,7 @@ Zoninator used to build itself as soon as WordPress loaded its file. It now buil
 
 - Calling `zoninator_container()` or a template tag before `plugins_loaded`, from a mu-plugin or another plugin's main file, boots Zoninator there and then.
 - If a theme loads Zoninator from its `functions.php`, after `plugins_loaded` has fired, Zoninator boots straight away.
-- The classes under `Automattic\Zoninator\Infrastructure\` are `final` and marked `@internal`, apart from the container. Get them from the container to unhook their callbacks, and for nothing else. For everything else, use the template tags, the classes under `Automattic\Zoninator\Application\` and the hooks.
+- The classes under `Automattic\Zoninator\Infrastructure\` are `final` and marked `@internal`, apart from the container and the [Zone Posts widget](#the-zone-posts-widgets-class-has-a-new-name). Get them from the container to unhook their callbacks, and for nothing else. For everything else, use the template tags, the classes under `Automattic\Zoninator\Application\` and the hooks.
 
 The setup that ran on `init` at priority 99 has changed too:
 
@@ -216,6 +217,20 @@ The files moved with them, from `src/class-*.php` to paths such as `src/Infrastr
 
 The [`zoninator_zone_post_columns`](hooks.md#zoninator_zone_post_columns-filter) filter is unaffected: the Zones screen still shows the columns you add, for posts already in the zone and for ones just added.
 
+### The locked zone error keeps its details under `data`
+
+A REST request refused because someone else holds the zone's lock still gets `400` with the code `zone-locked`. Its `zone_id` and `blocked` used to sit beside `code` and `message`. They're now under `data`, where core's REST errors keep their details:
+
+```json
+{
+  "code": "zone-locked",
+  "message": "Sorry, this zone is in use by Jane Doe and is currently locked. Please try again later.",
+  "data": { "status": 400, "zone_id": 12, "blocked": true }
+}
+```
+
+If your client reads `zone_id` or `blocked` from the top of the response, read `data.zone_id` and `data.blocked`, or match on the `code`.
+
 ### Zone locks now stop every change, not only the Zones screen
 
 A zone's lock used to stop a second person opening the zone on the Zones screen, and nothing else. The REST API saved whatever it was sent, even while someone else was editing the zone.
@@ -232,23 +247,33 @@ Now every change made for a user is checked in one place: the user may make it, 
 
 A post listed twice when a zone's posts are set now keeps its first place, where it used to end up in its last.
 
-### A subclass of the Zone Posts widget must be registered as an object
+### The Zone Posts widget's class has a new name
 
-`Zoninator_ZonePosts_Widget`'s constructor now takes the zones it reads, so WordPress can no longer build it, or a class that extends it, from the class name alone. If you extend the widget, `register_widget( 'My_Zone_Widget' )` stops with a fatal error. Build it yourself and register the object:
+`Zoninator_ZonePosts_Widget` was the last Zoninator class outside the `Automattic\Zoninator\` namespace. It's now `Automattic\Zoninator\Infrastructure\WordPress\ZonePostsWidget`, and the old name no longer exists.
 
-```php
-add_action( 'widgets_init', function () {
-	register_widget( new My_Zone_Widget( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Zones::class ) ) );
-} );
-```
+Widgets already in your sidebars are untouched. The widget keeps its ID base, `zoninator_zoneposts_widget`, so each one stays where it is with the same settings. Only code that names the class needs to change:
 
-If your subclass has its own constructor, give it that argument and pass it to `parent::__construct()`. `Zones` is an internal class, and this is the one place you need to fetch it for something other than unhooking.
+| 0.12.x | 1.0.0 |
+|---|---|
+| `the_widget( 'Zoninator_ZonePosts_Widget', $instance )` | `the_widget( \Automattic\Zoninator\Infrastructure\WordPress\ZonePostsWidget::class, $instance )` |
+| `unregister_widget( 'Zoninator_ZonePosts_Widget' )` | `unregister_widget( \Automattic\Zoninator\Infrastructure\WordPress\ZonePostsWidget::class )` |
+| `class My_Zone_Widget extends Zoninator_ZonePosts_Widget` | `class My_Zone_Widget extends \Automattic\Zoninator\Infrastructure\WordPress\ZonePostsWidget` |
 
-Nothing changes for the widget itself. It's in the same sidebars with the same settings, and `the_widget( 'Zoninator_ZonePosts_Widget', ... )` and `unregister_widget( 'Zoninator_ZonePosts_Widget' )` work as before.
+**Two of these fail without an error.** `the_widget()` given the old name prints nothing, with only a `_doing_it_wrong()` notice, and `unregister_widget()` given the old name leaves the widget registered. A class that extends the old name stops with a fatal error. A search for `Zoninator_ZonePosts_Widget` across your theme and plugins finds every use.
+
+The file moved with the class, from `src/class-zoninator-zoneposts-widget.php`, and loads itself when the class is first used. If your code loads it with `require`, remove that line.
 
 ### The widget's cache filter has a new name
 
 `zone_posts_widget_block_save_cache_seconds` is now [`zoninator_zone_posts_widget_block_save_cache_seconds`](hooks.md#zoninator_zone_posts_widget_block_save_cache_seconds-filter), with the prefix every other Zoninator hook uses. The old name no longer fires, so rename it in your `add_filter()` call.
+
+The hooks that clear the cache have moved too. Each widget object used to add them to itself when it was built. Now one object adds them when Zoninator boots: `array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Widgets::class ), 'flush_cache' )`, on `save_post`, `deleted_post`, `switch_theme`, `zoninator_add_zone_posts`, `zoninator_remove_zone_posts` and `edited_zoninator_zones`. If you extend the widget and override `flush_widget_cache()`, those hooks no longer call your method. Hook it yourself, or call `flush_widget_cache()` where you need it.
+
+### Zoninator no longer handles shared term splits
+
+Before WordPress 4.2, a zone could share its term with a term in another taxonomy. WordPress 4.2 and 4.3 split those terms, and Zoninator moved the zone's posts to the zone's new ID when that happened. Every site that can run 1.0.0 split its shared terms long ago, so the handler is removed.
+
+The `zoninator_split_shared_term` and `zoninator_did_split_shared_term` actions went with it and no longer fire. Remove any callbacks you added to them.
 
 ## To 0.12.0
 
@@ -288,7 +313,7 @@ Zoninator no longer bundles the Mixtape REST library. The routes, their argument
 What changes for REST clients:
 
 - A request refused by a capability check gets `401` when logged out and `403` when logged in, with the code `permission-denied`. It used to get `500`.
-- Every error has a `code` alongside its `message`, in core's REST error shape. The `400` and `404` responses used to have only a `message`. A zone locked by someone else gives `zone-locked`, and its response keeps the `zone_id` and `blocked` it had before. See [Errors](rest-api.md#errors) for the codes.
+- Every error has a `code` alongside its `message`, in core's REST error shape. The `400` and `404` responses used to have only a `message`. A zone locked by someone else gives `zone-locked`, and its response keeps the `zone_id` and `blocked` it had before. (1.0.0 [moves them under `data`](#the-locked-zone-error-keeps-its-details-under-data).) See [Errors](rest-api.md#errors) for the codes.
 - Three error messages are reworded: "Invalid post id" is now "Invalid post ID.", "zone id required" is now "Zone ID is required.", and "Zone not found" is now "Zone not found.". If your client compares the message text, match on the `code` instead: `invalid-post-id`, `zone-id-required` and `zone-not-found`. Messages are translated, so they were never reliable to match.
 - `PUT /zones/{zone_id}` with an empty `description` now clears the zone's description. It used to ignore an empty value. If your client sends `"description": ""` to mean "leave it alone", leave the field out instead. An empty `name` or `slug` is still ignored.
 - The search (`GET /search`, and the deprecated `zoninator_search_posts` and `zoninator_update_recent` actions) only lists posts the user can read, so a page of results can hold fewer posts than asked for when an access plugin hides some.

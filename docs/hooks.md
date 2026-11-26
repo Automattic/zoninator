@@ -219,23 +219,7 @@ Fires after one or more posts have been removed from a zone.
 
 - **Parameters:** `int[] $post_ids`, `WP_Term $zone`
 
-`$post_ids` is always an array of post IDs. When the whole zone is cleared (replacing its posts, deleting the zone, or splitting a shared term), it's every post that was in the zone, whatever its status, and the array is empty if the zone had none.
-
-## Term splitting (WordPress 4.2 carry-over)
-
-These fire from `src/Infrastructure/WordPress/TermSplitHandler.php`.
-
-### `zoninator_split_shared_term` (action)
-
-Fires before Zoninator copies posts from `$old_term_id` to `$new_term_id` after a WordPress shared-term split.
-
-- **Parameters:** `int $old_term_id`, `int $new_term_id`, `int $term_taxonomy_id`
-
-### `zoninator_did_split_shared_term` (action)
-
-Fires after the copy is complete.
-
-- **Parameters:** `int $old_term_id`, `int $new_term_id`, `int $term_taxonomy_id`
+`$post_ids` is always an array of post IDs. When the whole zone is cleared (replacing its posts or deleting the zone), it's every post that was in the zone, whatever its status, and the array is empty if the zone had none.
 
 ## JSON feed at `/zones/{slug}/feed.json`
 
@@ -263,7 +247,7 @@ Final feed payload before encoding to JSON.
 
 ### `zoninator_zone_posts_widget_html` (filter)
 
-Fires from `src/class-zoninator-zoneposts-widget.php`. Replaces the HTML for the posts in a Zone Posts widget, so a theme can show them its own way, such as with thumbnails or excerpts. Return `false` (the default) to keep the list of links. The widget title, description and wrapper still come from the widget, the HTML is cached with the rest of the widget, and it passes through `wp_kses_post()`. Since 0.12.0.
+Fires from `src/Infrastructure/WordPress/ZonePostsWidget.php`. Replaces the HTML for the posts in a Zone Posts widget, so a theme can show them its own way, such as with thumbnails or excerpts. Return `false` (the default) to keep the list of links. The widget title, description and wrapper still come from the widget, the HTML is cached with the rest of the widget, and it passes through `wp_kses_post()`. Since 0.12.0.
 
 - **Parameters:** `string|false $html`, `WP_Post[] $posts` (the zone's posts, in order), `WP_Query $query` (the zone query that found them)
 
@@ -279,7 +263,7 @@ add_filter( 'zoninator_zone_posts_widget_html', function ( $html, $posts ) {
 
 ### `zoninator_zone_posts_widget_block_save_cache_seconds` (filter)
 
-Fires from `src/class-zoninator-zoneposts-widget.php`. How long (in seconds) the widget cache is locked against re-population after a flush. Defaults to `5`. Set to `0` to disable the lock.
+Fires from `src/Infrastructure/WordPress/Widgets.php`. How long (in seconds) the widget cache is locked against re-population after a flush. Defaults to `5`. Set to `0` to disable the lock.
 
 - **Parameters:** `int $seconds`
 

@@ -174,15 +174,13 @@ Acquires (or extends) the editing lock for a zone. The Zones screen calls it eve
 
 `timeout` and `max_lock_period` are filterable via [`zoninator_zone_lock_period`](hooks.md#zoninator_zone_lock_period-filter) and [`zoninator_zone_max_lock_period`](hooks.md#zoninator_zone_max_lock_period-filter).
 
-**Response when the zone is already locked:** `400`, in core's REST error shape with the code `zone-locked`. The message names the user holding the lock. `zone_id` and `blocked` stay from earlier versions, which sent only those.
+**Response when the zone is already locked:** `400`, in core's REST error shape with the code `zone-locked`. The message names the user holding the lock. Before 1.0.0, `zone_id` and `blocked` sat beside `code` and `message`.
 
 ```json
 {
   "code": "zone-locked",
   "message": "Sorry, this zone is in use by Jane Doe and is currently locked. Please try again later.",
-  "data": { "status": 400 },
-  "zone_id": 12,
-  "blocked": true
+  "data": { "status": 400, "zone_id": 12, "blocked": true }
 }
 ```
 

@@ -7,8 +7,6 @@
 
 namespace Automattic\Zoninator\Infrastructure\DI;
 
-use Closure;
-
 /**
  * Holds objects by class name. It knows nothing about the classes it holds:
  * PluginBootstrapper decides what goes in it.
@@ -22,18 +20,11 @@ use Closure;
 final class Container {
 
 	/**
-	 * Objects added or built so far, keyed by class name.
+	 * The objects, keyed by class name.
 	 *
 	 * @var array<class-string, object>
 	 */
 	private $objects = array();
-
-	/**
-	 * Builders for objects made only when first asked for, keyed by class name.
-	 *
-	 * @var array<class-string, Closure>
-	 */
-	private $factories = array();
 
 	/**
 	 * Adds an object, under its class name.
@@ -49,17 +40,18 @@ final class Container {
 	}
 
 	/**
-	 * Adds a builder for an object only some requests need. get() calls it once, the first time it's asked.
+	 * Gets every object, in the order they were added.
 	 *
-	 * @param class-string $id      Class name.
-	 * @param Closure      $factory Returns the object.
+	 * @internal For PluginBootstrapper, which finds the classes that have hooks. Sites use get().
+	 *
+	 * @return array<class-string, object> The objects, keyed by class name.
 	 */
-	public function factory( $id, Closure $factory ) {
-		$this->factories[ $id ] = $factory;
+	public function all() {
+		return $this->objects;
 	}
 
 	/**
-	 * Gets the object of a class, building it first if it has a factory.
+	 * Gets the object of a class.
 	 *
 	 * Shaped like PSR-11's get(), but an unknown ID gives a notice and null
 	 * rather than an exception, so a mistake in a site's unhooking code can't
@@ -70,10 +62,6 @@ final class Container {
 	 * @return T|null The object, or null if the container has no such class.
 	 */
 	public function get( $id ) {
-		if ( ! isset( $this->objects[ $id ] ) && isset( $this->factories[ $id ] ) ) {
-			$this->objects[ $id ] = ( $this->factories[ $id ] )();
-		}
-
 		if ( ! isset( $this->objects[ $id ] ) ) {
 			_doing_it_wrong( __METHOD__, esc_html( sprintf( 'The Zoninator container has no %s.', $id ) ), '1.0.0' );
 			return null;
@@ -83,12 +71,12 @@ final class Container {
 	}
 
 	/**
-	 * Whether the container has, or can build, an object of this class. Shaped like PSR-11's has().
+	 * Whether the container has an object of this class. Shaped like PSR-11's has().
 	 *
 	 * @param string $id Class name.
 	 * @return bool
 	 */
 	public function has( $id ) {
-		return isset( $this->objects[ $id ] ) || isset( $this->factories[ $id ] );
+		return isset( $this->objects[ $id ] );
 	}
 }

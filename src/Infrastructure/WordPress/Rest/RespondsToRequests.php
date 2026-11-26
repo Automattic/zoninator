@@ -19,8 +19,8 @@ use WP_Error;
 use WP_REST_Response;
 
 /**
- * Reads request params and builds responses the same way in every
- * zoninator/v1 controller. It keeps no state of its own.
+ * Hooks the routes, reads request params and builds responses the same way
+ * in every zoninator/v1 controller. It keeps no state of its own.
  *
  * @since 1.0.0
  */
@@ -32,6 +32,13 @@ trait RespondsToRequests {
 	 * @var string
 	 */
 	private static $rest_namespace = 'zoninator/v1';
+
+	/**
+	 * Hooks the controller's routes. PluginBootstrapper::register_hooks() calls this once.
+	 */
+	public function register_hooks() {
+		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
+	}
 
 	public function is_numeric( $item ) {
 		// see https://github.com/WP-API/WP-API/issues/1520 on why we do not use is_numeric directly.
@@ -103,30 +110,27 @@ trait RespondsToRequests {
 	 * Turns what the Application layer threw into this API's response.
 	 *
 	 * @param Throwable $exception What was thrown.
-	 * @param int       $zone_id   The zone being changed, for the locked response.
-	 * @return WP_Error|WP_REST_Response
+	 * @param int       $zone_id   The zone being changed, for the locked error's data.
+	 * @return WP_Error
 	 *
 	 * @throws Throwable If it isn't one of Zoninator's own exceptions.
 	 */
 	private function error_response( Throwable $exception, $zone_id ) {
 		if ( $exception instanceof ZoneLockedException ) {
-			// Core's REST error shape, keeping zone_id and blocked, which the lock
-			// route's response had before it had a code.
 			$locking_user = get_userdata( $exception->get_holder_id() );
 
-			return new WP_REST_Response(
+			return new WP_Error(
+				ErrorCodes::ZONE_LOCKED,
+				sprintf(
+					/* translators: %s: the locking user's display name, or "another user". */
+					__( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
+					$locking_user ? $locking_user->display_name : __( 'another user', 'zoninator' )
+				),
 				array(
-					'code'    => ErrorCodes::ZONE_LOCKED,
-					'message' => sprintf(
-						/* translators: %s: the locking user's display name, or "another user". */
-						__( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
-						$locking_user ? $locking_user->display_name : __( 'another user', 'zoninator' )
-					),
-					'data'    => array( 'status' => 400 ),
+					'status'  => 400,
 					'zone_id' => $zone_id,
 					'blocked' => true,
-				),
-				400
+				)
 			);
 		}
 
