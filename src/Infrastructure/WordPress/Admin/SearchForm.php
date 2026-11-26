@@ -24,7 +24,7 @@ final class SearchForm {
 	/**
 	 * Hooks the default filters. PluginBootstrapper::register_hooks() calls this once.
 	 */
-	public function register_hooks() {
+	public function register_hooks(): void {
 		add_action( 'zoninator_advanced_search_fields', array( $this, 'render_category_filter' ) );
 		add_action( 'zoninator_advanced_search_fields', array( $this, 'render_date_filter' ), 20 );
 	}
@@ -32,7 +32,7 @@ final class SearchForm {
 	/**
 	 * Prints the field and its filters.
 	 */
-	public function render() {
+	public function render(): void {
 		?>
 	<div class="zone-search-wrapper">
 		<label for="zone-post-search"><?php esc_html_e( 'Add content', 'zoninator' ); ?></label>
@@ -46,7 +46,7 @@ final class SearchForm {
 	/**
 	 * Prints the button that shows the filters, and the filters themselves.
 	 */
-	public function render_filters() {
+	public function render_filters(): void {
 		?>
 	<div class="zone-advanced-search-filters-heading">
 		<button type="button" class="button-link zone-toggle-advanced-search" aria-expanded="false" aria-controls="zone-advanced-search-filters" data-alt-label="<?php esc_attr_e( 'Hide filters', 'zoninator' ); ?>"><?php esc_html_e( 'Show filters', 'zoninator' ); ?></button>
@@ -60,7 +60,7 @@ final class SearchForm {
 	/**
 	 * Prints the category filter.
 	 */
-	public function render_category_filter() {
+	public function render_category_filter(): void {
 		?>
 	<label for="zone_advanced_filter_taxonomy" class="screen-reader-text"><?php esc_html_e( 'Filter by category', 'zoninator' ); ?></label>
 		<?php
@@ -81,7 +81,7 @@ final class SearchForm {
 	/**
 	 * Prints the date filter.
 	 */
-	public function render_date_filter() {
+	public function render_date_filter(): void {
 		$current_date = apply_filters( 'zoninator_advanced_filter_date_default', '' );
 		$date_filters = apply_filters( 'zoninator_advanced_filter_date', array( 'all', 'today', 'yesterday' ) );
 		$date_labels  = array(

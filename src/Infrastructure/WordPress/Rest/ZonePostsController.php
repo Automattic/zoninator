@@ -49,7 +49,7 @@ final class ZonePostsController extends WP_REST_Controller {
 	/**
 	 * Register the routes.
 	 */
-	public function register_routes() {
+	public function register_routes(): void {
 		register_rest_route(
 			self::$rest_namespace,
 			'/zones/(?P<zone_id>[\d]+)/posts',
@@ -57,7 +57,8 @@ final class ZonePostsController extends WP_REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_zone_posts' ),
-					'permission_callback' => array( $this->permissions, 'read_zone_posts' ),
+					// The JSON feed lists the same posts to anyone, so this does too.
+					'permission_callback' => '__return_true',
 					'args'                => $this->get_zone_id_param(),
 				),
 				array(
@@ -95,7 +96,7 @@ final class ZonePostsController extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
-	public function get_zone_posts( $request ) {
+	public function get_zone_posts( $request ): WP_REST_Response|WP_Error {
 		$results = $this->feed->get( (int) $request['zone_id'] );
 
 		if ( null === $results ) {
@@ -115,7 +116,7 @@ final class ZonePostsController extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
-	public function update_zone_posts( $request ) {
+	public function update_zone_posts( $request ): WP_REST_Response|WP_Error {
 		$zone_id = (int) $request['zone_id'];
 
 		try {
@@ -133,7 +134,7 @@ final class ZonePostsController extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
-	public function add_zone_post( $request ) {
+	public function add_zone_post( $request ): WP_REST_Response|WP_Error {
 		$zone_id = (int) $request['zone_id'];
 		$post_id = (int) $request['post_id'];
 
@@ -152,7 +153,7 @@ final class ZonePostsController extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
-	public function remove_zone_post( $request ) {
+	public function remove_zone_post( $request ): WP_REST_Response|WP_Error {
 		$zone_id = (int) $request['zone_id'];
 
 		try {
@@ -171,11 +172,11 @@ final class ZonePostsController extends WP_REST_Controller {
 	 * @param mixed $items The post_ids param.
 	 * @return bool
 	 */
-	public function is_list_of_ids( $items ) {
+	public function is_list_of_ids( $items ): bool {
 		return is_array( $items ) && count( $items ) === count( array_filter( $items, 'is_numeric' ) );
 	}
 
-	private function get_zone_posts_params() {
+	private function get_zone_posts_params(): array {
 		$zone_params = $this->get_zone_id_param();
 		return array_merge(
 			array(
@@ -195,7 +196,7 @@ final class ZonePostsController extends WP_REST_Controller {
 	 *
 	 * @return array
 	 */
-	private function get_zone_post_item_params() {
+	private function get_zone_post_item_params(): array {
 		return array_merge(
 			$this->get_zone_id_param(),
 			array(

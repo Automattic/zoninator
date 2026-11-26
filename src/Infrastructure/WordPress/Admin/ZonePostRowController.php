@@ -54,7 +54,7 @@ final class ZonePostRowController extends WP_REST_Controller {
 	/**
 	 * Register the route.
 	 */
-	public function register_routes() {
+	public function register_routes(): void {
 		register_rest_route(
 			self::$rest_namespace,
 			'/zones/(?P<zone_id>[\d]+)/posts/(?P<post_id>\d+)/row',
@@ -84,7 +84,7 @@ final class ZonePostRowController extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response The row, as HTML.
 	 */
-	public function get_row( $request ) {
+	public function get_row( $request ): WP_REST_Response|WP_Error {
 		$zone_id = (int) $request['zone_id'];
 		$post_id = (int) $request['post_id'];
 

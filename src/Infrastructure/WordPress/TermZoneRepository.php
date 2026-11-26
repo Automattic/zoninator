@@ -128,7 +128,7 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 	 * @param int $zone_id Zone ID.
 	 * @return WP_Term|false The term, or false if there's no such zone.
 	 */
-	public function get_term( int $zone_id ) {
+	public function get_term( int $zone_id ): WP_Term|false {
 		$term = get_term_by( 'id', $zone_id, Taxonomy::NAME );
 
 		return $term ? $this->fill_details( $term ) : false;
@@ -142,7 +142,7 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 	 * @param WP_Term|mixed $term The zone's term. get_terms() gives IDs or names when its fields arg is set, and those are returned as they are.
 	 * @return WP_Term|mixed
 	 */
-	public function fill_details( $term ) {
+	public function fill_details( $term ): mixed {
 		if ( ! is_object( $term ) || ! empty( $term->zoninator_parsed ) ) {
 			return $term;
 		}
@@ -190,7 +190,7 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 	 * @param mixed $value A string, or an array of details. Anything else is returned as it is.
 	 * @return mixed
 	 */
-	private function encode( $value ) {
+	private function encode( $value ): mixed {
 		if ( is_array( $value ) ) {
 			return array_map( array( $this, 'encode' ), $value );
 		}
@@ -207,7 +207,7 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 	 * @param mixed $value A string, or an array of details. Anything else is returned as it is.
 	 * @return mixed
 	 */
-	private function decode( $value ) {
+	private function decode( $value ): mixed {
 		if ( is_array( $value ) ) {
 			return array_map( array( $this, 'decode' ), $value );
 		}
@@ -229,7 +229,7 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 	 * @param string $serialized Serialised value.
 	 * @return string
 	 */
-	private function repair_serialized_lengths( $serialized ) {
+	private function repair_serialized_lengths( $serialized ): string {
 		return (string) preg_replace_callback(
 			'/s:\d+:"(.*?)";/s',
 			static function ( $matches ) {

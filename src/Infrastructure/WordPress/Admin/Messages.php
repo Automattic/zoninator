@@ -23,7 +23,7 @@ final class Messages {
 	 * @param string $message_id Message ID, such as 'error-zone-lock'.
 	 * @return string The message, or '' if there's none with that ID.
 	 */
-	public function get( $message_id ) {
+	public function get( $message_id ): string {
 		$messages = array(
 			'insert-success'      => __( 'The zone was successfully created.', 'zoninator' ),
 			'update-success'      => __( 'The zone was successfully updated.', 'zoninator' ),

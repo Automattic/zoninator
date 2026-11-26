@@ -59,7 +59,7 @@ final class Block {
 	 *
 	 * @since 1.0.0
 	 */
-	public function register_hooks() {
+	public function register_hooks(): void {
 		add_filter( 'query_loop_block_query_vars', array( $this, 'filter_query_vars' ), 10, 2 );
 		// The Zone Posts block's editor preview always reads /wp/v2/posts.
 		add_filter( 'rest_post_query', array( $this, 'filter_rest_query' ), 10, 2 );
@@ -106,7 +106,7 @@ final class Block {
 	/**
 	 * Loads the script that adds the variation and its zone picker to the editor.
 	 */
-	public function enqueue_editor_assets() {
+	public function enqueue_editor_assets(): void {
 		wp_enqueue_script(
 			self::SCRIPT_HANDLE,
 			plugin_dir_url( ZONINATOR_FILE ) . 'js/zoninator-block.js',

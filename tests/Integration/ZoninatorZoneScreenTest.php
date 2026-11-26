@@ -8,6 +8,8 @@
 namespace Automattic\Zoninator\Tests\Integration;
 
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenDataLoader;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenView;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\SearchForm;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZonePostRow;
 use WP_Term;
@@ -86,6 +88,27 @@ class ZoninatorZoneScreenTest extends TestCase {
 
 		$this->assertStringNotContainsString( 'class="edit"', $output );
 		$this->assertStringContainsString( 'class="view"', $output );
+	}
+
+	/**
+	 * A message is good news and an error isn't, and the screen has a box for each.
+	 */
+	public function test_an_error_is_shown_as_an_error_and_a_message_as_a_message(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		$view = zoninator_container()->get( ScreenView::class );
+		$data = zoninator_container()->get( ScreenDataLoader::class )->load( 0 );
+
+		ob_start();
+		$view->render( $data, '', 'general' );
+		$failed = (string) ob_get_clean();
+		ob_start();
+		$view->render( $data, 'insert-success', '' );
+		$saved = (string) ob_get_clean();
+
+		$this->assertMatchesRegularExpression( '/<div id="zone-message" class="error[^"]*">\s*<p>Sorry, something went wrong! Please try again\?<\/p>/', $failed );
+		$this->assertStringNotContainsString( 'class="updated', $failed );
+		$this->assertMatchesRegularExpression( '/<div id="zone-message" class="updated[^"]*">\s*<p>The zone was successfully created\.<\/p>/', $saved );
+		$this->assertStringNotContainsString( 'class="error', $saved );
 	}
 
 	public function test_date_filter_shows_labels(): void {

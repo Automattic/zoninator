@@ -118,7 +118,7 @@ class ZonePostsWidget extends WP_Widget {
 	 *
 	 * @param WP_Post[] $posts The zone's posts, in order.
 	 */
-	private function render_posts( $posts ) {
+	private function render_posts( $posts ): void {
 		?>
 		<ul>
 			<?php foreach ( $posts as $post ) : ?>

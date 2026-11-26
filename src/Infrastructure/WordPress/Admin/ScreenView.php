@@ -47,7 +47,7 @@ final class ScreenView {
 	 * @param string     $message_id ID of a message to show, such as 'update-success', or ''.
 	 * @param string     $error_code Code of an error to show, such as 'delete-zone', or ''.
 	 */
-	public function render( ScreenData $data, $message_id = '', $error_code = '' ) {
+	public function render( ScreenData $data, $message_id = '', $error_code = '' ): void {
 		if ( $data->active_zone ) {
 			$title = __( 'Edit Zone', 'zoninator' );
 		} elseif ( $data->can_add_zones ) {
@@ -110,7 +110,7 @@ final class ScreenView {
 	 *
 	 * @param ScreenData $data What the screen shows.
 	 */
-	private function render_zone_list( ScreenData $data ) {
+	private function render_zone_list( ScreenData $data ): void {
 		?>
 	<table class="wp-list-table widefat fixed striped zone-tabs">
 		<thead>
@@ -152,7 +152,7 @@ final class ScreenView {
 	 *
 	 * @param ScreenData $data What the screen shows.
 	 */
-	private function render_editor( ScreenData $data ) {
+	private function render_editor( ScreenData $data ): void {
 		$zone_id  = $data->get_zone_id();
 		$can_open = $zone_id ? $data->can_manage_zones : $data->can_add_zones;
 		?>
@@ -201,7 +201,7 @@ final class ScreenView {
 	 *
 	 * @param ScreenData $data What the screen shows. A zone must be open.
 	 */
-	private function render_content( ScreenData $data ) {
+	private function render_content( ScreenData $data ): void {
 		?>
 	<div class="postbox zone-col zone-posts-col">
 		<div class="postbox-header">

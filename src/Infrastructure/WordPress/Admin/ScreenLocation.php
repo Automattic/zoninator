@@ -43,7 +43,7 @@ final class ScreenLocation {
 	 * @param array $args Query arguments.
 	 * @return string
 	 */
-	public function get_url( array $args = array() ) {
+	public function get_url( array $args = array() ): string {
 		$url = menu_page_url( self::SLUG, false );
 
 		foreach ( $args as $arg_key => $arg_value ) {
@@ -58,7 +58,7 @@ final class ScreenLocation {
 	 *
 	 * @return bool
 	 */
-	public function is_current() {
+	public function is_current(): bool {
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 
 		if ( empty( $screen ) ) {

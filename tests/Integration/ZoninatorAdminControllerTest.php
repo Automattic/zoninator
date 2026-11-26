@@ -76,6 +76,35 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->assertStringContainsString( 'message=update-success', $location );
 	}
 
+	/**
+	 * A failure used to come back as message=error-general, which the screen
+	 * prints in its green "updated" box. It belongs in the red one.
+	 */
+	public function test_a_failed_insert_comes_back_as_an_error(): void {
+		$location = $this->submit( 'insert', array( 'name' => '' ) );
+
+		$this->assertStringContainsString( 'error=general', $location );
+		$this->assertStringNotContainsString( 'message=', $location );
+	}
+
+	public function test_a_failed_update_comes_back_to_the_zone_as_an_error(): void {
+		self::insert_zone( 'taken', 'Taken' );
+
+		$location = $this->submit(
+			'update',
+			array(
+				'zone_id' => $this->zone_id,
+				'name'    => 'Form zone',
+				'slug'    => 'taken',
+			)
+		);
+
+		$this->assertStringContainsString( 'zone_id=' . $this->zone_id, $location );
+		$this->assertStringContainsString( 'error=general', $location );
+		$this->assertStringNotContainsString( 'message=', $location );
+		$this->assertSame( 'form-zone', self::zones()->get( $this->zone_id )->slug );
+	}
+
 	public function test_insert_and_update_keep_backslashes(): void {
 		// WordPress slashes $_POST, so send the fields as a browser's form post would arrive.
 		$this->submit(

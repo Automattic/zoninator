@@ -39,7 +39,7 @@ final class Assets {
 	/**
 	 * Hooks the script and the styles. PluginBootstrapper::register_hooks() calls this once.
 	 */
-	public function register_hooks() {
+	public function register_hooks(): void {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
 	}
@@ -47,7 +47,7 @@ final class Assets {
 	/**
 	 * Loads the screen's script on the Zones screen.
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		if ( ! $this->location->is_current() ) {
 			return;
 		}
@@ -80,7 +80,7 @@ final class Assets {
 	/**
 	 * Loads the screen's styles on the Zones screen.
 	 */
-	public function enqueue_styles() {
+	public function enqueue_styles(): void {
 		if ( $this->location->is_current() ) {
 			wp_enqueue_style( 'zoninator-styles', plugin_dir_url( ZONINATOR_FILE ) . 'css/zoninator.css', false, ZONINATOR_VERSION, 'all' );
 		}

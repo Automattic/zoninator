@@ -725,6 +725,71 @@ final class ZoninatorRestContractTest extends TestCase {
 		);
 	}
 
+	/**
+	 * A date with anything around it isn't a date. It used to pass, and its
+	 * month and day were then used to filter the search.
+	 *
+	 * @dataProvider data_not_dates
+	 *
+	 * @param string $date What was sent as the date.
+	 */
+	public function test_search_ignores_a_date_that_is_not_one( string $date ): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title' => 'zoninator_rest_date_canary',
+				'post_date'  => '2020-06-15 12:00:00',
+			)
+		);
+
+		$response = $this->dispatch(
+			'GET',
+			'/search',
+			array(
+				'term' => 'zoninator_rest_date_canary',
+				'date' => $date,
+			)
+		);
+
+		$this->assertSame( array( $post_id ), wp_list_pluck( $response->get_data(), 'post_id' ) );
+	}
+
+	/**
+	 * @return array<string, array{string}>
+	 */
+	public function data_not_dates(): array {
+		return array(
+			'text around a date' => array( 'x1999-01-01y' ),
+			'a date and a time'  => array( '1999-01-01 10:00:00' ),
+			'no date'            => array( '0' ),
+		);
+	}
+
+	public function test_search_filters_by_a_date(): void {
+		$on_the_day = self::factory()->post->create(
+			array(
+				'post_title' => 'zoninator_rest_date_canary one',
+				'post_date'  => '2020-06-15 12:00:00',
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_title' => 'zoninator_rest_date_canary two',
+				'post_date'  => '2020-06-16 12:00:00',
+			)
+		);
+
+		$response = $this->dispatch(
+			'GET',
+			'/search',
+			array(
+				'term' => 'zoninator_rest_date_canary',
+				'date' => '2020-06-15',
+			)
+		);
+
+		$this->assertSame( array( $on_the_day ), wp_list_pluck( $response->get_data(), 'post_id' ) );
+	}
+
 	public function test_search_without_a_term_lists_the_latest_content_without_excluded_posts(): void {
 		$post_ids = self::factory()->post->create_many( 3 );
 

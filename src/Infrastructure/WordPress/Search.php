@@ -121,7 +121,7 @@ final class Search {
 	 * @param WP_Post $post Post.
 	 * @return array The result, passed through the zoninator_search_results_post filter.
 	 */
-	private function format_search_result( $post ) {
+	private function format_search_result( $post ): mixed {
 		return apply_filters(
 			'zoninator_search_results_post',
 			array(
@@ -152,7 +152,7 @@ final class Search {
 	 * @param array $exclude Post IDs to leave out.
 	 * @return WP_Post[]
 	 */
-	private function get_posts_excluding( $args, $exclude ) {
+	private function get_posts_excluding( $args, $exclude ): array {
 		$exclude = array_unique( array_map( 'absint', (array) $exclude ) );
 		$limit   = isset( $args['posts_per_page'] ) ? (int) $args['posts_per_page'] : 0;
 
@@ -178,35 +178,35 @@ final class Search {
 	 * @param WP_Post $post Post.
 	 * @return string The label for the post's status, such as "Published", or the status itself if it has none.
 	 */
-	private function get_post_status_label( $post ) {
+	private function get_post_status_label( $post ): string {
 		$status = get_post_status_object( $post->post_status );
 
-		return $status ? $status->label : $post->post_status;
+		return (string) ( $status ? $status->label : $post->post_status );
 	}
 
 	/**
 	 * @param WP_Post $post Post.
 	 * @return string The singular label for the post's type, such as "Post", or the type itself if it has none.
 	 */
-	private function get_post_type_label( $post ) {
+	private function get_post_type_label( $post ): string {
 		$type = get_post_type_object( $post->post_type );
 
-		return $type ? $type->labels->singular_name : $post->post_type;
+		return (string) ( $type ? $type->labels->singular_name : $post->post_type );
 	}
 
 	/**
 	 * @param string $date Date filter from the search form.
 	 * @return bool Whether it's a date, as Y-m-d.
 	 */
-	private function is_valid_date_filter( $date ) {
-		return (bool) preg_match( '/(\d{4})-(\d{2})-(\d{2})/', $date );
+	private function is_valid_date_filter( $date ): bool {
+		return (bool) preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date );
 	}
 
 	/**
 	 * @param int $cat Category filter from the search form.
 	 * @return bool Whether it's a category.
 	 */
-	private function is_valid_category_filter( $cat ) {
+	private function is_valid_category_filter( $cat ): bool {
 		return $cat && get_term_by( 'id', $cat, 'category' );
 	}
 }
