@@ -112,6 +112,6 @@ class ZoninatorTaxonomyTest extends TestCase {
 	public function test_a_new_taxonomy_works_out_its_post_types(): void {
 		$taxonomy = new Taxonomy();
 
-		$this->assertContains( 'post', $taxonomy->get_post_types() );
+		$this->assertSame( array( 'post' ), $taxonomy->get_post_types() );
 	}
 }

@@ -180,16 +180,17 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 	 */
 	public function test_the_widget_prints_each_zone_it_is_asked_for(): void {
 		$other_id = self::insert_zone( 'other-widget-zone', 'Other zone' );
-		self::add_zone_posts( $this->zone_id, self::factory()->post->create() );
-		self::add_zone_posts( $other_id, self::factory()->post->create() );
+		self::add_zone_posts( $this->zone_id, self::factory()->post->create( array( 'post_title' => 'First zone post' ) ) );
+		self::add_zone_posts( $other_id, self::factory()->post->create( array( 'post_title' => 'Second zone post' ) ) );
 
 		ob_start();
 		the_widget( ZonePostsWidget::class, array( 'zone_id' => $this->zone_id ) );
 		the_widget( ZonePostsWidget::class, array( 'zone_id' => $other_id ) );
 		$html = (string) ob_get_clean();
 
-		$this->assertStringContainsString( 'Widget zone', $html );
-		$this->assertStringContainsString( 'Other zone', $html );
+		$this->assertMatchesRegularExpression( '/Widget zone.*First zone post.*Other zone.*Second zone post/s', $html );
+		$this->assertSame( 1, substr_count( $html, 'First zone post' ) );
+		$this->assertSame( 1, substr_count( $html, 'Second zone post' ) );
 	}
 
 	public function test_unregister_widget_removes_the_widget_by_its_class_name(): void {

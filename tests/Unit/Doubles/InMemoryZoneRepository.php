@@ -36,7 +36,7 @@ final class InMemoryZoneRepository implements ZoneRepositoryInterface {
 			}
 		}
 
-		$zone_id                 = count( $this->zones ) + 1;
+		$zone_id                 = $this->zones ? max( array_keys( $this->zones ) ) + 1 : 1;
 		$this->zones[ $zone_id ] = new Zone( $zone_id, $zone->get_slug(), $zone->get_name(), $zone->get_details() );
 
 		return $this->zones[ $zone_id ];

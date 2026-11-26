@@ -55,11 +55,12 @@ final class ZoninatorScreenDataTest extends TestCase {
 	 */
 	public function test_with_no_zone_asked_for_a_user_who_cannot_add_zones_gets_the_first_open(): void {
 		add_filter( 'zoninator_add_zone_cap', static fn() => 'manage_options' );
+		self::insert_zone( 'later-zone', 'Later zone' );
 
 		$data = $this->load( 0 );
 
 		$this->assertFalse( $data->can_add_zones );
-		$this->assertSame( (int) $data->zones[0]->term_id, $data->get_zone_id() );
+		$this->assertSame( $this->zone_id, $data->get_zone_id() );
 	}
 
 	public function test_a_zone_that_does_not_exist_is_not_opened(): void {

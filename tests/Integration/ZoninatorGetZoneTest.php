@@ -46,8 +46,11 @@ class ZoninatorGetZoneTest extends TestCase {
 	}
 
 	public function test_get_zone_fills_zone_details() {
-		$zone = self::zones()->get( $this->zone_id );
+		$zone_id = self::insert_zone( 'described-zone', 'Described zone', array( 'description' => 'About the zone' ) );
 
+		$zone = self::zones()->get( $zone_id );
+
+		$this->assertSame( 'About the zone', $zone->description );
 		$this->assertTrue( $zone->zoninator_parsed );
 	}
 

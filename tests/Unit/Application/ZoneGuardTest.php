@@ -88,9 +88,12 @@ final class ZoneGuardTest extends TestCase {
 	}
 
 	public function test_a_user_who_may_not_create_zones_is_refused(): void {
-		$this->expectException( AccessDeniedException::class );
-
-		$this->manager->create( self::OTHER, 'homepage' );
+		try {
+			$this->manager->create( self::OTHER, 'homepage' );
+			$this->fail( 'Expected the user to be refused.' );
+		} catch ( AccessDeniedException ) {
+			$this->assertNull( $this->zones->find( 1 ) );
+		}
 	}
 
 	/**

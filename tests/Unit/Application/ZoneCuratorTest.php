@@ -110,7 +110,7 @@ final class ZoneCuratorTest extends TestCase {
 
 		$this->curator->add_posts( $this->zone_id, array( 6 ) );
 
-		$this->addToAssertionCount( 1 );
+		$this->assertSame( array( 5, 6 ), $this->zone_posts->post_ids[ $this->zone_id ] );
 	}
 
 	public function test_a_zones_posts_can_not_be_set_past_its_limit(): void {
