@@ -213,7 +213,7 @@ Fires after one or more posts have been added to a zone.
 
 `$post_ids` is always an array of post IDs, however the posts were added. Before 1.0.0 it was whatever the caller passed: an ID, an array of IDs, or `WP_Post` objects.
 
-Replacing the zone's posts, rather than appending, first removes every post in the zone, so `zoninator_remove_zone_posts` fires before this.
+Replacing the zone's posts, rather than appending, fires `zoninator_remove_zone_posts` with every post that was in the zone, then this with every post now in it. Only the posts that leave the zone or change place are written.
 
 When posts are appended, `$post_ids` holds only the ones that weren't in the zone already, as those keep their place. If none were new, the action doesn't fire.
 

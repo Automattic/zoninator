@@ -67,7 +67,17 @@ final class PostMetaZonePostsRepository implements ZonePostsRepositoryInterface 
 	 * @param int[] $post_ids Post IDs.
 	 */
 	public function replace( int $zone_id, array $post_ids ): void {
-		$this->clear( $zone_id );
+		$current = $this->get_post_ids( $zone_id );
+
+		// Only the posts leaving the zone lose their place. The rest keep their meta, and
+		// write() leaves alone any position that hasn't changed, so a reorder writes only
+		// the posts that move. The actions still pass every post, as they did when the
+		// whole zone was cleared first.
+		foreach ( array_diff( $current, $post_ids ) as $post_id ) {
+			delete_metadata( 'post', $post_id, $this->get_meta_key( $zone_id ) );
+		}
+
+		$this->changed( 'zoninator_remove_zone_posts', $zone_id, $current );
 		$this->write( $zone_id, $post_ids, 0 );
 	}
 
@@ -104,7 +114,8 @@ final class PostMetaZonePostsRepository implements ZonePostsRepositoryInterface 
 	private function write( int $zone_id, array $post_ids, int $position ): void {
 		foreach ( $post_ids as $post_id ) {
 			++$position;
-			update_metadata( 'post', $post_id, $this->get_meta_key( $zone_id ), $position );
+			// A string, as meta is stored, so update_metadata() skips a position that's unchanged.
+			update_metadata( 'post', $post_id, $this->get_meta_key( $zone_id ), (string) $position );
 		}
 
 		$this->changed( 'zoninator_add_zone_posts', $zone_id, $post_ids );
