@@ -15,6 +15,10 @@ use WP_Term;
  * Reads zones and their posts for WordPress code, as WP_Term, WP_Post and
  * WP_Query. The template tags are built on it.
  *
+ * A zone argument is an ID, a slug or the zone's term, and is left untyped,
+ * as are query args: themes pass them straight from the template tags, and
+ * anything that isn't a zone should give an empty result, not a fatal error.
+ *
  * To change a zone, use the Application layer: ZoneManager and ZoneCurator.
  *
  * @since 0.12.0
@@ -62,8 +66,136 @@ final class Zones {
 		$this->terms        = $terms;
 	}
 
-	public function get_posts( $zone, $args = array() ) {
+	/**
+	 * Gets every zone.
+	 *
+	 * @param array|string $args Optional. get_terms() args to change the defaults.
+	 * @return WP_Term[]|false The zones, each with its details as properties, or false if they can't be read. With a fields arg, whatever get_terms() gives.
+	 */
+	public function get_all( $args = array() ): array|false {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'orderby'    => 'id',
+				'order'      => 'ASC',
+				'hide_empty' => 0,
+			)
+		);
+
+		// Always the zone taxonomy, whatever the args say.
+		$args['taxonomy'] = Taxonomy::NAME;
+
+		$zones = get_terms( $args );
+
+		// A WP_Error, or the count a fields arg of 'count' gives.
+		if ( ! is_array( $zones ) ) {
+			return false;
+		}
+
+		return array_map( array( $this->terms, 'fill_details' ), $zones );
+	}
+
+	/**
+	 * Gets a zone.
+	 *
+	 * @param int|string|WP_Term $zone Zone ID, slug or term. A string is always a slug, even if it's all digits.
+	 * @return WP_Term|false The zone, with its details as properties, or false if there's no such zone.
+	 */
+	public function get( $zone ): WP_Term|false {
+		if ( is_int( $zone ) ) {
+			$zone = get_term_by( 'id', $zone, Taxonomy::NAME );
+		} elseif ( is_string( $zone ) ) {
+			$zone = get_term_by( 'slug', $zone, Taxonomy::NAME );
+		}
+
+		return $zone instanceof WP_Term ? $this->terms->fill_details( $zone ) : false;
+	}
+
+	/**
+	 * Gets a zone's ID.
+	 *
+	 * @param int|string|WP_Term $zone Zone ID, slug or term. An ID is returned as it is, without checking there's such a zone.
+	 * @return int The ID, or 0 if there's no such zone.
+	 */
+	public function get_id( $zone ): int {
+		if ( is_int( $zone ) ) {
+			return $zone;
+		}
+
+		$zone = $this->get( $zone );
+
+		return $zone ? (int) $zone->term_id : 0;
+	}
+
+	/**
+	 * Gets the post meta key that holds each post's position in a zone.
+	 *
+	 * @param int|string|WP_Term $zone Zone ID, slug or term.
+	 * @return string
+	 */
+	public function get_meta_key( $zone ): string {
+		return self::META_PREFIX . $this->get_id( $zone );
+	}
+
+	/**
+	 * Gets the posts in a zone, in zone order.
+	 *
+	 * @param int|string|WP_Term $zone Zone ID, slug or term.
+	 * @param array|string       $args Optional. WP_Query args to change the defaults.
+	 * @return WP_Post[] The posts.
+	 */
+	public function get_posts( $zone, $args = array() ): array {
 		return $this->get_query( $zone, $args )->posts;
+	}
+
+	/**
+	 * Gets a query for the posts in a zone, in zone order.
+	 *
+	 * @param int|string|WP_Term $zone Zone ID, slug or term.
+	 * @param array|string       $args Optional. WP_Query args to change the defaults.
+	 * @return WP_Query
+	 */
+	public function get_query( $zone, $args = array() ): WP_Query {
+		return new WP_Query( $this->get_query_args( $zone, $args ) );
+	}
+
+	/**
+	 * Gets the WP_Query args for a zone's posts, in zone order.
+	 *
+	 * The zone Query Loop block uses these too, so every way of listing a
+	 * zone follows the same rules.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param int|string|WP_Term $zone Zone ID, slug or term.
+	 * @param array|string       $args Optional. Query args to change the defaults.
+	 * @return array
+	 */
+	public function get_query_args( $zone, $args = array() ): array {
+		$defaults = array(
+			'order'               => 'ASC',
+			// phpcs:ignore WordPressVIPMinimum.Performance.NoPaging.posts_per_page_posts_per_page -- Zones are hand-curated and small; callers expect every post in the zone, and can pass their own limit.
+			'posts_per_page'      => -1,
+			'post_type'           => $this->taxonomy->get_post_types(),
+			'ignore_sticky_posts' => '1', // don't want sticky posts messing up our order
+		);
+
+		if ( ! $this->shows_unpublished_posts() ) {
+			$defaults['post_status'] = array( 'publish' );
+		}
+
+		if ( is_admin() ) { // skip APC in the admin
+			// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters
+			$defaults['suppress_filters'] = true;
+		}
+
+		$args = wp_parse_args( $args, $defaults );
+
+		// Un-overridable args
+		$args['orderby']  = 'meta_value_num';
+		$args['meta_key'] = $this->get_meta_key( $zone );
+
+		return $args;
 	}
 
 	/**
@@ -74,16 +206,16 @@ final class Zones {
 	 * where get_posts() would list it: a supported post type, and published
 	 * unless a zone manager is in the admin.
 	 *
-	 * @param int $post_id Post ID.
-	 * @return WP_Term[] The zones, by zone ID.
+	 * @param int|WP_Post $post Post ID or post.
+	 * @return WP_Term[] The zones, in order of zone ID.
 	 */
-	public function get_for_post( $post_id ) {
-		$post = get_post( $post_id );
+	public function get_for_post( $post ): array {
+		$post = get_post( $post );
 		if ( ! $post || ! in_array( $post->post_type, $this->taxonomy->get_post_types(), true ) ) {
 			return array();
 		}
 
-		if ( 'publish' !== $post->post_status && ( ! is_admin() || ! $this->capabilities->can_curate_zones( get_current_user_id() ) ) ) {
+		if ( 'publish' !== $post->post_status && ! $this->shows_unpublished_posts() ) {
 			return array();
 		}
 
@@ -98,207 +230,37 @@ final class Zones {
 		return array_values( array_filter( array_map( array( $this, 'get' ), $zone_ids ) ) );
 	}
 
-	public function get_query( $zone, $args = array() ) {
-		return new WP_Query( $this->get_query_args( $zone, $args ) );
+	/**
+	 * Gets the post before a post in a zone.
+	 *
+	 * @param int|string|WP_Term $zone Zone ID, slug or term.
+	 * @param int|WP_Post        $post Post ID or post.
+	 * @return WP_Post|false The previous post, or false if there's none or the post isn't in the zone.
+	 */
+	public function get_prev_post( $zone, $post ): WP_Post|false {
+		return $this->get_adjacent_post( $zone, $post, '<', 'DESC' );
 	}
 
 	/**
-	 * Gets the WP_Query args for a zone's posts, in zone order.
+	 * Gets the post after a post in a zone.
 	 *
-	 * The zone Query Loop block uses these too, so every way of listing a
-	 * zone follows the same rules.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param int|string|WP_Term $zone Zone.
-	 * @param array              $args Optional. Query args to change the defaults.
-	 * @return array
+	 * @param int|string|WP_Term $zone Zone ID, slug or term.
+	 * @param int|WP_Post        $post Post ID or post.
+	 * @return WP_Post|false The next post, or false if there's none or the post isn't in the zone.
 	 */
-	public function get_query_args( $zone, $args = array() ) {
-		$meta_key = $this->get_meta_key( $zone );
-
-		$defaults = array(
-			'order'               => 'ASC',
-			// phpcs:ignore WordPressVIPMinimum.Performance.NoPaging.posts_per_page_posts_per_page -- Zones are hand-curated and small; callers expect every post in the zone, and can pass their own limit.
-			'posts_per_page'      => -1,
-			'post_type'           => $this->taxonomy->get_post_types(),
-			'ignore_sticky_posts' => '1', // don't want sticky posts messing up our order
-		);
-
-		// Default to published posts, except for zone managers in the admin.
-		// is_admin() alone is true for every admin-ajax.php and admin-post.php
-		// request, including logged-out ones.
-		if ( ! is_admin() || ! $this->capabilities->can_curate_zones( get_current_user_id() ) ) {
-			$defaults['post_status'] = array( 'publish' );
-		}
-
-		if ( is_admin() ) { // skip APC in the admin
-			// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters
-			$defaults['suppress_filters'] = true;
-		}
-
-		$args = wp_parse_args( $args, $defaults );
-
-		// Un-overridable args
-		$args['orderby']  = 'meta_value_num';
-		$args['meta_key'] = $meta_key;
-
-		return $args;
-	}
-
-	public function get_prev_post( $zone, $post_id ) {
-		return $this->get_adjacent_post( $zone, $post_id, '<', 'DESC' );
-	}
-
-	public function get_next_post( $zone, $post_id ) {
-		return $this->get_adjacent_post( $zone, $post_id, '>', 'ASC' );
+	public function get_next_post( $zone, $post ): WP_Post|false {
+		return $this->get_adjacent_post( $zone, $post, '>', 'ASC' );
 	}
 
 	/**
-	 * Get the post just before or after a post in a zone.
+	 * Gets a post's position in a zone.
 	 *
-	 * @param int|string|WP_Term $zone    Zone.
-	 * @param int|WP_Post        $post_id Post in the zone.
-	 * @param string             $compare '<' for the post before, '>' for the post after.
-	 * @param string             $order   'DESC' for the post before, 'ASC' for the post after.
-	 * @return WP_Post|false The adjacent post, or false if there's none or the post isn't in the zone.
+	 * @param int                $post_id Post ID.
+	 * @param int|string|WP_Term $zone    Zone ID, slug or term.
+	 * @return string The position, counted from 1, or '' if the post isn't in the zone.
 	 */
-	private function get_adjacent_post( $zone, $post_id, $compare, $order ) {
-		$position = $this->get_post_order( $post_id, $zone );
-
-		if ( '' === $position || false === $position ) {
-			return false;
-		}
-
-		return $this->get_single_post(
-			$zone,
-			array(
-				'order'        => $order,
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-				'meta_value'   => (int) $position,
-				'meta_compare' => $compare,
-				'meta_type'    => 'NUMERIC',
-			)
-		);
-	}
-
-	private function get_single_post( $zone, $args = array() ) {
-
-		$args = wp_parse_args(
-			$args,
-			array(
-				'posts_per_page' => 1,
-				'showposts'      => 1,
-				// One post is returned, so counting every match is wasted work.
-				'no_found_rows'  => true,
-			)
-		);
-
-		$post = $this->get_posts( $zone, $args );
-
-		if ( is_array( $post ) && array() !== $post ) {
-			return array_pop( $post );
-		}
-
-		return false;
-	}
-
-	public function get_all( $args = array() ) {
-
-		$args = wp_parse_args(
-			$args,
-			array(
-				'orderby'    => 'id',
-				'order'      => 'ASC',
-				'hide_empty' => 0,
-			)
-		);
-
-		// Always the zone taxonomy, as the old get_terms( $taxonomy, $args ) call ensured.
-		$args['taxonomy'] = Taxonomy::NAME;
-
-		$zones = get_terms( $args );
-
-		if ( ! is_wp_error( $zones ) ) {
-			// Add extra fields in description as properties
-			foreach ( $zones as $key => $zone ) {
-				$zones[ $key ] = $this->fill_details( $zone );
-			}
-
-			return $zones;
-		}
-
-		return false;
-	}
-
-	public function get( $zone ) {
-		if ( is_int( $zone ) ) {
-			$field = 'id';
-		} elseif ( is_string( $zone ) ) {
-			$field = 'slug';
-			$zone  = $this->get_slug( $zone );
-		} elseif ( is_object( $zone ) ) {
-			return $zone;
-		} else {
-			return false;
-		}
-
-		$zone = get_term_by( $field, $zone, Taxonomy::NAME );
-
-		if ( ! $zone ) {
-			return false;
-		}
-
-		return $this->fill_details( $zone );
-	}
-
-	public function get_id( $zone ) {
-		if ( is_int( $zone ) ) {
-			return $zone;
-		}
-
-		$zone = $this->get( $zone );
-		if ( is_object( $zone ) ) {
-			$zone = $zone->term_id;
-		}
-
-		return (int) $zone;
-	}
-
-	public function get_meta_key( $zone ) {
-		$zone_id = $this->get_id( $zone );
-		return self::META_PREFIX . $zone_id;
-	}
-
-	public function get_slug( $zone ) {
-		if ( is_int( $zone ) ) {
-			$zone = $this->get( $zone );
-		}
-
-		if ( is_object( $zone ) ) {
-			$zone = $zone->slug;
-		}
-
-		return $zone;
-	}
-
-	public function get_post_id( $post ) {
-		if ( is_int( $post ) ) {
-			return $post;
-		} elseif ( is_array( $post ) ) {
-			return absint( $post['ID'] );
-		} elseif ( is_object( $post ) ) {
-			return $post->ID;
-		}
-
-		return false;
-	}
-
-	public function get_post_order( $post, $zone ) {
-		$post_id  = $this->get_post_id( $post );
-		$meta_key = $this->get_meta_key( $zone );
-
-		return get_metadata( 'post', $post_id, $meta_key, true );
+	public function get_post_order( int $post_id, $zone ): string {
+		return (string) get_metadata( 'post', $post_id, $this->get_meta_key( $zone ), true );
 	}
 
 	/**
@@ -318,7 +280,55 @@ final class Zones {
 		);
 	}
 
-	public function fill_details( $zone ) {
-		return $this->terms->fill_details( $zone );
+	/**
+	 * Whether a zone's unpublished posts are listed with its published ones:
+	 * only in the admin, for a user who may curate zones.
+	 *
+	 * This asks WordPress about the request, where the caller could have been
+	 * made to say. It can't usefully: with no post_status, WP_Query decides
+	 * which statuses the admin lists by asking is_admin() itself, so a caller
+	 * that set them here would have to copy that logic and keep it in step.
+	 *
+	 * is_admin() alone is true for every admin-ajax.php and admin-post.php
+	 * request, including logged-out ones, so the user is checked too.
+	 *
+	 * @return bool
+	 */
+	private function shows_unpublished_posts(): bool {
+		return is_admin() && $this->capabilities->can_curate_zones( get_current_user_id() );
+	}
+
+	/**
+	 * Gets the post just before or after a post in a zone.
+	 *
+	 * @param int|string|WP_Term $zone    Zone ID, slug or term.
+	 * @param int|WP_Post        $post    Post ID or post.
+	 * @param string             $compare '<' for the post before, '>' for the post after.
+	 * @param string             $order   'DESC' for the post before, 'ASC' for the post after.
+	 * @return WP_Post|false The adjacent post, or false if there's none or the post isn't in the zone.
+	 */
+	private function get_adjacent_post( $zone, $post, string $compare, string $order ): WP_Post|false {
+		$post     = get_post( $post );
+		$position = $post ? $this->get_post_order( $post->ID, $zone ) : '';
+
+		if ( '' === $position ) {
+			return false;
+		}
+
+		$posts = $this->get_posts(
+			$zone,
+			array(
+				'order'          => $order,
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_value'     => (int) $position,
+				'meta_compare'   => $compare,
+				'meta_type'      => 'NUMERIC',
+				'posts_per_page' => 1,
+				// One post is returned, so counting every match is wasted work.
+				'no_found_rows'  => true,
+			)
+		);
+
+		return $posts ? $posts[0] : false;
 	}
 }

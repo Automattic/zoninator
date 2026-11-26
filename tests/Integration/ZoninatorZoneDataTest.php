@@ -170,6 +170,13 @@ class ZoninatorZoneDataTest extends TestCase {
 		$this->assertSame( array(), $this->zone_post_ids() );
 	}
 
+	public function test_the_post_beside_another_can_be_asked_for_by_id_or_post(): void {
+		$this->assertSame( $this->post_ids[1], self::zones()->get_next_post( $this->zone_id, $this->post_ids[0] )->ID );
+		$this->assertSame( $this->post_ids[1], self::zones()->get_prev_post( 'data-zone', get_post( $this->post_ids[2] ) )->ID );
+		$this->assertFalse( self::zones()->get_next_post( $this->zone_id, $this->post_ids[2] ) );
+		$this->assertFalse( self::zones()->get_next_post( $this->zone_id, self::factory()->post->create() ) );
+	}
+
 	public function test_post_order_is_its_position_in_the_zone(): void {
 		$this->assertSame( '2', self::zones()->get_post_order( $this->post_ids[1], $this->zone_id ) );
 		$this->assertSame( '', self::zones()->get_post_order( self::factory()->post->create(), $this->zone_id ) );
@@ -195,20 +202,10 @@ class ZoninatorZoneDataTest extends TestCase {
 		foreach ( array( $this->zone_id, 'data-zone', $zone ) as $reference ) {
 			$this->assertSame( $this->zone_id, self::zones()->get_id( $reference ) );
 			$this->assertSame( '_zoninator_order_' . $this->zone_id, self::zones()->get_meta_key( $reference ) );
-			$this->assertSame( 'data-zone', self::zones()->get_slug( $reference ) );
 		}
 
 		$this->assertSame( 0, self::zones()->get_id( 'no-such-zone' ) );
 		$this->assertFalse( self::zones()->get( 'no-such-zone' ) );
-	}
-
-	public function test_get_post_id_accepts_an_id_array_or_object(): void {
-		$post = get_post( $this->post_ids[0] );
-
-		$this->assertSame( $post->ID, self::zones()->get_post_id( $post->ID ) );
-		$this->assertSame( $post->ID, self::zones()->get_post_id( array( 'ID' => (string) $post->ID ) ) );
-		$this->assertSame( $post->ID, self::zones()->get_post_id( $post ) );
-		$this->assertFalse( self::zones()->get_post_id( (string) $post->ID ) );
 	}
 
 	/**
