@@ -16,6 +16,7 @@ use Automattic\Zoninator\Domain\ZoneNotFoundException;
 use Automattic\Zoninator\Tests\Unit\Doubles\FixedSettings;
 use Automattic\Zoninator\Tests\Unit\Doubles\InMemoryZonePostsRepository;
 use Automattic\Zoninator\Tests\Unit\Doubles\InMemoryZoneRepository;
+use Generator;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use stdClass;
@@ -164,14 +165,12 @@ final class ZoneCuratorTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string, array}>
+	 * @return Generator<string, array{string, array}>
 	 */
-	public function data_changes(): array {
-		return array(
-			'add'    => array( 'add_posts', array( array( 5 ) ) ),
-			'set'    => array( 'set_posts', array( array( 5 ) ) ),
-			'remove' => array( 'remove_posts', array( array( 5 ) ) ),
-			'clear'  => array( 'clear_posts', array() ),
-		);
+	public static function data_changes(): Generator {
+		yield 'add' => array( 'add_posts', array( array( 5 ) ) );
+		yield 'set' => array( 'set_posts', array( array( 5 ) ) );
+		yield 'remove' => array( 'remove_posts', array( array( 5 ) ) );
+		yield 'clear' => array( 'clear_posts', array() );
 	}
 }

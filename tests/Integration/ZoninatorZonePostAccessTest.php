@@ -9,6 +9,7 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Generator;
 use WP_REST_Request;
 
 class ZoninatorZonePostAccessTest extends TestCase {
@@ -65,13 +66,11 @@ class ZoninatorZonePostAccessTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_rest_zone_post_methods(): array {
-		return array(
-			'add'    => array( 'POST' ),
-			'remove' => array( 'DELETE' ),
-		);
+	public static function data_rest_zone_post_methods(): Generator {
+		yield 'add' => array( 'POST' );
+		yield 'remove' => array( 'DELETE' );
 	}
 
 	/**
@@ -97,13 +96,11 @@ class ZoninatorZonePostAccessTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_search_terms(): array {
-		return array(
-			'text search'    => array( 'zoninator-canary' ),
-			'latest content' => array( '' ),
-		);
+	public static function data_search_terms(): Generator {
+		yield 'text search' => array( 'zoninator-canary' );
+		yield 'latest content' => array( '' );
 	}
 
 	public function test_rest_update_rejects_a_post_the_user_cannot_read(): void {

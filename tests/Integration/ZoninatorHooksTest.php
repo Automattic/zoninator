@@ -33,6 +33,7 @@ use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
 use Automattic\Zoninator\Infrastructure\WordPress\Widgets;
 use Automattic\Zoninator\Infrastructure\WordPress\Zones;
+use Generator;
 
 class ZoninatorHooksTest extends TestCase {
 
@@ -106,38 +107,36 @@ class ZoninatorHooksTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string, callable, int}>
+	 * @return Generator<string, array{string, callable, int}>
 	 */
-	public function data_unhook_calls(): array {
+	public static function data_unhook_calls(): Generator {
 		$assets    = zoninator_container()->get( Assets::class );
 		$abilities = zoninator_container()->get( Abilities::class );
 		$search    = zoninator_container()->get( SearchForm::class );
 		$feed      = zoninator_container()->get( FeedEndpoint::class );
 		$block     = zoninator_container()->get( Block::class );
 
-		return array(
-			'taxonomy'           => array( 'init', array( zoninator_container()->get( Taxonomy::class ), 'register' ), 10 ),
-			'widget'             => array( 'widgets_init', array( zoninator_container()->get( Widgets::class ), 'register' ), 10 ),
-			'feed rewrite'       => array( 'init', array( $feed, 'add_rewrite_rule' ), 10 ),
-			'feed'               => array( 'template_redirect', array( $feed, 'serve' ), 10 ),
-			'block query'        => array( 'query_loop_block_query_vars', array( $block, 'filter_query_vars' ), 10 ),
-			'block preview'      => array( 'rest_post_query', array( $block, 'filter_rest_query' ), 10 ),
-			'block editor'       => array( 'enqueue_block_editor_assets', array( $block, 'enqueue_editor_assets' ), 10 ),
-			'zones routes'       => array( 'rest_api_init', array( zoninator_container()->get( ZonesController::class ), 'register_routes' ), 10 ),
-			'zone posts routes'  => array( 'rest_api_init', array( zoninator_container()->get( ZonePostsController::class ), 'register_routes' ), 10 ),
-			'search route'       => array( 'rest_api_init', array( zoninator_container()->get( SearchController::class ), 'register_routes' ), 10 ),
-			'lock route'         => array( 'rest_api_init', array( zoninator_container()->get( LockController::class ), 'register_routes' ), 10 ),
-			'row route'          => array( 'rest_api_init', array( zoninator_container()->get( ZonePostRowController::class ), 'register_routes' ), 10 ),
-			'ability category'   => array( 'wp_abilities_api_categories_init', array( $abilities, 'register_category' ), 10 ),
-			'reading abilities'  => array( 'wp_abilities_api_init', array( $abilities, 'register' ), 10 ),
-			'curation abilities' => array( 'wp_abilities_api_init', array( zoninator_container()->get( CurationAbilities::class ), 'register' ), 10 ),
-			'form handling'      => array( 'admin_init', array( zoninator_container()->get( ZoneForm::class ), 'handle_request' ), 10 ),
-			'scripts'            => array( 'admin_enqueue_scripts', array( $assets, 'enqueue_scripts' ), 10 ),
-			'styles'             => array( 'admin_enqueue_scripts', array( $assets, 'enqueue_styles' ), 10 ),
-			'menu'               => array( 'admin_menu', array( zoninator_container()->get( Screen::class ), 'register' ), 10 ),
-			'category field'     => array( 'zoninator_advanced_search_fields', array( $search, 'render_category_filter' ), 10 ),
-			'date field'         => array( 'zoninator_advanced_search_fields', array( $search, 'render_date_filter' ), 20 ),
-		);
+		yield 'taxonomy' => array( 'init', array( zoninator_container()->get( Taxonomy::class ), 'register' ), 10 );
+		yield 'widget' => array( 'widgets_init', array( zoninator_container()->get( Widgets::class ), 'register' ), 10 );
+		yield 'feed rewrite' => array( 'init', array( $feed, 'add_rewrite_rule' ), 10 );
+		yield 'feed' => array( 'template_redirect', array( $feed, 'serve' ), 10 );
+		yield 'block query' => array( 'query_loop_block_query_vars', array( $block, 'filter_query_vars' ), 10 );
+		yield 'block preview' => array( 'rest_post_query', array( $block, 'filter_rest_query' ), 10 );
+		yield 'block editor' => array( 'enqueue_block_editor_assets', array( $block, 'enqueue_editor_assets' ), 10 );
+		yield 'zones routes' => array( 'rest_api_init', array( zoninator_container()->get( ZonesController::class ), 'register_routes' ), 10 );
+		yield 'zone posts routes' => array( 'rest_api_init', array( zoninator_container()->get( ZonePostsController::class ), 'register_routes' ), 10 );
+		yield 'search route' => array( 'rest_api_init', array( zoninator_container()->get( SearchController::class ), 'register_routes' ), 10 );
+		yield 'lock route' => array( 'rest_api_init', array( zoninator_container()->get( LockController::class ), 'register_routes' ), 10 );
+		yield 'row route' => array( 'rest_api_init', array( zoninator_container()->get( ZonePostRowController::class ), 'register_routes' ), 10 );
+		yield 'ability category' => array( 'wp_abilities_api_categories_init', array( $abilities, 'register_category' ), 10 );
+		yield 'reading abilities' => array( 'wp_abilities_api_init', array( $abilities, 'register' ), 10 );
+		yield 'curation abilities' => array( 'wp_abilities_api_init', array( zoninator_container()->get( CurationAbilities::class ), 'register' ), 10 );
+		yield 'form handling' => array( 'admin_init', array( zoninator_container()->get( ZoneForm::class ), 'handle_request' ), 10 );
+		yield 'scripts' => array( 'admin_enqueue_scripts', array( $assets, 'enqueue_scripts' ), 10 );
+		yield 'styles' => array( 'admin_enqueue_scripts', array( $assets, 'enqueue_styles' ), 10 );
+		yield 'menu' => array( 'admin_menu', array( zoninator_container()->get( Screen::class ), 'register' ), 10 );
+		yield 'category field' => array( 'zoninator_advanced_search_fields', array( $search, 'render_category_filter' ), 10 );
+		yield 'date field' => array( 'zoninator_advanced_search_fields', array( $search, 'render_date_filter' ), 20 );
 	}
 
 	/**
@@ -209,17 +208,15 @@ class ZoninatorHooksTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_removed_ajax_actions(): array {
-		return array(
-			'add post'      => array( 'zoninator_add_post' ),
-			'remove post'   => array( 'zoninator_remove_post' ),
-			'reorder posts' => array( 'zoninator_reorder_posts' ),
-			'search posts'  => array( 'zoninator_search_posts' ),
-			'update lock'   => array( 'zoninator_update_lock' ),
-			'recent posts'  => array( 'zoninator_update_recent' ),
-		);
+	public static function data_removed_ajax_actions(): Generator {
+		yield 'add post' => array( 'zoninator_add_post' );
+		yield 'remove post' => array( 'zoninator_remove_post' );
+		yield 'reorder posts' => array( 'zoninator_reorder_posts' );
+		yield 'search posts' => array( 'zoninator_search_posts' );
+		yield 'update lock' => array( 'zoninator_update_lock' );
+		yield 'recent posts' => array( 'zoninator_update_recent' );
 	}
 
 	public function test_menu_page_renders_with_the_screen(): void {

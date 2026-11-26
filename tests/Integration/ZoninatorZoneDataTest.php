@@ -13,6 +13,7 @@ namespace Automattic\Zoninator\Tests\Integration;
 
 use Automattic\Zoninator\Domain\InvalidZoneException;
 use Automattic\Zoninator\Domain\ZoneNotFoundException;
+use Generator;
 
 class ZoninatorZoneDataTest extends TestCase {
 
@@ -103,13 +104,11 @@ class ZoninatorZoneDataTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_changes_to_a_missing_zone(): array {
-		return array(
-			'update' => array( 'update' ),
-			'delete' => array( 'delete' ),
-		);
+	public static function data_changes_to_a_missing_zone(): Generator {
+		yield 'update' => array( 'update' );
+		yield 'delete' => array( 'delete' );
 	}
 
 	public function test_delete_zone_fires_its_action(): void {

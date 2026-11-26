@@ -9,6 +9,7 @@ namespace Automattic\Zoninator\Tests\Integration;
 
 use Automattic\Zoninator\Application\ZoneManager;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use Generator;
 use WP_REST_Request;
 use WP_Term;
 
@@ -86,18 +87,16 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_text_core_would_change(): array {
-		return array(
-			'an ampersand'             => array( 'Tom & Jerry' ),
-			'a quote and semicolon'    => array( 'He said "hi"; she left' ),
-			'an apostrophe'            => array( "The editor's picks" ),
-			'tags core would strip'    => array( 'Top <script>alert(1)</script> stories' ),
-			'tags core would keep'     => array( 'Top <b>stories</b>' ),
-			'what looks like length'   => array( 'a";s:1:"b' ),
-			'text that names entities' => array( 'Write &amp; or &quot; or &eacute;' ),
-		);
+	public static function data_text_core_would_change(): Generator {
+		yield 'an ampersand' => array( 'Tom & Jerry' );
+		yield 'a quote and semicolon' => array( 'He said "hi"; she left' );
+		yield 'an apostrophe' => array( "The editor's picks" );
+		yield 'tags core would strip' => array( 'Top <script>alert(1)</script> stories' );
+		yield 'tags core would keep' => array( 'Top <b>stories</b>' );
+		yield 'what looks like length' => array( 'a";s:1:"b' );
+		yield 'text that names entities' => array( 'Write &amp; or &quot; or &eacute;' );
 	}
 
 	/**

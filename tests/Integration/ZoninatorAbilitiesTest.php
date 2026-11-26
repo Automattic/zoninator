@@ -9,6 +9,7 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Generator;
 use WP_Error;
 
 final class ZoninatorAbilitiesTest extends TestCase {
@@ -57,12 +58,12 @@ final class ZoninatorAbilitiesTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_ability_names(): array {
-		$names = array( 'zoninator/list-zones', 'zoninator/get-zone-posts', 'zoninator/search-posts' );
-
-		return array_combine( $names, array_map( static fn( $name ) => array( $name ), $names ) );
+	public static function data_ability_names(): Generator {
+		foreach ( array( 'zoninator/list-zones', 'zoninator/get-zone-posts', 'zoninator/search-posts' ) as $name ) {
+			yield $name => array( $name );
+		}
 	}
 
 	public function test_list_zones_returns_the_zones(): void {
@@ -266,12 +267,12 @@ final class ZoninatorAbilitiesTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_write_ability_names(): array {
-		$names = array( 'zoninator/add-zone-posts', 'zoninator/set-zone-posts', 'zoninator/remove-zone-posts' );
-
-		return array_combine( $names, array_map( static fn( $name ) => array( $name ), $names ) );
+	public static function data_write_ability_names(): Generator {
+		foreach ( array( 'zoninator/add-zone-posts', 'zoninator/set-zone-posts', 'zoninator/remove-zone-posts' ) as $name ) {
+			yield $name => array( $name );
+		}
 	}
 
 	public function test_the_write_abilities_add_order_and_remove_posts(): void {

@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace Automattic\Zoninator\Tests\Integration;
 
 use Automattic\Zoninator\Infrastructure\WordPress\ZonePostsWidget;
+use Generator;
 use WP_Query;
 
 final class ZoninatorZonePostsWidgetTest extends TestCase {
@@ -117,15 +118,13 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_zone_changes(): array {
-		return array(
-			'post added'   => array( 'add' ),
-			'post removed' => array( 'remove' ),
-			'zone renamed' => array( 'rename' ),
-			'zone deleted' => array( 'delete' ),
-		);
+	public static function data_zone_changes(): Generator {
+		yield 'post added' => array( 'add' );
+		yield 'post removed' => array( 'remove' );
+		yield 'zone renamed' => array( 'rename' );
+		yield 'zone deleted' => array( 'delete' );
 	}
 
 	/**

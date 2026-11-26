@@ -12,6 +12,7 @@ namespace Automattic\Zoninator\Tests\Integration;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenLocation;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use Generator;
 use RuntimeException;
 use WPDieException;
 
@@ -261,13 +262,11 @@ final class ZoninatorAdminControllerTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public static function data_zone_actions(): array {
-		return array(
-			'update' => array( 'update' ),
-			'delete' => array( 'delete' ),
-		);
+	public static function data_zone_actions(): Generator {
+		yield 'update' => array( 'update' );
+		yield 'delete' => array( 'delete' );
 	}
 
 	/**
@@ -293,14 +292,12 @@ final class ZoninatorAdminControllerTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_actions(): array {
-		return array(
-			'insert' => array( 'insert' ),
-			'update' => array( 'update' ),
-			'delete' => array( 'delete' ),
-		);
+	public static function data_actions(): Generator {
+		yield 'insert' => array( 'insert' );
+		yield 'update' => array( 'update' );
+		yield 'delete' => array( 'delete' );
 	}
 
 	/**

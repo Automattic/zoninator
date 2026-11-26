@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace Automattic\Zoninator\Tests\Integration;
 
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use Generator;
 
 class ZoninatorTaxonomyTest extends TestCase {
 
@@ -51,15 +52,13 @@ class ZoninatorTaxonomyTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_term_caps(): array {
-		return array(
-			'manage_terms' => array( 'manage_terms' ),
-			'edit_terms'   => array( 'edit_terms' ),
-			'delete_terms' => array( 'delete_terms' ),
-			'assign_terms' => array( 'assign_terms' ),
-		);
+	public static function data_term_caps(): Generator {
+		yield 'manage_terms' => array( 'manage_terms' );
+		yield 'edit_terms' => array( 'edit_terms' );
+		yield 'delete_terms' => array( 'delete_terms' );
+		yield 'assign_terms' => array( 'assign_terms' );
 	}
 
 	public function test_a_post_saved_with_tax_input_does_not_add_a_zone(): void {
