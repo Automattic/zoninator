@@ -28,7 +28,8 @@ use WP_Term;
  * which then no longer unserialise. Text with only those three characters
  * encoded, and its quotes left alone, is the one form the filters pass as it
  * is. Encoding it here, not where a request comes in, covers every way a zone
- * is saved.
+ * is saved. The filters also take out control characters and carriage
+ * returns, so the details lose those before they're counted.
  *
  * @since 1.0.0
  * @internal Use Automattic\Zoninator\Application\ZoneManager instead.
@@ -72,7 +73,7 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 	public function insert( Zone $zone ): Zone {
 		$args = array(
 			'slug'        => $zone->get_slug(),
-			'description' => maybe_serialize( $this->encode( $zone->get_details() ) ),
+			'description' => maybe_serialize( $this->encode_details( $zone->get_details() ) ),
 		);
 
 		/**
@@ -101,7 +102,7 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 		$args    = array(
 			'name'        => $this->encode( $zone->get_name() ),
 			'slug'        => $zone->get_slug(),
-			'description' => maybe_serialize( $this->encode( $zone->get_details() ) ),
+			'description' => maybe_serialize( $this->encode_details( $zone->get_details() ) ),
 		);
 
 		/**
@@ -217,6 +218,27 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 		}
 
 		return is_string( $value ) ? htmlspecialchars( $value, self::ENCODING, 'UTF-8' ) : $value;
+	}
+
+	/**
+	 * Encodes a zone's details for storage, and leaves WordPress nothing to change in them.
+	 *
+	 * When WordPress saves a description it also takes out control characters
+	 * and carriage returns, which encode() leaves in. The details are counted
+	 * when they're serialised, so each string goes through WordPress's own
+	 * filters first: the second pass, on the whole description, then changes
+	 * nothing, and the lengths stay right.
+	 *
+	 * @param mixed $value A string, or an array of details. Anything else is returned as it is.
+	 * @return mixed
+	 */
+	private function encode_details( $value ): mixed {
+		if ( is_array( $value ) ) {
+			return array_map( array( $this, 'encode_details' ), $value );
+		}
+
+		// The filters expect slashed data, as wp_insert_term() gives them.
+		return is_string( $value ) ? wp_unslash( sanitize_term_field( 'description', wp_slash( $this->encode( $value ) ), 0, Taxonomy::NAME, 'db' ) ) : $value;
 	}
 
 	/**
