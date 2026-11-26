@@ -65,9 +65,7 @@ final class ZoneLocker {
 	 * @return int|null ID of the user holding the zone's lock, or null if the user may edit the zone.
 	 */
 	public function get_blocker_id( int $zone_id, int $user_id ): ?int {
-		$lock = $this->store->find( $zone_id );
-
-		return $lock && $lock->blocks( $user_id ) ? $lock->get_holder_id() : null;
+		return $this->find_blocking_lock( $zone_id, $user_id )?->get_holder_id();
 	}
 
 	/**
@@ -79,9 +77,9 @@ final class ZoneLocker {
 	 * @throws ZoneLockedException If someone else holds the zone's lock.
 	 */
 	public function check_unlocked( int $zone_id, int $user_id ): void {
-		$lock = $this->store->find( $zone_id );
+		$lock = $this->find_blocking_lock( $zone_id, $user_id );
 
-		if ( $lock && $lock->blocks( $user_id ) ) {
+		if ( $lock ) {
 			throw new ZoneLockedException( $lock );
 		}
 	}
@@ -93,5 +91,18 @@ final class ZoneLocker {
 	 */
 	public function unlock( int $zone_id ): void {
 		$this->store->delete( $zone_id );
+	}
+
+	/**
+	 * Finds the lock that keeps a user out of a zone.
+	 *
+	 * @param int $zone_id Zone ID.
+	 * @param int $user_id ID of the user who wants to edit the zone.
+	 * @return ZoneLock|null The lock, or null if the zone has none or the user holds it.
+	 */
+	private function find_blocking_lock( int $zone_id, int $user_id ): ?ZoneLock {
+		$lock = $this->store->find( $zone_id );
+
+		return $lock && $lock->blocks( $user_id ) ? $lock : null;
 	}
 }
