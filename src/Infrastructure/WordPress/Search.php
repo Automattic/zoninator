@@ -199,7 +199,7 @@ final class Search {
 	 * @return bool Whether it's a date, as Y-m-d.
 	 */
 	private function is_valid_date_filter( $date ) {
-		return (bool) preg_match( '/(\d{4})-(\d{2})-(\d{2})/', $date );
+		return (bool) preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date );
 	}
 
 	/**
