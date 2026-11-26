@@ -28,6 +28,7 @@ zoninator/
 │   │   ├── ZoneLockedException.php  # Someone else holds the zone's lock
 │   │   ├── Zone.php                 # A zone, and the rules for making and changing one
 │   │   ├── ZoneRepositoryInterface.php # Where zones are kept
+│   │   ├── PostIds.php              # Reads the post IDs a caller gives, refusing anything that isn't one
 │   │   ├── ZonePostsRepositoryInterface.php # Where the posts in each zone are kept
 │   │   ├── ZoneSettingsInterface.php # Which details every zone has
 │   │   ├── *Exception.php           # InvalidZone, ZoneNotFound, ZoneNotSaved

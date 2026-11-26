@@ -82,7 +82,7 @@ $zone = zoninator_container()->get( ZoneManager::class )->create( 'homepage', 'H
 zoninator_container()->get( ZoneCurator::class )->set_posts( $zone->get_id(), array( 12, 34, 56 ) );
 ```
 
-These classes take a zone's ID, not its slug or term; `zoninator_get_zone( 'homepage' )->term_id` gets the ID. They return an `Automattic\Zoninator\Domain\Zone`, and where the old methods returned a `WP_Error` they throw an exception from `Automattic\Zoninator\Domain\`:
+These classes take a zone's ID, not its slug or term; `zoninator_get_zone( 'homepage' )->term_id` gets the ID. They take posts as IDs too. The old methods also accepted a `WP_Post` or an `array( 'ID' => … )`; the new ones throw an `InvalidArgumentException` for either, so pass `wp_list_pluck( $posts, 'ID' )`. They return an `Automattic\Zoninator\Domain\Zone`, and where the old methods returned a `WP_Error` they throw an exception from `Automattic\Zoninator\Domain\`:
 
 - `InvalidZoneException`: a new zone has no slug.
 - `ZoneNotFoundException`: there's no zone with that ID.

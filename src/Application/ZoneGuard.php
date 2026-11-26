@@ -10,11 +10,13 @@ declare( strict_types = 1 );
 namespace Automattic\Zoninator\Application;
 
 use Automattic\Zoninator\Domain\AccessDeniedException;
+use Automattic\Zoninator\Domain\PostIds;
 use Automattic\Zoninator\Domain\PostNotAllowedException;
 use Automattic\Zoninator\Domain\ZoneAccessInterface;
 use Automattic\Zoninator\Domain\ZoneLockedException;
 use Automattic\Zoninator\Domain\ZoneNotFoundException;
 use Automattic\Zoninator\Domain\ZoneRepositoryInterface;
+use InvalidArgumentException;
 
 /**
  * The checks every change to a zone must pass when it's made for a user:
@@ -82,6 +84,7 @@ final class ZoneGuard {
 	 * @throws ZoneNotFoundException   If there's no such zone.
 	 * @throws PostNotAllowedException If they may not use one of the posts.
 	 * @throws ZoneLockedException     If someone else holds the zone's lock.
+	 * @throws InvalidArgumentException If a post ID isn't an integer or a string of digits.
 	 */
 	public function check_curate( int $user_id, int $zone_id, array $post_ids ): void {
 		if ( ! $this->access->can_curate_zones( $user_id ) ) {
@@ -90,9 +93,9 @@ final class ZoneGuard {
 
 		$this->check_exists( $zone_id );
 
-		foreach ( $post_ids as $post_id ) {
-			if ( ! $this->access->can_use_post( $user_id, (int) $post_id ) ) {
-				throw new PostNotAllowedException( (int) $post_id );
+		foreach ( PostIds::from( $post_ids ) as $post_id ) {
+			if ( ! $this->access->can_use_post( $user_id, $post_id ) ) {
+				throw new PostNotAllowedException( $post_id );
 			}
 		}
 

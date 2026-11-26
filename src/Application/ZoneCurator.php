@@ -9,11 +9,13 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Application;
 
+use Automattic\Zoninator\Domain\PostIds;
 use Automattic\Zoninator\Domain\ZoneFullException;
 use Automattic\Zoninator\Domain\ZoneNotFoundException;
 use Automattic\Zoninator\Domain\ZonePostsRepositoryInterface;
 use Automattic\Zoninator\Domain\ZoneRepositoryInterface;
 use Automattic\Zoninator\Domain\ZoneSettingsInterface;
+use InvalidArgumentException;
 
 /**
  * Adds posts to a zone, sets their order, and takes them out.
@@ -47,6 +49,7 @@ final class ZoneCurator {
 	 *
 	 * @throws ZoneNotFoundException If there's no such zone.
 	 * @throws ZoneFullException     If the zone would hold more posts than it may.
+	 * @throws InvalidArgumentException If a post ID isn't an integer or a string of digits.
 	 */
 	public function add_posts( int $zone_id, array $post_ids ): void {
 		$this->require_zone( $zone_id );
@@ -66,6 +69,7 @@ final class ZoneCurator {
 	 *
 	 * @throws ZoneNotFoundException If there's no such zone.
 	 * @throws ZoneFullException     If the zone would hold more posts than it may.
+	 * @throws InvalidArgumentException If a post ID isn't an integer or a string of digits.
 	 */
 	public function set_posts( int $zone_id, array $post_ids ): void {
 		$this->require_zone( $zone_id );
@@ -83,6 +87,7 @@ final class ZoneCurator {
 	 * @param int[] $post_ids Post IDs.
 	 *
 	 * @throws ZoneNotFoundException If there's no such zone.
+	 * @throws InvalidArgumentException If a post ID isn't an integer or a string of digits.
 	 */
 	public function remove_posts( int $zone_id, array $post_ids ): void {
 		$this->require_zone( $zone_id );
@@ -128,18 +133,18 @@ final class ZoneCurator {
 
 	/**
 	 * A post can be in a zone once, so a repeated ID keeps its first place.
-	 * Anything that isn't a post ID is left out.
+	 * An ID below 1 is no post's, and is left out.
 	 *
 	 * @param array $post_ids Post IDs, as given.
 	 * @return int[] Positive, unique IDs, in the order given.
+	 *
+	 * @throws InvalidArgumentException If one isn't an integer or a string of digits.
 	 */
 	private function clean( array $post_ids ): array {
-		$post_ids = array_map( 'intval', $post_ids );
-
 		return array_values(
 			array_unique(
 				array_filter(
-					$post_ids,
+					PostIds::from( $post_ids ),
 					static function ( int $post_id ): bool {
 						return $post_id > 0;
 					}
