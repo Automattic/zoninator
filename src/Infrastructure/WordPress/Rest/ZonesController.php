@@ -27,7 +27,7 @@ use WP_REST_Server;
  */
 final class ZonesController extends WP_REST_Controller {
 
-	use RespondsToRequests;
+	use RegistersRoutes;
 
 	/**
 	 * Constructor.
@@ -104,7 +104,7 @@ final class ZonesController extends WP_REST_Controller {
 
 		$zones = array_map( array( $this->zones, 'get_data' ), $results );
 
-		return $this->ok( $zones );
+		return rest_ensure_response( $zones );
 	}
 
 	/**
@@ -124,7 +124,7 @@ final class ZonesController extends WP_REST_Controller {
 			return $this->errors->from_exception( $exception, 0 );
 		}
 
-		return $this->created( $this->zones->get_data( $this->zones->get( (int) $zone->get_id() ) ) );
+		return new WP_REST_Response( $this->zones->get_data( $this->zones->get( (int) $zone->get_id() ) ), 201 );
 	}
 
 	/**
@@ -164,7 +164,7 @@ final class ZonesController extends WP_REST_Controller {
 			return $this->errors->from_exception( $exception, $zone_id );
 		}
 
-		return $this->ok( array( 'success' => true ) );
+		return rest_ensure_response( array( 'success' => true ) );
 	}
 
 	/**
@@ -188,7 +188,7 @@ final class ZonesController extends WP_REST_Controller {
 			return $this->errors->from_exception( $exception, $zone_id );
 		}
 
-		return $this->ok( array( 'success' => true ) );
+		return rest_ensure_response( array( 'success' => true ) );
 	}
 
 	private function get_create_params() {

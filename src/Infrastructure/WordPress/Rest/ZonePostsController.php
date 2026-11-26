@@ -28,7 +28,7 @@ use WP_REST_Server;
  */
 final class ZonePostsController extends WP_REST_Controller {
 
-	use RespondsToRequests;
+	use RegistersRoutes;
 
 	/**
 	 * Constructor.
@@ -98,11 +98,15 @@ final class ZonePostsController extends WP_REST_Controller {
 	public function get_zone_posts( $request ) {
 		$results = $this->feed->get( (int) $request['zone_id'] );
 
-		if ( is_wp_error( $results ) ) {
-			return 'invalid-zone-supplied' === $results->get_error_code() ? $this->errors->zone_not_found() : $this->bad_request( ErrorCodes::ZONE_FEED_ERROR, $results->get_error_message() );
+		if ( null === $results ) {
+			return $this->errors->zone_not_found();
 		}
 
-		return new WP_REST_Response( $results, 200 );
+		if ( is_wp_error( $results ) ) {
+			return $this->errors->zone_feed_error( $results->get_error_message() );
+		}
+
+		return rest_ensure_response( $results );
 	}
 
 	/**
@@ -120,7 +124,7 @@ final class ZonePostsController extends WP_REST_Controller {
 			return $this->errors->from_exception( $exception, $zone_id );
 		}
 
-		return $this->ok( array( 'success' => true ) );
+		return rest_ensure_response( array( 'success' => true ) );
 	}
 
 	/**
@@ -139,7 +143,7 @@ final class ZonePostsController extends WP_REST_Controller {
 			return $this->errors->from_exception( $exception, $zone_id );
 		}
 
-		return $this->created( array( 'success' => true ) );
+		return new WP_REST_Response( array( 'success' => true ), 201 );
 	}
 
 	/**
@@ -157,7 +161,7 @@ final class ZonePostsController extends WP_REST_Controller {
 			return $this->errors->from_exception( $exception, $zone_id );
 		}
 
-		return $this->ok( array( 'success' => true ) );
+		return rest_ensure_response( array( 'success' => true ) );
 	}
 
 	/**

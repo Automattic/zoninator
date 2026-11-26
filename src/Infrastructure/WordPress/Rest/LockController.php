@@ -28,7 +28,7 @@ use WP_REST_Server;
  */
 final class LockController extends WP_REST_Controller {
 
-	use RespondsToRequests;
+	use RegistersRoutes;
 
 	/**
 	 * Constructor.
@@ -74,7 +74,7 @@ final class LockController extends WP_REST_Controller {
 		$zone_id = (int) $request['zone_id'];
 
 		if ( ! $zone_id ) {
-			return $this->bad_request( ErrorCodes::ZONE_ID_REQUIRED, __( 'Zone ID is required.', 'zoninator' ) );
+			return $this->errors->zone_id_required();
 		}
 
 		try {
