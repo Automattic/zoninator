@@ -271,9 +271,13 @@ class ZoninatorHooksTest extends TestCase {
 
 		$data = (string) wp_scripts()->get_data( 'zoninator-js', 'data' );
 		$this->assertSame( 1, preg_match( '/var zoninatorOptions = (\{.*\});/s', $data, $matches ) );
+		$options = json_decode( $matches[1], true );
 		$this->assertSame(
-			array( 'baseUrl', 'adminUrl', 'errorGeneral', 'errorZoneLock', 'errorSave', 'retry', 'savedAt', 'confirmZoneLock', 'zoneLockPeriod', 'zoneLockPeriodMax', 'postAdded', 'postRemoved', 'postMoved' ),
-			array_keys( json_decode( $matches[1], true ) )
+			array( 'baseUrl', 'adminUrl', 'errorGeneral', 'errorZoneLock', 'errorSave', 'retry', 'savedAt', 'confirmZoneLock', 'zoneLockPeriod', 'zoneLockPeriodMax', 'postAdded', 'postRemoved', 'postMoved', 'metaSeparator', 'listSeparator' ),
+			array_keys( $options )
 		);
+		// The separators' spaces must reach the script, or the search results run together.
+		$this->assertSame( ' · ', $options['metaSeparator'] );
+		$this->assertSame( ', ', $options['listSeparator'] );
 	}
 }

@@ -129,9 +129,9 @@ var zoninator = {};
 					status = item.post_status_label || item.post_status,
 					$anchor = $('<div></div>')
 						.append($('<span class="title"></span>').text(item.title))
-						.append($('<span class="meta"></span>').text([type, item.date, status].join(' · ')));
+						.append($('<span class="meta"></span>').text([type, item.date, status].join(zoninatorOptions.metaSeparator)));
 				return $('<li></li>')
-					.attr('aria-label', [item.title, type, item.date, status].join(', '))
+					.attr('aria-label', [item.title, type, item.date, status].join(zoninatorOptions.listSeparator))
 					.data('item.autocomplete', item)
 					.append($anchor)
 					.appendTo(ul)
