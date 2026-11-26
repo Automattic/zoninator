@@ -86,7 +86,7 @@ final class PluginBootstrapper {
 		// The Zones admin screen.
 		$location = $container->add( new ScreenLocation() );
 		$messages = $container->add( new Messages() );
-		$row      = $container->add( new ZonePostRow( $zones ) );
+		$row      = $container->add( new ZonePostRow( $zones, $capabilities ) );
 		$loader   = $container->add( new ScreenDataLoader( $zones, $capabilities, $locker ) );
 		$view     = $container->add( new ScreenView( $messages, $location, $container->add( new SearchForm() ), $row, new ZoneDetailsView( $location ) ) );
 		$container->add( new Screen( $capabilities, $loader, $view ) );

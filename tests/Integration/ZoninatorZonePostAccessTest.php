@@ -115,6 +115,37 @@ class ZoninatorZonePostAccessTest extends TestCase {
 	}
 
 	/**
+	 * The screen lists every post in the zone, or saving the zone's order
+	 * would drop the ones left out. A post the user may not read keeps its
+	 * row, which says nothing about it.
+	 */
+	public function test_the_zones_screen_lists_a_post_the_user_cannot_read_without_saying_what_it_is(): void {
+		wp_set_current_user( $this->editor_id );
+		$readable_id = self::factory()->post->create( array( 'post_title' => 'Readable story' ) );
+		self::add_zone_posts( $this->zone_id, array( $this->secret_id, $readable_id ) );
+		$seen = array();
+		add_filter(
+			'zoninator_zone_post_columns',
+			static function ( $columns, $post ) use ( &$seen ) {
+				$seen[] = $post->ID;
+
+				return $columns;
+			},
+			10,
+			2
+		);
+
+		$html = self::render_zone_editor( $this->zone_id );
+
+		$this->assertStringContainsString( 'id="zone-post-' . $this->secret_id . '"', $html );
+		$this->assertStringContainsString( 'Readable story', $html );
+		$this->assertStringNotContainsString( 'zoninator-canary@example.com', $html );
+		$this->assertStringNotContainsString( get_permalink( $this->secret_id ), $html );
+		// A site's columns aren't asked to print a post the user may not read.
+		$this->assertSame( array( $readable_id ), $seen );
+	}
+
+	/**
 	 * @param int $post_id Post ID.
 	 * @return string The post's order in the zone, or '' if it isn't in it.
 	 */

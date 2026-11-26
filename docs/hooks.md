@@ -99,7 +99,7 @@ These fire from the classes under `src/Infrastructure/WordPress/Admin/`, which p
 
 ### `zoninator_zone_post_columns` (filter)
 
-Columns shown for each post in a zone on the Zones screen: column key => callback, which receives `$post` and `$zone` and prints the cell. Fires from `src/Infrastructure/WordPress/Admin/ZonePostRow.php`, for each row the Zones screen prints, and for the row it fetches after a post is added.
+Columns shown for each post in a zone on the Zones screen: column key => callback, which receives `$post` and `$zone` and prints the cell. Fires from `src/Infrastructure/WordPress/Admin/ZonePostRow.php`, for each row the Zones screen prints, and for the row it fetches after a post is added. It doesn't fire for a post the current user may not read: that row keeps its place in the zone and says only that the user has no access to the item.
 
 - **Parameters:** `array $columns`, `WP_Post $post`, `WP_Term $zone`
 
