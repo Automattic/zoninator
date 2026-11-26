@@ -230,6 +230,47 @@ final class ZoninatorAdminControllerTest extends TestCase {
 	}
 
 	/**
+	 * Someone else editing the zone keeps the form from changing or deleting
+	 * it, and the zone's page says who.
+	 *
+	 * @dataProvider data_zone_actions
+	 *
+	 * @param string $action Form action.
+	 */
+	public function test_a_zone_someone_else_has_locked_is_left_alone( string $action ): void {
+		self::locker()->lock( $this->zone_id, self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
+		$location = $this->submit(
+			$action,
+			array(
+				'zone_id' => $this->zone_id,
+				'name'    => 'Changed zone',
+			)
+		);
+
+		$this->assertSame( 'Form zone', self::zones()->get( $this->zone_id )->name );
+		$this->assertSame(
+			zoninator_container()->get( ScreenLocation::class )->get_url(
+				array(
+					'action'  => 'edit',
+					'zone_id' => $this->zone_id,
+				)
+			),
+			$location
+		);
+	}
+
+	/**
+	 * @return array<string, array{string}>
+	 */
+	public static function data_zone_actions(): array {
+		return array(
+			'update' => array( 'update' ),
+			'delete' => array( 'delete' ),
+		);
+	}
+
+	/**
 	 * @dataProvider data_actions
 	 *
 	 * @param string $action Form action.
