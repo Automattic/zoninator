@@ -52,7 +52,16 @@ final class SearchForm {
 		<button type="button" class="button-link zone-toggle-advanced-search" aria-expanded="false" aria-controls="zone-advanced-search-filters" data-alt-label="<?php esc_attr_e( 'Hide filters', 'zoninator' ); ?>"><?php esc_html_e( 'Show filters', 'zoninator' ); ?></button>
 	</div>
 	<div class="zone-advanced-search-filters-wrapper" id="zone-advanced-search-filters">
-		<?php do_action( 'zoninator_advanced_search_fields' ); ?>
+		<?php
+		/**
+		 * Fires inside the Zones screen's search filters, to print more of them.
+		 *
+		 * Zoninator prints its category filter here, and its date filter at priority 20.
+		 *
+		 * @since 0.6
+		 */
+		do_action( 'zoninator_advanced_search_fields' );
+		?>
 	</div>
 		<?php
 	}
@@ -65,6 +74,13 @@ final class SearchForm {
 	<label for="zone_advanced_filter_taxonomy" class="screen-reader-text"><?php esc_html_e( 'Filter by category', 'zoninator' ); ?></label>
 		<?php
 		wp_dropdown_categories(
+			/**
+			 * Filters the wp_dropdown_categories() arguments for the search's category filter.
+			 *
+			 * @since 0.5
+			 *
+			 * @param array $args wp_dropdown_categories() arguments.
+			 */
 			apply_filters(
 				'zoninator_advanced_filter_category',
 				array(
@@ -82,7 +98,24 @@ final class SearchForm {
 	 * Prints the date filter.
 	 */
 	public function render_date_filter(): void {
+		/**
+		 * Filters which date the search's date filter starts on.
+		 *
+		 * @since 0.7
+		 *
+		 * @param string $default One of the options' values: a Y-m-d date, or '' for all dates.
+		 */
 		$current_date = apply_filters( 'zoninator_advanced_filter_date_default', '' );
+		/**
+		 * Filters the options in the search's date filter.
+		 *
+		 * A string is passed through strtotime(). An array has a value, which must
+		 * be a Y-m-d date or the search ignores it, and a label.
+		 *
+		 * @since 0.5
+		 *
+		 * @param array $dates The options. Default array( 'all', 'today', 'yesterday' ).
+		 */
 		$date_filters = apply_filters( 'zoninator_advanced_filter_date', array( 'all', 'today', 'yesterday' ) );
 		$date_labels  = array(
 			'all'       => __( 'All dates', 'zoninator' ),

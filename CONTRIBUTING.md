@@ -75,15 +75,19 @@ npx --no wp-env stop
 
 ## Public API
 
-Treat anything in the table below as a public contract. Renaming, removing, or changing the signature of these surfaces is a breaking change and requires a deprecation cycle.
+Treat anything in the table below as a public contract. Renaming, removing, or changing the signature of these surfaces is a breaking change: make it only in a major release, and add it to the upgrade guide for that release in `docs/`.
 
 | Surface | Where |
 |---|---|
-| Template tag functions (`z_*`) | `functions.php` |
+| Template tag functions (`zoninator_*`) and `zoninator_container()` | `functions.php`, `zoninator.php` |
+| PHP API: the classes under `Automattic\Zoninator\Application\` and `Automattic\Zoninator\Domain\` | See [docs/php-api.md](docs/php-api.md) |
 | Hooks (`zoninator_*` filters and actions) | See [docs/hooks.md](docs/hooks.md) |
 | REST namespace `zoninator/v1` | See [docs/rest-api.md](docs/rest-api.md) |
-| JSON feed at `/zones/{slug}/feed.json` | `src/Infrastructure/WordPress/Feed.php` |
-| Zone Posts widget | `src/Infrastructure/WordPress/ZonePostsWidget.php` |
+| Abilities in the `zoninator` category | See [docs/abilities.md](docs/abilities.md) |
+| JSON feed at `/zones/{slug}/feed.json` | `src/Infrastructure/WordPress/FeedEndpoint.php` |
+| Zone Posts block: the `zoninator/zone-posts` variation and its `zoninatorZone` query key, saved in post content | `src/Infrastructure/WordPress/Block.php` |
+| Zone Posts widget, its class and its ID base | `src/Infrastructure/WordPress/ZonePostsWidget.php` |
+| Storage: the `zoninator_zones` taxonomy and the `_zoninator_order_` post meta prefix | See [docs/php-api.md](docs/php-api.md#how-zones-are-stored) |
 
 ## Repository layout and architecture
 

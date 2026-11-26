@@ -12,7 +12,9 @@ Every ability needs the capability the Zones screen needs, `edit_others_posts` b
 | `zoninator/get-zone-posts` | `zone_id` | The published and scheduled posts in the zone, in zone order, with `ID`, `post_date`, `post_title` and `post_status`. |
 | `zoninator/search-posts` | `term`, `cat`, `date`, `exclude`, `limit`, `zone_id`, all optional | Posts that can be added to a zone. A post ID as the term finds that post. With no term, the latest posts. |
 
-Each leaves out posts the user may not read.
+The two that return posts leave out posts the user may not read.
+
+`zoninator/get-zone-posts` and `zoninator/search-posts` give `zone-not-found` for a `zone_id` that isn't a zone, and `zoninator/list-zones` gives `zones-read-error` if the zones can't be read.
 
 ## Changing a zone's posts
 

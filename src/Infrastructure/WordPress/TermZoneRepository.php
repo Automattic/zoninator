@@ -75,7 +75,13 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 			'description' => maybe_serialize( $this->encode( $zone->get_details() ) ),
 		);
 
-		// Filterize to allow other inputs
+		/**
+		 * Filters the wp_insert_term() arguments for a new zone.
+		 *
+		 * @since 0.4
+		 *
+		 * @param array $args The zone's slug, and its details, serialized, as description.
+		 */
 		$args = apply_filters( 'zoninator_insert_zone', $args );
 
 		// wp_insert_term() expects slashed data, as it unslashes the name and description.
@@ -98,7 +104,15 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 			'description' => maybe_serialize( $this->encode( $zone->get_details() ) ),
 		);
 
-		// Filterize to allow other inputs
+		/**
+		 * Filters the wp_update_term() arguments for a zone being changed.
+		 *
+		 * @since 0.4
+		 *
+		 * @param array   $args    The zone's name, slug, and details, serialized, as description.
+		 * @param int     $zone_id Zone ID.
+		 * @param WP_Term $zone    The zone as it is.
+		 */
 		$args = apply_filters( 'zoninator_update_zone', $args, $zone_id, $this->get_term( $zone_id ) );
 
 		// wp_update_term() expects slashed data, as it unslashes the name and description.
@@ -119,6 +133,13 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 			throw new ZoneNotSavedException( __( "Sorry, we couldn't delete the zone.", 'zoninator' ), 'delete-zone' );
 		}
 
+		/**
+		 * Fires after a zone is deleted.
+		 *
+		 * @since 0.6
+		 *
+		 * @param int $zone_id Zone ID.
+		 */
 		do_action( 'zoninator_delete_zone', $zone_id );
 	}
 

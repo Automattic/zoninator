@@ -44,8 +44,31 @@ final class Feed {
 			return null;
 		}
 
+		/**
+		 * Filters the WP_Query arguments for the posts in a zone's JSON feed, and in
+		 * GET /zoninator/v1/zones/{zone_id}/posts.
+		 *
+		 * Despite the name, these are query arguments, not fields. orderby and
+		 * meta_key can't be changed.
+		 *
+		 * @since 0.6
+		 *
+		 * @param array      $args            WP_Query arguments.
+		 * @param int|string $zone_slug_or_id The slug from the feed URL, or the ID from the REST route.
+		 */
 		$posts = $this->zones->get_posts( $zone, apply_filters( 'zoninator_json_feed_fields', array(), $zone_slug_or_id ) );
 
+		/**
+		 * Filters a zone's JSON feed, and GET /zoninator/v1/zones/{zone_id}/posts,
+		 * before they're sent.
+		 *
+		 * Return a WP_Error to refuse it: the feed sends a 406, and the REST route a 400.
+		 *
+		 * @since 0.6
+		 *
+		 * @param stdClass[]|WP_Error $results         One item for each post.
+		 * @param int|string         $zone_slug_or_id The slug from the feed URL, or the ID from the REST route.
+		 */
 		return apply_filters( 'zoninator_json_feed_results', $this->filter_fields( $posts ), $zone_slug_or_id );
 	}
 
@@ -56,6 +79,14 @@ final class Feed {
 	 * @return stdClass[] One item for each post, with only those fields.
 	 */
 	private function filter_fields( array $posts ): array {
+		/**
+		 * Filters the post fields each item in a zone's JSON feed has.
+		 *
+		 * @since 0.9
+		 *
+		 * @param string[] $fields WP_Post fields. Default ID, post_date, post_title,
+		 *                         post_content, post_excerpt, post_status and guid.
+		 */
 		$fields = (array) apply_filters(
 			'zoninator_zone_feed_fields',
 			array( 'ID', 'post_date', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'guid' )

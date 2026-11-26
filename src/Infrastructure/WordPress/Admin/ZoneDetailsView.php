@@ -9,6 +9,8 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 
+use WP_Term;
+
 /**
  * Prints a zone's name and description: as a form for a user who may change
  * them, and as text for anyone else, or while someone else is editing the
@@ -46,7 +48,16 @@ final class ZoneDetailsView {
 
 			<form id="zone-info" method="post">
 
-				<?php do_action( 'zoninator_pre_zone_fields', $zone ); ?>
+				<?php
+				/**
+				 * Fires before the fields of the zone form on the Zones screen.
+				 *
+				 * @since 0.4
+				 *
+				 * @param WP_Term|array $zone The zone, or an empty array on the form for a new zone.
+				 */
+				do_action( 'zoninator_pre_zone_fields', $zone );
+				?>
 
 				<div class="form-field zone-field">
 					<label for="zone-name"><?php esc_html_e( 'Name', 'zoninator' ); ?></label>
@@ -66,7 +77,16 @@ final class ZoneDetailsView {
 					<textarea id="zone-description" name="description"><?php echo esc_html( $zone_description ); ?></textarea>
 				</div>
 
-				<?php do_action( 'zoninator_post_zone_fields', $zone ); ?>
+				<?php
+				/**
+				 * Fires after the fields of the zone form on the Zones screen.
+				 *
+				 * @since 0.4
+				 *
+				 * @param WP_Term|array $zone The zone, or an empty array on the form for a new zone.
+				 */
+				do_action( 'zoninator_post_zone_fields', $zone );
+				?>
 
 				<?php if ( $zone_id ) : ?>
 					<input type="hidden" name="zone_id" id="zone_id" value="<?php echo esc_attr( $zone_id ); ?>" />
@@ -94,7 +114,17 @@ final class ZoneDetailsView {
 			</form>
 		<?php else : ?>
 			<div id="zone-info-readonly" class="readonly">
-				<?php do_action( 'zoninator_pre_zone_readonly', $zone ); ?>
+				<?php
+				/**
+				 * Fires before a zone's details when the Zones screen shows them read-only,
+				 * because another user has the zone locked or the user can't edit it.
+				 *
+				 * @since 0.4
+				 *
+				 * @param WP_Term|array $zone The zone.
+				 */
+				do_action( 'zoninator_pre_zone_readonly', $zone );
+				?>
 
 				<div class="form-field zone-field">
 					<strong><?php esc_html_e( 'Name', 'zoninator' ); ?></strong>
@@ -108,7 +138,16 @@ final class ZoneDetailsView {
 
 				<input type="hidden" name="zone_id" id="zone_id" value="<?php echo esc_attr( $zone_id ); ?>" />
 
-				<?php do_action( 'zoninator_post_zone_readonly', $zone ); ?>
+				<?php
+				/**
+				 * Fires after a zone's details when the Zones screen shows them read-only.
+				 *
+				 * @since 0.4
+				 *
+				 * @param WP_Term|array $zone The zone.
+				 */
+				do_action( 'zoninator_post_zone_readonly', $zone );
+				?>
 			</div>
 		<?php endif; ?>
 	</div>

@@ -20,7 +20,7 @@ This plugin was originally built by [Mohammad Jangda](http://digitalize.ca) in c
 ### Features
 
 * Add, edit, and delete zones.
-* Add and remove posts (or any custom post type) to or from zones.
+* Add and remove posts (or any post type that supports zones) to or from zones.
 * Order posts in any given zone, by drag and drop or with the keyboard (Move up and Move down).
 * Limit capabilities on who can add, edit, and delete zones vs add content to zones.
 * Locking mechanism, so only one user can edit a zone at a time (to avoid conflicts).
@@ -31,7 +31,7 @@ This plugin was originally built by [Mohammad Jangda](http://digitalize.ca) in c
 1. Unzip contents and upload to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Go to Zones in the admin menu to create and manage your zones, and easily search for and add existing posts.
-4. Use the plugin's handy API functions to add zones to your theme that retrieve and display your content. Or, for those who are a bit code-averse, go to Appearance-Widgets and add Zone Posts widgets to display your zone posts in your sidebar or footer. The widget will pull the posts from the chosen zone. On a block theme, add the Zone Posts block to a page or template and pick the zone in its settings.
+4. Use the plugin's handy API functions to add zones to your theme that retrieve and display your content. Or, for those who are a bit code-averse, go to Appearance → Widgets and add Zone Posts widgets to display your zone posts in your sidebar or footer. The widget will pull the posts from the chosen zone. On a block theme, add the Zone Posts block to a page or template and pick the zone in its settings.
 
 ### Usage examples
 
@@ -66,7 +66,9 @@ Audience-targeted documentation lives in the GitHub repository:
 
 * [Theme developer guide](https://github.com/Automattic/zoninator/blob/main/docs/theme-developers.md) — using zones in your theme.
 * [Hooks reference](https://github.com/Automattic/zoninator/blob/main/docs/hooks.md) — every filter and action the plugin exposes.
+* [Changing zones from PHP](https://github.com/Automattic/zoninator/blob/main/docs/php-api.md) — creating zones and changing their posts in code.
 * [REST API](https://github.com/Automattic/zoninator/blob/main/docs/rest-api.md) — endpoints under the `zoninator/v1` namespace, for headless integrations.
+* [Abilities](https://github.com/Automattic/zoninator/blob/main/docs/abilities.md) — for AI agents and other tools.
 * [Upgrading](https://github.com/Automattic/zoninator/blob/main/docs/upgrades.md) — what to check when you update, release by release.
 * [Contributing](https://github.com/Automattic/zoninator/blob/main/CONTRIBUTING.md) — local setup, tests, and PR conventions.
 * [Security](https://github.com/Automattic/zoninator/security/policy) — responsible disclosure.
@@ -85,12 +87,12 @@ add_filter( 'zoninator_zone_max_lock_period', 'zoninator_disable_locks' );
 
 Filter the following and change according to your needs:
 
-* Number of seconds a lock is valid for, default `30`: `zoninator_zone_lock_period`
-* Max idle time in seconds: `zoninator_zone_max_lock_period`
+* How often, in seconds, the Zones screen renews a zone's lock, default `30`: `zoninator_zone_lock_period`
+* How long, in seconds, an editor can leave a zone unchanged before the screen asks whether they're still working, default `600`: `zoninator_zone_max_lock_period`
 
-### Can anonymous users still read zones over the REST API?
+### Can anonymous users read zones over the REST API?
 
-Not by default since version 0.11.0. The `GET /wp-json/zoninator/v1/zones` endpoint now requires an authenticated user. If your integration relied on anonymous access, you can restore the previous behavior with the `zoninator_rest_get_zones_permissions_check` filter:
+Not by default. The `GET /wp-json/zoninator/v1/zones` endpoint needs a logged-in user. To let anyone list the zones, use the `zoninator_rest_get_zones_permissions_check` filter:
 
 ~~~php
 add_filter( 'zoninator_rest_get_zones_permissions_check', '__return_true' );
