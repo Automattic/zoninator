@@ -33,7 +33,7 @@ final class FeedEndpoint {
 	 *
 	 * @since 1.0.0
 	 */
-	public function register_hooks() {
+	public function register_hooks(): void {
 		add_action( 'init', array( $this, 'add_rewrite_rule' ) );
 		add_action( 'template_redirect', array( $this, 'serve' ) );
 	}
@@ -41,7 +41,7 @@ final class FeedEndpoint {
 	/**
 	 * Adds the feed's rewrite rule and its query var. Hooked on init.
 	 */
-	public function add_rewrite_rule() {
+	public function add_rewrite_rule(): void {
 		add_rewrite_tag( '%' . Taxonomy::NAME . '%', '([^&]+)' );
 		add_rewrite_rule( '^zones/([^/]+)/feed.json/?$', 'index.php?' . Taxonomy::NAME . '=$matches[1]', 'top' );
 	}
@@ -49,7 +49,7 @@ final class FeedEndpoint {
 	/**
 	 * Sends the feed, if this request is for one. Hooked on template_redirect.
 	 */
-	public function serve() {
+	public function serve(): void {
 		$zone_slug = get_query_var( Taxonomy::NAME );
 
 		if ( empty( $zone_slug ) ) {

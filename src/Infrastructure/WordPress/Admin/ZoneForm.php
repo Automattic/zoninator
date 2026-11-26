@@ -45,14 +45,14 @@ final class ZoneForm {
 	/**
 	 * Hooks the form's handler. PluginBootstrapper::register_hooks() calls this once.
 	 */
-	public function register_hooks() {
+	public function register_hooks(): void {
 		add_action( 'admin_init', array( $this, 'handle_request' ) );
 	}
 
 	/**
 	 * Saves the form if this request submitted it, then redirects.
 	 */
-	public function handle_request() {
+	public function handle_request(): void {
 		if ( ! $this->location->is_current() ) {
 			return;
 		}
@@ -110,7 +110,7 @@ final class ZoneForm {
 	 * @param int    $zone_id The zone to change or delete.
 	 * @return array Query args for the page to show next.
 	 */
-	private function save( $action, $zone_id ) {
+	private function save( $action, $zone_id ): array {
 		$user_id = get_current_user_id();
 
 		if ( 'delete' === $action ) {

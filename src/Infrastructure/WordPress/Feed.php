@@ -37,7 +37,7 @@ final class Feed {
 	 * @param int|string $zone_slug_or_id Zone ID or slug, as the caller was given it. The feed's filters are passed it as it is.
 	 * @return array|WP_Error|null The feed's items, or null if there's no such zone. A zoninator_json_feed_results callback can return something else, such as a WP_Error.
 	 */
-	public function get( $zone_slug_or_id ) {
+	public function get( $zone_slug_or_id ): mixed {
 		$zone = $this->zones->get( $zone_slug_or_id );
 
 		if ( ! $zone ) {

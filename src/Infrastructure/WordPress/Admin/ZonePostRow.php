@@ -42,7 +42,7 @@ final class ZonePostRow {
 	 * @param int $zone_id Zone ID.
 	 * @return string HTML.
 	 */
-	public function get_html( $post_id, $zone_id ) {
+	public function get_html( $post_id, $zone_id ): string {
 		ob_start();
 		$this->render( get_post( $post_id ), $this->zones->get( (int) $zone_id ) );
 
@@ -56,7 +56,7 @@ final class ZonePostRow {
 	 * @param WP_Post $post The post.
 	 * @param WP_Term $zone The zone it's in.
 	 */
-	public function render( $post, $zone ) {
+	public function render( $post, $zone ): void {
 		$columns = apply_filters(
 			'zoninator_zone_post_columns',
 			array(
@@ -86,7 +86,7 @@ final class ZonePostRow {
 		<?php
 	}
 
-	public function render_position_column( $post, $zone ) {
+	public function render_position_column( $post, $zone ): void {
 		$current_position = $this->zones->get_post_order( $post->ID, $zone );
 		?>
 	<span title="<?php esc_attr_e( 'Drag to change the position of this item, or use Move up and Move down.', 'zoninator' ); ?>">
@@ -95,7 +95,7 @@ final class ZonePostRow {
 		<?php
 	}
 
-	public function render_info_column( $post, $zone ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+	public function render_info_column( $post, $zone ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 		// Each accessible name is one string, so translators can put the title where their language needs it.
 		$labels = array(
 			/* translators: %s: post title. */

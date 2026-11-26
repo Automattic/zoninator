@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 
 use Automattic\Zoninator\Infrastructure\WordPress\Search;
+use WP_Error;
 use WP_REST_Controller;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -40,7 +41,7 @@ final class SearchController extends WP_REST_Controller {
 	/**
 	 * Register the routes.
 	 */
-	public function register_routes() {
+	public function register_routes(): void {
 		register_rest_route(
 			self::$rest_namespace,
 			'/search',
@@ -61,7 +62,7 @@ final class SearchController extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_REST_Response
 	 */
-	public function search_posts( $request ) {
+	public function search_posts( $request ): WP_REST_Response|WP_Error {
 		return rest_ensure_response(
 			$this->search->find_posts(
 				(string) $request['term'],
@@ -80,7 +81,7 @@ final class SearchController extends WP_REST_Controller {
 	 *
 	 * @return array
 	 */
-	private function get_search_params() {
+	private function get_search_params(): array {
 		return array(
 			'term'    => array(
 				'type'    => 'string',

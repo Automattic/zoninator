@@ -49,7 +49,7 @@ final class LockController extends WP_REST_Controller {
 	/**
 	 * Register the routes.
 	 */
-	public function register_routes() {
+	public function register_routes(): void {
 		register_rest_route(
 			self::$rest_namespace,
 			'/zones/(?P<zone_id>[\d]+)/lock',
@@ -70,7 +70,7 @@ final class LockController extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
-	public function zone_update_lock( $request ) {
+	public function zone_update_lock( $request ): WP_REST_Response|WP_Error {
 		$zone_id = (int) $request['zone_id'];
 
 		if ( ! $zone_id ) {

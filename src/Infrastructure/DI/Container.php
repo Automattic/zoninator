@@ -35,7 +35,7 @@ final class Container {
 	 * @param T $instance The object.
 	 * @return T The same object, so it can be passed straight to the next constructor.
 	 */
-	public function add( $instance ) {
+	public function add( $instance ): object {
 		$this->objects[ get_class( $instance ) ] = $instance;
 
 		return $instance;
@@ -48,7 +48,7 @@ final class Container {
 	 *
 	 * @return array<class-string, object> The objects, keyed by class name.
 	 */
-	public function all() {
+	public function all(): array {
 		return $this->objects;
 	}
 
@@ -63,7 +63,7 @@ final class Container {
 	 * @param class-string<T> $id Class name.
 	 * @return T|null The object, or null if the container has no such class.
 	 */
-	public function get( $id ) {
+	public function get( $id ): ?object {
 		if ( ! isset( $this->objects[ $id ] ) ) {
 			_doing_it_wrong( __METHOD__, esc_html( sprintf( 'The Zoninator container has no %s.', $id ) ), '1.0.0' );
 			return null;
@@ -78,7 +78,7 @@ final class Container {
 	 * @param string $id Class name.
 	 * @return bool
 	 */
-	public function has( $id ) {
+	public function has( $id ): bool {
 		return isset( $this->objects[ $id ] );
 	}
 }

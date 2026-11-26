@@ -41,7 +41,7 @@ final class Permissions {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return bool
 	 */
-	public function list_zones( $request ) {
+	public function list_zones( $request ): bool {
 		return (bool) apply_filters( 'zoninator_rest_get_zones_permissions_check', is_user_logged_in(), $request );
 	}
 
@@ -59,7 +59,7 @@ final class Permissions {
 	 *
 	 * @return bool|WP_Error
 	 */
-	public function create_zone() {
+	public function create_zone(): true|WP_Error {
 		return $this->allow( $this->capabilities->can_create_zones( get_current_user_id() ) );
 	}
 
@@ -69,7 +69,7 @@ final class Permissions {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return bool|WP_Error
 	 */
-	public function edit_zone( $request ) {
+	public function edit_zone( $request ): true|WP_Error {
 		return $this->allow( $this->capabilities->can_edit_zone( get_current_user_id(), absint( $request->get_param( 'zone_id' ) ) ) );
 	}
 
@@ -78,7 +78,7 @@ final class Permissions {
 	 *
 	 * @return bool|WP_Error
 	 */
-	public function manage_zones() {
+	public function manage_zones(): true|WP_Error {
 		return $this->allow( $this->capabilities->can_curate_zones( get_current_user_id() ) );
 	}
 
@@ -86,7 +86,7 @@ final class Permissions {
 	 * @param bool $allowed Whether the user may.
 	 * @return true|WP_Error True, or the error for a user who may not.
 	 */
-	private function allow( bool $allowed ) {
+	private function allow( bool $allowed ): true|WP_Error {
 		if ( ! $allowed ) {
 			return $this->errors->permission_denied();
 		}

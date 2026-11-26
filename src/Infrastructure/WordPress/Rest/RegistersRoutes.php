@@ -27,7 +27,7 @@ trait RegistersRoutes {
 	/**
 	 * Hooks the controller's routes. PluginBootstrapper::register_hooks() calls this once.
 	 */
-	public function register_hooks() {
+	public function register_hooks(): void {
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
 	}
 
@@ -36,7 +36,7 @@ trait RegistersRoutes {
 	 *
 	 * @return array
 	 */
-	private function get_zone_id_param() {
+	private function get_zone_id_param(): array {
 		return array(
 			'zone_id' => array(
 				'type'     => 'integer',

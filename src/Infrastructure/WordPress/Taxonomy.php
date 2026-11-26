@@ -29,7 +29,7 @@ final class Taxonomy {
 	 *
 	 * @since 1.0.0
 	 */
-	public function register_hooks() {
+	public function register_hooks(): void {
 		// This only writes to core's list of post type features, so it works before
 		// core registers the post type on init. Sites opt posts out with
 		// remove_post_type_support( 'post', 'zoninator_zones' ).
@@ -44,7 +44,7 @@ final class Taxonomy {
 	 * It has no object types: a post's place in a zone is post meta, never a
 	 * term relationship, so the taxonomy doesn't need to know the post types.
 	 */
-	public function register() {
+	public function register(): void {
 		if ( ! taxonomy_exists( self::NAME ) ) {
 			register_taxonomy(
 				self::NAME,
@@ -74,7 +74,7 @@ final class Taxonomy {
 	 *
 	 * @return string[]
 	 */
-	public function get_post_types() {
+	public function get_post_types(): array {
 		return array_values( array_intersect( get_post_types(), get_post_types_by_support( self::NAME ) ) );
 	}
 }

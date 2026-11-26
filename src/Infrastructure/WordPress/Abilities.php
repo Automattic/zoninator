@@ -48,7 +48,7 @@ final class Abilities {
 	/**
 	 * Hooks the category and the abilities. PluginBootstrapper::register_hooks() calls this once.
 	 */
-	public function register_hooks() {
+	public function register_hooks(): void {
 		add_action( 'wp_abilities_api_categories_init', array( $this, 'register_category' ) );
 		add_action( 'wp_abilities_api_init', array( $this, 'register' ) );
 	}
@@ -56,7 +56,7 @@ final class Abilities {
 	/**
 	 * Register the ability category.
 	 */
-	public function register_category() {
+	public function register_category(): void {
 		wp_register_ability_category(
 			self::CATEGORY,
 			array(
@@ -69,7 +69,7 @@ final class Abilities {
 	/**
 	 * Register the abilities.
 	 */
-	public function register() {
+	public function register(): void {
 		$meta = array(
 			'annotations'  => array(
 				'readonly'    => true,
@@ -214,7 +214,7 @@ final class Abilities {
 	 *
 	 * @return bool
 	 */
-	public function permissions_check() {
+	public function permissions_check(): bool {
 		return $this->capabilities->can_curate_zones( get_current_user_id() );
 	}
 
@@ -223,7 +223,7 @@ final class Abilities {
 	 *
 	 * @return array[]|WP_Error
 	 */
-	public function list_zones() {
+	public function list_zones(): array|WP_Error {
 		$zones = $this->zones->get_all();
 
 		// Zones::get_all() returns false, not a WP_Error, when the zones can't be read.
@@ -240,7 +240,7 @@ final class Abilities {
 	 * @param array $input Ability input.
 	 * @return array[]|WP_Error
 	 */
-	public function get_zone_posts( $input ) {
+	public function get_zone_posts( $input ): array|WP_Error {
 		$input   = (array) $input;
 		$zone_id = (int) $input['zone_id'];
 
@@ -283,7 +283,7 @@ final class Abilities {
 	 * @param array $input Ability input.
 	 * @return array[]|WP_Error
 	 */
-	public function search_posts( $input = array() ) {
+	public function search_posts( $input = array() ): array|WP_Error {
 		$input = wp_parse_args(
 			(array) $input,
 			array(
@@ -315,7 +315,7 @@ final class Abilities {
 	 *
 	 * @return array
 	 */
-	private function get_zone_schema() {
+	private function get_zone_schema(): array {
 		return array(
 			'type'       => 'object',
 			'properties' => array(

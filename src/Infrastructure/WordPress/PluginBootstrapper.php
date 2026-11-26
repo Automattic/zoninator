@@ -57,7 +57,7 @@ final class PluginBootstrapper {
 	/**
 	 * Builds the classes and registers the hooks.
 	 */
-	public function boot() {
+	public function boot(): void {
 		$this->build();
 		$this->register_hooks();
 	}
@@ -65,7 +65,7 @@ final class PluginBootstrapper {
 	/**
 	 * Builds each class with the others it needs, and adds it to the container. Adds no hooks.
 	 */
-	public function build() {
+	public function build(): void {
 		$container = $this->container;
 
 		$settings      = $container->add( new Settings() );
@@ -116,7 +116,7 @@ final class PluginBootstrapper {
 	 * nothing more than that method, and its hooks are added in the order
 	 * build() adds the classes.
 	 */
-	public function register_hooks() {
+	public function register_hooks(): void {
 		foreach ( $this->container->all() as $instance ) {
 			if ( method_exists( $instance, 'register_hooks' ) ) {
 				$instance->register_hooks();

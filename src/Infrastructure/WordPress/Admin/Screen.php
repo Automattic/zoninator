@@ -44,21 +44,21 @@ final class Screen {
 	/**
 	 * Hooks the menu item. PluginBootstrapper::register_hooks() calls this once.
 	 */
-	public function register_hooks() {
+	public function register_hooks(): void {
 		add_action( 'admin_menu', array( $this, 'register' ) );
 	}
 
 	/**
 	 * Adds Zones to the admin menu, with render() as its page.
 	 */
-	public function register() {
+	public function register(): void {
 		add_menu_page( __( 'Zones', 'zoninator' ), __( 'Zones', 'zoninator' ), $this->capabilities->get_manage_zones_cap(), ScreenLocation::SLUG, array( $this, 'render' ), 'dashicons-layout', 11 );
 	}
 
 	/**
 	 * Prints the screen for the current request.
 	 */
-	public function render() {
+	public function render(): void {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Choosing which zone and notice to show changes nothing.
 		$this->view->render(
 			$this->loader->load( isset( $_GET['zone_id'] ) ? absint( $_GET['zone_id'] ) : 0 ),

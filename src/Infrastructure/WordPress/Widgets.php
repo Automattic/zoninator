@@ -23,14 +23,14 @@ final class Widgets {
 	/**
 	 * Hooks the widget's registration. PluginBootstrapper::register_hooks() calls this once.
 	 */
-	public function register_hooks() {
+	public function register_hooks(): void {
 		add_action( 'widgets_init', array( $this, 'register' ) );
 	}
 
 	/**
 	 * Registers the widget. Hooked on widgets_init.
 	 */
-	public function register() {
+	public function register(): void {
 		register_widget( ZonePostsWidget::class );
 	}
 }

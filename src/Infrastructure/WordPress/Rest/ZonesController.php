@@ -48,7 +48,7 @@ final class ZonesController extends WP_REST_Controller {
 	/**
 	 * Register the routes.
 	 */
-	public function register_routes() {
+	public function register_routes(): void {
 		register_rest_route(
 			self::$rest_namespace,
 			'/zones',
@@ -94,7 +94,7 @@ final class ZonesController extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
-	public function get_zones( $request ) {
+	public function get_zones( $request ): WP_REST_Response|WP_Error {
 		$results = $this->zones->get_all();
 
 		// Zones::get_all() returns false, not a WP_Error, when the zones can't be read.
@@ -113,7 +113,7 @@ final class ZonesController extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
-	public function create_zone( $request ) {
+	public function create_zone( $request ): WP_REST_Response|WP_Error {
 		$name        = (string) $request['name'];
 		$slug        = empty( $request['slug'] ) ? $name : (string) $request['slug'];
 		$description = (string) $request['description'];
@@ -133,7 +133,7 @@ final class ZonesController extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
-	public function update_zone( $request ) {
+	public function update_zone( $request ): WP_REST_Response|WP_Error {
 		$zone_id = absint( $request['zone_id'] );
 		$name    = (string) $request['name'];
 		$slug    = (string) $request['slug'];
@@ -173,7 +173,7 @@ final class ZonesController extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
-	public function delete_zone( $request ) {
+	public function delete_zone( $request ): WP_REST_Response|WP_Error {
 		$zone_id = absint( $request['zone_id'] );
 
 		$zone = $this->zones->get( $zone_id );
@@ -191,7 +191,7 @@ final class ZonesController extends WP_REST_Controller {
 		return rest_ensure_response( array( 'success' => true ) );
 	}
 
-	private function get_create_params() {
+	private function get_create_params(): array {
 		return array(
 			'name'        => array(
 				'type'     => 'string',
@@ -211,7 +211,7 @@ final class ZonesController extends WP_REST_Controller {
 		);
 	}
 
-	private function get_update_params() {
+	private function get_update_params(): array {
 		return array(
 			'name'        => array(
 				'type'     => 'string',

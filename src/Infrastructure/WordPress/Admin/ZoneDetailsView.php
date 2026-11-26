@@ -32,7 +32,7 @@ final class ZoneDetailsView {
 	 *
 	 * @param ScreenData $data What the screen shows.
 	 */
-	public function render( ScreenData $data ) {
+	public function render( ScreenData $data ): void {
 		$zone_id = $data->get_zone_id();
 		// The zone field hooks have always been given an empty array when no zone is open.
 		$zone             = $data->active_zone ?? array();
@@ -119,7 +119,7 @@ final class ZoneDetailsView {
 	 * @param int $zone_id Zone ID.
 	 * @return string The URL that deletes the zone.
 	 */
-	private function get_delete_url( $zone_id ) {
+	private function get_delete_url( $zone_id ): string {
 		return wp_nonce_url(
 			$this->location->get_url(
 				array(

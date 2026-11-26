@@ -46,14 +46,14 @@ final class CurationAbilities {
 	/**
 	 * Hooks the abilities. PluginBootstrapper::register_hooks() calls this once.
 	 */
-	public function register_hooks() {
+	public function register_hooks(): void {
 		add_action( 'wp_abilities_api_init', array( $this, 'register' ) );
 	}
 
 	/**
 	 * Register the abilities.
 	 */
-	public function register() {
+	public function register(): void {
 		$this->register_ability(
 			'zoninator/add-zone-posts',
 			__( 'Add posts to a zone', 'zoninator' ),
@@ -97,7 +97,7 @@ final class CurationAbilities {
 	 *
 	 * @return bool
 	 */
-	public function permissions_check() {
+	public function permissions_check(): bool {
 		return $this->capabilities->can_curate_zones( get_current_user_id() );
 	}
 
@@ -107,7 +107,7 @@ final class CurationAbilities {
 	 * @param array $input Ability input.
 	 * @return array|WP_Error
 	 */
-	public function add_posts( $input ) {
+	public function add_posts( $input ): array|WP_Error {
 		return $this->change( 'add_posts', $input );
 	}
 
@@ -117,7 +117,7 @@ final class CurationAbilities {
 	 * @param array $input Ability input.
 	 * @return array|WP_Error
 	 */
-	public function set_posts( $input ) {
+	public function set_posts( $input ): array|WP_Error {
 		return $this->change( 'set_posts', $input );
 	}
 
@@ -127,7 +127,7 @@ final class CurationAbilities {
 	 * @param array $input Ability input.
 	 * @return array|WP_Error
 	 */
-	public function remove_posts( $input ) {
+	public function remove_posts( $input ): array|WP_Error {
 		return $this->change( 'remove_posts', $input );
 	}
 
@@ -140,7 +140,7 @@ final class CurationAbilities {
 	 * @param string $method      The method on this class that does it.
 	 * @param array  $annotations Whether it's read-only, destructive and idempotent.
 	 */
-	private function register_ability( $name, $label, $description, $method, array $annotations ) {
+	private function register_ability( $name, $label, $description, $method, array $annotations ): void {
 		wp_register_ability(
 			$name,
 			array(
@@ -194,7 +194,7 @@ final class CurationAbilities {
 	 * @param array  $input  Ability input.
 	 * @return array|WP_Error
 	 */
-	private function change( $method, $input ) {
+	private function change( $method, $input ): array|WP_Error {
 		$input = (array) $input;
 
 		try {
