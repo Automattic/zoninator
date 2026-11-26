@@ -26,8 +26,8 @@ use Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint;
 use Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper;
 use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use Automattic\Zoninator\Infrastructure\WordPress\Widgets;
 use Automattic\Zoninator\Infrastructure\WordPress\Zones;
-use Zoninator_ZonePosts_Widget;
 
 class ZoninatorHooksTest extends TestCase {
 
@@ -36,7 +36,7 @@ class ZoninatorHooksTest extends TestCase {
 	 */
 	private const HOOKS = array(
 		'init'                             => array( Taxonomy::class . '::register 10 1', FeedEndpoint::class . '::add_rewrite_rule 10 1' ),
-		'widgets_init'                     => array( PluginBootstrapper::class . '::register_widget 10 1' ),
+		'widgets_init'                     => array( Widgets::class . '::register 10 1' ),
 		'template_redirect'                => array( FeedEndpoint::class . '::serve 10 1' ),
 		'query_loop_block_query_vars'      => array( Block::class . '::filter_query_vars 10 2' ),
 		'rest_post_query'                  => array( Block::class . '::filter_rest_query 10 2' ),
@@ -49,13 +49,13 @@ class ZoninatorHooksTest extends TestCase {
 		'admin_enqueue_scripts'            => array( Assets::class . '::enqueue_scripts 10 1', Assets::class . '::enqueue_styles 10 1' ),
 		'admin_menu'                       => array( Menu::class . '::register 10 1' ),
 		'zoninator_advanced_search_fields' => array( SearchForm::class . '::render_category_filter 10 1', SearchForm::class . '::render_date_filter 20 1' ),
-		// The widget registers these on itself when it's built.
-		'save_post'                        => array( Zoninator_ZonePosts_Widget::class . '::flush_widget_cache 10 1' ),
-		'deleted_post'                     => array( Zoninator_ZonePosts_Widget::class . '::flush_widget_cache 10 1' ),
-		'switch_theme'                     => array( Zoninator_ZonePosts_Widget::class . '::flush_widget_cache 10 1' ),
-		'zoninator_add_zone_posts'         => array( Zoninator_ZonePosts_Widget::class . '::flush_widget_cache 10 1' ),
-		'zoninator_remove_zone_posts'      => array( Zoninator_ZonePosts_Widget::class . '::flush_widget_cache 10 1' ),
-		'edited_zoninator_zones'           => array( Zoninator_ZonePosts_Widget::class . '::flush_widget_cache 10 1' ),
+		// Everything that changes what the Zone Posts widget shows clears its cache.
+		'save_post'                        => array( Widgets::class . '::flush_cache 10 1' ),
+		'deleted_post'                     => array( Widgets::class . '::flush_cache 10 1' ),
+		'switch_theme'                     => array( Widgets::class . '::flush_cache 10 1' ),
+		'zoninator_add_zone_posts'         => array( Widgets::class . '::flush_cache 10 1' ),
+		'zoninator_remove_zone_posts'      => array( Widgets::class . '::flush_cache 10 1' ),
+		'edited_zoninator_zones'           => array( Widgets::class . '::flush_cache 10 1' ),
 	);
 
 	public function test_plugin_registers_exactly_these_hooks(): void {
@@ -112,7 +112,7 @@ class ZoninatorHooksTest extends TestCase {
 
 		return array(
 			'taxonomy'         => array( 'init', array( zoninator_container()->get( Taxonomy::class ), 'register' ), 10 ),
-			'widget'           => array( 'widgets_init', array( zoninator_container()->get( PluginBootstrapper::class ), 'register_widget' ), 10 ),
+			'widget'           => array( 'widgets_init', array( zoninator_container()->get( Widgets::class ), 'register' ), 10 ),
 			'feed rewrite'     => array( 'init', array( $feed, 'add_rewrite_rule' ), 10 ),
 			'feed'             => array( 'template_redirect', array( $feed, 'serve' ), 10 ),
 			'block query'      => array( 'query_loop_block_query_vars', array( $block, 'filter_query_vars' ), 10 ),

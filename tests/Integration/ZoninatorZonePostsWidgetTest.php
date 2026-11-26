@@ -29,7 +29,7 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 
 		$zone          = self::insert_zone( 'widget-zone', 'Widget zone', array( 'description' => 'About the zone' ) );
 		$this->zone_id = (int) $zone['term_id'];
-		$this->widget  = new Zoninator_ZonePosts_Widget( self::zones() );
+		$this->widget  = new Zoninator_ZonePosts_Widget();
 
 		wp_cache_delete( 'widget-zone-posts', 'widget' );
 		wp_cache_delete( 'widget-zone-posts-save_blocked', 'widget' );
@@ -154,7 +154,7 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 	public function test_wordpress_knows_the_widget_by_its_class_name(): void {
 		global $wp_widget_factory;
 
-		$this->assertSame( zoninator_container()->get( Zoninator_ZonePosts_Widget::class ), $wp_widget_factory->widgets[ Zoninator_ZonePosts_Widget::class ] );
+		$this->assertInstanceOf( Zoninator_ZonePosts_Widget::class, $wp_widget_factory->widgets[ Zoninator_ZonePosts_Widget::class ] );
 		$this->assertSame( $wp_widget_factory->widgets[ Zoninator_ZonePosts_Widget::class ], $wp_widget_factory->get_widget_object( 'zoninator_zoneposts_widget' ) );
 	}
 

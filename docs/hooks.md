@@ -263,7 +263,7 @@ add_filter( 'zoninator_zone_posts_widget_html', function ( $html, $posts ) {
 
 ### `zoninator_zone_posts_widget_block_save_cache_seconds` (filter)
 
-Fires from `src/class-zoninator-zoneposts-widget.php`. How long (in seconds) the widget cache is locked against re-population after a flush. Defaults to `5`. Set to `0` to disable the lock.
+Fires from `src/Infrastructure/WordPress/Widgets.php`. How long (in seconds) the widget cache is locked against re-population after a flush. Defaults to `5`. Set to `0` to disable the lock.
 
 - **Parameters:** `int $seconds`
 

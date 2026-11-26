@@ -1,7 +1,7 @@
 <?php
 // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName
 
-use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use Automattic\Zoninator\Infrastructure\WordPress\Widgets;
 use Automattic\Zoninator\Infrastructure\WordPress\Zones;
 
 /**
@@ -10,24 +10,10 @@ use Automattic\Zoninator\Infrastructure\WordPress\Zones;
 class Zoninator_ZonePosts_Widget extends WP_Widget {
 
 	/**
-	 * Zones and the posts in them.
-	 *
-	 * @var Zones
+	 * Constructor. It takes no arguments, as WordPress builds widgets from
+	 * their class names, so the widget gets what it needs from the container.
 	 */
-	private $zones;
-
-	/**
-	 * Constructor.
-	 *
-	 * WordPress can't build this widget itself, as it builds widgets with no
-	 * arguments. PluginBootstrapper builds it and files it with WordPress. To
-	 * register a subclass, build it the same way:
-	 * register_widget( new My_Widget( zoninator_container()->get( Zones::class ) ) ).
-	 *
-	 * @param Zones $zones Zones and the posts in them.
-	 */
-	public function __construct( Zones $zones ) {
-		$this->zones           = $zones;
+	public function __construct() {
 		$this->alt_option_name = 'widget_zone_posts';
 
 		parent::__construct(
@@ -40,23 +26,8 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		);
 	}
 
-	/**
-	 * Hooks the widget's cache to everything that changes what it shows.
-	 * PluginBootstrapper::register_widget() calls this once.
-	 *
-	 * @since 1.0.0
-	 */
-	public function register_hooks() {
-		add_action( 'save_post', array( $this, 'flush_widget_cache' ) );
-		add_action( 'deleted_post', array( $this, 'flush_widget_cache' ) );
-		add_action( 'switch_theme', array( $this, 'flush_widget_cache' ) );
-		add_action( 'zoninator_add_zone_posts', array( $this, 'flush_widget_cache' ) );
-		add_action( 'zoninator_remove_zone_posts', array( $this, 'flush_widget_cache' ) );
-		add_action( 'edited_' . Taxonomy::NAME, array( $this, 'flush_widget_cache' ) );
-	}
-
 	public function widget( $args, $instance ) {
-		$cache_key = 'widget-zone-posts';
+		$cache_key = Widgets::CACHE_KEY;
 		$cache     = wp_cache_get( $cache_key, 'widget' );
 
 		if ( ! is_array( $cache ) ) {
@@ -79,12 +50,12 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 			return;
 		}
 
-		$zone = $this->zones->get( $zone_id );
+		$zone = zoninator_container()->get( Zones::class )->get( $zone_id );
 		if ( ! $zone ) {
 			return;
 		}
 
-		$query = $this->zones->get_query( $zone_id );
+		$query = zoninator_container()->get( Zones::class )->get_query( $zone_id );
 		$posts = $query->posts;
 		if ( empty( $posts ) ) {
 			return;
@@ -141,7 +112,7 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 			return;
 		}
 
-		wp_cache_set( 'widget-zone-posts', $cache, 'widget' );
+		wp_cache_set( $cache_key, $cache, 'widget' );
 	}
 
 	/**
@@ -185,23 +156,17 @@ class Zoninator_ZonePosts_Widget extends WP_Widget {
 		return $instance;
 	}
 
+	/**
+	 * Clears the cached output of every Zone Posts widget.
+	 */
 	public function flush_widget_cache() {
-		$cache_key = 'widget-zone-posts';
-
-		$block_save_cache_seconds = absint( apply_filters( 'zoninator_zone_posts_widget_block_save_cache_seconds', 5 ) );
-		if ( $block_save_cache_seconds > 0 ) {
-			// This key will block updating the cache for n seconds so the following cache delete can propagate
-			// phpcs:ignore -- WordPressVIPMinimum.Performance.LowExpiryCacheTime.CacheTimeUndetermined -- not changing behavior now.
-			wp_cache_set( $cache_key . '-save_blocked', 1, 'widget', $block_save_cache_seconds );
-		}
-
-		wp_cache_delete( $cache_key, 'widget' );
+		zoninator_container()->get( Widgets::class )->flush_cache();
 	}
 
 	public function form( $instance ) {
 		// select - zone
 		// checkbox - show description
-		$zones = $this->zones->get_all();
+		$zones = zoninator_container()->get( Zones::class )->get_all();
 		if ( empty( $zones ) ) {
 			esc_html_e( 'You need to create at least one zone before you use this widget!', 'zoninator' );
 			return;
