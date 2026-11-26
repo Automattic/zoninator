@@ -116,7 +116,7 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 		$deleted = wp_delete_term( $zone_id, Taxonomy::NAME );
 
 		if ( ! $deleted || is_wp_error( $deleted ) ) {
-			throw new ZoneNotSavedException( 'The zone could not be deleted.', 'delete-zone' );
+			throw new ZoneNotSavedException( __( "Sorry, we couldn't delete the zone.", 'zoninator' ), 'delete-zone' );
 		}
 
 		do_action( 'zoninator_delete_zone', $zone_id );
