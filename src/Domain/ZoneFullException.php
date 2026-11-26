@@ -23,16 +23,7 @@ final class ZoneFullException extends RuntimeException implements ZoninatorExcep
 	 *
 	 * @param int $limit The most posts the zone may hold.
 	 */
-	public function __construct( private readonly int $limit ) {
+	public function __construct( int $limit ) {
 		parent::__construct( sprintf( 'The zone may hold at most %d posts.', $limit ) );
-	}
-
-	/**
-	 * Gets the most posts the zone may hold.
-	 *
-	 * @return int
-	 */
-	public function get_limit(): int {
-		return $this->limit;
 	}
 }

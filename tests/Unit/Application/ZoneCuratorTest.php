@@ -99,7 +99,7 @@ final class ZoneCuratorTest extends TestCase {
 			$this->curator->add_posts( $this->zone_id, array( 7 ) );
 			$this->fail( 'Expected the full zone to refuse another post.' );
 		} catch ( ZoneFullException $exception ) {
-			$this->assertSame( 2, $exception->get_limit() );
+			$this->assertSame( 'The zone may hold at most 2 posts.', $exception->getMessage() );
 		}
 
 		$this->assertSame( array( 5, 6 ), $this->zone_posts->post_ids[ $this->zone_id ] );
