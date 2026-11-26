@@ -27,8 +27,7 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$zone          = self::insert_zone( 'widget-zone', 'Widget zone', array( 'description' => 'About the zone' ) );
-		$this->zone_id = (int) $zone['term_id'];
+		$this->zone_id = self::insert_zone( 'widget-zone', 'Widget zone', array( 'description' => 'About the zone' ) );
 		$this->widget  = new ZonePostsWidget();
 	}
 
@@ -180,13 +179,13 @@ final class ZoninatorZonePostsWidgetTest extends TestCase {
 	 * each show their own posts.
 	 */
 	public function test_the_widget_prints_each_zone_it_is_asked_for(): void {
-		$other = self::insert_zone( 'other-widget-zone', 'Other zone' );
+		$other_id = self::insert_zone( 'other-widget-zone', 'Other zone' );
 		self::add_zone_posts( $this->zone_id, self::factory()->post->create() );
-		self::add_zone_posts( (int) $other['term_id'], self::factory()->post->create() );
+		self::add_zone_posts( $other_id, self::factory()->post->create() );
 
 		ob_start();
 		the_widget( ZonePostsWidget::class, array( 'zone_id' => $this->zone_id ) );
-		the_widget( ZonePostsWidget::class, array( 'zone_id' => (int) $other['term_id'] ) );
+		the_widget( ZonePostsWidget::class, array( 'zone_id' => $other_id ) );
 		$html = (string) ob_get_clean();
 
 		$this->assertStringContainsString( 'Widget zone', $html );

@@ -125,7 +125,7 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 	 */
 	public function test_entities_stored_by_an_earlier_version_survive_a_change(): void {
 		global $wpdb;
-		$zone_id = (int) self::insert_zone( 'legacy' )['term_id'];
+		$zone_id = self::insert_zone( 'legacy' );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Past the term filters, as an earlier WordPress stored it.
 		$wpdb->update( $wpdb->term_taxonomy, array( 'description' => 'a:1:{s:11:"description";s:32:"Caf&eacute; &quot;A&quot;; &amp;";}' ), array( 'term_id' => $zone_id ) );
 		clean_term_cache( $zone_id, Taxonomy::NAME );
@@ -164,10 +164,7 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 	 * @return WP_Term
 	 */
 	private function insert( $description ) {
-		$result = self::insert_zone( 'description-' . wp_rand(), 'Zone', array( 'description' => $description ) );
-		$this->assertNotWPError( $result );
-
-		return self::zones()->get( (int) $result['term_id'] );
+		return self::zones()->get( self::insert_zone( 'description-' . wp_rand(), 'Zone', array( 'description' => $description ) ) );
 	}
 
 	/**

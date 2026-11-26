@@ -232,7 +232,7 @@ class ZoninatorHooksTest extends TestCase {
 
 	public function test_zone_post_columns_default_to_the_row(): void {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
-		$zone = self::insert_zone( 'pinned-zone', 'Pinned zone' );
+		$zone_id = self::insert_zone( 'pinned-zone', 'Pinned zone' );
 
 		$columns = null;
 		$spy     = static function ( $value ) use ( &$columns ) {
@@ -242,7 +242,7 @@ class ZoninatorHooksTest extends TestCase {
 		add_filter( 'zoninator_zone_post_columns', $spy );
 
 		ob_start();
-		zoninator_container()->get( ZonePostRow::class )->render( get_post( self::factory()->post->create() ), self::zones()->get( (int) $zone['term_id'] ) );
+		zoninator_container()->get( ZonePostRow::class )->render( get_post( self::factory()->post->create() ), self::zones()->get( $zone_id ) );
 		ob_end_clean();
 
 		remove_filter( 'zoninator_zone_post_columns', $spy );

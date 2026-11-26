@@ -34,8 +34,7 @@ class ZoninatorZonePostAccessTest extends TestCase {
 		parent::set_up();
 
 		$this->editor_id  = self::factory()->user->create( array( 'role' => 'editor' ) );
-		$zone             = self::insert_zone( 'access-zone', 'Access zone' );
-		$this->zone_id    = (int) $zone['term_id'];
+		$this->zone_id    = self::insert_zone( 'access-zone', 'Access zone' );
 		$this->secret_id  = self::factory()->post->create( array( 'post_title' => 'zoninator-canary@example.com' ) );
 
 		// A supported, published post that only the read_post check stops the editor using.

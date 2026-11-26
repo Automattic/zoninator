@@ -22,10 +22,10 @@ class ZoninatorZoneLockNoticeTest extends TestCase {
 		);
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 
-		$zone = self::insert_zone( 'locked-zone', 'Locked zone' );
-		self::locker()->lock( (int) $zone['term_id'], $locker_id );
+		$zone_id = self::insert_zone( 'locked-zone', 'Locked zone' );
+		self::locker()->lock( $zone_id, $locker_id );
 
-		$output = self::render_zone_editor( (int) $zone['term_id'] );
+		$output = self::render_zone_editor( $zone_id );
 
 		$this->assertStringContainsString( 'Zone Locker', $output );
 		$this->assertStringNotContainsString( 'zoninator-locker@example.com', $output );

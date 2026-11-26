@@ -155,9 +155,7 @@ final class ZoninatorZoneBlockTest extends TestCase {
 	}
 
 	private function create_zone(): int {
-		$zone = self::insert_zone( 'block-zone', 'Block zone' );
-
-		return (int) $zone['term_id'];
+		return self::insert_zone( 'block-zone', 'Block zone' );
 	}
 
 	private function create_post( string $title, string $status = 'publish' ): int {

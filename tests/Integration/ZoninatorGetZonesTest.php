@@ -26,8 +26,7 @@ class ZoninatorGetZonesTest extends TestCase {
 	}
 
 	public function test_get_zones_with_fields_ids_returns_ids() {
-		$result  = self::insert_zone( 'zone-ids', 'Zone Ids' );
-		$zone_id = (int) $result['term_id'];
+		$zone_id = self::insert_zone( 'zone-ids', 'Zone Ids' );
 
 		$zones = self::zones()->get_all( array( 'fields' => 'ids' ) );
 
@@ -35,8 +34,7 @@ class ZoninatorGetZonesTest extends TestCase {
 	}
 
 	public function test_get_zones_ignores_a_taxonomy_arg() {
-		$result  = self::insert_zone( 'zone-only', 'Zone Only' );
-		$zone_id = (int) $result['term_id'];
+		$zone_id = self::insert_zone( 'zone-only', 'Zone Only' );
 		self::factory()->category->create( array( 'name' => 'Not a zone' ) );
 
 		$zones = self::zones()->get_all(

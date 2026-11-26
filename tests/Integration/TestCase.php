@@ -29,10 +29,10 @@ abstract class TestCase extends WPIntegrationTestCase {
 	 * @param string $slug    The zone's slug.
 	 * @param string $name    The zone's name, or '' to use the slug.
 	 * @param array  $details Details to set, by name.
-	 * @return array{term_id: int} The new zone's ID, keyed as wp_insert_term() returns it.
+	 * @return int The new zone's ID.
 	 */
-	protected static function insert_zone( string $slug, string $name = '', array $details = array() ): array {
-		return array( 'term_id' => (int) zoninator_container()->get( ZoneManager::class )->create( $slug, $name, $details )->get_id() );
+	protected static function insert_zone( string $slug, string $name = '', array $details = array() ): int {
+		return (int) zoninator_container()->get( ZoneManager::class )->create( $slug, $name, $details )->get_id();
 	}
 
 	/**

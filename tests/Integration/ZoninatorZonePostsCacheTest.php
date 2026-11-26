@@ -30,8 +30,7 @@ class ZoninatorZonePostsCacheTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$zone          = self::insert_zone( 'cache-zone', 'Cache Zone' );
-		$this->zone_id = $zone['term_id'];
+		$this->zone_id = self::insert_zone( 'cache-zone', 'Cache Zone' );
 
 		$this->post_ids = self::factory()->post->create_many( 3 );
 		self::add_zone_posts( $this->zone_id, array( $this->post_ids[0], $this->post_ids[1] ) );

@@ -25,8 +25,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$zone          = self::insert_zone( 'form-zone', 'Form zone', array( 'description' => 'Before' ) );
-		$this->zone_id = (int) $zone['term_id'];
+		$this->zone_id = self::insert_zone( 'form-zone', 'Form zone', array( 'description' => 'Before' ) );
 
 		// The handler redirects and exits on success, so stop it at the redirect.
 		add_filter(
