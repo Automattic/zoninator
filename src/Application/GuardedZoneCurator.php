@@ -53,7 +53,7 @@ final class GuardedZoneCurator {
 	 * @param int[] $post_ids Post IDs.
 	 */
 	public function set_posts( int $user_id, int $zone_id, array $post_ids ): void {
-		$this->guard->check_set( $user_id, $zone_id, $post_ids );
+		$this->guard->check_curate( $user_id, $zone_id, $post_ids );
 		$this->curator->set_posts( $zone_id, $post_ids );
 	}
 

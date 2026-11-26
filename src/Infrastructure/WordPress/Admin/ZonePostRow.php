@@ -59,8 +59,9 @@ final class ZonePostRow {
 	 * zoninator_zone_post_columns filter, so sites can add, change and remove columns.
 	 *
 	 * A zone can hold a post the current user may not read. Its row keeps its
-	 * place, so saving the zone's order doesn't drop it, but says nothing about
-	 * the post, and the filter's callbacks aren't asked to print it.
+	 * place, so saving the zone's order doesn't drop it, and can be removed,
+	 * but says nothing about the post, and the filter's callbacks aren't asked
+	 * to print it.
 	 *
 	 * @param WP_Post $post The post.
 	 * @param WP_Term $zone The zone it's in.
@@ -141,10 +142,16 @@ final class ZonePostRow {
 	}
 
 	/**
-	 * Prints the cell that stands in for a post the user may not read.
+	 * Prints the cell that stands in for a post the user may not read, with
+	 * the one thing they can do to it: take it out of the zone.
 	 */
 	public function render_restricted_column(): void {
 		esc_html_e( 'An item you do not have access to.', 'zoninator' );
+		?>
+	<div class="row-actions">
+		<button type="button" class="button-link button-link-delete delete" aria-label="<?php esc_attr_e( 'Remove the item you do not have access to', 'zoninator' ); ?>"><?php esc_html_e( 'Remove', 'zoninator' ); ?></button>
+	</div>
+		<?php
 	}
 
 	public function render_info_column( $post, $zone ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed

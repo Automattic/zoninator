@@ -163,6 +163,19 @@ final class ZoneGuardTest extends TestCase {
 	}
 
 	/**
+	 * Curating a zone is deciding what's in it, so a post the user may not
+	 * use can be taken out like any other.
+	 */
+	public function test_a_post_already_in_the_zone_can_be_taken_out(): void {
+		$zone_id = (int) $this->manager->create( self::EDITOR, 'homepage' )->get_id();
+		$this->zone_posts->replace( $zone_id, array( 99, 5 ) );
+
+		$this->curator->remove_posts( self::EDITOR, $zone_id, array( 99 ) );
+
+		$this->assertSame( array( 5 ), $this->zone_posts->post_ids[ $zone_id ] );
+	}
+
+	/**
 	 * A zone can hold a post the user may not use. They can still order the
 	 * zone around it and take other posts out. What they can't do is add one.
 	 */

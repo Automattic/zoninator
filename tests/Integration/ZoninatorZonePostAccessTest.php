@@ -49,28 +49,30 @@ class ZoninatorZonePostAccessTest extends TestCase {
 		);
 	}
 
-	/**
-	 * @dataProvider data_rest_zone_post_methods
-	 *
-	 * @param string $method HTTP method.
-	 */
-	public function test_rest_zone_post_route_rejects_a_post_the_user_cannot_read( string $method ): void {
+	public function test_rest_add_rejects_a_post_the_user_cannot_read(): void {
 		wp_set_current_user( $this->editor_id );
-		self::add_zone_posts( $this->zone_id, array( $this->secret_id ) );
 
-		$response = rest_do_request( new WP_REST_Request( $method, '/zoninator/v1/zones/' . $this->zone_id . '/posts/' . $this->secret_id ) );
+		$response = rest_do_request( new WP_REST_Request( 'POST', '/zoninator/v1/zones/' . $this->zone_id . '/posts/' . $this->secret_id ) );
 
 		$this->assertSame( 400, $response->get_status() );
 		$this->assertStringNotContainsString( 'zoninator-canary@example.com', wp_json_encode( $response->get_data() ) );
-		$this->assertSame( '1', $this->zone_order( $this->secret_id ) );
+		$this->assertSame( '', $this->zone_order( $this->secret_id ) );
 	}
 
 	/**
-	 * @return Generator<string, array{string}>
+	 * Curating a zone is deciding what's in it. A post already there can be
+	 * taken out whether or not the user may read it, and the response says
+	 * nothing about it.
 	 */
-	public static function data_rest_zone_post_methods(): Generator {
-		yield 'add' => array( 'POST' );
-		yield 'remove' => array( 'DELETE' );
+	public function test_rest_remove_takes_out_a_post_the_user_cannot_read(): void {
+		wp_set_current_user( $this->editor_id );
+		self::add_zone_posts( $this->zone_id, array( $this->secret_id ) );
+
+		$response = rest_do_request( new WP_REST_Request( 'DELETE', '/zoninator/v1/zones/' . $this->zone_id . '/posts/' . $this->secret_id ) );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( 'success' => true ), $response->get_data() );
+		$this->assertSame( '', $this->zone_order( $this->secret_id ) );
 	}
 
 	/**
@@ -159,6 +161,8 @@ class ZoninatorZonePostAccessTest extends TestCase {
 		$this->assertStringContainsString( 'Readable story', $html );
 		$this->assertStringNotContainsString( 'zoninator-canary@example.com', $html );
 		$this->assertStringNotContainsString( get_permalink( $this->secret_id ), $html );
+		// Each row has a Remove button, so the post can still be taken out.
+		$this->assertSame( 2, substr_count( $html, 'button-link-delete delete' ) );
 		// A site's columns aren't asked to print a post the user may not read.
 		$this->assertSame( array( $readable_id ), $seen );
 	}

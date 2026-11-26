@@ -68,7 +68,7 @@ When a change is refused, the method throws an exception from `Automattic\Zonina
 | `ZoneFullException` | The zone would hold more posts than its limit. |
 | `ZoneLockedException` | Someone else holds the zone's lock. `get_holder_id()` gives their user ID. |
 | `AccessDeniedException` | The user doesn't have the capability. `Guarded` classes only. |
-| `PostNotAllowedException` | A post isn't of a post type that supports zones, or the user can't read it. `Guarded` classes only. `set_posts()` checks only the posts new to the zone. |
+| `PostNotAllowedException` | A post isn't of a post type that supports zones, or the user can't read it. `Guarded` classes only. A post already in the zone is never refused, so it can be reordered or removed. |
 
 All seven implement `Automattic\Zoninator\Domain\ZoninatorExceptionInterface`, so `catch ( ZoninatorExceptionInterface $exception )` covers every way a change can be refused.
 
