@@ -298,7 +298,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			$this->fail( 'Expected the handler to stop the request.' );
 		} catch ( WPDieException $e ) {
 			// A request without a nonce gets WordPress's own refusal; a user who may not gets Zoninator's.
-			$this->assertSame( $with_nonce ? esc_html( "Sorry, you're not supposed to do that..." ) : 'The link you followed has expired.', $e->getMessage() );
+			$this->assertSame( $with_nonce ? "Sorry, you're not supposed to do that..." : 'The link you followed has expired.', $e->getMessage() );
 		}
 
 		$this->assertSame( 'Form zone', self::zones()->get( $this->zone_id )->name );

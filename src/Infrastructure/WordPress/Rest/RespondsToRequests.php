@@ -7,20 +7,12 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 
-use Automattic\Zoninator\Domain\AccessDeniedException;
-use Automattic\Zoninator\Domain\InvalidZoneException;
-use Automattic\Zoninator\Domain\PostNotAllowedException;
-use Automattic\Zoninator\Domain\ZoneFullException;
-use Automattic\Zoninator\Domain\ZoneLockedException;
-use Automattic\Zoninator\Domain\ZoneNotFoundException;
-use Automattic\Zoninator\Domain\ZoneNotSavedException;
-use Automattic\Zoninator\Domain\ZoninatorExceptionInterface;
 use WP_Error;
 use WP_REST_Response;
 
 /**
  * Hooks the routes, reads request params and builds responses the same way
- * in every zoninator/v1 controller. It keeps no state of its own.
+ * in every zoninator/v1 controller. Errors builds the errors. It keeps no state of its own.
  *
  * @since 1.0.0
  */
@@ -104,71 +96,6 @@ trait RespondsToRequests {
 	 */
 	private function bad_request( $code, $message ) {
 		return new WP_Error( $code, $message, array( 'status' => 400 ) );
-	}
-
-	/**
-	 * Turns what the Application layer threw into this API's response.
-	 *
-	 * @param ZoninatorExceptionInterface $exception What was thrown.
-	 * @param int                         $zone_id   The zone being changed, for the locked error's data.
-	 * @return WP_Error
-	 *
-	 * @throws ZoninatorExceptionInterface If it's an exception this API has no error for yet.
-	 */
-	private function error_response( ZoninatorExceptionInterface $exception, $zone_id ) {
-		if ( $exception instanceof ZoneLockedException ) {
-			$locking_user = get_userdata( $exception->get_holder_id() );
-
-			return new WP_Error(
-				ErrorCodes::ZONE_LOCKED,
-				sprintf(
-					/* translators: %s: the locking user's display name, or "another user". */
-					__( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
-					$locking_user ? $locking_user->display_name : __( 'another user', 'zoninator' )
-				),
-				array(
-					'status'  => 400,
-					'zone_id' => $zone_id,
-					'blocked' => true,
-				)
-			);
-		}
-
-		if ( $exception instanceof ZoneNotFoundException ) {
-			return $this->zone_not_found();
-		}
-
-		if ( $exception instanceof ZoneFullException ) {
-			return $this->bad_request( ErrorCodes::ZONE_FULL, __( 'Sorry, another item cannot be added to this zone.', 'zoninator' ) );
-		}
-
-		if ( $exception instanceof PostNotAllowedException ) {
-			return $this->bad_request( ErrorCodes::INVALID_POST_ID, __( 'Invalid post ID.', 'zoninator' ) );
-		}
-
-		if ( $exception instanceof AccessDeniedException ) {
-			return new WP_Error( ErrorCodes::PERMISSION_DENIED, __( "Sorry, you're not supposed to do that...", 'zoninator' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
-		if ( $exception instanceof InvalidZoneException ) {
-			return $this->bad_request( 'zone-empty-slug', __( 'Slug is a required field.', 'zoninator' ) );
-		}
-
-		if ( $exception instanceof ZoneNotSavedException ) {
-			return $this->bad_request( $exception->get_error_code(), $exception->getMessage() );
-		}
-
-		// A new exception with no error of its own yet. Let it be seen, not guessed at.
-		throw $exception;
-	}
-
-	/**
-	 * Create a 404 response
-	 *
-	 * @return WP_Error
-	 */
-	private function zone_not_found() {
-		return new WP_Error( ErrorCodes::ZONE_NOT_FOUND, __( 'Zone not found.', 'zoninator' ), array( 'status' => 404 ) );
 	}
 
 	/**

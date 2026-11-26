@@ -8,7 +8,7 @@
 namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 
 use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
-use Automattic\Zoninator\Infrastructure\WordPress\Rest\ErrorCodes;
+use Automattic\Zoninator\Infrastructure\WordPress\Errors;
 use Automattic\Zoninator\Infrastructure\WordPress\Rest\Permissions;
 use Automattic\Zoninator\Infrastructure\WordPress\Rest\RespondsToRequests;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
@@ -55,16 +55,25 @@ final class ZonePostRowController extends WP_REST_Controller {
 	private $permissions;
 
 	/**
+	 * Builds the error for each thing that can go wrong.
+	 *
+	 * @var Errors
+	 */
+	private $errors;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ZonePostRow  $row          Renders a zone post's row.
 	 * @param Capabilities $capabilities The capability checks.
 	 * @param Permissions  $permissions  Says who may call the route.
+	 * @param Errors $errors Builds the error for each thing that can go wrong.
 	 */
-	public function __construct( ZonePostRow $row, Capabilities $capabilities, Permissions $permissions ) {
+	public function __construct( ZonePostRow $row, Capabilities $capabilities, Permissions $permissions, Errors $errors ) {
 		$this->row          = $row;
 		$this->capabilities = $capabilities;
 		$this->permissions  = $permissions;
+		$this->errors       = $errors;
 	}
 
 	/**
@@ -105,11 +114,11 @@ final class ZonePostRowController extends WP_REST_Controller {
 		$post_id = (int) $request['post_id'];
 
 		if ( ! term_exists( $zone_id, Taxonomy::NAME ) ) {
-			return $this->zone_not_found();
+			return $this->errors->zone_not_found();
 		}
 
 		if ( ! $this->capabilities->can_use_post( get_current_user_id(), $post_id ) ) {
-			return $this->bad_request( ErrorCodes::INVALID_POST_ID, __( 'Invalid post ID.', 'zoninator' ) );
+			return $this->errors->invalid_post_id();
 		}
 
 		return $this->ok( array( 'html' => $this->row->get_html( $post_id, $zone_id ) ) );

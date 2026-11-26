@@ -12,6 +12,7 @@ use Automattic\Zoninator\Domain\AccessDeniedException;
 use Automattic\Zoninator\Domain\ZoneLockedException;
 use Automattic\Zoninator\Domain\ZoneNotFoundException;
 use Automattic\Zoninator\Domain\ZoninatorExceptionInterface;
+use Automattic\Zoninator\Infrastructure\WordPress\Errors;
 
 /**
  * Saves the Zones screen's zone form: creating a zone, changing its name,
@@ -40,14 +41,23 @@ final class ZoneForm {
 	private $manager;
 
 	/**
+	 * Builds the error for each thing that can go wrong.
+	 *
+	 * @var Errors
+	 */
+	private $errors;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ScreenLocation     $location Where the Zones screen is.
 	 * @param GuardedZoneManager $manager Creates, changes and deletes zones for the current user.
+	 * @param Errors $errors Builds the error for each thing that can go wrong.
 	 */
-	public function __construct( ScreenLocation $location, GuardedZoneManager $manager ) {
+	public function __construct( ScreenLocation $location, GuardedZoneManager $manager, Errors $errors ) {
 		$this->location = $location;
 		$this->manager  = $manager;
+		$this->errors   = $errors;
 	}
 
 	/**
@@ -81,7 +91,7 @@ final class ZoneForm {
 		try {
 			$url = $this->location->get_url( $this->save( $action, $zone_id ) );
 		} catch ( AccessDeniedException $exception ) {
-			wp_die( esc_html__( "Sorry, you're not supposed to do that...", 'zoninator' ) );
+			wp_die( $this->errors->permission_denied() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- A WP_Error; wp_die() prints its message.
 		} catch ( ZoneLockedException $exception ) {
 			// The zone's own page says who is editing it.
 			$url = $this->location->get_url(

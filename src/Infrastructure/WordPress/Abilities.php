@@ -49,16 +49,25 @@ final class Abilities {
 	private $search;
 
 	/**
+	 * Builds the error for each thing that can go wrong.
+	 *
+	 * @var Errors
+	 */
+	private $errors;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Zones        $zones        Zones and the posts in them.
 	 * @param Capabilities $capabilities The capability checks.
 	 * @param Search       $search       Finds posts to offer for a zone.
+	 * @param Errors $errors Builds the error for each thing that can go wrong.
 	 */
-	public function __construct( Zones $zones, Capabilities $capabilities, Search $search ) {
+	public function __construct( Zones $zones, Capabilities $capabilities, Search $search, Errors $errors ) {
 		$this->zones        = $zones;
 		$this->capabilities = $capabilities;
 		$this->search       = $search;
+		$this->errors       = $errors;
 	}
 
 	/**
@@ -244,7 +253,7 @@ final class Abilities {
 
 		// Zones::get_all() returns false, not a WP_Error, when the zones can't be read.
 		if ( ! is_array( $zones ) ) {
-			return new WP_Error( 'zones-read-error', __( 'Zones could not be read.', 'zoninator' ) );
+			return $this->errors->zones_read_error();
 		}
 
 		return array_map(
@@ -271,7 +280,7 @@ final class Abilities {
 		$zone_id = (int) $input['zone_id'];
 
 		if ( ! $this->zones->get( $zone_id ) ) {
-			return $this->zone_not_found();
+			return $this->errors->zone_not_found();
 		}
 
 		// Query the zone directly, not through the JSON feed: the feed's filters can reshape its
@@ -323,7 +332,7 @@ final class Abilities {
 		);
 
 		if ( $input['zone_id'] && ! $this->zones->get( (int) $input['zone_id'] ) ) {
-			return $this->zone_not_found();
+			return $this->errors->zone_not_found();
 		}
 
 		return $this->search->find_posts(
@@ -351,14 +360,5 @@ final class Abilities {
 				'description' => array( 'type' => 'string' ),
 			),
 		);
-	}
-
-	/**
-	 * The error for a zone ID that doesn't exist.
-	 *
-	 * @return WP_Error
-	 */
-	private function zone_not_found() {
-		return new WP_Error( 'zone-not-found', __( 'Zone not found.', 'zoninator' ), array( 'status' => 404 ) );
 	}
 }

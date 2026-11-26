@@ -8,6 +8,7 @@
 namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 
 use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
+use Automattic\Zoninator\Infrastructure\WordPress\Errors;
 use WP_Error;
 use WP_REST_Request;
 
@@ -28,12 +29,21 @@ final class Permissions {
 	private $capabilities;
 
 	/**
+	 * Builds the error for each thing that can go wrong.
+	 *
+	 * @var Errors
+	 */
+	private $errors;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Capabilities $capabilities The capability checks.
+	 * @param Errors $errors Builds the error for each thing that can go wrong.
 	 */
-	public function __construct( Capabilities $capabilities ) {
+	public function __construct( Capabilities $capabilities, Errors $errors ) {
 		$this->capabilities = $capabilities;
+		$this->errors       = $errors;
 	}
 
 	/**
@@ -89,7 +99,7 @@ final class Permissions {
 	 */
 	private function allow( bool $allowed ) {
 		if ( ! $allowed ) {
-			return new WP_Error( ErrorCodes::PERMISSION_DENIED, __( "Sorry, you're not supposed to do that...", 'zoninator' ), array( 'status' => rest_authorization_required_code() ) );
+			return $this->errors->permission_denied();
 		}
 
 		return true;

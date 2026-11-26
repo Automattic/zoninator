@@ -8,11 +8,7 @@
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 use Automattic\Zoninator\Application\GuardedZoneCurator;
-use Automattic\Zoninator\Domain\AccessDeniedException;
-use Automattic\Zoninator\Domain\PostNotAllowedException;
-use Automattic\Zoninator\Domain\ZoneFullException;
-use Automattic\Zoninator\Domain\ZoneLockedException;
-use Automattic\Zoninator\Domain\ZoneNotFoundException;
+use Automattic\Zoninator\Domain\ZoninatorExceptionInterface;
 use WP_Error;
 
 /**
@@ -46,14 +42,23 @@ final class CurationAbilities {
 	private $capabilities;
 
 	/**
+	 * Builds the error for each thing that can go wrong.
+	 *
+	 * @var Errors
+	 */
+	private $errors;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param GuardedZoneCurator $curator      Changes the posts in a zone for the current user.
 	 * @param Capabilities       $capabilities The capability checks.
+	 * @param Errors $errors Builds the error for each thing that can go wrong.
 	 */
-	public function __construct( GuardedZoneCurator $curator, Capabilities $capabilities ) {
+	public function __construct( GuardedZoneCurator $curator, Capabilities $capabilities, Errors $errors ) {
 		$this->curator      = $curator;
 		$this->capabilities = $capabilities;
+		$this->errors       = $errors;
 	}
 
 	/**
@@ -212,26 +217,8 @@ final class CurationAbilities {
 
 		try {
 			$this->curator->$method( get_current_user_id(), (int) $input['zone_id'], array_map( 'intval', (array) $input['post_ids'] ) );
-		} catch ( ZoneNotFoundException $exception ) {
-			return new WP_Error( 'zone-not-found', __( 'Zone not found.', 'zoninator' ), array( 'status' => 404 ) );
-		} catch ( ZoneFullException $exception ) {
-			return new WP_Error( 'zone-full', __( 'Sorry, another item cannot be added to this zone.', 'zoninator' ), array( 'status' => 400 ) );
-		} catch ( PostNotAllowedException $exception ) {
-			return new WP_Error( 'invalid-post-id', __( 'Invalid post ID.', 'zoninator' ), array( 'status' => 400 ) );
-		} catch ( ZoneLockedException $exception ) {
-			$holder = get_userdata( $exception->get_holder_id() );
-
-			return new WP_Error(
-				'zone-locked',
-				sprintf(
-					/* translators: %s: the locking user's display name, or "another user". */
-					__( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
-					$holder ? $holder->display_name : __( 'another user', 'zoninator' )
-				),
-				array( 'status' => 400 )
-			);
-		} catch ( AccessDeniedException $exception ) {
-			return new WP_Error( 'permission-denied', __( "Sorry, you're not supposed to do that...", 'zoninator' ), array( 'status' => 403 ) );
+		} catch ( ZoninatorExceptionInterface $exception ) {
+			return $this->errors->from_exception( $exception, (int) $input['zone_id'] );
 		}
 
 		return array( 'success' => true );

@@ -78,6 +78,7 @@ final class PluginBootstrapper {
 		$container = $this->container;
 
 		$settings      = $container->add( new Settings() );
+		$errors        = $container->add( new Errors() );
 		$taxonomy      = $container->add( new Taxonomy() );
 		$capabilities  = $container->add( new Capabilities( $taxonomy ) );
 		$terms         = $container->add( new TermZoneRepository( $settings ) );
@@ -101,23 +102,23 @@ final class PluginBootstrapper {
 		$screen   = $container->add( new Screen( $loader, new ScreenView( $messages, $location, $editor ) ) );
 		$container->add( new Menu( $capabilities, $location, $screen ) );
 		$container->add( new Assets( $location, $settings, $messages ) );
-		$container->add( new ZoneForm( $location, $guarded_zones ) );
+		$container->add( new ZoneForm( $location, $guarded_zones, $errors ) );
 
 		$search = $container->add( new Search( $taxonomy, $settings, $capabilities ) );
 		$container->add( new FeedEndpoint( $feed ) );
 		$container->add( new Block( $zones ) );
 
 		$container->add( new Widgets() );
-		$container->add( new Abilities( $zones, $capabilities, $search ) );
-		$container->add( new CurationAbilities( $guarded_posts, $capabilities ) );
+		$container->add( new Abilities( $zones, $capabilities, $search, $errors ) );
+		$container->add( new CurationAbilities( $guarded_posts, $capabilities, $errors ) );
 
 		// The zoninator/v1 REST API, and the Zones screen's own route.
-		$permissions = new Permissions( $capabilities );
-		$container->add( new ZonesController( $zones, $guarded_zones, $permissions ) );
-		$container->add( new ZonePostsController( $feed, $guarded_posts, $permissions ) );
+		$permissions = new Permissions( $capabilities, $errors );
+		$container->add( new ZonesController( $zones, $guarded_zones, $permissions, $errors ) );
+		$container->add( new ZonePostsController( $feed, $guarded_posts, $permissions, $errors ) );
 		$container->add( new SearchController( $search, $permissions ) );
-		$container->add( new LockController( $locker, $settings, $permissions ) );
-		$container->add( new ZonePostRowController( $row, $capabilities, $permissions ) );
+		$container->add( new LockController( $locker, $settings, $permissions, $errors ) );
+		$container->add( new ZonePostRowController( $row, $capabilities, $permissions, $errors ) );
 	}
 
 	/**

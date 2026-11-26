@@ -9,6 +9,7 @@ namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 
 use Automattic\Zoninator\Application\GuardedZoneCurator;
 use Automattic\Zoninator\Domain\ZoninatorExceptionInterface;
+use Automattic\Zoninator\Infrastructure\WordPress\Errors;
 use Automattic\Zoninator\Infrastructure\WordPress\Feed;
 use WP_Error;
 use WP_REST_Controller;
@@ -49,16 +50,25 @@ final class ZonePostsController extends WP_REST_Controller {
 	private $permissions;
 
 	/**
+	 * Builds the error for each thing that can go wrong.
+	 *
+	 * @var Errors
+	 */
+	private $errors;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Feed               $feed    The feed's data.
 	 * @param GuardedZoneCurator $curator Changes the posts in a zone for the current user.
 	 * @param Permissions $permissions Says who may call each route.
+	 * @param Errors $errors Builds the error for each thing that can go wrong.
 	 */
-	public function __construct( Feed $feed, GuardedZoneCurator $curator, Permissions $permissions ) {
+	public function __construct( Feed $feed, GuardedZoneCurator $curator, Permissions $permissions, Errors $errors ) {
 		$this->feed        = $feed;
 		$this->curator     = $curator;
 		$this->permissions = $permissions;
+		$this->errors      = $errors;
 	}
 
 	/**
@@ -114,7 +124,7 @@ final class ZonePostsController extends WP_REST_Controller {
 		$results = $this->feed->get( $this->get_param( $request, 'zone_id', 0, 'absint' ) );
 
 		if ( is_wp_error( $results ) ) {
-			return 'invalid-zone-supplied' === $results->get_error_code() ? $this->zone_not_found() : $this->bad_request( ErrorCodes::ZONE_FEED_ERROR, $results->get_error_message() );
+			return 'invalid-zone-supplied' === $results->get_error_code() ? $this->errors->zone_not_found() : $this->bad_request( ErrorCodes::ZONE_FEED_ERROR, $results->get_error_message() );
 		}
 
 		return new WP_REST_Response( $results, 200 );
@@ -132,7 +142,7 @@ final class ZonePostsController extends WP_REST_Controller {
 		try {
 			$this->curator->set_posts( get_current_user_id(), $zone_id, array_map( 'absint', (array) $this->get_param( $request, 'post_ids', array() ) ) );
 		} catch ( ZoninatorExceptionInterface $exception ) {
-			return $this->error_response( $exception, $zone_id );
+			return $this->errors->from_exception( $exception, $zone_id );
 		}
 
 		return $this->ok( array( 'success' => true ) );
@@ -151,7 +161,7 @@ final class ZonePostsController extends WP_REST_Controller {
 		try {
 			$this->curator->add_posts( get_current_user_id(), $zone_id, array( $post_id ) );
 		} catch ( ZoninatorExceptionInterface $exception ) {
-			return $this->error_response( $exception, $zone_id );
+			return $this->errors->from_exception( $exception, $zone_id );
 		}
 
 		return $this->created( array( 'success' => true ) );
@@ -169,7 +179,7 @@ final class ZonePostsController extends WP_REST_Controller {
 		try {
 			$this->curator->remove_posts( get_current_user_id(), $zone_id, array( (int) $request['post_id'] ) );
 		} catch ( ZoninatorExceptionInterface $exception ) {
-			return $this->error_response( $exception, $zone_id );
+			return $this->errors->from_exception( $exception, $zone_id );
 		}
 
 		return $this->ok( array( 'success' => true ) );
