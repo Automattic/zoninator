@@ -79,7 +79,7 @@ Per-zone editing check. `$has_cap` is whether the user has the `zoninator_edit_z
 
 ### `zoninator_rest_get_zones_permissions_check` (filter)
 
-Fires from `src/Infrastructure/WordPress/Rest/Permissions.php`. Whether the `GET /zoninator/v1/zones` endpoint authorizes the current request. Defaults to `is_user_logged_in()`. Return `true` to let anyone list the zones. A refused request gets core's `rest_forbidden` error.
+Fires from `src/Infrastructure/WordPress/Rest/Permissions.php`. Whether the `GET /zoninator/v1/zones` endpoint authorizes the current request. Defaults to whether the user can edit posts (`edit_posts`), which the block editor's zone picker needs, or curate zones. Before 1.0.0 it was whether they were logged in. Return `true` to let anyone list the zones. A refused request gets core's `rest_forbidden` error.
 
 - **Parameters:** `bool $authorized`, `WP_REST_Request $request`
 

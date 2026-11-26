@@ -138,7 +138,7 @@ If you use [`zoninator_zone_posts_widget_html`](hooks.md#zoninator_zone_posts_wi
 
 ## REST API changes
 
-The routes and their arguments are unchanged. What a client sees has changed in four ways.
+The routes and their arguments are unchanged. What a client sees has changed in five ways.
 
 **Zone locks stop every change.** In 0.12.x a zone's lock only kept a second person out of the zone on the Zones screen, and the REST API saved whatever it was sent. Now every route that changes a zone or its posts is refused with `400` and the code `zone-locked` while someone else holds the zone's lock, and the message names them. Retry later, or have the client take the lock first with `PUT /zoninator/v1/zones/{zone_id}/lock`. Requests made as the lock holder go through.
 
@@ -155,6 +155,8 @@ The routes and their arguments are unchanged. What a client sees has changed in 
 If your client reads `zone_id` or `blocked` from the top of the response, read `data.zone_id` and `data.blocked`, or match on the `code`.
 
 **Adding a post returns no HTML.** `POST /zoninator/v1/zones/{zone_id}/posts/{post_id}` returned the post's row for the Zones screen, as `html`. It now returns `{ "success": true }`, like the other routes that change a zone. If your client used the `html`, read the zone's posts with `GET /zoninator/v1/zones/{zone_id}/posts` instead.
+
+**Listing the zones needs more than a login.** `GET /zoninator/v1/zones` answered any logged-in user, subscribers included. It now needs a user who can edit posts, which covers everyone who can use the block editor's zone picker, or who can curate zones. Anyone else gets `403` with the code `rest_forbidden`. To open the list to more users, or to anyone, use the [`zoninator_rest_get_zones_permissions_check`](hooks.md#zoninator_rest_get_zones_permissions_check-filter) filter.
 
 **A full zone is refused.** A change that would take a zone past its post limit gets `400` with the code `zone-full`; see [A zone holds up to 100 posts](#a-zone-holds-up-to-100-posts).
 

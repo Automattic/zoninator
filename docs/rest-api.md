@@ -10,7 +10,7 @@ Every endpoint except `GET /zones/{zone_id}/posts` needs an authenticated reques
 
 `GET /zones/{zone_id}/posts` is public. It lists only published posts, the same as the [JSON feed](theme-developers.md#the-json-feed).
 
-`GET /zones` needs a logged-in user. To let anyone list the zones, use the [`zoninator_rest_get_zones_permissions_check`](hooks.md#zoninator_rest_get_zones_permissions_check-filter) filter.
+`GET /zones` needs a user who can edit posts (`edit_posts`) or curate zones. To let anyone list the zones, use the [`zoninator_rest_get_zones_permissions_check`](hooks.md#zoninator_rest_get_zones_permissions_check-filter) filter.
 
 The other endpoints check a capability, `edit_others_posts` by default; see [hooks.md](hooks.md#capabilities) for the filters that govern them.
 
@@ -20,7 +20,7 @@ The other endpoints check a capability, `edit_others_posts` by default; see [hoo
 
 Returns every zone on the site.
 
-**Permission:** logged-in by default; filter via `zoninator_rest_get_zones_permissions_check`.
+**Permission:** `edit_posts`, or the capability to curate zones, by default; filter via `zoninator_rest_get_zones_permissions_check`.
 
 **Response:** an array of zone objects.
 

@@ -92,7 +92,7 @@ Filter the following and change according to your needs:
 
 ### Can anonymous users read zones over the REST API?
 
-Not by default. The `GET /wp-json/zoninator/v1/zones` endpoint needs a logged-in user. To let anyone list the zones, use the `zoninator_rest_get_zones_permissions_check` filter:
+Not by default. The `GET /wp-json/zoninator/v1/zones` endpoint needs a user who can edit posts or curate zones. To let anyone list the zones, use the `zoninator_rest_get_zones_permissions_check` filter:
 
 ~~~php
 add_filter( 'zoninator_rest_get_zones_permissions_check', '__return_true' );
