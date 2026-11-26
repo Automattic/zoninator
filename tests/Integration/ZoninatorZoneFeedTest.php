@@ -20,6 +20,7 @@ final class ZoninatorZoneFeedTest extends TestCase {
 
 	public function tearDown(): void {
 		// The rollback restores the option, but not the rewrite rules held in memory.
+		zoninator_container()->get( FeedEndpoint::class )->add_rewrite_rule();
 		$this->set_permalink_structure( '' );
 		parent::tearDown();
 	}
@@ -32,6 +33,30 @@ final class ZoninatorZoneFeedTest extends TestCase {
 		$this->go_to( home_url( '/zones/homepage/feed.json' ) );
 
 		$this->assertSame( 'homepage', get_query_var( Taxonomy::NAME ) );
+	}
+
+	/**
+	 * Activation runs after init, so the rule isn't in memory until activate() adds it.
+	 */
+	public function test_activation_routes_the_feed_url_without_a_flush_from_the_site(): void {
+		global $wp_rewrite;
+
+		$this->set_permalink_structure( '/%postname%/' );
+		unset( $wp_rewrite->extra_rules_top['^zones/([^/]+)/feed.json/?$'] );
+		flush_rewrite_rules( false );
+
+		do_action( 'activate_' . plugin_basename( ZONINATOR_FILE ), false );
+		$this->go_to( home_url( '/zones/homepage/feed.json' ) );
+
+		$this->assertSame( 'homepage', get_query_var( Taxonomy::NAME ) );
+	}
+
+	public function test_deactivation_removes_the_feed_url(): void {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		do_action( 'deactivate_' . plugin_basename( ZONINATOR_FILE ), false );
+
+		$this->assertArrayNotHasKey( '^zones/([^/]+)/feed.json/?$', get_option( 'rewrite_rules' ) );
 	}
 
 	public function test_feed_by_slug_lists_published_posts_in_zone_order(): void {

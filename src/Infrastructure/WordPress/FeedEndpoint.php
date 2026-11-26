@@ -21,6 +21,11 @@ namespace Automattic\Zoninator\Infrastructure\WordPress;
 final class FeedEndpoint {
 
 	/**
+	 * The feed's rewrite rule.
+	 */
+	private const RULE = '^zones/([^/]+)/feed.json/?$';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Feed $feed The feed's data.
@@ -29,13 +34,17 @@ final class FeedEndpoint {
 	}
 
 	/**
-	 * Hooks the feed's rewrite rule and its response. PluginBootstrapper::register_hooks() calls this once.
+	 * Hooks the feed's rewrite rule and its response, and flushes the rules
+	 * when the plugin is activated or deactivated. PluginBootstrapper::register_hooks()
+	 * calls this once.
 	 *
 	 * @since 1.0.0
 	 */
 	public function register_hooks(): void {
 		add_action( 'init', array( $this, 'add_rewrite_rule' ) );
 		add_action( 'template_redirect', array( $this, 'serve' ) );
+		register_activation_hook( ZONINATOR_FILE, array( $this, 'activate' ) );
+		register_deactivation_hook( ZONINATOR_FILE, array( $this, 'deactivate' ) );
 	}
 
 	/**
@@ -43,7 +52,31 @@ final class FeedEndpoint {
 	 */
 	public function add_rewrite_rule(): void {
 		add_rewrite_tag( '%' . Taxonomy::NAME . '%', '([^&]+)' );
-		add_rewrite_rule( '^zones/([^/]+)/feed.json/?$', 'index.php?' . Taxonomy::NAME . '=$matches[1]', 'top' );
+		add_rewrite_rule( self::RULE, 'index.php?' . Taxonomy::NAME . '=$matches[1]', 'top' );
+	}
+
+	/**
+	 * Adds the feed's rewrite rule and flushes the rules, so the feed's URL
+	 * works straight away. Hooked on the plugin's activation, which runs after
+	 * init, so add_rewrite_rule() hasn't run yet.
+	 *
+	 * Only the current site's rules are flushed. On a network activation,
+	 * the other sites need their rules flushed, such as with wp rewrite flush.
+	 */
+	public function activate(): void {
+		$this->add_rewrite_rule();
+		flush_rewrite_rules( false ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules -- Once, on activation.
+	}
+
+	/**
+	 * Removes the feed's rewrite rule and flushes the rules, so the feed's URL
+	 * stops matching once the plugin has gone. Hooked on the plugin's deactivation.
+	 */
+	public function deactivate(): void {
+		global $wp_rewrite;
+
+		unset( $wp_rewrite->extra_rules_top[ self::RULE ] );
+		flush_rewrite_rules( false ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules -- Once, on deactivation.
 	}
 
 	/**

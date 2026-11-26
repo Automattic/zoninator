@@ -122,11 +122,14 @@ add_action(
 
 The one exception is `toplevel_page_zoninator`, which is added on `admin_menu`: remove it on `admin_menu` at priority 11 or later.
 
+`FeedEndpoint::activate()`, on `activate_zoninator/zoninator.php`, adds the JSON feed's URL and flushes the rewrite rules when the plugin is activated. You can't remove it on `plugins_loaded`, as WordPress loads the plugin and activates it in the same request, after `plugins_loaded` has fired. The activation and deactivation hooks are named after the plugin's folder and file, so if your copy isn't in a `zoninator` folder, use your folder's name.
+
 | Hook | Class, under `Automattic\Zoninator\Infrastructure\WordPress\` | Method | What it does |
 |---|---|---|---|
 | `init` | `Taxonomy` | `register` | Registers the zone taxonomy. |
 | `init` | `FeedEndpoint` | `add_rewrite_rule` | Adds the [JSON feed](theme-developers.md#the-json-feed)'s URL. |
 | `template_redirect` | `FeedEndpoint` | `serve` | Sends the JSON feed. |
+| `deactivate_zoninator/zoninator.php` | `FeedEndpoint` | `deactivate` | Removes the JSON feed's URL and flushes the rewrite rules, when the plugin is deactivated. |
 | `rest_api_init` | `Rest\ZonesController`, `Rest\ZonePostsController`, `Rest\SearchController`, `Rest\LockController` | `register_routes` | Registers the [REST API](rest-api.md), one controller for each resource. |
 | `rest_api_init` | `Admin\ZonePostRowController` | `register_routes` | Registers the route the Zones screen gets each post's row from. The screen needs it. |
 | `widgets_init` | `Widgets` | `register` | Registers the [Zone Posts widget](theme-developers.md#the-zone-posts-widget). Or call `unregister_widget( ZonePostsWidget::class )` on `widgets_init` at priority 11. |
