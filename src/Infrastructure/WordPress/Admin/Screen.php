@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 
 use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
@@ -26,37 +28,17 @@ use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
 final class Screen {
 
 	/**
-	 * The capability checks, for who sees the menu item.
-	 *
-	 * @var Capabilities
-	 */
-	private $capabilities;
-
-	/**
-	 * Gathers what the screen shows.
-	 *
-	 * @var ScreenDataLoader
-	 */
-	private $loader;
-
-	/**
-	 * Prints the screen.
-	 *
-	 * @var ScreenView
-	 */
-	private $view;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Capabilities     $capabilities The capability checks.
 	 * @param ScreenDataLoader $loader  Gathers what the screen shows.
 	 * @param ScreenView       $view    Prints the screen.
 	 */
-	public function __construct( Capabilities $capabilities, ScreenDataLoader $loader, ScreenView $view ) {
-		$this->capabilities = $capabilities;
-		$this->loader       = $loader;
-		$this->view         = $view;
+	public function __construct(
+		private readonly Capabilities $capabilities,
+		private readonly ScreenDataLoader $loader,
+		private readonly ScreenView $view,
+	) {
 	}
 
 	/**

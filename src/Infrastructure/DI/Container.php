@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\DI;
 
 /**
@@ -24,7 +26,7 @@ final class Container {
 	 *
 	 * @var array<class-string, object>
 	 */
-	private $objects = array();
+	private array $objects = array();
 
 	/**
 	 * Adds an object, under its class name.

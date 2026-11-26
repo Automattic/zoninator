@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 use WP_Post;
@@ -20,37 +22,17 @@ use WP_Post;
 final class Search {
 
 	/**
-	 * The zone taxonomy, for the post types that support zones.
-	 *
-	 * @var Taxonomy
-	 */
-	private $taxonomy;
-
-	/**
-	 * Zoninator's settings, for the number of results.
-	 *
-	 * @var Settings
-	 */
-	private $settings;
-
-	/**
-	 * The capability checks, for the posts the user may add.
-	 *
-	 * @var Capabilities
-	 */
-	private $capabilities;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Taxonomy     $taxonomy     The zone taxonomy.
 	 * @param Settings     $settings     Zoninator's settings.
 	 * @param Capabilities $capabilities The capability checks.
 	 */
-	public function __construct( Taxonomy $taxonomy, Settings $settings, Capabilities $capabilities ) {
-		$this->taxonomy     = $taxonomy;
-		$this->settings     = $settings;
-		$this->capabilities = $capabilities;
+	public function __construct(
+		private readonly Taxonomy $taxonomy,
+		private readonly Settings $settings,
+		private readonly Capabilities $capabilities,
+	) {
 	}
 
 	/**
@@ -64,7 +46,7 @@ final class Search {
 	 * @param int    $zone_id Zone being edited, or 0. Passed to the query args filters.
 	 * @return array[] Results, each passed through the zoninator_search_results_post filter.
 	 */
-	public function find_posts( $term, $cat, $date, $exclude, $limit = 0, $zone_id = 0 ) {
+	public function find_posts( string $term, int $cat, string $date, array $exclude, int $limit = 0, int $zone_id = 0 ): array {
 		$post_types = $this->taxonomy->get_post_types();
 
 		if ( '' === $term ) {

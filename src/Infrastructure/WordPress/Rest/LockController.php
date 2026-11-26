@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 
 use Automattic\Zoninator\Application\ZoneLocker;
@@ -29,34 +31,6 @@ final class LockController extends WP_REST_Controller {
 	use RespondsToRequests;
 
 	/**
-	 * Zone locks.
-	 *
-	 * @var ZoneLocker
-	 */
-	private $locker;
-
-	/**
-	 * Zoninator's settings, for the lock periods.
-	 *
-	 * @var Settings
-	 */
-	private $settings;
-
-	/**
-	 * Says who may call each route.
-	 *
-	 * @var Permissions
-	 */
-	private $permissions;
-
-	/**
-	 * Builds the error for each thing that can go wrong.
-	 *
-	 * @var Errors
-	 */
-	private $errors;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ZoneLocker  $locker      Zone locks.
@@ -64,11 +38,12 @@ final class LockController extends WP_REST_Controller {
 	 * @param Permissions $permissions Says who may call each route.
 	 * @param Errors $errors Builds the error for each thing that can go wrong.
 	 */
-	public function __construct( ZoneLocker $locker, Settings $settings, Permissions $permissions, Errors $errors ) {
-		$this->locker      = $locker;
-		$this->settings    = $settings;
-		$this->permissions = $permissions;
-		$this->errors      = $errors;
+	public function __construct(
+		private readonly ZoneLocker $locker,
+		private readonly Settings $settings,
+		private readonly Permissions $permissions,
+		private readonly Errors $errors,
+	) {
 	}
 
 	/**

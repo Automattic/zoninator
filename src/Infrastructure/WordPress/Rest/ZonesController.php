@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 
 use Automattic\Zoninator\Application\GuardedZoneManager;
@@ -28,34 +30,6 @@ final class ZonesController extends WP_REST_Controller {
 	use RespondsToRequests;
 
 	/**
-	 * Zones and the posts in them.
-	 *
-	 * @var Zones
-	 */
-	private $zones;
-
-	/**
-	 * Creates, changes and deletes zones for the current user.
-	 *
-	 * @var GuardedZoneManager
-	 */
-	private $manager;
-
-	/**
-	 * Says who may call each route.
-	 *
-	 * @var Permissions
-	 */
-	private $permissions;
-
-	/**
-	 * Builds the error for each thing that can go wrong.
-	 *
-	 * @var Errors
-	 */
-	private $errors;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Zones              $zones   Zones and the posts in them.
@@ -63,11 +37,12 @@ final class ZonesController extends WP_REST_Controller {
 	 * @param Permissions $permissions Says who may call each route.
 	 * @param Errors $errors Builds the error for each thing that can go wrong.
 	 */
-	public function __construct( Zones $zones, GuardedZoneManager $manager, Permissions $permissions, Errors $errors ) {
-		$this->zones       = $zones;
-		$this->manager     = $manager;
-		$this->permissions = $permissions;
-		$this->errors      = $errors;
+	public function __construct(
+		private readonly Zones $zones,
+		private readonly GuardedZoneManager $manager,
+		private readonly Permissions $permissions,
+		private readonly Errors $errors,
+	) {
 	}
 
 	/**

@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 use WP_Error;
@@ -28,34 +30,6 @@ final class Abilities {
 	public const CATEGORY = 'zoninator';
 
 	/**
-	 * Zones and the posts in them.
-	 *
-	 * @var Zones
-	 */
-	private $zones;
-
-	/**
-	 * The capability checks.
-	 *
-	 * @var Capabilities
-	 */
-	private $capabilities;
-
-	/**
-	 * Finds posts to offer for a zone.
-	 *
-	 * @var Search
-	 */
-	private $search;
-
-	/**
-	 * Builds the error for each thing that can go wrong.
-	 *
-	 * @var Errors
-	 */
-	private $errors;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Zones        $zones        Zones and the posts in them.
@@ -63,11 +37,12 @@ final class Abilities {
 	 * @param Search       $search       Finds posts to offer for a zone.
 	 * @param Errors $errors Builds the error for each thing that can go wrong.
 	 */
-	public function __construct( Zones $zones, Capabilities $capabilities, Search $search, Errors $errors ) {
-		$this->zones        = $zones;
-		$this->capabilities = $capabilities;
-		$this->search       = $search;
-		$this->errors       = $errors;
+	public function __construct(
+		private readonly Zones $zones,
+		private readonly Capabilities $capabilities,
+		private readonly Search $search,
+		private readonly Errors $errors,
+	) {
 	}
 
 	/**
@@ -328,7 +303,7 @@ final class Abilities {
 		return $this->search->find_posts(
 			(string) $input['term'],
 			(int) $input['cat'],
-			$input['date'],
+			(string) $input['date'],
 			wp_parse_id_list( $input['exclude'] ),
 			(int) $input['limit'],
 			(int) $input['zone_id']

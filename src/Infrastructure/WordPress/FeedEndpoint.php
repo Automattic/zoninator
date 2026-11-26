@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 /**
@@ -19,19 +21,11 @@ namespace Automattic\Zoninator\Infrastructure\WordPress;
 final class FeedEndpoint {
 
 	/**
-	 * The feed's data.
-	 *
-	 * @var Feed
-	 */
-	private $feed;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Feed $feed The feed's data.
 	 */
-	public function __construct( Feed $feed ) {
-		$this->feed = $feed;
+	public function __construct( private readonly Feed $feed ) {
 	}
 
 	/**

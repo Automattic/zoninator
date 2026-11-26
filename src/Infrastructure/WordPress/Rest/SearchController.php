@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 
 use Automattic\Zoninator\Infrastructure\WordPress\Search;
@@ -24,28 +26,15 @@ final class SearchController extends WP_REST_Controller {
 	use RespondsToRequests;
 
 	/**
-	 * Finds posts to offer for a zone.
-	 *
-	 * @var Search
-	 */
-	private $search;
-
-	/**
-	 * Says who may call each route.
-	 *
-	 * @var Permissions
-	 */
-	private $permissions;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Search      $search      Finds posts to offer for a zone.
 	 * @param Permissions $permissions Says who may call each route.
 	 */
-	public function __construct( Search $search, Permissions $permissions ) {
-		$this->search      = $search;
-		$this->permissions = $permissions;
+	public function __construct(
+		private readonly Search $search,
+		private readonly Permissions $permissions,
+	) {
 	}
 
 	/**
@@ -75,10 +64,10 @@ final class SearchController extends WP_REST_Controller {
 	public function search_posts( $request ) {
 		return $this->ok(
 			$this->search->find_posts(
-				$request['term'],
-				$request['cat'],
-				$request['date'],
-				$request['exclude'],
+				(string) $request['term'],
+				(int) $request['cat'],
+				(string) $request['date'],
+				(array) $request['exclude'],
 				(int) $request['limit'],
 				(int) $request['zone_id']
 			)

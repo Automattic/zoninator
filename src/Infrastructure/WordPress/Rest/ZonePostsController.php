@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 
 use Automattic\Zoninator\Application\GuardedZoneCurator;
@@ -29,34 +31,6 @@ final class ZonePostsController extends WP_REST_Controller {
 	use RespondsToRequests;
 
 	/**
-	 * The feed's data, which the read route returns.
-	 *
-	 * @var Feed
-	 */
-	private $feed;
-
-	/**
-	 * Changes the posts in a zone for the current user.
-	 *
-	 * @var GuardedZoneCurator
-	 */
-	private $curator;
-
-	/**
-	 * Says who may call each route.
-	 *
-	 * @var Permissions
-	 */
-	private $permissions;
-
-	/**
-	 * Builds the error for each thing that can go wrong.
-	 *
-	 * @var Errors
-	 */
-	private $errors;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Feed               $feed    The feed's data.
@@ -64,11 +38,12 @@ final class ZonePostsController extends WP_REST_Controller {
 	 * @param Permissions $permissions Says who may call each route.
 	 * @param Errors $errors Builds the error for each thing that can go wrong.
 	 */
-	public function __construct( Feed $feed, GuardedZoneCurator $curator, Permissions $permissions, Errors $errors ) {
-		$this->feed        = $feed;
-		$this->curator     = $curator;
-		$this->permissions = $permissions;
-		$this->errors      = $errors;
+	public function __construct(
+		private readonly Feed $feed,
+		private readonly GuardedZoneCurator $curator,
+		private readonly Permissions $permissions,
+		private readonly Errors $errors,
+	) {
 	}
 
 	/**

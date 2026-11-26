@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 use WP_Post;
@@ -33,37 +35,17 @@ final class Zones {
 	public const META_PREFIX = '_zoninator_order_';
 
 	/**
-	 * The zone taxonomy.
-	 *
-	 * @var Taxonomy
-	 */
-	private $taxonomy;
-
-	/**
-	 * The capability checks.
-	 *
-	 * @var Capabilities
-	 */
-	private $capabilities;
-
-	/**
-	 * Zone terms, for each zone's details.
-	 *
-	 * @var TermZoneRepository
-	 */
-	private $terms;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Taxonomy           $taxonomy     The zone taxonomy.
 	 * @param Capabilities       $capabilities The capability checks.
 	 * @param TermZoneRepository $terms        Zone terms.
 	 */
-	public function __construct( Taxonomy $taxonomy, Capabilities $capabilities, TermZoneRepository $terms ) {
-		$this->taxonomy     = $taxonomy;
-		$this->capabilities = $capabilities;
-		$this->terms        = $terms;
+	public function __construct(
+		private readonly Taxonomy $taxonomy,
+		private readonly Capabilities $capabilities,
+		private readonly TermZoneRepository $terms,
+	) {
 	}
 
 	/**
@@ -221,7 +203,10 @@ final class Zones {
 
 		$zone_ids = array();
 		foreach ( array_keys( get_post_meta( $post->ID ) ) as $meta_key ) {
-			if ( 0 === strpos( $meta_key, self::META_PREFIX ) ) {
+			// PHP turns an all-digit array key into an integer, so a meta key such as "2024" arrives as one.
+			$meta_key = (string) $meta_key;
+
+			if ( str_starts_with( $meta_key, self::META_PREFIX ) ) {
 				$zone_ids[] = absint( substr( $meta_key, strlen( self::META_PREFIX ) ) );
 			}
 		}

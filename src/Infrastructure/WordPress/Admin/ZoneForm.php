@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 
 use Automattic\Zoninator\Application\GuardedZoneManager;
@@ -27,37 +29,17 @@ use Automattic\Zoninator\Infrastructure\WordPress\Errors;
 final class ZoneForm {
 
 	/**
-	 * Where the Zones screen is.
-	 *
-	 * @var ScreenLocation
-	 */
-	private $location;
-
-	/**
-	 * Creates, changes and deletes zones for the current user.
-	 *
-	 * @var GuardedZoneManager
-	 */
-	private $manager;
-
-	/**
-	 * Builds the error for each thing that can go wrong.
-	 *
-	 * @var Errors
-	 */
-	private $errors;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ScreenLocation     $location Where the Zones screen is.
 	 * @param GuardedZoneManager $manager Creates, changes and deletes zones for the current user.
 	 * @param Errors $errors Builds the error for each thing that can go wrong.
 	 */
-	public function __construct( ScreenLocation $location, GuardedZoneManager $manager, Errors $errors ) {
-		$this->location = $location;
-		$this->manager  = $manager;
-		$this->errors   = $errors;
+	public function __construct(
+		private readonly ScreenLocation $location,
+		private readonly GuardedZoneManager $manager,
+		private readonly Errors $errors,
+	) {
 	}
 
 	/**

@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 use WP_Block;
@@ -45,19 +47,11 @@ final class Block {
 	private const KEPT_ARGS = array( 'posts_per_page', 'offset', 'paged' );
 
 	/**
-	 * Zones and the posts in them.
-	 *
-	 * @var Zones
-	 */
-	private $zones;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Zones $zones Zones and the posts in them.
 	 */
-	public function __construct( Zones $zones ) {
-		$this->zones = $zones;
+	public function __construct( private readonly Zones $zones ) {
 	}
 
 	/**

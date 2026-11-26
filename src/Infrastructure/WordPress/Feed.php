@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 use stdClass;
@@ -21,19 +23,11 @@ use WP_Error;
 final class Feed {
 
 	/**
-	 * Zones and the posts in them.
-	 *
-	 * @var Zones
-	 */
-	private $zones;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param Zones $zones Zones and the posts in them.
 	 */
-	public function __construct( Zones $zones ) {
-		$this->zones = $zones;
+	public function __construct( private readonly Zones $zones ) {
 	}
 
 	/**
