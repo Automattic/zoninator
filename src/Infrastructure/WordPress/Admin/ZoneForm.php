@@ -119,15 +119,9 @@ final class ZoneForm {
 			return array( 'message' => 'delete-success' );
 		}
 
-		// handle_request() has checked the nonce. The storage encodes the name and description for
-		// itself, so they only need the slashes WordPress adds to a request taken off.
-		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$name    = empty( $_POST['name'] ) ? '' : (string) wp_unslash( $_POST['name'] );
-		$slug    = empty( $_POST['slug'] ) ? sanitize_title( $name ) : sanitize_title( wp_unslash( $_POST['slug'] ) );
-		$details = array(
-			'description' => empty( $_POST['description'] ) ? '' : (string) wp_unslash( $_POST['description'] ),
-		);
-		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$name    = $this->get_text_field( 'name' );
+		$slug    = sanitize_title( '' === $this->get_text_field( 'slug' ) ? $name : $this->get_text_field( 'slug' ) );
+		$details = array( 'description' => $this->get_text_field( 'description' ) );
 
 		// Go by the action that was checked, not by whether a zone ID was sent.
 		if ( 'update' === $action ) {
@@ -149,5 +143,18 @@ final class ZoneForm {
 			'zone_id' => $zone_id,
 			'message' => $action . '-success',
 		);
+	}
+
+	/**
+	 * Reads one of the form's text fields.
+	 *
+	 * @param string $key The field's name.
+	 * @return string The text, or '' if the field is empty, missing, or isn't text, such as an array.
+	 */
+	private function get_text_field( string $key ): string {
+		// handle_request() has checked the nonce. The storage encodes the name and description for
+		// itself, so they only need the slashes WordPress adds to a request taken off.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		return empty( $_POST[ $key ] ) || ! is_string( $_POST[ $key ] ) ? '' : wp_unslash( $_POST[ $key ] );
 	}
 }

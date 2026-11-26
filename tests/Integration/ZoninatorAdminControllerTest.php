@@ -184,6 +184,27 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		);
 	}
 
+	/**
+	 * A browser sends each field as text. Anything else, such as an array, isn't the form's.
+	 */
+	public function test_a_field_that_is_not_text_is_read_as_empty(): void {
+		$location = $this->submit(
+			'update',
+			array(
+				'zone_id'     => $this->zone_id,
+				'name'        => array( 'Changed zone' ),
+				'slug'        => array( 'changed-zone' ),
+				'description' => array( 'Changed' ),
+			)
+		);
+
+		$zone = self::zones()->get( $this->zone_id );
+		$this->assertStringContainsString( 'message=update-success', $location );
+		$this->assertSame( 'Form zone', $zone->name );
+		$this->assertSame( 'form-zone', $zone->slug );
+		$this->assertSame( '', $zone->description );
+	}
+
 	public function test_delete_removes_the_zone_and_its_posts(): void {
 		$post_id = self::factory()->post->create();
 		self::add_zone_posts( $this->zone_id, array( $post_id ) );
