@@ -33,11 +33,10 @@ zoninator/
 │   │   └── *Exception.php           # InvalidZone, ZoneNotFound, ZoneNotSaved
 │   ├── Application/                 # Use cases, with no WordPress
 │   │   ├── ZoneLocker.php           # Locks, checks and unlocks zones
-│   │   ├── ZoneManager.php          # Creates and changes zones
-│   │   ├── ZoneRemover.php          # Deletes a zone, with its posts' places and its lock
+│   │   ├── ZoneManager.php          # Creates, changes and deletes zones
 │   │   ├── ZoneCurator.php          # Adds, orders and removes the posts in a zone
 │   │   ├── ZoneGuard.php            # The checks a change made for a user must pass
-│   │   ├── GuardedZoneManager.php   # ZoneManager and ZoneRemover, with those checks
+│   │   ├── GuardedZoneManager.php   # ZoneManager, with those checks
 │   │   └── GuardedZoneCurator.php   # ZoneCurator, with those checks
 │   ├── Infrastructure/              # Everything that talks to WordPress, and the wiring
 │   │   ├── DI/
@@ -109,7 +108,7 @@ zoninator/
 - `src/Infrastructure/WordPress/Request.php` — `Automattic\Zoninator\Infrastructure\WordPress\Request`: reads and sanitizes request variables, validates the search filters, and checks nonces and access, stopping the request if either fails. Its helpers are instance methods, so a class that uses one takes `Request` in its constructor.
 - `src/Infrastructure/WordPress/Taxonomy.php` — `Automattic\Zoninator\Infrastructure\WordPress\Taxonomy`: registers the `zoninator_zones` taxonomy (`Taxonomy::NAME`) on `init`, with no object types, and gives posts zone support when the plugin boots. A post type supports zones if it has the `zoninator_zones` post type feature; `get_post_types()` asks core each time, with no cache.
 - `src/Domain/Zone.php` — `Automattic\Zoninator\Domain\Zone`: a zone's ID, slug, name and details, with the rules for making one (`create()`) and changing one (`with_changes()`). It never changes itself. `ZoneRepositoryInterface` and `ZonePostsRepositoryInterface` say what storage must do.
-- `src/Application/` — `ZoneManager` creates and changes zones, `ZoneRemover` deletes one with its posts' places and its lock, and `ZoneCurator` adds, orders and removes the posts in a zone. They take zone and post IDs, return `Zone`, and throw `Domain` exceptions (`InvalidZoneException`, `ZoneNotFoundException`, `ZoneNotSavedException`).
+- `src/Application/` — `ZoneManager` creates and changes zones, and deletes one with its posts' places and its lock, and `ZoneCurator` adds, orders and removes the posts in a zone. They take zone and post IDs, return `Zone`, and throw `Domain` exceptions (`InvalidZoneException`, `ZoneNotFoundException`, `ZoneNotSavedException`).
 - `src/Application/ZoneGuard.php` — the one place that checks a change made for a user: the user may make it (`Domain\ZoneAccessInterface`, which `Capabilities` implements), may use each post, and isn't kept out by someone else's lock. `GuardedZoneManager` and `GuardedZoneCurator` run those checks and then call the unguarded classes. **Every entry point that acts for a user (the Zones screen, REST, abilities, any future WP-CLI command) must use the guarded classes**, with the user's ID; the unguarded ones are for code with no user, such as a scheduled job.
 - `src/Infrastructure/WordPress/TermZoneRepository.php` and `PostMetaZonePostsRepository.php` — the storage: zones as terms with their details serialised in the description, and each post's place as post meta. They apply `zoninator_insert_zone` and `zoninator_update_zone` and fire `zoninator_delete_zone`, `zoninator_add_zone_posts` and `zoninator_remove_zone_posts`, so every way of changing a zone fires them.
 - `src/Infrastructure/WordPress/Zones.php` — `Automattic\Zoninator\Infrastructure\WordPress\Zones`: reads zones and their posts for WordPress code, as `WP_Term`, `WP_Post` and `WP_Query`. The template tags are built on it. It changes nothing.
@@ -189,7 +188,7 @@ See `CONTRIBUTING.md` for setup, checks and the contribution workflow. Key point
 - Do not edit WordPress core files or bundled dependencies in `vendor/`.
 - Run `composer cs` before committing. CI will reject code standard violations.
 - Integration tests require `npx --no wp-env start` running first. Run `npm ci` before it, so `npx` uses the `@wordpress/env` pinned in `package.json`. Always keep `--no`: without an installed `@wordpress/env`, plain `npx wp-env` fetches the unrelated `wp-env` package from npm.
-- **The public PHP API is the template tags and the `Application` classes**: themes call the functions in `functions.php` in production, and sites change zones through `ZoneManager`, `ZoneRemover`, `ZoneCurator` and `ZoneLocker`. Don't rename them, remove them or change their signatures outside a major release, and put any change in the upgrade guide. There is no `Zoninator` class or `Zoninator()` function any more.
+- **The public PHP API is the template tags and the `Application` classes**: themes call the functions in `functions.php` in production, and sites change zones through `ZoneManager`, `ZoneCurator` and `ZoneLocker`. Don't rename them, remove them or change their signatures outside a major release, and put any change in the upgrade guide. There is no `Zoninator` class or `Zoninator()` function any more.
 - **Zone ordering is significant**: posts within a zone have a specific display order. Preserve it through any query modifications.
 - **Admin UI uses jQuery drag-and-drop**: test UI changes in a browser, not just with automated tests.
 - **`zoninator_zones` taxonomy is intentionally not public**: it has no front-end archive. Don't flip `public => true` to "fix" missing archives — themes are expected to render zones via template tags such as `zoninator_get_zone_query()`.

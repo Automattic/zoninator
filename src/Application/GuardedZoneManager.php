@@ -15,26 +15,19 @@ use Automattic\Zoninator\Domain\Zone;
  *
  * Every way a person or an agent changes a zone goes through this class or
  * GuardedZoneCurator: the Zones screen, the REST API and the abilities.
- * ZoneManager and ZoneRemover do the same work unchecked, for code that
- * isn't acting for a user.
+ * ZoneManager does the same work unchecked, for code that isn't acting for
+ * a user.
  *
  * @since 1.0.0
  */
 final class GuardedZoneManager {
 
 	/**
-	 * Creates and changes zones.
+	 * Creates, changes and deletes zones.
 	 *
 	 * @var ZoneManager
 	 */
 	private $manager;
-
-	/**
-	 * Deletes zones.
-	 *
-	 * @var ZoneRemover
-	 */
-	private $remover;
 
 	/**
 	 * The checks.
@@ -46,13 +39,11 @@ final class GuardedZoneManager {
 	/**
 	 * Constructor.
 	 *
-	 * @param ZoneManager $manager Creates and changes zones.
-	 * @param ZoneRemover $remover Deletes zones.
+	 * @param ZoneManager $manager Creates, changes and deletes zones.
 	 * @param ZoneGuard   $guard   The checks.
 	 */
-	public function __construct( ZoneManager $manager, ZoneRemover $remover, ZoneGuard $guard ) {
+	public function __construct( ZoneManager $manager, ZoneGuard $guard ) {
 		$this->manager = $manager;
-		$this->remover = $remover;
 		$this->guard   = $guard;
 	}
 
@@ -86,7 +77,7 @@ final class GuardedZoneManager {
 	}
 
 	/**
-	 * Deletes a zone. See ZoneRemover::remove().
+	 * Deletes a zone. See ZoneManager::remove().
 	 *
 	 * @param int $user_id ID of the user deleting it.
 	 * @param int $zone_id Zone ID.
@@ -94,6 +85,6 @@ final class GuardedZoneManager {
 	public function remove( int $user_id, int $zone_id ): void {
 		$this->guard->check_edit( $user_id, $zone_id );
 
-		$this->remover->remove( $zone_id );
+		$this->manager->remove( $zone_id );
 	}
 }

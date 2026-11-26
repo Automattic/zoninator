@@ -15,8 +15,7 @@ use WP_Term;
  * Reads zones and their posts for WordPress code, as WP_Term, WP_Post and
  * WP_Query. The template tags are built on it.
  *
- * To change a zone, use the Application layer: ZoneManager, ZoneRemover and
- * ZoneCurator.
+ * To change a zone, use the Application layer: ZoneManager and ZoneCurator.
  *
  * @since 0.12.0
  * @internal Use the template tags, the Application classes and the hooks instead.

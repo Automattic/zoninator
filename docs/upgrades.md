@@ -96,7 +96,7 @@ The `Guarded` classes, described under [Zone locks now stop every change](#zone-
 |---|---|
 | `insert_zone( $slug, $name, $details )` | `ZoneManager::create( $slug, $name, $details )` |
 | `update_zone( $zone, $data )` | `ZoneManager::update( $zone_id, $data )` |
-| `delete_zone( $zone )` | `ZoneRemover::remove( $zone_id )` |
+| `delete_zone( $zone )` | `ZoneManager::remove( $zone_id )` |
 | `add_zone_posts( $zone, $posts, true )` | `ZoneCurator::add_posts( $zone_id, $post_ids )` |
 | `add_zone_posts( $zone, $posts )` | `ZoneCurator::set_posts( $zone_id, $post_ids )` |
 | `remove_zone_posts( $zone, $posts )` | `ZoneCurator::remove_posts( $zone_id, $post_ids )`, or `clear_posts( $zone_id )` to empty the zone |
@@ -238,7 +238,7 @@ A zone's lock used to stop a second person opening the zone on the Zones screen,
 Now every change made for a user is checked in one place: the user may make it, may use each post, and isn't kept out by someone else's lock. That covers the Zones screen, its zone form and every REST route that changes a zone or its posts.
 
 - **REST clients:** a write to a zone someone else is editing gets `400` with the code `zone-locked`, and the message names them. Retry later, or have the client take the lock first with `PUT /zoninator/v1/zones/{zone_id}/lock`. Requests made as the lock holder go through.
-- **PHP code:** `GuardedZoneManager` and `GuardedZoneCurator`, under `Automattic\Zoninator\Application\`, make a change for a user with these checks; each method takes the user's ID first. `ZoneManager`, `ZoneRemover` and `ZoneCurator` do the same work with no checks, for code that isn't acting for a user, such as a scheduled job.
+- **PHP code:** `GuardedZoneManager` and `GuardedZoneCurator`, under `Automattic\Zoninator\Application\`, make a change for a user with these checks; each method takes the user's ID first. `ZoneManager` and `ZoneCurator` do the same work with no checks, for code that isn't acting for a user, such as a scheduled job.
 - **Taking a lock:** `ZoneLocker::lock()` no longer replaces a lock another user holds; it throws `ZoneLockedException`. To take a zone over, call `ZoneLocker::unlock()` first. It also throws `ZoneNotFoundException` for an ID that isn't a zone, where it used to store a lock for it.
 
 ### The zone post actions always pass post IDs

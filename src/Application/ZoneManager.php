@@ -11,11 +11,12 @@ use Automattic\Zoninator\Domain\InvalidZoneException;
 use Automattic\Zoninator\Domain\Zone;
 use Automattic\Zoninator\Domain\ZoneNotFoundException;
 use Automattic\Zoninator\Domain\ZoneNotSavedException;
+use Automattic\Zoninator\Domain\ZonePostsRepositoryInterface;
 use Automattic\Zoninator\Domain\ZoneRepositoryInterface;
 use Automattic\Zoninator\Domain\ZoneSettingsInterface;
 
 /**
- * Creates zones and changes their name, slug and details.
+ * Creates zones, changes their name, slug and details, and deletes them.
  *
  * @since 1.0.0
  */
@@ -36,14 +37,32 @@ final class ZoneManager {
 	private $settings;
 
 	/**
+	 * Where the posts in each zone are kept.
+	 *
+	 * @var ZonePostsRepositoryInterface
+	 */
+	private $zone_posts;
+
+	/**
+	 * Zone locks.
+	 *
+	 * @var ZoneLocker
+	 */
+	private $locker;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param ZoneRepositoryInterface $zones    Where the zones are kept.
-	 * @param ZoneSettingsInterface   $settings Says which details every zone has.
+	 * @param ZoneRepositoryInterface      $zones      Where the zones are kept.
+	 * @param ZoneSettingsInterface        $settings   Says which details every zone has.
+	 * @param ZonePostsRepositoryInterface $zone_posts Where the posts in each zone are kept.
+	 * @param ZoneLocker                   $locker     Zone locks.
 	 */
-	public function __construct( ZoneRepositoryInterface $zones, ZoneSettingsInterface $settings ) {
-		$this->zones    = $zones;
-		$this->settings = $settings;
+	public function __construct( ZoneRepositoryInterface $zones, ZoneSettingsInterface $settings, ZonePostsRepositoryInterface $zone_posts, ZoneLocker $locker ) {
+		$this->zones      = $zones;
+		$this->settings   = $settings;
+		$this->zone_posts = $zone_posts;
+		$this->locker     = $locker;
 	}
 
 	/**
@@ -79,5 +98,24 @@ final class ZoneManager {
 		}
 
 		return $this->zones->update( $zone->with_changes( $changes, $this->settings->get_detail_defaults() ) );
+	}
+
+	/**
+	 * Deletes a zone and everything kept for it: its posts' places in it, and
+	 * its lock. The posts themselves are left as they are, out of the zone.
+	 *
+	 * @param int $zone_id Zone ID.
+	 *
+	 * @throws ZoneNotFoundException If there's no such zone.
+	 * @throws ZoneNotSavedException If the zone couldn't be deleted. Its posts have already been taken out.
+	 */
+	public function remove( int $zone_id ): void {
+		if ( ! $this->zones->find( $zone_id ) ) {
+			throw new ZoneNotFoundException( $zone_id );
+		}
+
+		$this->zone_posts->clear( $zone_id );
+		$this->zones->delete( $zone_id );
+		$this->locker->unlock( $zone_id );
 	}
 }

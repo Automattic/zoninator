@@ -10,7 +10,6 @@ namespace Automattic\Zoninator\Tests\Integration;
 use Automattic\Zoninator\Application\ZoneCurator;
 use Automattic\Zoninator\Application\ZoneLocker;
 use Automattic\Zoninator\Application\ZoneManager;
-use Automattic\Zoninator\Application\ZoneRemover;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenDataLoader;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneEditorView;
 use Automattic\Zoninator\Infrastructure\WordPress\Feed;
@@ -52,7 +51,7 @@ abstract class TestCase extends WPIntegrationTestCase {
 	 * @param int|string|\WP_Term $zone Zone ID, slug or term.
 	 */
 	protected static function delete_zone( $zone ): void {
-		zoninator_container()->get( ZoneRemover::class )->remove( self::zones()->get_id( $zone ) );
+		zoninator_container()->get( ZoneManager::class )->remove( self::zones()->get_id( $zone ) );
 	}
 
 	/**
