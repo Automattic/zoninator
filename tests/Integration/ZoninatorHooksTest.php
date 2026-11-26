@@ -60,13 +60,6 @@ class ZoninatorHooksTest extends TestCase {
 		'admin_enqueue_scripts'            => array( Assets::class . '::enqueue_scripts 10 1', Assets::class . '::enqueue_styles 10 1' ),
 		'admin_menu'                       => array( Screen::class . '::register 10 1' ),
 		'zoninator_advanced_search_fields' => array( SearchForm::class . '::render_category_filter 10 1', SearchForm::class . '::render_date_filter 20 1' ),
-		// Everything that changes what the Zone Posts widget shows clears its cache.
-		'save_post'                        => array( Widgets::class . '::flush_cache 10 1' ),
-		'deleted_post'                     => array( Widgets::class . '::flush_cache 10 1' ),
-		'switch_theme'                     => array( Widgets::class . '::flush_cache 10 1' ),
-		'zoninator_add_zone_posts'         => array( Widgets::class . '::flush_cache 10 1' ),
-		'zoninator_remove_zone_posts'      => array( Widgets::class . '::flush_cache 10 1' ),
-		'edited_zoninator_zones'           => array( Widgets::class . '::flush_cache 10 1' ),
 	);
 
 	public function test_plugin_registers_exactly_these_hooks(): void {

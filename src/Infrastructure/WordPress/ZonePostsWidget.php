@@ -46,42 +46,34 @@ class ZonePostsWidget extends WP_Widget {
 		);
 	}
 
+	/**
+	 * Prints the widget: the zone's name, its description if asked for, and its posts.
+	 *
+	 * Nothing is cached here. WordPress caches the zone's query, which is the
+	 * costly part, and clears that cache itself when a post or its place in a
+	 * zone changes.
+	 *
+	 * @param array $args     The sidebar's markup: before_widget, after_widget, before_title and after_title.
+	 * @param array $instance The widget's settings: zone_id and show_description.
+	 */
 	public function widget( $args, $instance ) {
-		$cache_key = Widgets::CACHE_KEY;
-		$cache     = wp_cache_get( $cache_key, 'widget' );
-
-		if ( ! is_array( $cache ) ) {
-			$cache = array();
-		}
-
-		// the_widget() prints a widget that isn't in a sidebar, so it has no ID to
-		// cache its output under. One shared entry would show the first zone
-		// printed in place of every other, so that output isn't cached.
-		$widget_id = $args['widget_id'] ?? '';
-
-		if ( '' !== $widget_id && isset( $cache[ $widget_id ] ) ) {
-			echo wp_kses_post( $cache[ $widget_id ] );
-			return;
-		}
-
 		$zone_id          = $instance['zone_id'] ?? 0;
 		$show_description = empty( $instance['show_description'] ) ? 0 : 1;
 		if ( ! $zone_id ) {
 			return;
 		}
 
-		$zone = zoninator_container()->get( Zones::class )->get( $zone_id );
+		$zones = zoninator_container()->get( Zones::class );
+		$zone  = $zones->get( $zone_id );
 		if ( ! $zone ) {
 			return;
 		}
 
-		$query = zoninator_container()->get( Zones::class )->get_query( $zone_id );
+		$query = $zones->get_query( $zone_id );
 		$posts = $query->posts;
 		if ( empty( $posts ) ) {
 			return;
 		}
-
-		ob_start();
 		?>
 		<?php echo wp_kses_post( $args['before_widget'] ); ?>
 
@@ -98,8 +90,9 @@ class ZonePostsWidget extends WP_Widget {
 		 * Filters the HTML for the posts in a Zone Posts widget, so a theme can
 		 * show them its own way, such as with thumbnails or excerpts.
 		 *
-		 * Return false to keep the default list of links. The HTML is cached with
-		 * the rest of the widget, and passed through wp_kses_post().
+		 * Return false to keep the default list of links. The HTML is passed
+		 * through wp_kses_post(). It's built on every page view, so a callback
+		 * that does costly work should cache its own result.
 		 *
 		 * @since 0.12.0
 		 *
@@ -118,21 +111,6 @@ class ZonePostsWidget extends WP_Widget {
 
 		<?php echo wp_kses_post( $args['after_widget'] ); ?>
 		<?php
-		$output = ob_get_flush();
-
-		if ( '' === $widget_id ) {
-			return;
-		}
-
-		$cache[ $widget_id ] = $output;
-
-		$save_blocked = wp_cache_get( $cache_key . '-save_blocked', 'widget' );
-		if ( $save_blocked ) {
-			// Save is blocked while the cache flush is in progress.
-			return;
-		}
-
-		wp_cache_set( $cache_key, $cache, 'widget' );
 	}
 
 	/**
@@ -167,20 +145,8 @@ class ZonePostsWidget extends WP_Widget {
 		);
 		$instance['zone_id']          = absint( $new_instance['zone_id'] );
 		$instance['show_description'] = $new_instance['show_description'] ? 1 : 0;
-		$this->flush_widget_cache();
-		$alloptions = wp_cache_get( 'alloptions', 'options' );
-		if ( isset( $alloptions['widget-zone-posts'] ) ) {
-			delete_option( 'widget-zone-posts' );
-		}
 
 		return $instance;
-	}
-
-	/**
-	 * Clears the cached output of every Zone Posts widget.
-	 */
-	public function flush_widget_cache() {
-		zoninator_container()->get( Widgets::class )->flush_cache();
 	}
 
 	public function form( $instance ) {

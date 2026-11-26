@@ -123,7 +123,7 @@ For sidebars, the bundled Zone Posts widget renders a list without any code. It 
 
 To show the posts your own way, such as with thumbnails, return your HTML from the [`zoninator_zone_posts_widget_html`](hooks.md#zoninator_zone_posts_widget_html-filter) filter, since 0.12.0.
 
-The widget caches its output in the object cache until a post is saved or deleted, the theme changes, or the zone or its posts change. After the cache is cleared, it isn't saved again for 5 seconds, so the clear can reach every server; the [`zoninator_zone_posts_widget_block_save_cache_seconds`](hooks.md#zoninator_zone_posts_widget_block_save_cache_seconds-filter) filter changes that interval.
+The widget builds its output on each page view and keeps no cache of its own. WordPress caches the zone's query in the object cache, and clears it when a post or its place in a zone changes, so the widget always shows the zone as it is. If your `zoninator_zone_posts_widget_html` callback does costly work, cache its result yourself.
 
 ## The JSON feed
 
