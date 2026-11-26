@@ -98,8 +98,12 @@ final class ZonePostsController extends WP_REST_Controller {
 	public function get_zone_posts( $request ) {
 		$results = $this->feed->get( (int) $request['zone_id'] );
 
+		if ( null === $results ) {
+			return $this->errors->zone_not_found();
+		}
+
 		if ( is_wp_error( $results ) ) {
-			return 'invalid-zone-supplied' === $results->get_error_code() ? $this->errors->zone_not_found() : $this->bad_request( ErrorCodes::ZONE_FEED_ERROR, $results->get_error_message() );
+			return $this->errors->zone_feed_error( $results->get_error_message() );
 		}
 
 		return new WP_REST_Response( $results, 200 );

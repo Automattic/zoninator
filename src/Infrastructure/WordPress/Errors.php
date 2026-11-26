@@ -114,6 +114,16 @@ final class Errors {
 	}
 
 	/**
+	 * The error for a zone's feed that a site's filter refused to give.
+	 *
+	 * @param string $message The filter's own message.
+	 * @return WP_Error
+	 */
+	public function zone_feed_error( string $message ): WP_Error {
+		return new WP_Error( ErrorCodes::ZONE_FEED_ERROR, $message, array( 'status' => 400 ) );
+	}
+
+	/**
 	 * The error for when the zones can't be read at all.
 	 *
 	 * @return WP_Error
