@@ -85,8 +85,17 @@ final class ZoneForm {
 		} catch ( ZoninatorExceptionInterface $exception ) {
 			if ( 'delete' === $action ) {
 				$url = $this->location->get_url( array( 'error' => $exception instanceof ZoneNotFoundException ? 'invalid-zone' : 'delete-zone' ) );
+			} elseif ( 'update' === $action ) {
+				// Back to the zone that couldn't be changed.
+				$url = $this->location->get_url(
+					array(
+						'action'  => 'edit',
+						'zone_id' => $zone_id,
+						'error'   => 'general',
+					)
+				);
 			} else {
-				$url = add_query_arg( 'message', 'error-general' );
+				$url = $this->location->get_url( array( 'error' => 'general' ) );
 			}
 		}
 
