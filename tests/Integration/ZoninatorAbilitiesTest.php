@@ -9,6 +9,7 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Generator;
 use WP_Error;
 
 final class ZoninatorAbilitiesTest extends TestCase {
@@ -18,8 +19,8 @@ final class ZoninatorAbilitiesTest extends TestCase {
 	 */
 	private $zone_id;
 
-	public function set_up(): void {
-		parent::set_up();
+	public function setUp(): void {
+		parent::setUp();
 
 		$this->zone_id = self::insert_zone( 'abilities-zone', 'Abilities zone', array( 'description' => 'For the abilities tests' ) );
 
@@ -53,15 +54,16 @@ final class ZoninatorAbilitiesTest extends TestCase {
 		$result = wp_get_ability( $name )->execute( $input );
 
 		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_ability_names(): array {
-		$names = array( 'zoninator/list-zones', 'zoninator/get-zone-posts', 'zoninator/search-posts' );
-
-		return array_combine( $names, array_map( static fn( $name ) => array( $name ), $names ) );
+	public static function data_ability_names(): Generator {
+		foreach ( array( 'zoninator/list-zones', 'zoninator/get-zone-posts', 'zoninator/search-posts' ) as $name ) {
+			yield $name => array( $name );
+		}
 	}
 
 	public function test_list_zones_returns_the_zones(): void {
@@ -168,6 +170,7 @@ final class ZoninatorAbilitiesTest extends TestCase {
 		$result = wp_get_ability( 'zoninator/get-zone-posts' )->execute( array() );
 
 		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
 	}
 
 	public function test_search_posts_finds_a_post_by_id(): void {
@@ -246,27 +249,30 @@ final class ZoninatorAbilitiesTest extends TestCase {
 	 * @param string $name Ability name.
 	 */
 	public function test_write_ability_denies_a_user_who_cannot_manage_zones( string $name ): void {
-		$post_id = self::factory()->post->create();
+		list( $kept, $other ) = self::factory()->post->create_many( 2 );
+		self::add_zone_posts( $this->zone_id, array( $kept ) );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 
+		// Each ability would change the zone with these: add or set $other, or remove $kept.
 		$result = wp_get_ability( $name )->execute(
 			array(
 				'zone_id'  => $this->zone_id,
-				'post_ids' => array( $post_id ),
+				'post_ids' => array( $kept, $other ),
 			)
 		);
 
 		$this->assertInstanceOf( WP_Error::class, $result );
-		$this->assertSame( array(), $this->zone_post_ids() );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
+		$this->assertSame( array( $kept ), $this->zone_post_ids() );
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_write_ability_names(): array {
-		$names = array( 'zoninator/add-zone-posts', 'zoninator/set-zone-posts', 'zoninator/remove-zone-posts' );
-
-		return array_combine( $names, array_map( static fn( $name ) => array( $name ), $names ) );
+	public static function data_write_ability_names(): Generator {
+		foreach ( array( 'zoninator/add-zone-posts', 'zoninator/set-zone-posts', 'zoninator/remove-zone-posts' ) as $name ) {
+			yield $name => array( $name );
+		}
 	}
 
 	public function test_the_write_abilities_add_order_and_remove_posts(): void {

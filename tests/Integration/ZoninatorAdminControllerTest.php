@@ -12,6 +12,7 @@ namespace Automattic\Zoninator\Tests\Integration;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenLocation;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use Generator;
 use RuntimeException;
 use WPDieException;
 
@@ -195,10 +196,10 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->assertStringContainsString( 'message=delete-success', $location );
 	}
 
+	/**
+	 * The user may add zones, so only the action keeps this from adding one.
+	 */
 	public function test_update_without_a_zone_does_not_add_one(): void {
-		// The user may edit zones, but not add them.
-		add_filter( 'zoninator_add_zone_cap', static fn() => 'manage_options' );
-
 		$this->attempt(
 			'update',
 			array(
@@ -210,16 +211,10 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->assertFalse( self::zones()->get( 'added-zone' ) );
 	}
 
+	/**
+	 * The user may edit this zone, so only the action keeps this from changing it.
+	 */
 	public function test_insert_with_a_zone_does_not_change_it(): void {
-		// The user may add zones, but not edit this one.
-		$zone_id = $this->zone_id;
-		add_filter(
-			'zoninator_current_user_can_edit_zone',
-			static fn( $can, $id ) => (int) $id === $zone_id ? false : $can,
-			10,
-			2
-		);
-
 		$this->attempt(
 			'insert',
 			array(
@@ -232,6 +227,46 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$zone = self::zones()->get( $this->zone_id );
 		$this->assertSame( 'Form zone', $zone->name );
 		$this->assertSame( 'Before', $zone->description );
+		$this->assertSame( 'Changed', self::zones()->get( 'changed-zone' )->description );
+	}
+
+	/**
+	 * Someone else editing the zone keeps the form from changing or deleting
+	 * it, and the zone's page says who.
+	 *
+	 * @dataProvider data_zone_actions
+	 *
+	 * @param string $action Form action.
+	 */
+	public function test_a_zone_someone_else_has_locked_is_left_alone( string $action ): void {
+		self::locker()->lock( $this->zone_id, self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
+		$location = $this->submit(
+			$action,
+			array(
+				'zone_id' => $this->zone_id,
+				'name'    => 'Changed zone',
+			)
+		);
+
+		$this->assertSame( 'Form zone', self::zones()->get( $this->zone_id )->name );
+		$this->assertSame(
+			zoninator_container()->get( ScreenLocation::class )->get_url(
+				array(
+					'action'  => 'edit',
+					'zone_id' => $this->zone_id,
+				)
+			),
+			$location
+		);
+	}
+
+	/**
+	 * @return Generator<string, array{string}>
+	 */
+	public static function data_zone_actions(): Generator {
+		yield 'update' => array( 'update' );
+		yield 'delete' => array( 'delete' );
 	}
 
 	/**
@@ -257,14 +292,12 @@ final class ZoninatorAdminControllerTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_actions(): array {
-		return array(
-			'insert' => array( 'insert' ),
-			'update' => array( 'update' ),
-			'delete' => array( 'delete' ),
-		);
+	public static function data_actions(): Generator {
+		yield 'insert' => array( 'insert' );
+		yield 'update' => array( 'update' );
+		yield 'delete' => array( 'delete' );
 	}
 
 	/**

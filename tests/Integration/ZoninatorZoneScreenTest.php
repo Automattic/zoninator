@@ -122,18 +122,23 @@ class ZoninatorZoneScreenTest extends TestCase {
 	}
 
 	public function test_date_filter_starts_on_the_date_a_site_chooses(): void {
-		$today   = gmdate( 'Y-m-d', strtotime( 'today' ) );
-		$default = static function () use ( $today ) {
-			return $today;
-		};
-		add_filter( 'zoninator_advanced_filter_date_default', $default );
+		add_filter(
+			'zoninator_advanced_filter_date',
+			static fn() => array(
+				'all',
+				array(
+					'value' => '2001-02-03',
+					'label' => 'Launch day',
+				),
+			)
+		);
+		add_filter( 'zoninator_advanced_filter_date_default', static fn() => '2001-02-03' );
 
 		ob_start();
 		zoninator_container()->get( SearchForm::class )->render_date_filter();
 		$output = (string) ob_get_clean();
 
-		remove_filter( 'zoninator_advanced_filter_date_default', $default );
-		$this->assertMatchesRegularExpression( '/<option value="' . $today . '"\s+selected=\'selected\'>Today<\/option>/', $output );
+		$this->assertMatchesRegularExpression( '/<option value="2001-02-03"\s+selected=\'selected\'>Launch day<\/option>/', $output );
 		$this->assertStringNotContainsString( "selected='selected'>All dates", $output );
 	}
 }

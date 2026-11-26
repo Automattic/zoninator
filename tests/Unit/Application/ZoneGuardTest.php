@@ -24,6 +24,7 @@ use Automattic\Zoninator\Tests\Unit\Doubles\FixedSettings;
 use Automattic\Zoninator\Tests\Unit\Doubles\InMemoryLockStore;
 use Automattic\Zoninator\Tests\Unit\Doubles\InMemoryZonePostsRepository;
 use Automattic\Zoninator\Tests\Unit\Doubles\InMemoryZoneRepository;
+use Generator;
 use PHPUnit\Framework\TestCase;
 
 final class ZoneGuardTest extends TestCase {
@@ -88,9 +89,12 @@ final class ZoneGuardTest extends TestCase {
 	}
 
 	public function test_a_user_who_may_not_create_zones_is_refused(): void {
-		$this->expectException( AccessDeniedException::class );
-
-		$this->manager->create( self::OTHER, 'homepage' );
+		try {
+			$this->manager->create( self::OTHER, 'homepage' );
+			$this->fail( 'Expected the user to be refused.' );
+		} catch ( AccessDeniedException ) {
+			$this->assertNull( $this->zones->find( 1 ) );
+		}
 	}
 
 	/**
@@ -122,15 +126,13 @@ final class ZoneGuardTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string, array, string, bool, bool}>
+	 * @return Generator<string, array{string, array, string, bool, bool}>
 	 */
-	public function data_edits(): array {
-		return array(
-			'update without permission' => array( 'update', array( array( 'name' => 'New' ) ), AccessDeniedException::class, false, false ),
-			'delete without permission' => array( 'remove', array(), AccessDeniedException::class, false, false ),
-			'update a locked zone'      => array( 'update', array( array( 'name' => 'New' ) ), ZoneLockedException::class, true, true ),
-			'delete a locked zone'      => array( 'remove', array(), ZoneLockedException::class, true, true ),
-		);
+	public static function data_edits(): Generator {
+		yield 'update without permission' => array( 'update', array( array( 'name' => 'New' ) ), AccessDeniedException::class, false, false );
+		yield 'delete without permission' => array( 'remove', array(), AccessDeniedException::class, false, false );
+		yield 'update a locked zone' => array( 'update', array( array( 'name' => 'New' ) ), ZoneLockedException::class, true, true );
+		yield 'delete a locked zone' => array( 'remove', array(), ZoneLockedException::class, true, true );
 	}
 
 	/**
@@ -196,16 +198,13 @@ final class ZoneGuardTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string, string, string}>
+	 * @return Generator<string, array{string, string, string}>
 	 */
-	public function data_refused_curation(): array {
-		$cases = array();
+	public static function data_refused_curation(): Generator {
 		foreach ( array( 'add_posts', 'set_posts', 'remove_posts' ) as $method ) {
-			$cases[ "$method without permission" ]     = array( $method, AccessDeniedException::class, 'permission' );
-			$cases[ "$method with a post not allowed" ] = array( $method, PostNotAllowedException::class, 'post' );
-			$cases[ "$method on a locked zone" ]        = array( $method, ZoneLockedException::class, 'lock' );
+			yield "$method without permission" => array( $method, AccessDeniedException::class, 'permission' );
+			yield "$method with a post not allowed" => array( $method, PostNotAllowedException::class, 'post' );
+			yield "$method on a locked zone" => array( $method, ZoneLockedException::class, 'lock' );
 		}
-
-		return $cases;
 	}
 }

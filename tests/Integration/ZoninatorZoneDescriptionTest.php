@@ -9,6 +9,7 @@ namespace Automattic\Zoninator\Tests\Integration;
 
 use Automattic\Zoninator\Application\ZoneManager;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use Generator;
 use WP_REST_Request;
 use WP_Term;
 
@@ -18,6 +19,13 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 	 * Text that core's term filters change if it reaches them as HTML entities.
 	 */
 	private const TEXT = 'Café “Crème” — brûlée';
+
+	/**
+	 * How many zones insert() has made, to give each its own slug.
+	 *
+	 * @var int
+	 */
+	private $inserted = 0;
 
 	public function test_insert_zone_keeps_non_ascii_text(): void {
 		$zone = $this->insert( self::TEXT );
@@ -70,7 +78,7 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 	public function test_the_php_api_stores_text_core_would_change( string $text ): void {
 		wp_set_current_user( 0 );
 
-		$zone = zoninator_container()->get( ZoneManager::class )->create( 'api-' . wp_rand(), $text, array( 'description' => $text ) );
+		$zone = zoninator_container()->get( ZoneManager::class )->create( 'api-zone', $text, array( 'description' => $text ) );
 		clean_term_cache( (int) $zone->get_id(), Taxonomy::NAME );
 		$term   = get_term( (int) $zone->get_id(), Taxonomy::NAME );
 		$stored = unserialize( $term->description, array( 'allowed_classes' => false ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
@@ -86,18 +94,16 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_text_core_would_change(): array {
-		return array(
-			'an ampersand'             => array( 'Tom & Jerry' ),
-			'a quote and semicolon'    => array( 'He said "hi"; she left' ),
-			'an apostrophe'            => array( "The editor's picks" ),
-			'tags core would strip'    => array( 'Top <script>alert(1)</script> stories' ),
-			'tags core would keep'     => array( 'Top <b>stories</b>' ),
-			'what looks like length'   => array( 'a";s:1:"b' ),
-			'text that names entities' => array( 'Write &amp; or &quot; or &eacute;' ),
-		);
+	public static function data_text_core_would_change(): Generator {
+		yield 'an ampersand' => array( 'Tom & Jerry' );
+		yield 'a quote and semicolon' => array( 'He said "hi"; she left' );
+		yield 'an apostrophe' => array( "The editor's picks" );
+		yield 'tags core would strip' => array( 'Top <script>alert(1)</script> stories' );
+		yield 'tags core would keep' => array( 'Top <b>stories</b>' );
+		yield 'what looks like length' => array( 'a";s:1:"b' );
+		yield 'text that names entities' => array( 'Write &amp; or &quot; or &eacute;' );
 	}
 
 	/**
@@ -164,7 +170,7 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 	 * @return WP_Term
 	 */
 	private function insert( $description ) {
-		return self::zones()->get( self::insert_zone( 'description-' . wp_rand(), 'Zone', array( 'description' => $description ) ) );
+		return self::zones()->get( self::insert_zone( 'description-' . ++$this->inserted, 'Zone', array( 'description' => $description ) ) );
 	}
 
 	/**

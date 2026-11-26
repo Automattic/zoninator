@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace Automattic\Zoninator\Tests\Unit;
 
 use FilesystemIterator;
+use Generator;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -91,12 +92,10 @@ final class LayersTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string, string[]}>
+	 * @return Generator<string, array{string, string[]}>
 	 */
-	public function data_layers(): array {
-		return array(
-			'Domain'      => array( 'Domain', array( 'Application', 'Infrastructure' ) ),
-			'Application' => array( 'Application', array( 'Infrastructure' ) ),
-		);
+	public static function data_layers(): Generator {
+		yield 'Domain' => array( 'Domain', array( 'Application', 'Infrastructure' ) );
+		yield 'Application' => array( 'Application', array( 'Infrastructure' ) );
 	}
 }

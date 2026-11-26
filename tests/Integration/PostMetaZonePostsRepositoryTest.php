@@ -20,6 +20,13 @@ final class PostMetaZonePostsRepositoryTest extends TestCase {
 
 	use ZonePostsRepositoryContract;
 
+	/**
+	 * How many zones make_zone_id() has made, to give each its own slug.
+	 *
+	 * @var int
+	 */
+	private $zones_made = 0;
+
 	protected function repository(): ZonePostsRepositoryInterface {
 		return zoninator_container()->get( PostMetaZonePostsRepository::class );
 	}
@@ -29,7 +36,7 @@ final class PostMetaZonePostsRepositoryTest extends TestCase {
 	}
 
 	protected function make_zone_id(): int {
-		return self::insert_zone( 'contract-' . wp_rand() );
+		return self::insert_zone( 'contract-' . ++$this->zones_made );
 	}
 
 	/**

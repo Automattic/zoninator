@@ -16,6 +16,7 @@ use Automattic\Zoninator\Domain\ZoneNotFoundException;
 use Automattic\Zoninator\Tests\Unit\Doubles\FixedSettings;
 use Automattic\Zoninator\Tests\Unit\Doubles\InMemoryZonePostsRepository;
 use Automattic\Zoninator\Tests\Unit\Doubles\InMemoryZoneRepository;
+use Generator;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use stdClass;
@@ -98,7 +99,7 @@ final class ZoneCuratorTest extends TestCase {
 			$this->curator->add_posts( $this->zone_id, array( 7 ) );
 			$this->fail( 'Expected the full zone to refuse another post.' );
 		} catch ( ZoneFullException $exception ) {
-			$this->assertSame( 2, $exception->get_limit() );
+			$this->assertSame( 'The zone may hold at most 2 posts.', $exception->getMessage() );
 		}
 
 		$this->assertSame( array( 5, 6 ), $this->zone_posts->post_ids[ $this->zone_id ] );
@@ -110,7 +111,7 @@ final class ZoneCuratorTest extends TestCase {
 
 		$this->curator->add_posts( $this->zone_id, array( 6 ) );
 
-		$this->addToAssertionCount( 1 );
+		$this->assertSame( array( 5, 6 ), $this->zone_posts->post_ids[ $this->zone_id ] );
 	}
 
 	public function test_a_zones_posts_can_not_be_set_past_its_limit(): void {
@@ -179,14 +180,12 @@ final class ZoneCuratorTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string, array}>
+	 * @return Generator<string, array{string, array}>
 	 */
-	public function data_changes(): array {
-		return array(
-			'add'    => array( 'add_posts', array( array( 5 ) ) ),
-			'set'    => array( 'set_posts', array( array( 5 ) ) ),
-			'remove' => array( 'remove_posts', array( array( 5 ) ) ),
-			'clear'  => array( 'clear_posts', array() ),
-		);
+	public static function data_changes(): Generator {
+		yield 'add' => array( 'add_posts', array( array( 5 ) ) );
+		yield 'set' => array( 'set_posts', array( array( 5 ) ) );
+		yield 'remove' => array( 'remove_posts', array( array( 5 ) ) );
+		yield 'clear' => array( 'clear_posts', array() );
 	}
 }

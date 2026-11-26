@@ -2,14 +2,14 @@
 declare( strict_types = 1 );
 
 /**
- * Integration tests that pin how zone locks are taken, reported and released.
+ * Integration tests of what zone locks do in WordPress: they're kept as
+ * transients, and a deleted zone's lock goes with them. ZoneLockerTest covers
+ * the rules, and TransientLockStoreTest holds the store to them.
  *
  * @package Automattic\Zoninator
  */
 
 namespace Automattic\Zoninator\Tests\Integration;
-
-use Automattic\Zoninator\Domain\ZoneLockedException;
 
 class ZoninatorZoneLocksTest extends TestCase {
 
@@ -23,18 +23,12 @@ class ZoninatorZoneLocksTest extends TestCase {
 	 */
 	private $other_id;
 
-	public function set_up(): void {
-		parent::set_up();
+	public function setUp(): void {
+		parent::setUp();
 
 		$this->zone_id  = self::insert_zone( 'locked-zone', 'Locked zone' );
 		$this->other_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
-	}
-
-	public function test_a_lock_held_by_someone_else_reports_their_id(): void {
-		self::locker()->lock( $this->zone_id, $this->other_id );
-
-		$this->assertSame( $this->other_id, self::locker()->get_blocker_id( $this->zone_id, get_current_user_id() ) );
 	}
 
 	public function test_your_own_lock_does_not_lock_you_out(): void {
@@ -57,27 +51,6 @@ class ZoninatorZoneLocksTest extends TestCase {
 		self::locker()->lock( $this->zone_id, $this->other_id );
 
 		$this->assertSame( self::settings()->get_lock_period() + 1, $expiration );
-	}
-
-	public function test_a_lock_held_by_someone_else_cannot_be_taken(): void {
-		self::locker()->lock( $this->zone_id, $this->other_id );
-
-		try {
-			self::locker()->lock( $this->zone_id, get_current_user_id() );
-			$this->fail( 'Expected the zone to stay locked.' );
-		} catch ( ZoneLockedException $exception ) {
-			$this->assertSame( $this->other_id, $exception->get_holder_id() );
-		}
-
-		$this->assertSame( $this->other_id, self::locker()->get_blocker_id( $this->zone_id, get_current_user_id() ) );
-	}
-
-	public function test_unlocking_a_zone_releases_the_lock(): void {
-		self::locker()->lock( $this->zone_id, $this->other_id );
-
-		self::locker()->unlock( $this->zone_id );
-
-		$this->assertNull( self::locker()->get_blocker_id( $this->zone_id, get_current_user_id() ) );
 	}
 
 	public function test_deleting_a_zone_releases_its_lock(): void {

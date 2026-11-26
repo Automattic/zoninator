@@ -129,6 +129,8 @@ The widget builds its output on each page view and keeps no cache of its own. Wo
 
 Zoninator exposes a per-zone JSON feed at `/zones/{slug}/feed.json` (rewrite rule registered on init). This is the simplest way for a downstream consumer to pull a zone, but for most needs the [REST API](rest-api.md) is a better fit because it supports authentication and is discoverable.
 
+A slug that names no zone gets a `406` status and a body of `null`, as does a feed that a `zoninator_json_feed_results` callback refuses with a `WP_Error`.
+
 ## See also
 
 - [hooks.md](hooks.md) — every filter and action the plugin exposes.

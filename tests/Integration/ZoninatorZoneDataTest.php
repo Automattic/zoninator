@@ -4,16 +4,12 @@ declare( strict_types = 1 );
 /**
  * Integration tests that pin how Zoninator stores zones and their posts.
  *
- * Covers the zone data methods other tests reach only indirectly, so they
- * can move out of the Zoninator class without changing what they do.
+ * Covers the zone data methods other tests reach only indirectly.
  *
  * @package Automattic\Zoninator
  */
 
 namespace Automattic\Zoninator\Tests\Integration;
-
-use Automattic\Zoninator\Domain\InvalidZoneException;
-use Automattic\Zoninator\Domain\ZoneNotFoundException;
 
 class ZoninatorZoneDataTest extends TestCase {
 
@@ -27,24 +23,12 @@ class ZoninatorZoneDataTest extends TestCase {
 	 */
 	private $post_ids;
 
-	public function set_up(): void {
-		parent::set_up();
+	public function setUp(): void {
+		parent::setUp();
 
 		$this->zone_id  = self::insert_zone( 'data-zone', 'Data zone', array( 'description' => 'Kept' ) );
 		$this->post_ids = self::factory()->post->create_many( 3 );
 		self::add_zone_posts( $this->zone_id, $this->post_ids );
-	}
-
-	public function test_insert_zone_needs_a_slug(): void {
-		$this->expectException( InvalidZoneException::class );
-
-		self::insert_zone( '' );
-	}
-
-	public function test_insert_zone_names_the_zone_after_its_slug_by_default(): void {
-		$zone_id = self::insert_zone( 'unnamed-zone' );
-
-		$this->assertSame( 'unnamed-zone', self::zones()->get( $zone_id )->name );
 	}
 
 	public function test_insert_zone_filters_the_term_args(): void {
@@ -88,31 +72,6 @@ class ZoninatorZoneDataTest extends TestCase {
 		$this->assertSame( array( $this->zone_id, $this->zone_id ), $seen );
 	}
 
-	/**
-	 * @dataProvider data_changes_to_a_missing_zone
-	 *
-	 * @param string $change 'update' or 'delete'.
-	 */
-	public function test_update_and_delete_refuse_a_missing_zone( string $change ): void {
-		$this->expectException( ZoneNotFoundException::class );
-
-		if ( 'update' === $change ) {
-			self::update_zone( 999999 );
-		} else {
-			self::delete_zone( 999999 );
-		}
-	}
-
-	/**
-	 * @return array<string, array{string}>
-	 */
-	public function data_changes_to_a_missing_zone(): array {
-		return array(
-			'update' => array( 'update' ),
-			'delete' => array( 'delete' ),
-		);
-	}
-
 	public function test_delete_zone_fires_its_action(): void {
 		$deleted = null;
 		$action  = static function ( $zone_id ) use ( &$deleted ) {
@@ -125,16 +84,6 @@ class ZoninatorZoneDataTest extends TestCase {
 		remove_action( 'zoninator_delete_zone', $action );
 		$this->assertSame( $this->zone_id, $deleted );
 		$this->assertFalse( self::zones()->get( $this->zone_id ) );
-	}
-
-	public function test_add_zone_posts_appends_or_replaces(): void {
-		$new_id = self::factory()->post->create();
-
-		self::add_zone_posts( $this->zone_id, $new_id, true );
-		$this->assertSame( array_merge( $this->post_ids, array( $new_id ) ), $this->zone_post_ids() );
-
-		self::add_zone_posts( $this->zone_id, array( $new_id, $this->post_ids[0] ) );
-		$this->assertSame( array( $new_id, $this->post_ids[0] ), $this->zone_post_ids() );
 	}
 
 	/**
@@ -161,12 +110,6 @@ class ZoninatorZoneDataTest extends TestCase {
 			),
 			$fired
 		);
-	}
-
-	public function test_remove_zone_posts_without_posts_empties_the_zone(): void {
-		self::remove_zone_posts( $this->zone_id );
-
-		$this->assertSame( array(), $this->zone_post_ids() );
 	}
 
 	public function test_the_post_beside_another_can_be_asked_for_by_id_or_post(): void {

@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace Automattic\Zoninator\Tests\Unit\Domain;
 
 use Automattic\Zoninator\Domain\PostIds;
+use Generator;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use stdClass;
@@ -34,17 +35,15 @@ final class PostIdsTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{mixed}>
+	 * @return Generator<string, array{mixed}>
 	 */
-	public function data_not_post_ids(): array {
-		return array(
-			'an object'         => array( new stdClass() ),
-			'an array'          => array( array( 'ID' => 5 ) ),
-			'a float'           => array( 5.0 ),
-			'null'              => array( null ),
-			'true'              => array( true ),
-			'a negative string' => array( '-5' ),
-			'text'              => array( 'five' ),
-		);
+	public static function data_not_post_ids(): Generator {
+		yield 'an object' => array( new stdClass() );
+		yield 'an array' => array( array( 'ID' => 5 ) );
+		yield 'a float' => array( 5.0 );
+		yield 'null' => array( null );
+		yield 'true' => array( true );
+		yield 'a negative string' => array( '-5' );
+		yield 'text' => array( 'five' );
 	}
 }

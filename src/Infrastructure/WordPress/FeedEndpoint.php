@@ -61,7 +61,7 @@ final class FeedEndpoint {
 		// No such zone, or a zoninator_json_feed_results callback that refused.
 		if ( null === $results || is_wp_error( $results ) ) {
 			status_header( 406 );
-			exit;
+			wp_send_json( null );
 		}
 
 		wp_send_json( $results );

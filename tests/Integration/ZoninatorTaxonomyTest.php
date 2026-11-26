@@ -10,14 +10,15 @@ declare( strict_types = 1 );
 namespace Automattic\Zoninator\Tests\Integration;
 
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use Generator;
 
 class ZoninatorTaxonomyTest extends TestCase {
 
-	public function tear_down(): void {
+	public function tearDown(): void {
 		remove_post_type_support( 'page', 'zoninator_zones' );
 		add_post_type_support( 'post', 'zoninator_zones' );
 
-		parent::tear_down();
+		parent::tearDown();
 	}
 
 	public function test_the_taxonomy_is_a_private_data_store(): void {
@@ -51,15 +52,13 @@ class ZoninatorTaxonomyTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_term_caps(): array {
-		return array(
-			'manage_terms' => array( 'manage_terms' ),
-			'edit_terms'   => array( 'edit_terms' ),
-			'delete_terms' => array( 'delete_terms' ),
-			'assign_terms' => array( 'assign_terms' ),
-		);
+	public static function data_term_caps(): Generator {
+		yield 'manage_terms' => array( 'manage_terms' );
+		yield 'edit_terms' => array( 'edit_terms' );
+		yield 'delete_terms' => array( 'delete_terms' );
+		yield 'assign_terms' => array( 'assign_terms' );
 	}
 
 	public function test_a_post_saved_with_tax_input_does_not_add_a_zone(): void {
@@ -112,6 +111,6 @@ class ZoninatorTaxonomyTest extends TestCase {
 	public function test_a_new_taxonomy_works_out_its_post_types(): void {
 		$taxonomy = new Taxonomy();
 
-		$this->assertContains( 'post', $taxonomy->get_post_types() );
+		$this->assertSame( array( 'post' ), $taxonomy->get_post_types() );
 	}
 }
