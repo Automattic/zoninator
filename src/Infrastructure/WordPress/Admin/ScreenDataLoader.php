@@ -78,6 +78,16 @@ final class ScreenDataLoader {
 	 * @return WP_Term[]
 	 */
 	private function get_zones(): array {
+		/**
+		 * Filters the get_terms() arguments for the list of zones on the Zones screen.
+		 *
+		 * The taxonomy is always the zone taxonomy. This doesn't change
+		 * zoninator_get_zones(), the REST API or the abilities.
+		 *
+		 * @since 0.7
+		 *
+		 * @param array $args get_terms() arguments.
+		 */
 		$zones = $this->zones->get_all( apply_filters( 'zoninator_admin_page_get_zones_args', array() ) );
 
 		if ( ! is_array( $zones ) ) {

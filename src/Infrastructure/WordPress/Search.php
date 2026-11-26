@@ -51,6 +51,16 @@ final class Search {
 
 		if ( '' === $term ) {
 			// With nothing typed yet, offer the latest content.
+			/**
+			 * Filters the WP_Query arguments for the latest content, which the Zones
+			 * screen's Add content field offers before anything is typed.
+			 *
+			 * @since 0.4
+			 * @since 0.12.0 Added $zone_id.
+			 *
+			 * @param array $args    WP_Query arguments.
+			 * @param int   $zone_id The zone being edited, or 0.
+			 */
 			$args = apply_filters(
 				'zoninator_recent_posts_args',
 				array(
@@ -67,6 +77,17 @@ final class Search {
 		} else {
 			$limit = $limit > 0 ? min( $limit, 100 ) : $this->settings->get_posts_per_page();
 
+			/**
+			 * Filters the WP_Query arguments for the post search.
+			 *
+			 * A term that's a post ID looks that post up with these arguments, minus s.
+			 *
+			 * @since 0.3
+			 * @since 0.12.0 Added $zone_id.
+			 *
+			 * @param array $args    WP_Query arguments.
+			 * @param int   $zone_id The zone being edited, or 0.
+			 */
 			$args = apply_filters(
 				'zoninator_search_args',
 				array(
@@ -122,6 +143,15 @@ final class Search {
 	 * @return array The result, passed through the zoninator_search_results_post filter.
 	 */
 	private function format_search_result( $post ): mixed {
+		/**
+		 * Filters each post in the search results.
+		 *
+		 * @since 0.6
+		 *
+		 * @param array   $result The result: title, post_id, date, post_type,
+		 *                        post_type_label, post_status and post_status_label.
+		 * @param WP_Post $post   The post.
+		 */
 		return apply_filters(
 			'zoninator_search_results_post',
 			array(

@@ -42,6 +42,14 @@ final class Permissions {
 	 * @return bool
 	 */
 	public function list_zones( $request ): bool {
+		/**
+		 * Filters whether a request may list the zones with GET /zoninator/v1/zones.
+		 *
+		 * @since 0.11.0
+		 *
+		 * @param bool            $authorized Whether the user is logged in.
+		 * @param WP_REST_Request $request    The request.
+		 */
 		return (bool) apply_filters( 'zoninator_rest_get_zones_permissions_check', is_user_logged_in(), $request );
 	}
 

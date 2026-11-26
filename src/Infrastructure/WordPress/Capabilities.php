@@ -39,6 +39,14 @@ final class Capabilities implements ZoneAccessInterface {
 	 * @return string
 	 */
 	public function get_manage_zones_cap(): string {
+		/**
+		 * Filters the capability needed to open the Zones screen and curate zones:
+		 * add, remove and reorder their posts, search for posts, and take a lock.
+		 *
+		 * @since 0.4
+		 *
+		 * @param string $capability Capability. Default 'edit_others_posts'.
+		 */
 		return (string) apply_filters( 'zoninator_manage_zone_cap', 'edit_others_posts' );
 	}
 
@@ -49,6 +57,13 @@ final class Capabilities implements ZoneAccessInterface {
 	 * @return bool
 	 */
 	public function can_create_zones( int $user_id ): bool {
+		/**
+		 * Filters the capability needed to create zones.
+		 *
+		 * @since 0.4
+		 *
+		 * @param string $capability Capability. Default 'edit_others_posts'.
+		 */
 		return user_can( $user_id, (string) apply_filters( 'zoninator_add_zone_cap', 'edit_others_posts' ) );
 	}
 
@@ -60,7 +75,26 @@ final class Capabilities implements ZoneAccessInterface {
 	 * @return bool
 	 */
 	public function can_edit_zone( int $user_id, int $zone_id ): bool {
-		return (bool) apply_filters( 'zoninator_current_user_can_edit_zone', user_can( $user_id, (string) apply_filters( 'zoninator_edit_zone_cap', 'edit_others_posts' ) ), $zone_id, $user_id );
+		/**
+		 * Filters the capability needed to change a zone's name and details, or delete it.
+		 *
+		 * @since 0.4
+		 *
+		 * @param string $capability Capability. Default 'edit_others_posts'.
+		 */
+		$capability = (string) apply_filters( 'zoninator_edit_zone_cap', 'edit_others_posts' );
+
+		/**
+		 * Filters whether a user may change a zone's name and details, or delete it.
+		 *
+		 * @since 0.3
+		 * @since 1.0.0 Added $user_id.
+		 *
+		 * @param bool $has_cap Whether the user has the zoninator_edit_zone_cap capability.
+		 * @param int  $zone_id Zone ID.
+		 * @param int  $user_id ID of the user being asked about, who may not be the current user.
+		 */
+		return (bool) apply_filters( 'zoninator_current_user_can_edit_zone', user_can( $user_id, $capability ), $zone_id, $user_id );
 	}
 
 	/**

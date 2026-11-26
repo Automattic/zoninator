@@ -51,6 +51,14 @@ final class Settings implements LockSettingsInterface, ZoneSettingsInterface {
 	 * @return int
 	 */
 	public function get_lock_period(): int {
+		/**
+		 * Filters how long a zone's lock lasts unless it's renewed. The Zones
+		 * screen renews it this often.
+		 *
+		 * @since 0.4
+		 *
+		 * @param int $seconds Seconds. Default 30.
+		 */
 		return (int) apply_filters( 'zoninator_zone_lock_period', self::LOCK_PERIOD );
 	}
 
@@ -60,6 +68,14 @@ final class Settings implements LockSettingsInterface, ZoneSettingsInterface {
 	 * @return int
 	 */
 	public function get_max_lock_period(): int {
+		/**
+		 * Filters how long the Zones screen keeps a zone locked while the editor
+		 * makes no change, before it asks whether they're still working.
+		 *
+		 * @since 0.4
+		 *
+		 * @param int $seconds Seconds. Default 600. -1 stops the Zones screen locking zones.
+		 */
 		return (int) apply_filters( 'zoninator_zone_max_lock_period', self::MAX_LOCK_PERIOD );
 	}
 
@@ -69,6 +85,14 @@ final class Settings implements LockSettingsInterface, ZoneSettingsInterface {
 	 * @return int
 	 */
 	public function get_posts_per_page(): int {
+		/**
+		 * Filters how many posts the post search offers, and how many of the latest
+		 * posts it offers before anything is typed.
+		 *
+		 * @since 0.4
+		 *
+		 * @param int $count Number of posts. Default 10.
+		 */
 		return (int) apply_filters( 'zoninator_posts_per_page', self::POSTS_PER_PAGE );
 	}
 

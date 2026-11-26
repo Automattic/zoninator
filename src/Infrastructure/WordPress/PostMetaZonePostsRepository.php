@@ -11,6 +11,7 @@ namespace Automattic\Zoninator\Infrastructure\WordPress;
 
 use Automattic\Zoninator\Domain\ZonePostsRepositoryInterface;
 use WP_Query;
+use WP_Term;
 
 /**
  * Keeps a post's place in a zone as post meta: the key is Zones::META_PREFIX
@@ -124,15 +125,47 @@ final class PostMetaZonePostsRepository implements ZonePostsRepositoryInterface 
 	/**
 	 * Clears the zone's cache and tells the site its posts changed.
 	 *
-	 * @param string $action   The action to fire.
+	 * @param string $action   The action to fire: zoninator_add_zone_posts or zoninator_remove_zone_posts.
 	 * @param int    $zone_id  Zone ID.
 	 * @param int[]  $post_ids The posts added or removed.
 	 */
 	private function changed( string $action, int $zone_id, array $post_ids ): void {
 		clean_term_cache( $zone_id, Taxonomy::NAME ); // flush cache for our zone term and related APC caches
 
-		// phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase, WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- One of the two zoninator_ actions named above.
-		do_action( $action, $post_ids, $this->terms->get_term( $zone_id ) );
+		$zone = $this->terms->get_term( $zone_id );
+
+		if ( 'zoninator_add_zone_posts' === $action ) {
+			/**
+			 * Fires after posts are added to a zone.
+			 *
+			 * When posts are appended, it's given only those that weren't in the zone
+			 * already, and doesn't fire if there were none. When the zone's posts are
+			 * replaced, it's given every post now in the zone, in order.
+			 *
+			 * @since 0.5
+			 * @since 1.0.0 Always given post IDs.
+			 *
+			 * @param int[]   $post_ids IDs of the posts added.
+			 * @param WP_Term $zone     The zone.
+			 */
+			do_action( 'zoninator_add_zone_posts', $post_ids, $zone );
+			return;
+		}
+
+		/**
+		 * Fires after posts are removed from a zone.
+		 *
+		 * When the zone's posts are replaced, it's given every post that was in the
+		 * zone, and the posts staying in the zone still have their places while it
+		 * runs. zoninator_add_zone_posts then fires with every post now in it.
+		 *
+		 * @since 0.5
+		 * @since 1.0.0 Always given post IDs.
+		 *
+		 * @param int[]   $post_ids IDs of the posts asked to be removed, whether or not they were in the zone.
+		 * @param WP_Term $zone     The zone.
+		 */
+		do_action( 'zoninator_remove_zone_posts', $post_ids, $zone );
 	}
 
 	/**

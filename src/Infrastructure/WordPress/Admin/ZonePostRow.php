@@ -57,6 +57,17 @@ final class ZonePostRow {
 	 * @param WP_Term $zone The zone it's in.
 	 */
 	public function render( $post, $zone ): void {
+		/**
+		 * Filters the columns shown for each post in a zone on the Zones screen.
+		 *
+		 * Each callback is given the post and the zone, and prints its cell.
+		 *
+		 * @since 0.4
+		 *
+		 * @param callable[] $columns Column key => callback.
+		 * @param WP_Post    $post    The post.
+		 * @param WP_Term    $zone    The zone it's in.
+		 */
 		$columns = apply_filters(
 			'zoninator_zone_post_columns',
 			array(
