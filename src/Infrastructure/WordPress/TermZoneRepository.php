@@ -170,7 +170,14 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 		}
 
 		foreach ( $this->read_details( (string) $term->description ) as $detail_key => $detail_value ) {
-			$term->$detail_key = $detail_value;
+			$detail_key = (string) $detail_key;
+
+			// A detail is an extra property, and only the description replaces one the term already
+			// has, so what's stored can't stand in for the term's ID or name. PHP refuses a property
+			// with no name, or one that starts with a null byte.
+			if ( 'description' === $detail_key || ( '' !== $detail_key && "\0" !== $detail_key[0] && ! property_exists( $term, $detail_key ) ) ) {
+				$term->$detail_key = $detail_value;
+			}
 		}
 
 		$term->zoninator_parsed = true;
