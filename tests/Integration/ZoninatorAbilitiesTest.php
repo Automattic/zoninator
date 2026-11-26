@@ -21,8 +21,7 @@ final class ZoninatorAbilitiesTest extends TestCase {
 	public function set_up(): void {
 		parent::set_up();
 
-		$zone          = self::insert_zone( 'abilities-zone', 'Abilities zone', array( 'description' => 'For the abilities tests' ) );
-		$this->zone_id = (int) $zone['term_id'];
+		$this->zone_id = self::insert_zone( 'abilities-zone', 'Abilities zone', array( 'description' => 'For the abilities tests' ) );
 
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 	}

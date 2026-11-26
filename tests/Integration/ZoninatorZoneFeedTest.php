@@ -88,10 +88,10 @@ final class ZoninatorZoneFeedTest extends TestCase {
 	 * An empty zone is still a zone. Its feed is an empty list, not nothing.
 	 */
 	public function test_feed_for_an_empty_zone_is_an_empty_list(): void {
-		$zone = self::insert_zone( 'empty-feed-zone' );
+		$zone_id = self::insert_zone( 'empty-feed-zone' );
 
 		$this->assertSame( array(), self::feed()->get( 'empty-feed-zone' ) );
-		$this->assertSame( array(), self::feed()->get( (int) $zone['term_id'] ) );
+		$this->assertSame( array(), self::feed()->get( $zone_id ) );
 	}
 
 	public function test_feed_filters_get_the_zone_they_were_asked_for(): void {
@@ -129,8 +129,6 @@ final class ZoninatorZoneFeedTest extends TestCase {
 	}
 
 	private function create_zone(): int {
-		$zone = self::insert_zone( 'feed-zone', 'Feed zone' );
-
-		return (int) $zone['term_id'];
+		return self::insert_zone( 'feed-zone', 'Feed zone' );
 	}
 }

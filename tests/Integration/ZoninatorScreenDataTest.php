@@ -24,8 +24,7 @@ final class ZoninatorScreenDataTest extends TestCase {
 	public function set_up(): void {
 		parent::set_up();
 
-		$zone          = self::insert_zone( 'data-zone', 'Data zone' );
-		$this->zone_id = (int) $zone['term_id'];
+		$this->zone_id = self::insert_zone( 'data-zone', 'Data zone' );
 
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 	}

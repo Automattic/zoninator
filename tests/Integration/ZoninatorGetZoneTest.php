@@ -22,8 +22,7 @@ class ZoninatorGetZoneTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$zone          = self::insert_zone( 'get-zone', 'Get Zone' );
-		$this->zone_id = $zone['term_id'];
+		$this->zone_id = self::insert_zone( 'get-zone', 'Get Zone' );
 	}
 
 	public function test_get_zone_by_id() {

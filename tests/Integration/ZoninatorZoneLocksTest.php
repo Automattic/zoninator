@@ -26,8 +26,7 @@ class ZoninatorZoneLocksTest extends TestCase {
 	public function set_up(): void {
 		parent::set_up();
 
-		$zone           = self::insert_zone( 'locked-zone', 'Locked zone' );
-		$this->zone_id  = (int) $zone['term_id'];
+		$this->zone_id  = self::insert_zone( 'locked-zone', 'Locked zone' );
 		$this->other_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 	}

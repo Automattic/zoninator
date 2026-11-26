@@ -29,6 +29,6 @@ final class PostMetaZonePostsRepositoryTest extends TestCase {
 	}
 
 	protected function make_zone_id(): int {
-		return (int) self::insert_zone( 'contract-' . wp_rand() )['term_id'];
+		return self::insert_zone( 'contract-' . wp_rand() );
 	}
 }

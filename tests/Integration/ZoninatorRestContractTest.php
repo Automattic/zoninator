@@ -1194,10 +1194,7 @@ final class ZoninatorRestContractTest extends TestCase {
 	 * @return int Zone term ID.
 	 */
 	private function create_zone( $slug, $name = '', $description = '' ) {
-		$result = self::insert_zone( $slug, $name, array( 'description' => $description ) );
-		$this->assertNotWPError( $result );
-
-		return (int) $result['term_id'];
+		return self::insert_zone( $slug, $name, array( 'description' => $description ) );
 	}
 
 	/**

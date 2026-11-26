@@ -20,8 +20,8 @@ class ZoninatorZoneScreenTest extends TestCase {
 
 	private function create_zone(): WP_Term {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
-		$zone = self::insert_zone( 'screen-zone', 'Screen zone' );
-		return self::zones()->get( (int) $zone['term_id'] );
+
+		return self::zones()->get( self::insert_zone( 'screen-zone', 'Screen zone' ) );
 	}
 
 	public function test_zone_content_comes_before_the_zone_details(): void {

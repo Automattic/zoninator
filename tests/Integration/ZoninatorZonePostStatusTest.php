@@ -24,8 +24,7 @@ class ZoninatorZonePostStatusTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$zone          = self::insert_zone( 'status-zone', 'Status zone' );
-		$this->zone_id = (int) $zone['term_id'];
+		$this->zone_id = self::insert_zone( 'status-zone', 'Status zone' );
 
 		$this->post_ids = array(
 			'publish' => self::factory()->post->create(),

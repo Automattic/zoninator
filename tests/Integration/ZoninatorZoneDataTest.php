@@ -30,8 +30,7 @@ class ZoninatorZoneDataTest extends TestCase {
 	public function set_up(): void {
 		parent::set_up();
 
-		$zone           = self::insert_zone( 'data-zone', 'Data zone', array( 'description' => 'Kept' ) );
-		$this->zone_id  = (int) $zone['term_id'];
+		$this->zone_id  = self::insert_zone( 'data-zone', 'Data zone', array( 'description' => 'Kept' ) );
 		$this->post_ids = self::factory()->post->create_many( 3 );
 		self::add_zone_posts( $this->zone_id, $this->post_ids );
 	}
@@ -43,9 +42,9 @@ class ZoninatorZoneDataTest extends TestCase {
 	}
 
 	public function test_insert_zone_names_the_zone_after_its_slug_by_default(): void {
-		$zone = self::insert_zone( 'unnamed-zone' );
+		$zone_id = self::insert_zone( 'unnamed-zone' );
 
-		$this->assertSame( 'unnamed-zone', self::zones()->get( (int) $zone['term_id'] )->name );
+		$this->assertSame( 'unnamed-zone', self::zones()->get( $zone_id )->name );
 	}
 
 	public function test_insert_zone_filters_the_term_args(): void {
@@ -55,10 +54,10 @@ class ZoninatorZoneDataTest extends TestCase {
 		};
 		add_filter( 'zoninator_insert_zone', $filter );
 
-		$zone = self::insert_zone( 'original-slug', 'Filtered' );
+		$zone_id = self::insert_zone( 'original-slug', 'Filtered' );
 
 		remove_filter( 'zoninator_insert_zone', $filter );
-		$this->assertSame( 'filtered-slug', self::zones()->get( (int) $zone['term_id'] )->slug );
+		$this->assertSame( 'filtered-slug', self::zones()->get( $zone_id )->slug );
 	}
 
 	public function test_update_zone_with_an_empty_description_clears_it(): void {

@@ -33,8 +33,7 @@ final class ZoninatorTemplateTagsTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$zone          = self::insert_zone( 'tags-zone', 'Tags zone' );
-		$this->zone_id = (int) $zone['term_id'];
+		$this->zone_id = self::insert_zone( 'tags-zone', 'Tags zone' );
 
 		$created        = self::factory()->post->create_many( 3 );
 		$this->post_ids = array( $created[2], $created[0], $created[1] );
@@ -134,12 +133,12 @@ final class ZoninatorTemplateTagsTest extends TestCase {
 	}
 
 	public function test_z_get_post_zones_lists_each_zone_the_post_is_in(): void {
-		$other = self::insert_zone( 'other-zone', 'Other zone' );
-		self::add_zone_posts( (int) $other['term_id'], $this->post_ids[1] );
+		$other_id = self::insert_zone( 'other-zone', 'Other zone' );
+		self::add_zone_posts( $other_id, $this->post_ids[1] );
 
 		$zones = zoninator_get_post_zones( $this->post_ids[1] );
 
-		$this->assertSame( array( $this->zone_id, (int) $other['term_id'] ), wp_list_pluck( $zones, 'term_id' ) );
+		$this->assertSame( array( $this->zone_id, $other_id ), wp_list_pluck( $zones, 'term_id' ) );
 		$this->assertInstanceOf( WP_Term::class, $zones[0] );
 		$this->assertSame( array( $this->zone_id ), wp_list_pluck( zoninator_get_post_zones( $this->post_ids[0] ), 'term_id' ) );
 	}
