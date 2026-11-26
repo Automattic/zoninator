@@ -33,8 +33,8 @@ final class ZoninatorRestContractTest extends TestCase {
 	 */
 	private $subscriber_id;
 
-	public function set_up(): void {
-		parent::set_up();
+	public function setUp(): void {
+		parent::setUp();
 
 		$this->admin_id      = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$this->subscriber_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
@@ -602,8 +602,7 @@ final class ZoninatorRestContractTest extends TestCase {
 	 * Curating a zone, and taking its lock, needs the zone management
 	 * capability, as on the Zones screen, not the one for editing the zone's
 	 * details. Otherwise the screen would reload for ever when the lock fails.
-	 */
-	/**
+	 *
 	 * Each route needs exactly one of the three zone capabilities. They all
 	 * default to edit_others_posts, so give each its own capability and a
 	 * user only that one, which fails if a route checks the wrong one.

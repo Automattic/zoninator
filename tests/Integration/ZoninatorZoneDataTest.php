@@ -4,8 +4,7 @@ declare( strict_types = 1 );
 /**
  * Integration tests that pin how Zoninator stores zones and their posts.
  *
- * Covers the zone data methods other tests reach only indirectly, so they
- * can move out of the Zoninator class without changing what they do.
+ * Covers the zone data methods other tests reach only indirectly.
  *
  * @package Automattic\Zoninator
  */
@@ -27,8 +26,8 @@ class ZoninatorZoneDataTest extends TestCase {
 	 */
 	private $post_ids;
 
-	public function set_up(): void {
-		parent::set_up();
+	public function setUp(): void {
+		parent::setUp();
 
 		$this->zone_id  = self::insert_zone( 'data-zone', 'Data zone', array( 'description' => 'Kept' ) );
 		$this->post_ids = self::factory()->post->create_many( 3 );

@@ -23,8 +23,8 @@ class ZoninatorZoneLocksTest extends TestCase {
 	 */
 	private $other_id;
 
-	public function set_up(): void {
-		parent::set_up();
+	public function setUp(): void {
+		parent::setUp();
 
 		$this->zone_id  = self::insert_zone( 'locked-zone', 'Locked zone' );
 		$this->other_id = self::factory()->user->create( array( 'role' => 'editor' ) );

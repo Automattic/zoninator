@@ -13,11 +13,11 @@ use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
 
 class ZoninatorTaxonomyTest extends TestCase {
 
-	public function tear_down(): void {
+	public function tearDown(): void {
 		remove_post_type_support( 'page', 'zoninator_zones' );
 		add_post_type_support( 'post', 'zoninator_zones' );
 
-		parent::tear_down();
+		parent::tearDown();
 	}
 
 	public function test_the_taxonomy_is_a_private_data_store(): void {

@@ -21,8 +21,8 @@ final class ZoninatorScreenDataTest extends TestCase {
 	 */
 	private $zone_id;
 
-	public function set_up(): void {
-		parent::set_up();
+	public function setUp(): void {
+		parent::setUp();
 
 		$this->zone_id = self::insert_zone( 'data-zone', 'Data zone' );
 

@@ -30,8 +30,8 @@ class ZoninatorZonePostAccessTest extends TestCase {
 	 */
 	private $secret_id;
 
-	public function set_up(): void {
-		parent::set_up();
+	public function setUp(): void {
+		parent::setUp();
 
 		$this->editor_id  = self::factory()->user->create( array( 'role' => 'editor' ) );
 		$this->zone_id    = self::insert_zone( 'access-zone', 'Access zone' );
