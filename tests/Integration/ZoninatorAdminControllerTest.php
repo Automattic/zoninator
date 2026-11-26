@@ -205,6 +205,55 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->assertSame( '', $zone->description );
 	}
 
+	/**
+	 * A nonce lets its holder change the zone it was made for, and no other.
+	 *
+	 * @dataProvider data_zone_actions
+	 *
+	 * @param string $action Form action.
+	 */
+	public function test_a_nonce_for_one_zone_does_not_work_for_another( string $action ): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		$other_id = self::insert_zone( 'other-zone', 'Other zone' );
+		$this->set_request(
+			$action,
+			array(
+				'zone_id' => $this->zone_id,
+				'name'    => 'Changed zone',
+			),
+			false
+		);
+		$_POST[ ScreenLocation::NONCE_NAME ]    = $this->create_nonce( $action, $other_id );
+		$_REQUEST[ ScreenLocation::NONCE_NAME ] = $_POST[ ScreenLocation::NONCE_NAME ];
+
+		try {
+			zoninator_container()->get( ZoneForm::class )->handle_request();
+			$this->fail( 'Expected the handler to stop the request.' );
+		} catch ( WPDieException $e ) {
+			$this->assertSame( 'The link you followed has expired.', $e->getMessage() );
+		}
+
+		$this->assertSame( 'Form zone', self::zones()->get( $this->zone_id )->name );
+	}
+
+	/**
+	 * Other forms send _wpnonce too, so the zone form has a field of its own.
+	 */
+	public function test_the_nonce_is_read_from_the_forms_own_field(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		$this->set_request( 'delete', array( 'zone_id' => $this->zone_id ), false );
+		$_REQUEST['_wpnonce'] = $this->create_nonce( 'delete', $this->zone_id );
+
+		try {
+			zoninator_container()->get( ZoneForm::class )->handle_request();
+			$this->fail( 'Expected the handler to stop the request.' );
+		} catch ( WPDieException $e ) {
+			$this->assertSame( 'The link you followed has expired.', $e->getMessage() );
+		}
+
+		$this->assertNotFalse( self::zones()->get( $this->zone_id ) );
+	}
+
 	public function test_delete_removes_the_zone_and_its_posts(): void {
 		$post_id = self::factory()->post->create();
 		self::add_zone_posts( $this->zone_id, array( $post_id ) );
@@ -388,6 +437,15 @@ final class ZoninatorAdminControllerTest extends TestCase {
 	}
 
 	/**
+	 * @param string $action  Form action.
+	 * @param int    $zone_id The zone the nonce is for, or 0 for a new zone.
+	 * @return string A nonce for the current user.
+	 */
+	private function create_nonce( string $action, int $zone_id ): string {
+		return wp_create_nonce( zoninator_container()->get( ScreenLocation::class )->get_nonce_action( $action, $zone_id ) );
+	}
+
+	/**
 	 * @param string $action     Form action.
 	 * @param array  $fields     Form fields.
 	 * @param bool   $with_nonce Whether to send a valid nonce.
@@ -395,7 +453,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 	private function set_request( string $action, array $fields, bool $with_nonce ): void {
 		$_POST = $fields;
 		if ( $with_nonce ) {
-			$_POST['_wpnonce'] = wp_create_nonce( zoninator_container()->get( ScreenLocation::class )->get_nonce_action( $action ) );
+			$_POST[ ScreenLocation::NONCE_NAME ] = $this->create_nonce( $action, 'insert' === $action ? 0 : (int) ( $fields['zone_id'] ?? 0 ) );
 		}
 
 		$_REQUEST = array_merge(

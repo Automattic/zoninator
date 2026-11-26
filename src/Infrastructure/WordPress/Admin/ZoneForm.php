@@ -64,11 +64,13 @@ final class ZoneForm {
 			return;
 		}
 
-		check_admin_referer( $this->location->get_nonce_action( $action ) );
-
-		// The delete link sends the zone in the URL; the form posts it.
+		// The delete link sends the zone in the URL; the form posts it. A new zone has no ID yet.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing -- Only says which nonce to check, just below.
 		$source  = 'delete' === $action ? $_REQUEST : $_POST;
-		$zone_id = isset( $source['zone_id'] ) ? absint( $source['zone_id'] ) : 0;
+		$zone_id = 'insert' !== $action && isset( $source['zone_id'] ) ? absint( $source['zone_id'] ) : 0;
+
+		// The nonce is for this zone, so one made for another zone doesn't pass.
+		check_admin_referer( $this->location->get_nonce_action( $action, $zone_id ), ScreenLocation::NONCE_NAME );
 
 		try {
 			$url = $this->location->get_url( $this->save( $action, $zone_id ) );

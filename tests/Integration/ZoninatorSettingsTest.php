@@ -75,7 +75,11 @@ class ZoninatorSettingsTest extends TestCase {
 	}
 
 	public function test_nonce_keys_keep_their_prefix(): void {
-		$this->assertSame( 'zone-nonce-update', zoninator_container()->get( ScreenLocation::class )->get_nonce_action( 'update' ) );
+		$location = zoninator_container()->get( ScreenLocation::class );
+
+		$this->assertSame( 'zone-nonce-insert', $location->get_nonce_action( 'insert' ) );
+		$this->assertSame( 'zone-nonce-update-12', $location->get_nonce_action( 'update', 12 ) );
+		$this->assertSame( 'zoninator_nonce', ScreenLocation::NONCE_NAME );
 	}
 
 	public function test_detail_defaults_filter_adds_a_zone_detail(): void {

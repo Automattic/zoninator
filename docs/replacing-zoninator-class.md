@@ -70,7 +70,7 @@ These served the Zones screen, or did nothing a site needs. If your code calls o
 |---|---|
 | `$rest_api` and `maybe_add_rest_api()` | To change a route, use core's REST hooks, such as `rest_endpoints` |
 | `$zone_messages`, `$zone_nonce_prefix`, `$zone_ajax_nonce_action` and `$zone_term_prefix` | |
-| `_get_message()`, `_get_nonce_key()`, `verify_nonce()` and `verify_access()` | The Zones screen's nonce actions are `'zone-nonce-' . $action` |
+| `_get_message()`, `_get_nonce_key()`, `verify_nonce()` and `verify_access()` | The zone form's nonce actions are `'zone-nonce-' . $action`, followed by `-` and the zone ID to change or delete a zone, and its nonce is in the `zoninator_nonce` field |
 | `ajax_add_post()`, `ajax_remove_post()`, `ajax_reorder_posts()`, `ajax_search_posts()`, `ajax_recent_posts()`, `ajax_update_lock()`, `ajax_return()`, `admin_ajax_init()` and `zone_admin_recent_posts_dropdown()` | See [The admin-ajax actions are gone](upgrading-to-1.0.md#the-admin-ajax-actions-are-gone) |
 | `admin_page_zone_tabs()`, `admin_page_zone_edit()`, `admin_page_zone_details()`, `admin_page_zone_content()`, `admin_page_zone_post()`, `zone_advanced_search_filters()` and `zone_admin_search_form()` | To add to the Zones screen, use the [zone field hooks](hooks.md#zoninator_pre_zone_fields--zoninator_post_zone_fields-actions), [`zoninator_zone_post_columns`](hooks.md#zoninator_zone_post_columns-filter) and [`zoninator_advanced_search_fields`](hooks.md#zoninator_advanced_search_fields-action) |
 | `is_zoninator_page()` | `'toplevel_page_zoninator' === get_current_screen()->id` |

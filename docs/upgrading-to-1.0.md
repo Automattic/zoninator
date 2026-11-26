@@ -179,6 +179,8 @@ If your code unhooked one, with `remove_action( 'wp_ajax_zoninator_add_post', â€
 
 On the Zones screen, the hidden `zone-nonce-ajax-action` nonce field and the `ajaxNonceAction` entry in `zoninatorOptions` are gone, and so are the `zoninator.ajax()`, `zoninator.getAjaxNonce()`, `zoninator.getAjaxNonceField()` and `zoninator.updateAjaxNonce()` JavaScript functions. The screen still fires the `zoninator.ajax` jQuery event on `#zone-post-search` before each REST request, with the action name (such as `add_post`) and the request data, so listeners on it keep working.
 
+The zone form's own nonce has changed too. It's sent in a `zoninator_nonce` field, not `_wpnonce`, and the nonce to change or delete a zone is for that zone only: its action ends with the zone's ID, as in `zone-nonce-update-12` and `zone-nonce-delete-12`. A new zone's is still `zone-nonce-insert`. If your code builds its own link or form that submits to the Zones screen, make its nonce the same way.
+
 ## A zone holds up to 100 posts
 
 A zone had no limit on how many posts it held, and every list of a zone's posts reads them all: the template tags, the widget, the block and the JSON feed. A zone that editors only ever added to grew with every post, and so did each page that showed it. A zone now holds up to 100 posts. Adding past that is refused, on the Zones screen, over the REST API and through the abilities.
