@@ -66,11 +66,13 @@ npx --no wp-env stop
 - `tests/bootstrap.php` — PHPUnit bootstrap (uses `yoast/wp-test-utils`).
 - `tests/Integration/TestCase.php` — base class. Extend this for new tests.
 - `tests/Integration/*Test.php` — the test files themselves.
+- `tests/Unit/` — tests of `Domain` and `Application` that run without WordPress, with test doubles in `tests/Unit/Doubles/`. `LayersTest.php` checks the layers' dependencies.
+- `tests/LockStoreContract.php` and `tests/ZonePostsRepositoryContract.php` — the contract each storage class and its test double must both meet.
 - `tests/e2e/fixtures.js` — the `zoninator` fixture, which creates test data and deletes it afterwards, and a helper to log in as a second user.
 - `tests/e2e/*.spec.js` — the E2E tests. `playwright.config.js` extends the `@wordpress/scripts` config.
 
 ## Continuous integration
 
-The matrix in `.github/workflows/integration.yml` runs the lowest supported combination (WP 6.9 / PHP 8.2), the "Tested up to" version (WP 7.1 / latest PHP) and the next version (`master` / latest PHP). Both single-site and multisite paths run on every push.
+The matrix in `.github/workflows/integration.yml` runs the lowest supported combination (WP 6.9 / PHP 8.2), the "Tested up to" version (WP 7.1 / PHP 8.5) and the next versions (`master` / PHP 8.6). Each runs the unit tests, then the integration tests on single site and multisite.
 
 `.github/workflows/e2e.yml` runs the E2E tests on the "Tested up to" version (WP 7.1) with the latest PHP. If a test fails, the Playwright report, screenshots and traces are uploaded as the `playwright-report` artifact.
