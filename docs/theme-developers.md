@@ -123,7 +123,7 @@ The widget builds its output on each page view and keeps no cache of its own. Wo
 
 ## The JSON feed
 
-Zoninator exposes a per-zone JSON feed at `/zones/{slug}/feed.json`. Its rewrite rule takes effect once the rewrite rules are flushed, such as by saving **Settings → Permalinks**; until then, or without pretty permalinks, use `/?zoninator_zones={slug}`. It lists the zone's published posts, with the fields in [`zoninator_zone_feed_fields`](hooks.md#zoninator_zone_feed_fields-filter), and an empty zone gives `[]`. This is the simplest way for a downstream consumer to pull a zone, but for most needs the [REST API](rest-api.md) is a better fit because it supports authentication and is discoverable.
+Zoninator exposes a per-zone JSON feed at `/zones/{slug}/feed.json`. The URL works as soon as you activate the plugin, which flushes the rewrite rules. Nothing flushes them when Zoninator is loaded from code rather than activated, such as from `mu-plugins`, or on the other sites of a network when it's network-activated, which flushes only the current site's rules. There, flush them yourself, such as with `wp rewrite flush` or by saving **Settings → Permalinks**. Without pretty permalinks, use `/?zoninator_zones={slug}`. It lists the zone's published posts, with the fields in [`zoninator_zone_feed_fields`](hooks.md#zoninator_zone_feed_fields-filter), and an empty zone gives `[]`. This is the simplest way for a downstream consumer to pull a zone, but for most needs the [REST API](rest-api.md) is a better fit because it supports authentication and is discoverable.
 
 A slug that names no zone gets a `406` status and a body of `null`, as does a feed that a `zoninator_json_feed_results` callback refuses with a `WP_Error`.
 

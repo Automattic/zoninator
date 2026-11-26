@@ -87,6 +87,9 @@ class ZoninatorHooksTest extends TestCase {
 		$found = array_map( static fn( $entries ) => array_values( array_unique( $entries ) ), $found );
 		ksort( $found );
 		$expected = self::HOOKS;
+		// Named after the plugin's folder, which differs between installs.
+		$expected[ 'activate_' . plugin_basename( ZONINATOR_FILE ) ]   = array( FeedEndpoint::class . '::activate 10 1' );
+		$expected[ 'deactivate_' . plugin_basename( ZONINATOR_FILE ) ] = array( FeedEndpoint::class . '::deactivate 10 1' );
 		ksort( $expected );
 
 		$this->assertSame( $expected, $found );
@@ -120,6 +123,7 @@ class ZoninatorHooksTest extends TestCase {
 		yield 'widget' => array( 'widgets_init', array( zoninator_container()->get( Widgets::class ), 'register' ), 10 );
 		yield 'feed rewrite' => array( 'init', array( $feed, 'add_rewrite_rule' ), 10 );
 		yield 'feed' => array( 'template_redirect', array( $feed, 'serve' ), 10 );
+		yield 'feed deactivation' => array( 'deactivate_' . plugin_basename( ZONINATOR_FILE ), array( $feed, 'deactivate' ), 10 );
 		yield 'block query' => array( 'query_loop_block_query_vars', array( $block, 'filter_query_vars' ), 10 );
 		yield 'block preview' => array( 'rest_post_query', array( $block, 'filter_rest_query' ), 10 );
 		yield 'block editor' => array( 'enqueue_block_editor_assets', array( $block, 'enqueue_editor_assets' ), 10 );
