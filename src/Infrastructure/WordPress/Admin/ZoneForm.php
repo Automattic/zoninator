@@ -125,10 +125,11 @@ final class ZoneForm {
 			return array( 'message' => 'delete-success' );
 		}
 
-		$name    = $this->request->get_post_var( 'name', '', array( $this->request, 'sanitize_value' ) );
+		// The storage encodes these for itself, so they only need the slashes WordPress adds to a request taken off.
+		$name    = $this->request->get_post_var( 'name', '', 'wp_unslash' );
 		$slug    = $this->request->get_post_var( 'slug', sanitize_title( $name ) );
 		$details = array(
-			'description' => $this->request->get_post_var( 'description', '', array( $this->request, 'sanitize_value' ) ),
+			'description' => $this->request->get_post_var( 'description', '', 'wp_unslash' ),
 		);
 
 		// Go by the action that was checked, not by whether a zone ID was sent.

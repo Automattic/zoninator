@@ -123,6 +123,8 @@ The `Guarded` classes, described under [Zone locks now stop every change](#zone-
 | `Zoninator()->rest_api` | Nothing; to change a route, use core's REST hooks |
 | `Zoninator()->default_post_types` | See [Zoninator boots on `plugins_loaded`](#zoninator-boots-on-plugins_loaded) |
 
+Give `ZoneManager` a zone's name and details as plain text. Zoninator encodes them for storage, so don't call `esc_html()` or `htmlspecialchars()` on them first, or they're encoded twice. The `Zone` it returns gives plain text back from `get_name()` and `get_description()`. The template tags are unchanged: they give the stored text, in which `&`, `<` and `>` are encoded.
+
 The properties that 0.12.0 deprecated went with the class. The table under [`Zoninator`'s properties are no longer public](#zoninators-properties-are-no-longer-public) names their replacements, which are now the calls above. `$zone_messages` and `$zone_nonce_prefix` have none.
 
 These methods of `Zoninator`, most of them helpers that were never meant to be public, are removed too:

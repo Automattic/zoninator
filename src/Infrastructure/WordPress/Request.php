@@ -78,18 +78,6 @@ final class Request {
 	}
 
 	/**
-	 * Sanitises a zone name or description from a form.
-	 *
-	 * @param string $value Raw value.
-	 * @return string
-	 */
-	public function sanitize_value( $value ) {
-		// htmlspecialchars(), not htmlentities(): core decodes named entities such as
-		// &eacute; when it saves a term, which broke the serialised zone details.
-		return htmlspecialchars( stripslashes( $value ) );
-	}
-
-	/**
 	 * Gets the nonce action for one of the Zones screen's actions.
 	 *
 	 * @param string $action Action.

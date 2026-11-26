@@ -110,6 +110,32 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->assertSame( 'D:\\path', $zone->description );
 	}
 
+	/**
+	 * WordPress decodes an encoded quote when it saves a term, which used to
+	 * leave the stored length wrong; with a semicolon after the quote, the
+	 * description could not be repaired and read as empty.
+	 */
+	public function test_insert_keeps_a_quote_followed_by_a_semicolon(): void {
+		$this->submit(
+			'insert',
+			wp_slash(
+				array(
+					'name'        => 'The "Daily"; late',
+					'slug'        => 'quoted',
+					'description' => 'He said "hi"; she didn\'t',
+				)
+			)
+		);
+
+		$zone = self::zones()->get( 'quoted' );
+		$this->assertSame( 'The "Daily"; late', $zone->name );
+		$this->assertSame( 'He said "hi"; she didn\'t', $zone->description );
+		$this->assertSame(
+			array( 'description' => 'He said "hi"; she didn\'t' ),
+			unserialize( get_term_field( 'description', $zone->term_id, Taxonomy::NAME, 'raw' ), array( 'allowed_classes' => false ) ) // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
+		);
+	}
+
 	public function test_insert_keeps_non_ascii_text_in_the_description(): void {
 		$this->submit(
 			'insert',

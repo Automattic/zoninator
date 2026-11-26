@@ -206,31 +206,22 @@ final class ZonesController extends WP_REST_Controller {
 		return $this->ok( array( 'success' => true ) );
 	}
 
-	public function sanitize_string( $item ) {
-		// Core has already unslashed REST input, so don't unslash it again.
-		// See Request::sanitize_value() for why this isn't htmlentities().
-		return htmlspecialchars( $item );
-	}
-
 	private function get_create_params() {
 		return array(
 			'name'        => array(
-				'type'              => 'string',
-				'sanitize_callback' => array( $this, 'sanitize_string' ),
-				'default'           => '',
-				'required'          => false,
+				'type'     => 'string',
+				'default'  => '',
+				'required' => false,
 			),
 			'slug'        => array(
-				'type'              => 'string',
-				'sanitize_callback' => array( $this, 'sanitize_string' ),
-				'default'           => '',
-				'required'          => false,
+				'type'     => 'string',
+				'default'  => '',
+				'required' => false,
 			),
 			'description' => array(
-				'type'              => 'string',
-				'sanitize_callback' => array( $this, 'sanitize_string' ),
-				'default'           => '',
-				'required'          => false,
+				'type'     => 'string',
+				'default'  => '',
+				'required' => false,
 			),
 		);
 	}
@@ -238,19 +229,16 @@ final class ZonesController extends WP_REST_Controller {
 	private function get_update_params() {
 		return array(
 			'name'        => array(
-				'type'              => 'string',
-				'sanitize_callback' => array( $this, 'sanitize_string' ),
-				'required'          => false,
+				'type'     => 'string',
+				'required' => false,
 			),
 			'slug'        => array(
-				'type'              => 'string',
-				'sanitize_callback' => array( $this, 'sanitize_string' ),
-				'required'          => false,
+				'type'     => 'string',
+				'required' => false,
 			),
 			'description' => array(
-				'type'              => 'string',
-				'sanitize_callback' => array( $this, 'sanitize_string' ),
-				'required'          => false,
+				'type'     => 'string',
+				'required' => false,
 			),
 		);
 	}
