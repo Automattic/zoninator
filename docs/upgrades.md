@@ -16,7 +16,7 @@ What to check depends on what your site does:
 | calls `Zoninator()`, or uses the `$zoninator` global | [The `Zoninator` class and `Zoninator()` are gone](#the-zoninator-class-and-zoninator-are-gone) |
 | removes one of Zoninator's hooks with `remove_action()` or `remove_filter()` | [Hooks are registered on the objects that handle them](#hooks-are-registered-on-the-objects-that-handle-them) |
 | listens on `zoninator_add_zone_posts` or `zoninator_remove_zone_posts` | [The zone post actions always pass post IDs](#the-zone-post-actions-always-pass-post-ids) |
-| changes zones over the REST API | [Zone locks now stop every change](#zone-locks-now-stop-every-change-not-only-the-zones-screen) and [Adding a post over REST no longer returns its row](#adding-a-post-over-rest-no-longer-returns-its-row) |
+| changes zones over the REST API | [Zone locks now stop every change](#zone-locks-now-stop-every-change-not-only-the-zones-screen), [The locked zone error keeps its details under `data`](#the-locked-zone-error-keeps-its-details-under-data) and [Adding a post over REST no longer returns its row](#adding-a-post-over-rest-no-longer-returns-its-row) |
 | extends the Zone Posts widget, or filters its cache | [A subclass of the Zone Posts widget must be registered as an object](#a-subclass-of-the-zone-posts-widget-must-be-registered-as-an-object) and [The widget's cache filter has a new name](#the-widgets-cache-filter-has-a-new-name) |
 | listens on `zoninator_split_shared_term` or `zoninator_did_split_shared_term` | [Zoninator no longer handles shared term splits](#zoninator-no-longer-handles-shared-term-splits) |
 | still calls the old admin-ajax actions | [The Zones screen's admin-ajax actions are gone](#the-zones-screens-admin-ajax-actions-are-gone) |
@@ -217,6 +217,20 @@ The files moved with them, from `src/class-*.php` to paths such as `src/Infrastr
 
 The [`zoninator_zone_post_columns`](hooks.md#zoninator_zone_post_columns-filter) filter is unaffected: the Zones screen still shows the columns you add, for posts already in the zone and for ones just added.
 
+### The locked zone error keeps its details under `data`
+
+A REST request refused because someone else holds the zone's lock still gets `400` with the code `zone-locked`. Its `zone_id` and `blocked` used to sit beside `code` and `message`. They're now under `data`, where core's REST errors keep their details:
+
+```json
+{
+  "code": "zone-locked",
+  "message": "Sorry, this zone is in use by Jane Doe and is currently locked. Please try again later.",
+  "data": { "status": 400, "zone_id": 12, "blocked": true }
+}
+```
+
+If your client reads `zone_id` or `blocked` from the top of the response, read `data.zone_id` and `data.blocked`, or match on the `code`.
+
 ### Zone locks now stop every change, not only the Zones screen
 
 A zone's lock used to stop a second person opening the zone on the Zones screen, and nothing else. The REST API saved whatever it was sent, even while someone else was editing the zone.
@@ -295,7 +309,7 @@ Zoninator no longer bundles the Mixtape REST library. The routes, their argument
 What changes for REST clients:
 
 - A request refused by a capability check gets `401` when logged out and `403` when logged in, with the code `permission-denied`. It used to get `500`.
-- Every error has a `code` alongside its `message`, in core's REST error shape. The `400` and `404` responses used to have only a `message`. A zone locked by someone else gives `zone-locked`, and its response keeps the `zone_id` and `blocked` it had before. See [Errors](rest-api.md#errors) for the codes.
+- Every error has a `code` alongside its `message`, in core's REST error shape. The `400` and `404` responses used to have only a `message`. A zone locked by someone else gives `zone-locked`, and its response keeps the `zone_id` and `blocked` it had before. (1.0.0 [moves them under `data`](#the-locked-zone-error-keeps-its-details-under-data).) See [Errors](rest-api.md#errors) for the codes.
 - Three error messages are reworded: "Invalid post id" is now "Invalid post ID.", "zone id required" is now "Zone ID is required.", and "Zone not found" is now "Zone not found.". If your client compares the message text, match on the `code` instead: `invalid-post-id`, `zone-id-required` and `zone-not-found`. Messages are translated, so they were never reliable to match.
 - `PUT /zones/{zone_id}` with an empty `description` now clears the zone's description. It used to ignore an empty value. If your client sends `"description": ""` to mean "leave it alone", leave the field out instead. An empty `name` or `slug` is still ignored.
 - The search (`GET /search`, and the deprecated `zoninator_search_posts` and `zoninator_update_recent` actions) only lists posts the user can read, so a page of results can hold fewer posts than asked for when an access plugin hides some.

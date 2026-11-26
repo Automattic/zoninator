@@ -103,30 +103,27 @@ trait RespondsToRequests {
 	 * Turns what the Application layer threw into this API's response.
 	 *
 	 * @param Throwable $exception What was thrown.
-	 * @param int       $zone_id   The zone being changed, for the locked response.
-	 * @return WP_Error|WP_REST_Response
+	 * @param int       $zone_id   The zone being changed, for the locked error's data.
+	 * @return WP_Error
 	 *
 	 * @throws Throwable If it isn't one of Zoninator's own exceptions.
 	 */
 	private function error_response( Throwable $exception, $zone_id ) {
 		if ( $exception instanceof ZoneLockedException ) {
-			// Core's REST error shape, keeping zone_id and blocked, which the lock
-			// route's response had before it had a code.
 			$locking_user = get_userdata( $exception->get_holder_id() );
 
-			return new WP_REST_Response(
+			return new WP_Error(
+				ErrorCodes::ZONE_LOCKED,
+				sprintf(
+					/* translators: %s: the locking user's display name, or "another user". */
+					__( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
+					$locking_user ? $locking_user->display_name : __( 'another user', 'zoninator' )
+				),
 				array(
-					'code'    => ErrorCodes::ZONE_LOCKED,
-					'message' => sprintf(
-						/* translators: %s: the locking user's display name, or "another user". */
-						__( 'Sorry, this zone is in use by %s and is currently locked. Please try again later.', 'zoninator' ),
-						$locking_user ? $locking_user->display_name : __( 'another user', 'zoninator' )
-					),
-					'data'    => array( 'status' => 400 ),
+					'status'  => 400,
 					'zone_id' => $zone_id,
 					'blocked' => true,
-				),
-				400
+				)
 			);
 		}
 
