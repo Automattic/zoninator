@@ -12,7 +12,7 @@ namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
 use Automattic\Zoninator\Infrastructure\WordPress\Errors;
 use Automattic\Zoninator\Infrastructure\WordPress\Rest\Permissions;
-use Automattic\Zoninator\Infrastructure\WordPress\Rest\RespondsToRequests;
+use Automattic\Zoninator\Infrastructure\WordPress\Rest\RegistersRoutes;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
 use WP_Error;
 use WP_REST_Controller;
@@ -33,7 +33,7 @@ use WP_REST_Server;
  */
 final class ZonePostRowController extends WP_REST_Controller {
 
-	use RespondsToRequests;
+	use RegistersRoutes;
 
 	/**
 	 * Constructor.
@@ -96,6 +96,6 @@ final class ZonePostRowController extends WP_REST_Controller {
 			return $this->errors->invalid_post_id();
 		}
 
-		return $this->ok( array( 'html' => $this->row->get_html( $post_id, $zone_id ) ) );
+		return rest_ensure_response( array( 'html' => $this->row->get_html( $post_id, $zone_id ) ) );
 	}
 }

@@ -23,7 +23,7 @@ use WP_REST_Server;
  */
 final class SearchController extends WP_REST_Controller {
 
-	use RespondsToRequests;
+	use RegistersRoutes;
 
 	/**
 	 * Constructor.
@@ -62,7 +62,7 @@ final class SearchController extends WP_REST_Controller {
 	 * @return WP_REST_Response
 	 */
 	public function search_posts( $request ) {
-		return $this->ok(
+		return rest_ensure_response(
 			$this->search->find_posts(
 				(string) $request['term'],
 				(int) $request['cat'],
