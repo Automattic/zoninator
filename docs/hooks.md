@@ -219,23 +219,7 @@ Fires after one or more posts have been removed from a zone.
 
 - **Parameters:** `int[] $post_ids`, `WP_Term $zone`
 
-`$post_ids` is always an array of post IDs. When the whole zone is cleared (replacing its posts, deleting the zone, or splitting a shared term), it's every post that was in the zone, whatever its status, and the array is empty if the zone had none.
-
-## Term splitting (WordPress 4.2 carry-over)
-
-These fire from `src/Infrastructure/WordPress/TermSplitHandler.php`.
-
-### `zoninator_split_shared_term` (action)
-
-Fires before Zoninator copies posts from `$old_term_id` to `$new_term_id` after a WordPress shared-term split.
-
-- **Parameters:** `int $old_term_id`, `int $new_term_id`, `int $term_taxonomy_id`
-
-### `zoninator_did_split_shared_term` (action)
-
-Fires after the copy is complete.
-
-- **Parameters:** `int $old_term_id`, `int $new_term_id`, `int $term_taxonomy_id`
+`$post_ids` is always an array of post IDs. When the whole zone is cleared (replacing its posts or deleting the zone), it's every post that was in the zone, whatever its status, and the array is empty if the zone had none.
 
 ## JSON feed at `/zones/{slug}/feed.json`
 

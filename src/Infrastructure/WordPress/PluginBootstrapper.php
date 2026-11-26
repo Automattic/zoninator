@@ -96,8 +96,8 @@ final class PluginBootstrapper {
 		$guarded_zones = $container->add( new GuardedZoneManager( $manager, $remover, $guard ) );
 		$guarded_posts = $container->add( new GuardedZoneCurator( $curator, $guard ) );
 		$zones         = $container->add( new Zones( $taxonomy, $capabilities, $terms ) );
-		$container->add( new TermSplitHandler( $curator ) );
-		$feed = $container->add( new Feed( $zones ) );
+		$feed          = $container->add( new Feed( $zones ) );
+
 		// The Zones admin screen.
 		$location = $container->add( new ScreenLocation() );
 		$messages = $container->add( new Messages() );
@@ -181,7 +181,6 @@ final class PluginBootstrapper {
 	 */
 	public function register_hooks() {
 		$this->container->get( Taxonomy::class )->register_hooks();
-		$this->container->get( TermSplitHandler::class )->register_hooks();
 		$this->container->get( FeedEndpoint::class )->register_hooks();
 		$this->container->get( Block::class )->register_hooks();
 		$this->container->get( Menu::class )->register_hooks();

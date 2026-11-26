@@ -14,7 +14,6 @@ namespace Automattic\Zoninator\Tests\Integration;
 
 use Automattic\Zoninator\Domain\InvalidZoneException;
 use Automattic\Zoninator\Domain\ZoneNotFoundException;
-use Automattic\Zoninator\Infrastructure\WordPress\TermSplitHandler;
 
 class ZoninatorZoneDataTest extends TestCase {
 
@@ -224,31 +223,6 @@ class ZoninatorZoneDataTest extends TestCase {
 		$this->assertFalse( self::zones()->get_post_id( (string) $post->ID ) );
 	}
 
-	public function test_split_shared_term_moves_the_posts_to_the_new_zone(): void {
-		$new_zone = self::insert_zone( 'split-zone' );
-		$new_id   = (int) $new_zone['term_id'];
-		$fired    = array();
-		$record   = static function ( ...$args ) use ( &$fired ) {
-			$fired[] = array_merge( array( current_action() ), $args );
-		};
-		add_action( 'zoninator_split_shared_term', $record, 10, 3 );
-		add_action( 'zoninator_did_split_shared_term', $record, 10, 3 );
-
-		zoninator_container()->get( TermSplitHandler::class )->move_zone_posts( $this->zone_id, $new_id, 123, 'zoninator_zones' );
-
-		remove_action( 'zoninator_split_shared_term', $record, 10 );
-		remove_action( 'zoninator_did_split_shared_term', $record, 10 );
-		$this->assertSame( array(), $this->zone_post_ids() );
-		$this->assertSame( $this->post_ids, wp_list_pluck( self::zones()->get_posts( $new_id ), 'ID' ) );
-		$this->assertSame(
-			array(
-				array( 'zoninator_split_shared_term', $this->zone_id, $new_id, 123 ),
-				array( 'zoninator_did_split_shared_term', $this->zone_id, $new_id, 123 ),
-			),
-			$fired
-		);
-	}
-
 	/**
 	 * Hides a post from every query that runs the posts_where filter, as a
 	 * plugin that filters posts by language or access might.
@@ -283,43 +257,6 @@ class ZoninatorZoneDataTest extends TestCase {
 
 		remove_filter( 'posts_where', $filter );
 		$this->assertSame( '4', self::zones()->get_post_order( $new_id, $this->zone_id ) );
-	}
-
-	public function test_split_shared_term_moves_a_post_that_query_filters_hide(): void {
-		$new_zone = self::insert_zone( 'split-zone' );
-		$new_id   = (int) $new_zone['term_id'];
-		$filter   = $this->hide_post_from_query_filters( $this->post_ids[2] );
-
-		zoninator_container()->get( TermSplitHandler::class )->move_zone_posts( $this->zone_id, $new_id, 123, 'zoninator_zones' );
-
-		remove_filter( 'posts_where', $filter );
-		$this->assertSame( array(), $this->zone_post_ids() );
-		$this->assertSame( $this->post_ids, wp_list_pluck( self::zones()->get_posts( $new_id ), 'ID' ) );
-	}
-
-	public function test_split_shared_term_moves_a_scheduled_post_too(): void {
-		$scheduled_id = self::factory()->post->create(
-			array(
-				'post_status' => 'future',
-				'post_date'   => gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
-			)
-		);
-		self::add_zone_posts( $this->zone_id, array( $scheduled_id ), true );
-		$new_zone = self::insert_zone( 'split-scheduled-zone' );
-		$new_id   = (int) $new_zone['term_id'];
-
-		zoninator_container()->get( TermSplitHandler::class )->move_zone_posts( $this->zone_id, $new_id, 123, 'zoninator_zones' );
-
-		$this->assertSame( '', get_post_meta( $scheduled_id, self::zones()->get_meta_key( $this->zone_id ), true ) );
-		$this->assertSame( '4', get_post_meta( $scheduled_id, self::zones()->get_meta_key( $new_id ), true ) );
-	}
-
-	public function test_split_shared_term_ignores_other_taxonomies(): void {
-		$new_zone = self::insert_zone( 'split-zone' );
-
-		zoninator_container()->get( TermSplitHandler::class )->move_zone_posts( $this->zone_id, (int) $new_zone['term_id'], 123, 'category' );
-
-		$this->assertSame( $this->post_ids, $this->zone_post_ids() );
 	}
 
 	/**

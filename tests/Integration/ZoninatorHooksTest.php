@@ -26,7 +26,6 @@ use Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint;
 use Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper;
 use Automattic\Zoninator\Infrastructure\WordPress\Rest\ZonesController;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
-use Automattic\Zoninator\Infrastructure\WordPress\TermSplitHandler;
 use Automattic\Zoninator\Infrastructure\WordPress\Zones;
 use Zoninator_ZonePosts_Widget;
 
@@ -39,7 +38,6 @@ class ZoninatorHooksTest extends TestCase {
 		'init'                             => array( Taxonomy::class . '::register 10 1', FeedEndpoint::class . '::add_rewrite_rule 10 1' ),
 		'widgets_init'                     => array( PluginBootstrapper::class . '::register_widget 10 1' ),
 		'template_redirect'                => array( FeedEndpoint::class . '::serve 10 1' ),
-		'split_shared_term'                => array( TermSplitHandler::class . '::move_zone_posts 10 4' ),
 		'query_loop_block_query_vars'      => array( Block::class . '::filter_query_vars 10 2' ),
 		'rest_post_query'                  => array( Block::class . '::filter_rest_query 10 2' ),
 		'enqueue_block_editor_assets'      => array( Block::class . '::enqueue_editor_assets 10 1' ),
@@ -117,7 +115,6 @@ class ZoninatorHooksTest extends TestCase {
 			'widget'           => array( 'widgets_init', array( zoninator_container()->get( PluginBootstrapper::class ), 'register_widget' ), 10 ),
 			'feed rewrite'     => array( 'init', array( $feed, 'add_rewrite_rule' ), 10 ),
 			'feed'             => array( 'template_redirect', array( $feed, 'serve' ), 10 ),
-			'term split'       => array( 'split_shared_term', array( zoninator_container()->get( TermSplitHandler::class ), 'move_zone_posts' ), 10 ),
 			'block query'      => array( 'query_loop_block_query_vars', array( $block, 'filter_query_vars' ), 10 ),
 			'block preview'    => array( 'rest_post_query', array( $block, 'filter_rest_query' ), 10 ),
 			'block editor'     => array( 'enqueue_block_editor_assets', array( $block, 'enqueue_editor_assets' ), 10 ),

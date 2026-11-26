@@ -18,6 +18,7 @@ What to check depends on what your site does:
 | listens on `zoninator_add_zone_posts` or `zoninator_remove_zone_posts` | [The zone post actions always pass post IDs](#the-zone-post-actions-always-pass-post-ids) |
 | changes zones over the REST API | [Zone locks now stop every change](#zone-locks-now-stop-every-change-not-only-the-zones-screen) and [Adding a post over REST no longer returns its row](#adding-a-post-over-rest-no-longer-returns-its-row) |
 | extends the Zone Posts widget, or filters its cache | [A subclass of the Zone Posts widget must be registered as an object](#a-subclass-of-the-zone-posts-widget-must-be-registered-as-an-object) and [The widget's cache filter has a new name](#the-widgets-cache-filter-has-a-new-name) |
+| listens on `zoninator_split_shared_term` or `zoninator_did_split_shared_term` | [Zoninator no longer handles shared term splits](#zoninator-no-longer-handles-shared-term-splits) |
 | still calls the old admin-ajax actions | [The Zones screen's admin-ajax actions are gone](#the-zones-screens-admin-ajax-actions-are-gone) |
 
 A site that only uses the Zones screen, the Zone Posts widget and the Zone Posts block needs none of these, only the minimum versions below.
@@ -164,7 +165,7 @@ Up to 0.12.x, every Zoninator hook was registered on the `Zoninator` object, wit
 | `template_redirect` | `array( Zoninator(), 'do_zoninator_feeds' )` | `remove_action( 'template_redirect', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class ), 'serve' ) )` |
 | `rest_api_init` | `array( Zoninator(), 'register_rest_routes' )` | `remove_action( 'rest_api_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper::class ), 'register_rest_routes' ) )` |
 | `widgets_init` | `array( Zoninator(), 'widgets_init' )` | `unregister_widget( 'Zoninator_ZonePosts_Widget' )` on `widgets_init` at priority 11, as before. Or `remove_action( 'widgets_init', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper::class ), 'register_widget' ) )` |
-| `split_shared_term` | `array( Zoninator(), 'split_shared_term' )` | `remove_action( 'split_shared_term', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\TermSplitHandler::class ), 'move_zone_posts' ) )` |
+| `split_shared_term` | `array( Zoninator(), 'split_shared_term' )` | Nothing to unhook; see [Zoninator no longer handles shared term splits](#zoninator-no-longer-handles-shared-term-splits) |
 | `query_loop_block_query_vars` | `array( Zoninator(), 'zone_block_query_vars' )` | `remove_filter( 'query_loop_block_query_vars', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class ), 'filter_query_vars' ) )` |
 | `rest_post_query` | `array( Zoninator(), 'zone_block_rest_query' )` | `remove_filter( 'rest_post_query', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class ), 'filter_rest_query' ) )` |
 | `enqueue_block_editor_assets` | `array( Zoninator(), 'zone_block_editor_assets' )` | `remove_action( 'enqueue_block_editor_assets', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\Block::class ), 'enqueue_editor_assets' ) )` |
@@ -249,6 +250,12 @@ Nothing changes for the widget itself. It's in the same sidebars with the same s
 ### The widget's cache filter has a new name
 
 `zone_posts_widget_block_save_cache_seconds` is now [`zoninator_zone_posts_widget_block_save_cache_seconds`](hooks.md#zoninator_zone_posts_widget_block_save_cache_seconds-filter), with the prefix every other Zoninator hook uses. The old name no longer fires, so rename it in your `add_filter()` call.
+
+### Zoninator no longer handles shared term splits
+
+Before WordPress 4.2, a zone could share its term with a term in another taxonomy. WordPress 4.2 and 4.3 split those terms, and Zoninator moved the zone's posts to the zone's new ID when that happened. Every site that can run 1.0.0 split its shared terms long ago, so the handler is removed.
+
+The `zoninator_split_shared_term` and `zoninator_did_split_shared_term` actions went with it and no longer fire. Remove any callbacks you added to them.
 
 ## To 0.12.0
 
