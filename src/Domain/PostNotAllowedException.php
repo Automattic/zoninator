@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Domain;
 
 use RuntimeException;
@@ -15,7 +17,7 @@ use RuntimeException;
  *
  * @since 1.0.0
  */
-final class PostNotAllowedException extends RuntimeException {
+final class PostNotAllowedException extends RuntimeException implements ZoninatorExceptionInterface {
 
 	/**
 	 * Constructor.

@@ -15,7 +15,6 @@ use Automattic\Zoninator\Application\ZoneCurator;
 use Automattic\Zoninator\Application\ZoneGuard;
 use Automattic\Zoninator\Application\ZoneLocker;
 use Automattic\Zoninator\Application\ZoneManager;
-use Automattic\Zoninator\Application\ZoneRemover;
 use Automattic\Zoninator\Domain\AccessDeniedException;
 use Automattic\Zoninator\Domain\PostNotAllowedException;
 use Automattic\Zoninator\Domain\ZoneLockedException;
@@ -70,7 +69,7 @@ final class ZoneGuardTest extends TestCase {
 		$this->zone_posts = new InMemoryZonePostsRepository();
 		$guard            = new ZoneGuard( $this->access, $this->locker, $this->zones );
 		$curator          = new ZoneCurator( $this->zones, $this->zone_posts, $settings );
-		$this->manager    = new GuardedZoneManager( new ZoneManager( $this->zones, $settings ), new ZoneRemover( $this->zones, $this->zone_posts, $this->locker ), $guard );
+		$this->manager    = new GuardedZoneManager( new ZoneManager( $this->zones, $settings, $this->zone_posts, $this->locker ), $guard );
 		$this->curator    = new GuardedZoneCurator( $curator, $guard );
 
 		$this->access->creators     = array( self::EDITOR );

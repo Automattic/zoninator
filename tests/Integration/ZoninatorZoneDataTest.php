@@ -260,6 +260,23 @@ class ZoninatorZoneDataTest extends TestCase {
 	}
 
 	/**
+	 * The first post is the one a stray argument to update_metadata() used to move.
+	 */
+	public function test_appending_posts_already_in_the_zone_leaves_them_where_they_are(): void {
+		$fired  = array();
+		$record = static function ( $post_ids ) use ( &$fired ) {
+			$fired[] = $post_ids;
+		};
+		add_action( 'zoninator_add_zone_posts', $record );
+
+		self::add_zone_posts( $this->zone_id, array( $this->post_ids[0], $this->post_ids[2] ), true );
+
+		remove_action( 'zoninator_add_zone_posts', $record );
+		$this->assertSame( $this->post_ids, $this->zone_post_ids() );
+		$this->assertSame( array(), $fired, 'Nothing was added, so the action should not fire.' );
+	}
+
+	/**
 	 * @return int[] IDs of the posts in the test zone, in order.
 	 */
 	private function zone_post_ids(): array {

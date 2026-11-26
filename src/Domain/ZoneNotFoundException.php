@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Domain;
 
 use RuntimeException;
@@ -14,7 +16,7 @@ use RuntimeException;
  *
  * @since 1.0.0
  */
-final class ZoneNotFoundException extends RuntimeException {
+final class ZoneNotFoundException extends RuntimeException implements ZoninatorExceptionInterface {
 
 	/**
 	 * Constructor.

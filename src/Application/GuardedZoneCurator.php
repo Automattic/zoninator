@@ -5,6 +5,8 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Application;
 
 /**
@@ -20,28 +22,15 @@ namespace Automattic\Zoninator\Application;
 final class GuardedZoneCurator {
 
 	/**
-	 * Changes the posts in a zone.
-	 *
-	 * @var ZoneCurator
-	 */
-	private $curator;
-
-	/**
-	 * The checks.
-	 *
-	 * @var ZoneGuard
-	 */
-	private $guard;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ZoneCurator $curator Changes the posts in a zone.
 	 * @param ZoneGuard   $guard   The checks.
 	 */
-	public function __construct( ZoneCurator $curator, ZoneGuard $guard ) {
-		$this->curator = $curator;
-		$this->guard   = $guard;
+	public function __construct(
+		private readonly ZoneCurator $curator,
+		private readonly ZoneGuard $guard,
+	) {
 	}
 
 	/**

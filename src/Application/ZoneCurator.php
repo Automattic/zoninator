@@ -5,13 +5,17 @@
  * @package Automattic\Zoninator
  */
 
+declare( strict_types = 1 );
+
 namespace Automattic\Zoninator\Application;
 
+use Automattic\Zoninator\Domain\PostIds;
 use Automattic\Zoninator\Domain\ZoneFullException;
 use Automattic\Zoninator\Domain\ZoneNotFoundException;
 use Automattic\Zoninator\Domain\ZonePostsRepositoryInterface;
 use Automattic\Zoninator\Domain\ZoneRepositoryInterface;
 use Automattic\Zoninator\Domain\ZoneSettingsInterface;
+use InvalidArgumentException;
 
 /**
  * Adds posts to a zone, sets their order, and takes them out.
@@ -24,55 +28,42 @@ use Automattic\Zoninator\Domain\ZoneSettingsInterface;
 final class ZoneCurator {
 
 	/**
-	 * Where the zones are kept.
-	 *
-	 * @var ZoneRepositoryInterface
-	 */
-	private $zones;
-
-	/**
-	 * Where the posts in each zone are kept.
-	 *
-	 * @var ZonePostsRepositoryInterface
-	 */
-	private $zone_posts;
-
-	/**
-	 * Says how many posts a zone may hold.
-	 *
-	 * @var ZoneSettingsInterface
-	 */
-	private $settings;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ZoneRepositoryInterface      $zones      Where the zones are kept.
 	 * @param ZonePostsRepositoryInterface $zone_posts Where the posts in each zone are kept.
 	 * @param ZoneSettingsInterface        $settings   Says how many posts a zone may hold.
 	 */
-	public function __construct( ZoneRepositoryInterface $zones, ZonePostsRepositoryInterface $zone_posts, ZoneSettingsInterface $settings ) {
-		$this->zones      = $zones;
-		$this->zone_posts = $zone_posts;
-		$this->settings   = $settings;
+	public function __construct(
+		private readonly ZoneRepositoryInterface $zones,
+		private readonly ZonePostsRepositoryInterface $zone_posts,
+		private readonly ZoneSettingsInterface $settings,
+	) {
 	}
 
 	/**
-	 * Adds posts to the end of a zone, in the order given.
+	 * Adds posts to the end of a zone, in the order given. A post already in
+	 * the zone stays where it is.
 	 *
 	 * @param int   $zone_id  Zone ID.
 	 * @param int[] $post_ids Post IDs.
 	 *
 	 * @throws ZoneNotFoundException If there's no such zone.
 	 * @throws ZoneFullException     If the zone would hold more posts than it may.
+	 * @throws InvalidArgumentException If a post ID isn't an integer or a string of digits.
 	 */
 	public function add_posts( int $zone_id, array $post_ids ): void {
 		$this->require_zone( $zone_id );
 
-		$post_ids = $this->clean( $post_ids );
+		// A post already in the zone keeps its place, so it's neither added again nor counted twice.
+		$current  = $this->zone_posts->get_post_ids( $zone_id );
+		$post_ids = array_values( array_diff( $this->clean( $post_ids ), $current ) );
 
-		// A post already in the zone keeps its place, so it doesn't add to the count.
-		$this->require_room( $zone_id, array_unique( array_merge( $this->zone_posts->get_post_ids( $zone_id ), $post_ids ) ) );
+		if ( ! $post_ids ) {
+			return;
+		}
+
+		$this->require_room( $zone_id, array_merge( $current, $post_ids ) );
 		$this->zone_posts->append( $zone_id, $post_ids );
 	}
 
@@ -84,6 +75,7 @@ final class ZoneCurator {
 	 *
 	 * @throws ZoneNotFoundException If there's no such zone.
 	 * @throws ZoneFullException     If the zone would hold more posts than it may.
+	 * @throws InvalidArgumentException If a post ID isn't an integer or a string of digits.
 	 */
 	public function set_posts( int $zone_id, array $post_ids ): void {
 		$this->require_zone( $zone_id );
@@ -101,6 +93,7 @@ final class ZoneCurator {
 	 * @param int[] $post_ids Post IDs.
 	 *
 	 * @throws ZoneNotFoundException If there's no such zone.
+	 * @throws InvalidArgumentException If a post ID isn't an integer or a string of digits.
 	 */
 	public function remove_posts( int $zone_id, array $post_ids ): void {
 		$this->require_zone( $zone_id );
@@ -146,18 +139,18 @@ final class ZoneCurator {
 
 	/**
 	 * A post can be in a zone once, so a repeated ID keeps its first place.
-	 * Anything that isn't a post ID is left out.
+	 * An ID below 1 is no post's, and is left out.
 	 *
 	 * @param array $post_ids Post IDs, as given.
 	 * @return int[] Positive, unique IDs, in the order given.
+	 *
+	 * @throws InvalidArgumentException If one isn't an integer or a string of digits.
 	 */
 	private function clean( array $post_ids ): array {
-		$post_ids = array_map( 'intval', $post_ids );
-
 		return array_values(
 			array_unique(
 				array_filter(
-					$post_ids,
+					PostIds::from( $post_ids ),
 					static function ( int $post_id ): bool {
 						return $post_id > 0;
 					}

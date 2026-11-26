@@ -82,7 +82,7 @@ $zone = zoninator_container()->get( ZoneManager::class )->create( 'homepage', 'H
 zoninator_container()->get( ZoneCurator::class )->set_posts( $zone->get_id(), array( 12, 34, 56 ) );
 ```
 
-These classes take a zone's ID, not its slug or term; `zoninator_get_zone( 'homepage' )->term_id` gets the ID. They return an `Automattic\Zoninator\Domain\Zone`, and where the old methods returned a `WP_Error` they throw an exception from `Automattic\Zoninator\Domain\`:
+These classes take a zone's ID, not its slug or term; `zoninator_get_zone( 'homepage' )->term_id` gets the ID. They take posts as IDs too. The old methods also accepted a `WP_Post` or an `array( 'ID' => … )`; the new ones throw an `InvalidArgumentException` for either, so pass `wp_list_pluck( $posts, 'ID' )`. They return an `Automattic\Zoninator\Domain\Zone`, and where the old methods returned a `WP_Error` they throw an exception from `Automattic\Zoninator\Domain\`:
 
 - `InvalidZoneException`: a new zone has no slug.
 - `ZoneNotFoundException`: there's no zone with that ID.
@@ -92,11 +92,13 @@ These classes take a zone's ID, not its slug or term; `zoninator_get_zone( 'home
 
 The `Guarded` classes, described under [Zone locks now stop every change](#zone-locks-now-stop-every-change-not-only-the-zones-screen), also throw `AccessDeniedException` and `PostNotAllowedException`.
 
+All seven implement `Automattic\Zoninator\Domain\ZoninatorExceptionInterface`, so `catch ( ZoninatorExceptionInterface $exception )` covers every way a change can be refused.
+
 | `Zoninator()->…` | Use instead |
 |---|---|
 | `insert_zone( $slug, $name, $details )` | `ZoneManager::create( $slug, $name, $details )` |
 | `update_zone( $zone, $data )` | `ZoneManager::update( $zone_id, $data )` |
-| `delete_zone( $zone )` | `ZoneRemover::remove( $zone_id )` |
+| `delete_zone( $zone )` | `ZoneManager::remove( $zone_id )` |
 | `add_zone_posts( $zone, $posts, true )` | `ZoneCurator::add_posts( $zone_id, $post_ids )` |
 | `add_zone_posts( $zone, $posts )` | `ZoneCurator::set_posts( $zone_id, $post_ids )` |
 | `remove_zone_posts( $zone, $posts )` | `ZoneCurator::remove_posts( $zone_id, $post_ids )`, or `clear_posts( $zone_id )` to empty the zone |
@@ -238,7 +240,7 @@ A zone's lock used to stop a second person opening the zone on the Zones screen,
 Now every change made for a user is checked in one place: the user may make it, may use each post, and isn't kept out by someone else's lock. That covers the Zones screen, its zone form and every REST route that changes a zone or its posts.
 
 - **REST clients:** a write to a zone someone else is editing gets `400` with the code `zone-locked`, and the message names them. Retry later, or have the client take the lock first with `PUT /zoninator/v1/zones/{zone_id}/lock`. Requests made as the lock holder go through.
-- **PHP code:** `GuardedZoneManager` and `GuardedZoneCurator`, under `Automattic\Zoninator\Application\`, make a change for a user with these checks; each method takes the user's ID first. `ZoneManager`, `ZoneRemover` and `ZoneCurator` do the same work with no checks, for code that isn't acting for a user, such as a scheduled job.
+- **PHP code:** `GuardedZoneManager` and `GuardedZoneCurator`, under `Automattic\Zoninator\Application\`, make a change for a user with these checks; each method takes the user's ID first. `ZoneManager` and `ZoneCurator` do the same work with no checks, for code that isn't acting for a user, such as a scheduled job.
 - **Taking a lock:** `ZoneLocker::lock()` no longer replaces a lock another user holds; it throws `ZoneLockedException`. To take a zone over, call `ZoneLocker::unlock()` first. It also throws `ZoneNotFoundException` for an ID that isn't a zone, where it used to store a lock for it.
 
 ### The zone post actions always pass post IDs
@@ -246,6 +248,8 @@ Now every change made for a user is checked in one place: the user may make it, 
 `zoninator_add_zone_posts` and `zoninator_remove_zone_posts` used to pass their first argument as whatever the caller gave: one post ID, an array of IDs, or `WP_Post` objects. They now always pass an array of post IDs. If your callback handled each form, you can drop that; if it expected `WP_Post` objects, call `get_post()` on each ID. The second argument is still the zone's `WP_Term`.
 
 A post listed twice when a zone's posts are set now keeps its first place, where it used to end up in its last.
+
+Adding a post that's already in the zone now leaves it where it is, whatever its place. It used to move the zone's first post to the end, and leave any other alone. `zoninator_add_zone_posts` passes only the posts that were added, and doesn't fire if every post was in the zone already.
 
 ### The Zone Posts widget's class has a new name
 

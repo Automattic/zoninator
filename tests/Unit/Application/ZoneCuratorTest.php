@@ -16,7 +16,9 @@ use Automattic\Zoninator\Domain\ZoneNotFoundException;
 use Automattic\Zoninator\Tests\Unit\Doubles\FixedSettings;
 use Automattic\Zoninator\Tests\Unit\Doubles\InMemoryZonePostsRepository;
 use Automattic\Zoninator\Tests\Unit\Doubles\InMemoryZoneRepository;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 final class ZoneCuratorTest extends TestCase {
 
@@ -52,6 +54,14 @@ final class ZoneCuratorTest extends TestCase {
 		$this->curator->set_posts( $this->zone_id, array( 5, 6 ) );
 
 		$this->curator->add_posts( $this->zone_id, array( 7 ) );
+
+		$this->assertSame( array( 5, 6, 7 ), $this->zone_posts->post_ids[ $this->zone_id ] );
+	}
+
+	public function test_adding_a_post_already_in_the_zone_leaves_it_where_it_is(): void {
+		$this->curator->set_posts( $this->zone_id, array( 5, 6 ) );
+
+		$this->curator->add_posts( $this->zone_id, array( 5, 7, 6 ) );
 
 		$this->assertSame( array( 5, 6, 7 ), $this->zone_posts->post_ids[ $this->zone_id ] );
 	}
@@ -116,12 +126,26 @@ final class ZoneCuratorTest extends TestCase {
 	}
 
 	/**
-	 * A post is in a zone once, and only real post IDs count.
+	 * A post is in a zone once, and an ID below 1 is no post's.
 	 */
-	public function test_repeated_and_invalid_ids_are_left_out(): void {
-		$this->curator->set_posts( $this->zone_id, array( 5, '6', 5, 0, -1, 'seven', 8 ) );
+	public function test_repeated_ids_and_ids_below_one_are_left_out(): void {
+		$this->curator->set_posts( $this->zone_id, array( 5, '6', 5, 0, -1, 8 ) );
 
 		$this->assertSame( array( 5, 6, 8 ), $this->zone_posts->post_ids[ $this->zone_id ] );
+	}
+
+	/**
+	 * A WP_Post passed where an ID belongs must not be cast to post 1.
+	 */
+	public function test_something_that_is_not_a_post_id_is_refused_before_anything_changes(): void {
+		$this->curator->set_posts( $this->zone_id, array( 5 ) );
+
+		try {
+			$this->curator->set_posts( $this->zone_id, array( 6, new stdClass() ) );
+			$this->fail( 'Expected the object to be refused.' );
+		} catch ( InvalidArgumentException $exception ) {
+			$this->assertSame( array( 5 ), $this->zone_posts->post_ids[ $this->zone_id ] );
+		}
 	}
 
 	/**

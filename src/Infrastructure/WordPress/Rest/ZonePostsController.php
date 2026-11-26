@@ -8,8 +8,8 @@
 namespace Automattic\Zoninator\Infrastructure\WordPress\Rest;
 
 use Automattic\Zoninator\Application\GuardedZoneCurator;
+use Automattic\Zoninator\Domain\ZoninatorExceptionInterface;
 use Automattic\Zoninator\Infrastructure\WordPress\Feed;
-use Throwable;
 use WP_Error;
 use WP_REST_Controller;
 use WP_REST_Request;
@@ -131,7 +131,7 @@ final class ZonePostsController extends WP_REST_Controller {
 
 		try {
 			$this->curator->set_posts( get_current_user_id(), $zone_id, array_map( 'absint', (array) $this->get_param( $request, 'post_ids', array() ) ) );
-		} catch ( Throwable $exception ) {
+		} catch ( ZoninatorExceptionInterface $exception ) {
 			return $this->error_response( $exception, $zone_id );
 		}
 
@@ -150,7 +150,7 @@ final class ZonePostsController extends WP_REST_Controller {
 
 		try {
 			$this->curator->add_posts( get_current_user_id(), $zone_id, array( $post_id ) );
-		} catch ( Throwable $exception ) {
+		} catch ( ZoninatorExceptionInterface $exception ) {
 			return $this->error_response( $exception, $zone_id );
 		}
 
@@ -168,7 +168,7 @@ final class ZonePostsController extends WP_REST_Controller {
 
 		try {
 			$this->curator->remove_posts( get_current_user_id(), $zone_id, array( (int) $request['post_id'] ) );
-		} catch ( Throwable $exception ) {
+		} catch ( ZoninatorExceptionInterface $exception ) {
 			return $this->error_response( $exception, $zone_id );
 		}
 
