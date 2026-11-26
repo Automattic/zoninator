@@ -55,7 +55,7 @@ final class Capabilities implements ZoneAccessInterface {
 
 	public function current_user_can_edit_zones( $zone_id ) {
 		$has_cap = current_user_can( $this->get_edit_zones_cap() );
-		return apply_filters( 'zoninator_current_user_can_edit_zone', $has_cap, $zone_id );
+		return apply_filters( 'zoninator_current_user_can_edit_zone', $has_cap, $zone_id, get_current_user_id() );
 	}
 
 	public function current_user_can_manage_zones() {
@@ -98,7 +98,7 @@ final class Capabilities implements ZoneAccessInterface {
 	 * @return bool
 	 */
 	public function can_edit_zone( int $user_id, int $zone_id ): bool {
-		return (bool) apply_filters( 'zoninator_current_user_can_edit_zone', user_can( $user_id, $this->get_edit_zones_cap() ), $zone_id );
+		return (bool) apply_filters( 'zoninator_current_user_can_edit_zone', user_can( $user_id, $this->get_edit_zones_cap() ), $zone_id, $user_id );
 	}
 
 	/**

@@ -7,8 +7,6 @@
 
 namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 
-use Automattic\Zoninator\Infrastructure\WordPress\Request;
-
 /**
  * Prints the Zones screen's "Add content" field and the filters under it.
  *
@@ -20,22 +18,6 @@ use Automattic\Zoninator\Infrastructure\WordPress\Request;
  * @internal Use the template tags, the Application classes and the hooks instead.
  */
 final class SearchForm {
-
-	/**
-	 * Reads requests, for the filters' current values.
-	 *
-	 * @var Request
-	 */
-	private $request;
-
-	/**
-	 * Constructor.
-	 *
-	 * @param Request $request Reads requests.
-	 */
-	public function __construct( Request $request ) {
-		$this->request = $request;
-	}
 
 	/**
 	 * Hooks the default filters. PluginBootstrapper::register_hooks() calls this once.
@@ -77,7 +59,6 @@ final class SearchForm {
 	 * Prints the category filter.
 	 */
 	public function render_category_filter() {
-		$current_cat = $this->request->get_post_var( 'zone_advanced_filter_taxonomy', '', 'absint' );
 		?>
 	<label for="zone_advanced_filter_taxonomy" class="screen-reader-text"><?php esc_html_e( 'Filter by category', 'zoninator' ); ?></label>
 		<?php
@@ -86,7 +67,7 @@ final class SearchForm {
 				'zoninator_advanced_filter_category',
 				array(
 					'show_option_all' => __( 'All categories', 'zoninator' ),
-					'selected'        => $current_cat,
+					'selected'        => 0,
 					'name'            => 'zone_advanced_filter_taxonomy',
 					'id'              => 'zone_advanced_filter_taxonomy',
 					'hide_if_empty'   => true,
@@ -99,7 +80,7 @@ final class SearchForm {
 	 * Prints the date filter.
 	 */
 	public function render_date_filter() {
-		$current_date = $this->request->get_post_var( 'zone_advanced_filter_date', apply_filters( 'zoninator_advanced_filter_date_default', '' ), 'striptags' );
+		$current_date = apply_filters( 'zoninator_advanced_filter_date_default', '' );
 		$date_filters = apply_filters( 'zoninator_advanced_filter_date', array( 'all', 'today', 'yesterday' ) );
 		$date_labels  = array(
 			'all'       => __( 'All dates', 'zoninator' ),

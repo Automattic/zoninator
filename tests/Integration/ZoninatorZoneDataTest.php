@@ -125,7 +125,7 @@ class ZoninatorZoneDataTest extends TestCase {
 
 		remove_action( 'zoninator_delete_zone', $action );
 		$this->assertSame( $this->zone_id, $deleted );
-		$this->assertFalse( self::zones()->exists( $this->zone_id ) );
+		$this->assertFalse( self::zones()->get( $this->zone_id ) );
 	}
 
 	public function test_add_zone_posts_appends_or_replaces(): void {
@@ -170,17 +170,6 @@ class ZoninatorZoneDataTest extends TestCase {
 		$this->assertSame( array(), $this->zone_post_ids() );
 	}
 
-	public function test_first_and_last_post_in_zone(): void {
-		$this->assertSame( $this->post_ids[0], self::zones()->get_first_post( $this->zone_id )->ID );
-		$this->assertSame( $this->post_ids[2], self::zones()->get_last_post( $this->zone_id )->ID );
-	}
-
-	public function test_first_post_in_an_empty_zone_is_false(): void {
-		$zone = self::insert_zone( 'empty-zone' );
-
-		$this->assertFalse( self::zones()->get_first_post( (int) $zone['term_id'] ) );
-	}
-
 	public function test_post_order_is_its_position_in_the_zone(): void {
 		$this->assertSame( '2', self::zones()->get_post_order( $this->post_ids[1], $this->zone_id ) );
 		$this->assertSame( '', self::zones()->get_post_order( self::factory()->post->create(), $this->zone_id ) );
@@ -207,11 +196,10 @@ class ZoninatorZoneDataTest extends TestCase {
 			$this->assertSame( $this->zone_id, self::zones()->get_id( $reference ) );
 			$this->assertSame( '_zoninator_order_' . $this->zone_id, self::zones()->get_meta_key( $reference ) );
 			$this->assertSame( 'data-zone', self::zones()->get_slug( $reference ) );
-			$this->assertTrue( self::zones()->exists( $reference ) );
 		}
 
 		$this->assertSame( 0, self::zones()->get_id( 'no-such-zone' ) );
-		$this->assertFalse( self::zones()->exists( 'no-such-zone' ) );
+		$this->assertFalse( self::zones()->get( 'no-such-zone' ) );
 	}
 
 	public function test_get_post_id_accepts_an_id_array_or_object(): void {

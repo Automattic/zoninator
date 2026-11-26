@@ -75,31 +75,4 @@ final class Taxonomy {
 	public function get_post_types() {
 		return array_values( array_intersect( get_post_types(), get_post_types_by_support( self::NAME ) ) );
 	}
-
-	/**
-	 * Registers a post type to be available for zones
-	 *
-	 * @param string|array $post_types A post type string or array of post type strings to register.
-	 * @return bool True if any post types were added, false if not.
-	 */
-	public function add_post_types( $post_types = '' ) {
-
-		$did_register_post_types = false;
-
-		if ( ! is_array( $post_types ) ) {
-			$post_types = array( $post_types );
-		}
-
-		foreach ( $post_types as $post_type ) {
-			if ( ! post_type_exists( $post_type ) ) {
-				continue;
-			}
-
-			add_post_type_support( $post_type, self::NAME );
-
-			$did_register_post_types = true;
-		}
-
-		return $did_register_post_types;
-	}
 }
