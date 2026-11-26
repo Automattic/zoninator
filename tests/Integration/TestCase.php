@@ -24,6 +24,16 @@ use Yoast\WPTestUtils\WPIntegration\TestCase as WPIntegrationTestCase;
 abstract class TestCase extends WPIntegrationTestCase {
 
 	/**
+	 * Core keeps the scripts and styles a test enqueues in globals that
+	 * WP_UnitTestCase doesn't reset. Drop them, and the next call to
+	 * wp_scripts() or wp_styles() builds fresh ones.
+	 */
+	public function tearDown(): void {
+		unset( $GLOBALS['wp_scripts'], $GLOBALS['wp_styles'] );
+		parent::tearDown();
+	}
+
+	/**
 	 * Creates a zone, for a test to work on.
 	 *
 	 * @param string $slug    The zone's slug.
