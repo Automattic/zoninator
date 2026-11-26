@@ -7,6 +7,7 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\Assets;
 use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenLocation;
 use Automattic\Zoninator\Infrastructure\WordPress\Settings;
 use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
@@ -38,6 +39,24 @@ class ZoninatorSettingsTest extends TestCase {
 		$this->assertSame( 45, $settings->get_lock_period() );
 		$this->assertSame( 900, $settings->get_max_lock_period() );
 		$this->assertSame( 25, $settings->get_posts_per_page() );
+	}
+
+	/**
+	 * The screen's script takes and keeps the lock, and does neither when the
+	 * longest lock period it's given is -1.
+	 */
+	public function test_zoninator_disable_locks_gives_the_screen_no_lock_period(): void {
+		add_filter( 'zoninator_zone_max_lock_period', 'zoninator_disable_locks' );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		$screen = get_current_screen();
+		set_current_screen( 'toplevel_page_zoninator' );
+
+		zoninator_container()->get( Assets::class )->enqueue_scripts();
+
+		$GLOBALS['current_screen'] = $screen; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$data = (string) wp_scripts()->get_data( 'zoninator-js', 'data' );
+		$this->assertSame( 1, preg_match( '/var zoninatorOptions = (\{.*\});/s', $data, $matches ) );
+		$this->assertSame( '-1', json_decode( $matches[1], true )['zoneLockPeriodMax'] );
 	}
 
 	public function test_taxonomy_is_registered_with_constant(): void {
