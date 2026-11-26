@@ -46,15 +46,6 @@ final class Permissions {
 	}
 
 	/**
-	 * Whether the request may read a zone's posts. The feed is public, so anyone may.
-	 *
-	 * @return bool
-	 */
-	public function read_zone_posts() {
-		return true;
-	}
-
-	/**
 	 * Whether the current user may create zones.
 	 *
 	 * @return bool|WP_Error

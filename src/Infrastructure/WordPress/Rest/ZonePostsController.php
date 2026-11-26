@@ -57,7 +57,8 @@ final class ZonePostsController extends WP_REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_zone_posts' ),
-					'permission_callback' => array( $this->permissions, 'read_zone_posts' ),
+					// The JSON feed lists the same posts to anyone, so this does too.
+					'permission_callback' => '__return_true',
 					'args'                => $this->get_zone_id_param(),
 				),
 				array(
