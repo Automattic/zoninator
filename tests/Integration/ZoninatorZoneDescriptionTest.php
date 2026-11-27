@@ -107,6 +107,77 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 	}
 
 	/**
+	 * WordPress takes control characters out of a description when it saves
+	 * it, and carriage returns too by WordPress 7.3, though not in 7.1. Details counted
+	 * before that are stored with lengths that are too long, and no longer
+	 * unserialise.
+	 *
+	 * @dataProvider data_text_core_shortens
+	 *
+	 * @param string $text Description.
+	 * @param string $kept The description WordPress keeps.
+	 */
+	public function test_text_core_shortens_is_stored_with_the_right_lengths( string $text, string $kept ): void {
+		wp_set_current_user( 0 );
+
+		$zone_id = self::insert_zone( 'shortened', 'Zone', array( 'description' => $text ) );
+		clean_term_cache( $zone_id, Taxonomy::NAME );
+		$stored = unserialize( get_term( $zone_id, Taxonomy::NAME )->description, array( 'allowed_classes' => false ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
+
+		// Unserialising at all is the point. A carriage return is kept or dropped, by WordPress version.
+		$this->assertIsArray( $stored );
+		$this->assertSame( array( 'description' => $kept ), str_replace( "\r", '', $stored ) );
+	}
+
+	/**
+	 * @return Generator<string, array{string, string}>
+	 */
+	public static function data_text_core_shortens(): Generator {
+		yield 'a control character' => array( "Top\x01 stories", 'Top stories' );
+		yield 'a null byte' => array( "Top\x00 stories", 'Top stories' );
+		yield 'line breaks from a form' => array( "One\r\nTwo", "One\nTwo" );
+		yield 'a control character after what looks like the end' => array( "Top\";}\x01", 'Top";}' );
+	}
+
+	/**
+	 * A description is text, whatever it holds. It can't add a detail, or
+	 * change another one.
+	 */
+	public function test_a_description_cannot_change_the_zones_other_details(): void {
+		wp_set_current_user( 0 );
+		add_filter( 'zoninator_zone_detail_defaults', static fn( $defaults ) => $defaults + array( 'note' => '' ) );
+		$text = "Top\";s:7:\"term_id\";i:999;}\x01";
+
+		$zone_id = self::insert_zone( 'only-text', 'Only text', array( 'description' => $text ) );
+		clean_term_cache( $zone_id, Taxonomy::NAME );
+		$zone = self::zones()->get( $zone_id );
+
+		$this->assertSame( $zone_id, $zone->term_id );
+		$this->assertSame( 'Top";s:7:"term_id";i:999;}', $zone->description );
+		$this->assertSame( '', $zone->note );
+	}
+
+	/**
+	 * A zone's details become properties of its term. One stored under the
+	 * name of a property the term already has, or a name PHP refuses, must
+	 * not replace the term's own, or stop the zone being read.
+	 */
+	public function test_a_stored_detail_cannot_replace_the_terms_own_fields(): void {
+		global $wpdb;
+		$zone_id = self::insert_zone( 'own-fields', 'Own fields' );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Past the term filters, as an earlier version could store it.
+		$wpdb->update( $wpdb->term_taxonomy, array( 'description' => 'a:5:{s:11:"description";s:3:"Top";s:7:"term_id";i:999;s:4:"name";s:5:"Other";s:0:"";i:1;s:4:"note";s:4:"Kept";}' ), array( 'term_id' => $zone_id ) );
+		clean_term_cache( $zone_id, Taxonomy::NAME );
+
+		$zone = self::zones()->get( $zone_id );
+
+		$this->assertSame( $zone_id, $zone->term_id );
+		$this->assertSame( 'Own fields', $zone->name );
+		$this->assertSame( 'Top', $zone->description );
+		$this->assertSame( 'Kept', $zone->note );
+	}
+
+	/**
 	 * A change that doesn't touch the description must store it exactly as it was.
 	 */
 	public function test_changing_a_zone_does_not_encode_its_text_again(): void {

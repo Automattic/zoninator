@@ -36,21 +36,26 @@ final class Permissions {
 	}
 
 	/**
-	 * Whether the request may list the zones: any logged-in user, unless a site filters it.
+	 * Whether the request may list the zones: a user who can edit posts, as the
+	 * block editor's zone picker reads the list, or one who can curate zones,
+	 * unless a site filters it.
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return bool
 	 */
 	public function list_zones( $request ): bool {
+		$authorized = current_user_can( 'edit_posts' ) || $this->capabilities->can_curate_zones( get_current_user_id() );
+
 		/**
 		 * Filters whether a request may list the zones with GET /zoninator/v1/zones.
 		 *
 		 * @since 0.11.0
+		 * @since 1.0.0 $authorized is whether the user can edit posts or curate zones. Before, whether they were logged in.
 		 *
-		 * @param bool            $authorized Whether the user is logged in.
+		 * @param bool            $authorized Whether the user can edit posts or curate zones.
 		 * @param WP_REST_Request $request    The request.
 		 */
-		return (bool) apply_filters( 'zoninator_rest_get_zones_permissions_check', is_user_logged_in(), $request );
+		return (bool) apply_filters( 'zoninator_rest_get_zones_permissions_check', $authorized, $request );
 	}
 
 	/**

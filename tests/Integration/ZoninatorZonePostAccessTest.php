@@ -49,28 +49,30 @@ class ZoninatorZonePostAccessTest extends TestCase {
 		);
 	}
 
-	/**
-	 * @dataProvider data_rest_zone_post_methods
-	 *
-	 * @param string $method HTTP method.
-	 */
-	public function test_rest_zone_post_route_rejects_a_post_the_user_cannot_read( string $method ): void {
+	public function test_rest_add_rejects_a_post_the_user_cannot_read(): void {
 		wp_set_current_user( $this->editor_id );
-		self::add_zone_posts( $this->zone_id, array( $this->secret_id ) );
 
-		$response = rest_do_request( new WP_REST_Request( $method, '/zoninator/v1/zones/' . $this->zone_id . '/posts/' . $this->secret_id ) );
+		$response = rest_do_request( new WP_REST_Request( 'POST', '/zoninator/v1/zones/' . $this->zone_id . '/posts/' . $this->secret_id ) );
 
 		$this->assertSame( 400, $response->get_status() );
 		$this->assertStringNotContainsString( 'zoninator-canary@example.com', wp_json_encode( $response->get_data() ) );
-		$this->assertSame( '1', $this->zone_order( $this->secret_id ) );
+		$this->assertSame( '', $this->zone_order( $this->secret_id ) );
 	}
 
 	/**
-	 * @return Generator<string, array{string}>
+	 * Curating a zone is deciding what's in it. A post already there can be
+	 * taken out whether or not the user may read it, and the response says
+	 * nothing about it.
 	 */
-	public static function data_rest_zone_post_methods(): Generator {
-		yield 'add' => array( 'POST' );
-		yield 'remove' => array( 'DELETE' );
+	public function test_rest_remove_takes_out_a_post_the_user_cannot_read(): void {
+		wp_set_current_user( $this->editor_id );
+		self::add_zone_posts( $this->zone_id, array( $this->secret_id ) );
+
+		$response = rest_do_request( new WP_REST_Request( 'DELETE', '/zoninator/v1/zones/' . $this->zone_id . '/posts/' . $this->secret_id ) );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( 'success' => true ), $response->get_data() );
+		$this->assertSame( '', $this->zone_order( $this->secret_id ) );
 	}
 
 	/**
@@ -112,6 +114,57 @@ class ZoninatorZonePostAccessTest extends TestCase {
 
 		$this->assertSame( 400, $response->get_status() );
 		$this->assertSame( '', $this->zone_order( $this->secret_id ) );
+	}
+
+	/**
+	 * Saving the zone's order sends every post in it. One the user may not
+	 * read is already there, so it isn't being added, and the order is saved.
+	 */
+	public function test_rest_update_reorders_a_zone_that_holds_a_post_the_user_cannot_read(): void {
+		wp_set_current_user( $this->editor_id );
+		$readable_id = self::factory()->post->create();
+		self::add_zone_posts( $this->zone_id, array( $this->secret_id, $readable_id ) );
+
+		$request = new WP_REST_Request( 'PUT', '/zoninator/v1/zones/' . $this->zone_id . '/posts' );
+		$request->set_param( 'post_ids', array( $readable_id, $this->secret_id ) );
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '1', $this->zone_order( $readable_id ) );
+		$this->assertSame( '2', $this->zone_order( $this->secret_id ) );
+	}
+
+	/**
+	 * The screen lists every post in the zone, or saving the zone's order
+	 * would drop the ones left out. A post the user may not read keeps its
+	 * row, which says nothing about it.
+	 */
+	public function test_the_zones_screen_lists_a_post_the_user_cannot_read_without_saying_what_it_is(): void {
+		wp_set_current_user( $this->editor_id );
+		$readable_id = self::factory()->post->create( array( 'post_title' => 'Readable story' ) );
+		self::add_zone_posts( $this->zone_id, array( $this->secret_id, $readable_id ) );
+		$seen = array();
+		add_filter(
+			'zoninator_zone_post_columns',
+			static function ( $columns, $post ) use ( &$seen ) {
+				$seen[] = $post->ID;
+
+				return $columns;
+			},
+			10,
+			2
+		);
+
+		$html = self::render_zone_editor( $this->zone_id );
+
+		$this->assertStringContainsString( 'id="zone-post-' . $this->secret_id . '"', $html );
+		$this->assertStringContainsString( 'Readable story', $html );
+		$this->assertStringNotContainsString( 'zoninator-canary@example.com', $html );
+		$this->assertStringNotContainsString( get_permalink( $this->secret_id ), $html );
+		// Each row has a Remove button, so the post can still be taken out.
+		$this->assertSame( 2, substr_count( $html, 'button-link-delete delete' ) );
+		// A site's columns aren't asked to print a post the user may not read.
+		$this->assertSame( array( $readable_id ), $seen );
 	}
 
 	/**

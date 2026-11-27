@@ -9,6 +9,7 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Infrastructure\WordPress\Admin;
 
+use Automattic\Zoninator\Infrastructure\WordPress\Capabilities;
 use Automattic\Zoninator\Infrastructure\WordPress\Zones;
 use WP_Post;
 use WP_Term;
@@ -28,9 +29,13 @@ final class ZonePostRow {
 	/**
 	 * Constructor.
 	 *
-	 * @param Zones $zones Zones and the posts in them.
+	 * @param Zones        $zones        Zones and the posts in them.
+	 * @param Capabilities $capabilities The capability checks.
 	 */
-	public function __construct( private readonly Zones $zones ) {
+	public function __construct(
+		private readonly Zones $zones,
+		private readonly Capabilities $capabilities,
+	) {
 	}
 
 	/**
@@ -53,10 +58,28 @@ final class ZonePostRow {
 	 * Prints a zone post's row. Each column is printed by its callback in the
 	 * zoninator_zone_post_columns filter, so sites can add, change and remove columns.
 	 *
+	 * A zone can hold a post the current user may not read. Its row keeps its
+	 * place, so saving the zone's order doesn't drop it, and can be removed,
+	 * but says nothing about the post, and the filter's callbacks aren't asked
+	 * to print it.
+	 *
 	 * @param WP_Post $post The post.
 	 * @param WP_Term $zone The zone it's in.
 	 */
 	public function render( $post, $zone ): void {
+		if ( ! $this->capabilities->can_use_post( get_current_user_id(), (int) $post->ID ) ) {
+			$this->render_columns(
+				$post,
+				$zone,
+				array(
+					'position' => array( $this, 'render_position_column' ),
+					'info'     => array( $this, 'render_restricted_column' ),
+				)
+			);
+
+			return;
+		}
+
 		/**
 		 * Filters the columns shown for each post in a zone on the Zones screen.
 		 *
@@ -77,6 +100,18 @@ final class ZonePostRow {
 			$post,
 			$zone
 		);
+
+		$this->render_columns( $post, $zone, (array) $columns );
+	}
+
+	/**
+	 * Prints a row with the given columns.
+	 *
+	 * @param WP_Post    $post    The post.
+	 * @param WP_Term    $zone    The zone it's in.
+	 * @param callable[] $columns Column key => callback.
+	 */
+	private function render_columns( $post, $zone, array $columns ): void {
 		?>
 	<div id="zone-post-<?php echo esc_attr( $post->ID ); ?>" class="zone-post" data-post-id="<?php echo esc_attr( $post->ID ); ?>">
 		<table role="presentation">
@@ -103,6 +138,19 @@ final class ZonePostRow {
 	<span title="<?php esc_attr_e( 'Drag to change the position of this item, or use Move up and Move down.', 'zoninator' ); ?>">
 		<?php echo esc_html( $current_position ); ?>
 	</span>
+		<?php
+	}
+
+	/**
+	 * Prints the cell that stands in for a post the user may not read, with
+	 * the one thing they can do to it: take it out of the zone.
+	 */
+	public function render_restricted_column(): void {
+		esc_html_e( 'An item you do not have access to.', 'zoninator' );
+		?>
+	<div class="row-actions">
+		<button type="button" class="button-link button-link-delete delete" aria-label="<?php esc_attr_e( 'Remove the item you do not have access to', 'zoninator' ); ?>"><?php esc_html_e( 'Remove', 'zoninator' ); ?></button>
+	</div>
 		<?php
 	}
 

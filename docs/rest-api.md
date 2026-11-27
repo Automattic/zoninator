@@ -10,7 +10,7 @@ Every endpoint except `GET /zones/{zone_id}/posts` needs an authenticated reques
 
 `GET /zones/{zone_id}/posts` is public. It lists only published posts, the same as the [JSON feed](theme-developers.md#the-json-feed).
 
-`GET /zones` needs a logged-in user. To let anyone list the zones, use the [`zoninator_rest_get_zones_permissions_check`](hooks.md#zoninator_rest_get_zones_permissions_check-filter) filter.
+`GET /zones` needs a user who can edit posts (`edit_posts`) or curate zones. To let anyone list the zones, use the [`zoninator_rest_get_zones_permissions_check`](hooks.md#zoninator_rest_get_zones_permissions_check-filter) filter.
 
 The other endpoints check a capability, `edit_others_posts` by default; see [hooks.md](hooks.md#capabilities) for the filters that govern them.
 
@@ -20,7 +20,7 @@ The other endpoints check a capability, `edit_others_posts` by default; see [hoo
 
 Returns every zone on the site.
 
-**Permission:** logged-in by default; filter via `zoninator_rest_get_zones_permissions_check`.
+**Permission:** `edit_posts`, or the capability to curate zones, by default; filter via `zoninator_rest_get_zones_permissions_check`.
 
 **Response:** an array of zone objects.
 
@@ -77,7 +77,7 @@ Returns the posts assigned to a zone, in zone order.
 
 **Permission:** publicly accessible.
 
-**Response:** array of the zone's published post objects, with the fields allowed by the `zoninator_zone_feed_fields` filter (by default: `ID`, `post_date`, `post_title`, `post_content`, `post_excerpt`, `post_status`, `guid`). Content and excerpt are blanked for password-protected posts.
+**Response:** array of the zone's published post objects, with the fields allowed by the `zoninator_zone_feed_fields` filter (by default: `ID`, `post_date`, `post_title`, `post_excerpt`, `post_status`, `guid`). The excerpt is blanked for password-protected posts. For a post's content, use core's `GET /wp/v2/posts/{id}`, which applies the site's content filters and access rules.
 
 ### `PUT /zoninator/v1/zones/{zone_id}/posts`
 
@@ -196,7 +196,7 @@ Errors use core's REST error shape, with a `code`, a `message` in the site's lan
 
 | Status | Code | When |
 |---|---|---|
-| `400` | `invalid-post-id` | A post isn't of a zone post type that the user can read. |
+| `400` | `invalid-post-id` | A post isn't of a zone post type that the user can read. A post already in the zone is never refused, so a zone that holds such a post can still be reordered, and the post can be removed. |
 | `400` | `rest_invalid_param` | A parameter fails validation, such as a non-numeric `post_ids` entry. |
 | `400` | from WordPress, such as `term_exists` | A zone couldn't be created or updated. Creating a zone with neither `name` nor `slug` gives `zone-empty-slug`, and a zone that couldn't be deleted gives `delete-zone`. |
 | `400` | `zone-id-required` | `PUT /zones/0/lock`: the lock endpoint needs a zone ID. |

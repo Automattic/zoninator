@@ -29,7 +29,7 @@ Each returns `{ "success": true }`, or an error:
 | Code | When |
 |---|---|
 | `zone-not-found` | There's no zone with that ID. |
-| `invalid-post-id` | A post doesn't exist, isn't of a post type that supports zones, or isn't one the user may read. Nothing is changed. |
+| `invalid-post-id` | A post doesn't exist, isn't of a post type that supports zones, or isn't one the user may read. Nothing is changed. A post already in the zone is never refused, so it can be reordered or removed. |
 | `zone-full` | The change would take the zone past its post limit. Nothing is changed. |
 | `zone-locked` | Someone else is editing the zone. The message names them. An agent acting for the person who has the zone open goes through. |
 

@@ -77,7 +77,7 @@ final class PluginBootstrapper {
 		$zone_posts    = $container->add( new PostMetaZonePostsRepository( $terms, $taxonomy ) );
 		$manager       = $container->add( new ZoneManager( $terms, $settings, $zone_posts, $locker ) );
 		$curator       = $container->add( new ZoneCurator( $terms, $zone_posts, $settings ) );
-		$guard         = $container->add( new ZoneGuard( $capabilities, $locker, $terms ) );
+		$guard         = $container->add( new ZoneGuard( $capabilities, $locker, $terms, $zone_posts ) );
 		$guarded_zones = $container->add( new GuardedZoneManager( $manager, $guard ) );
 		$guarded_posts = $container->add( new GuardedZoneCurator( $curator, $guard ) );
 		$zones         = $container->add( new Zones( $taxonomy, $capabilities, $terms ) );
@@ -86,7 +86,7 @@ final class PluginBootstrapper {
 		// The Zones admin screen.
 		$location = $container->add( new ScreenLocation() );
 		$messages = $container->add( new Messages() );
-		$row      = $container->add( new ZonePostRow( $zones ) );
+		$row      = $container->add( new ZonePostRow( $zones, $capabilities ) );
 		$loader   = $container->add( new ScreenDataLoader( $zones, $capabilities, $locker ) );
 		$view     = $container->add( new ScreenView( $messages, $location, $container->add( new SearchForm() ), $row, new ZoneDetailsView( $location ) ) );
 		$container->add( new Screen( $capabilities, $loader, $view ) );

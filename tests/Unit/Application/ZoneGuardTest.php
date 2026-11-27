@@ -68,7 +68,7 @@ final class ZoneGuardTest extends TestCase {
 		$this->zones      = new InMemoryZoneRepository();
 		$this->locker     = new ZoneLocker( new InMemoryLockStore(), $settings, $this->zones );
 		$this->zone_posts = new InMemoryZonePostsRepository();
-		$guard            = new ZoneGuard( $this->access, $this->locker, $this->zones );
+		$guard            = new ZoneGuard( $this->access, $this->locker, $this->zones, $this->zone_posts );
 		$curator          = new ZoneCurator( $this->zones, $this->zone_posts, $settings );
 		$this->manager    = new GuardedZoneManager( new ZoneManager( $this->zones, $settings, $this->zone_posts, $this->locker ), $guard );
 		$this->curator    = new GuardedZoneCurator( $curator, $guard );
@@ -160,6 +160,32 @@ final class ZoneGuardTest extends TestCase {
 		$this->curator->remove_posts( self::EDITOR, $zone_id, array( 5 ) );
 
 		$this->assertSame( array( 6 ), $this->zone_posts->post_ids[ $zone_id ] );
+	}
+
+	/**
+	 * Curating a zone is deciding what's in it, so a post the user may not
+	 * use can be taken out like any other.
+	 */
+	public function test_a_post_already_in_the_zone_can_be_taken_out(): void {
+		$zone_id = (int) $this->manager->create( self::EDITOR, 'homepage' )->get_id();
+		$this->zone_posts->replace( $zone_id, array( 99, 5 ) );
+
+		$this->curator->remove_posts( self::EDITOR, $zone_id, array( 99 ) );
+
+		$this->assertSame( array( 5 ), $this->zone_posts->post_ids[ $zone_id ] );
+	}
+
+	/**
+	 * A zone can hold a post the user may not use. They can still order the
+	 * zone around it and take other posts out. What they can't do is add one.
+	 */
+	public function test_a_post_already_in_the_zone_can_keep_its_place_or_move(): void {
+		$zone_id = (int) $this->manager->create( self::EDITOR, 'homepage' )->get_id();
+		$this->zone_posts->replace( $zone_id, array( 99, 5, 6 ) );
+
+		$this->curator->set_posts( self::EDITOR, $zone_id, array( 6, 99 ) );
+
+		$this->assertSame( array( 6, 99 ), $this->zone_posts->post_ids[ $zone_id ] );
 	}
 
 	public function test_the_lock_holder_can_still_curate_their_zone(): void {

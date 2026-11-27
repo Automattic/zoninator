@@ -15,13 +15,14 @@ use Automattic\Zoninator\Domain\PostNotAllowedException;
 use Automattic\Zoninator\Domain\ZoneAccessInterface;
 use Automattic\Zoninator\Domain\ZoneLockedException;
 use Automattic\Zoninator\Domain\ZoneNotFoundException;
+use Automattic\Zoninator\Domain\ZonePostsRepositoryInterface;
 use Automattic\Zoninator\Domain\ZoneRepositoryInterface;
 use InvalidArgumentException;
 
 /**
  * The checks every change to a zone must pass when it's made for a user:
- * the user may make it, the zone exists, the user may use each post, and no
- * one else's lock keeps them out.
+ * the user may make it, the zone exists, the user may use each post they put
+ * in it, and no one else's lock keeps them out.
  *
  * @since 1.0.0
  */
@@ -30,14 +31,16 @@ final class ZoneGuard {
 	/**
 	 * Constructor.
 	 *
-	 * @param ZoneAccessInterface     $access Says what a user may do.
-	 * @param ZoneLocker              $locker Zone locks.
-	 * @param ZoneRepositoryInterface $zones  Where the zones are kept.
+	 * @param ZoneAccessInterface          $access     Says what a user may do.
+	 * @param ZoneLocker                   $locker     Zone locks.
+	 * @param ZoneRepositoryInterface      $zones      Where the zones are kept.
+	 * @param ZonePostsRepositoryInterface $zone_posts Where the posts in each zone are kept.
 	 */
 	public function __construct(
 		private readonly ZoneAccessInterface $access,
 		private readonly ZoneLocker $locker,
 		private readonly ZoneRepositoryInterface $zones,
+		private readonly ZonePostsRepositoryInterface $zone_posts,
 	) {
 	}
 
@@ -76,13 +79,18 @@ final class ZoneGuard {
 	/**
 	 * Checks that a user may add these posts to a zone, order them in it, or take them out.
 	 *
+	 * The user must be able to use each post they put in the zone. A post
+	 * already there isn't being put in, so it may keep its place, move or be
+	 * taken out whether or not the user may use it. Otherwise one such post
+	 * would stop them ordering the zone, and they couldn't take it out.
+	 *
 	 * @param int   $user_id  User ID.
 	 * @param int   $zone_id  Zone ID.
 	 * @param int[] $post_ids Post IDs.
 	 *
 	 * @throws AccessDeniedException   If they may not curate zones.
 	 * @throws ZoneNotFoundException   If there's no such zone.
-	 * @throws PostNotAllowedException If they may not use one of the posts.
+	 * @throws PostNotAllowedException If they may not use one of the posts, and it isn't in the zone.
 	 * @throws ZoneLockedException     If someone else holds the zone's lock.
 	 * @throws InvalidArgumentException If a post ID isn't an integer or a string of digits.
 	 */
@@ -93,7 +101,7 @@ final class ZoneGuard {
 
 		$this->check_exists( $zone_id );
 
-		foreach ( PostIds::from( $post_ids ) as $post_id ) {
+		foreach ( array_diff( PostIds::from( $post_ids ), $this->zone_posts->get_post_ids( $zone_id ) ) as $post_id ) {
 			if ( ! $this->access->can_use_post( $user_id, $post_id ) ) {
 				throw new PostNotAllowedException( $post_id );
 			}

@@ -86,7 +86,32 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( array( 'public-zone' ), wp_list_pluck( $response->get_data(), 'slug' ) );
 	}
 
-	public function test_get_zones_allows_any_logged_in_user(): void {
+	/**
+	 * The list is for people who work on content. Someone who can only read the site has no use for it.
+	 */
+	public function test_get_zones_refuses_a_user_who_cannot_edit_posts(): void {
+		wp_set_current_user( $this->subscriber_id );
+
+		$response = $this->dispatch( 'GET', '/zones' );
+
+		$this->assertSame( 403, $response->get_status() );
+		$this->assertSame( 'rest_forbidden', $response->get_data()['code'] );
+	}
+
+	/**
+	 * The block editor's zone picker reads the list, for anyone who can write a post.
+	 */
+	public function test_get_zones_allows_a_user_who_can_edit_posts(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'contributor' ) ) );
+
+		$this->assertSame( 200, $this->dispatch( 'GET', '/zones' )->get_status() );
+	}
+
+	/**
+	 * A site can let users curate zones who can't edit posts.
+	 */
+	public function test_get_zones_allows_a_user_who_can_curate_zones(): void {
+		add_filter( 'zoninator_manage_zone_cap', static fn() => 'read' );
 		wp_set_current_user( $this->subscriber_id );
 
 		$this->assertSame( 200, $this->dispatch( 'GET', '/zones' )->get_status() );
@@ -410,7 +435,7 @@ final class ZoninatorRestContractTest extends TestCase {
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( $ordered, array_map( 'intval', wp_list_pluck( $data, 'ID' ) ) );
 		$this->assertSame(
-			array( 'ID', 'post_date', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'guid' ),
+			array( 'ID', 'post_date', 'post_title', 'post_excerpt', 'post_status', 'guid' ),
 			array_keys( (array) $data[0] )
 		);
 	}
@@ -425,6 +450,8 @@ final class ZoninatorRestContractTest extends TestCase {
 	}
 
 	public function test_get_zone_posts_hides_the_content_of_a_password_protected_post(): void {
+		// The content isn't in the feed unless a site asks for it.
+		add_filter( 'zoninator_zone_feed_fields', static fn( $fields ) => array_merge( $fields, array( 'post_content' ) ) );
 		$zone_id = $this->create_zone( 'protected' );
 		$post_id = self::factory()->post->create(
 			array(

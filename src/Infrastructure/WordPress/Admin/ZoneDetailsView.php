@@ -90,9 +90,9 @@ final class ZoneDetailsView {
 
 				<?php if ( $zone_id ) : ?>
 					<input type="hidden" name="zone_id" id="zone_id" value="<?php echo esc_attr( $zone_id ); ?>" />
-					<?php wp_nonce_field( $this->location->get_nonce_action( 'update' ) ); ?>
+					<?php wp_nonce_field( $this->location->get_nonce_action( 'update', $zone_id ), ScreenLocation::NONCE_NAME ); ?>
 				<?php else : ?>
-					<?php wp_nonce_field( $this->location->get_nonce_action( 'insert' ) ); ?>
+					<?php wp_nonce_field( $this->location->get_nonce_action( 'insert' ), ScreenLocation::NONCE_NAME ); ?>
 				<?php endif; ?>
 
 				<p class="submit submitbox">
@@ -166,7 +166,8 @@ final class ZoneDetailsView {
 					'zone_id' => $zone_id,
 				)
 			),
-			$this->location->get_nonce_action( 'delete' )
+			$this->location->get_nonce_action( 'delete', (int) $zone_id ),
+			ScreenLocation::NONCE_NAME
 		);
 	}
 }
