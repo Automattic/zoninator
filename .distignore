@@ -2,11 +2,13 @@
 /.claude/
 /.git/
 /.github/
+/.wordpress-org/
 /artifacts/
 /docs/
 /node_modules/
 /playwright-report/
 /tests/
+/tools/
 /vendor/
 
 # Files

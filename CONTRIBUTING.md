@@ -89,6 +89,18 @@ Treat anything in the table below as a public contract. Renaming, removing, or c
 | Zone Posts widget, its class and its ID base | `src/Infrastructure/WordPress/ZonePostsWidget.php` |
 | Storage: the `zoninator_zones` taxonomy and the `_zoninator_order_` post meta prefix | See [docs/php-api.md](docs/php-api.md#how-zones-are-stored) |
 
+## WordPress.org assets and readme
+
+The icon, banners and screenshots live in `.wordpress-org/`. Their sources, and the scripts that make them, are in `tools/wporg-assets/`. Every tagged release copies them and `README.md` to WordPress.org.
+
+To publish a change to them between releases, merge it to `develop`, then run the **Update WordPress.org readme and assets** workflow on `develop`, from the Actions tab or with:
+
+```bash
+gh workflow run wporg-assets.yml --ref develop
+```
+
+The workflow copies `README.md` to SVN trunk and to the stable tag's folder, which the plugin page reads, and syncs `.wordpress-org/` to the SVN assets folder. It leaves the plugin's code alone. Run it only while `README.md` still describes the stable release: once `develop` has a changelog entry or new requirements for the next release, wait for that release instead. WordPress.org can take a few hours to show new images.
+
 ## Repository layout and architecture
 
 For an overview of the codebase, see [AGENTS.md](AGENTS.md). It documents the directory structure, key classes, storage model, and architectural decisions worth knowing before opening a PR.

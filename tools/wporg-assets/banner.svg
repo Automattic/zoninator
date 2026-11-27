@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 772 250" width="772" height="250">
+	<!-- Source for the WordPress.org banners: tools/wporg-assets/render.mjs makes the PNGs and their RTL mirrors. -->
+	<rect width="772" height="250" fill="#0F4C5C"/>
+	<rect x="252" y="32" width="420" height="260" rx="16" fill="#fff"/>
+	<rect x="272" y="50" width="140" height="14" rx="7" fill="#ECE8E3"/>
+	<rect x="552" y="50" width="100" height="14" rx="7" fill="#F4F2EF"/>
+	<rect x="272" y="80" width="150" height="96" rx="10" fill="#ECE8E3"/>
+	<rect x="272" y="188" width="70" height="80" rx="10" fill="#F4F2EF"/>
+	<rect x="352" y="188" width="70" height="80" rx="10" fill="#F4F2EF"/>
+	<rect x="438" y="80" width="214" height="200" rx="8" fill="none" stroke="#2D2A32" stroke-width="6" stroke-dasharray="12 8"/>
+	<rect x="452" y="94" width="186" height="32" rx="6" fill="#E4572E"/>
+	<rect x="452" y="136" width="186" height="32" rx="6" fill="#EE8A6D"/>
+	<rect x="452" y="178" width="186" height="32" rx="6" fill="#F6BDAA"/>
+	<rect x="452" y="220" width="186" height="32" rx="6" fill="#FBDCD1"/>
+	<rect x="452" y="262" width="186" height="32" rx="6" fill="#FDEDE7"/>
+	<rect x="102" y="56" width="120" height="236" rx="16" fill="#fff"/>
+	<rect x="116" y="72" width="48" height="10" rx="5" fill="#ECE8E3"/>
+	<rect x="116" y="94" width="92" height="40" rx="8" fill="#ECE8E3"/>
+	<rect x="116" y="146" width="92" height="120" rx="8" fill="none" stroke="#2D2A32" stroke-width="5" stroke-dasharray="10 7"/>
+	<rect x="124" y="156" width="76" height="22" rx="4" fill="#E4572E"/>
+	<rect x="124" y="185" width="76" height="22" rx="4" fill="#EE8A6D"/>
+	<rect x="124" y="214" width="76" height="22" rx="4" fill="#F6BDAA"/>
+	<rect x="124" y="243" width="76" height="22" rx="4" fill="#FBDCD1"/>
+</svg>
