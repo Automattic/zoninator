@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">
+	<!-- GitHub social preview. Keep everything inside the 80 px safe margin, GitHub crops the edges. -->
+	<rect width="1280" height="640" fill="#0F4C5C"/>
+	<g transform="translate(80 120) scale(2.1739) translate(-36 -36)">
+		<rect x="36" y="36" width="184" height="184" rx="14" fill="#fff"/>
+		<rect x="52" y="52" width="152" height="14" rx="7" fill="#ECE8E3"/>
+		<rect x="52" y="78" width="56" height="60" rx="8" fill="#ECE8E3"/>
+		<rect x="52" y="148" width="56" height="56" rx="8" fill="#F4F2EF"/>
+		<rect x="118" y="78" width="86" height="126" rx="8" fill="none" stroke="#2D2A32" stroke-width="6" stroke-dasharray="10 7"/>
+		<rect x="128" y="88" width="66" height="30" rx="6" fill="#E4572E"/>
+		<rect x="128" y="124" width="66" height="30" rx="6" fill="#EE8A6D"/>
+		<rect x="128" y="160" width="66" height="30" rx="6" fill="#F6BDAA"/>
+	</g>
+	<g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+		<text x="560" y="288" font-size="104" font-weight="700" fill="#FFFFFF">Zoninator</text>
+		<text x="562" y="360" font-size="36" fill="#CFE3E7">Create zones of selected posts</text>
+		<text x="562" y="408" font-size="36" fill="#CFE3E7">in a set order, and display them</text>
+		<text x="562" y="456" font-size="36" fill="#CFE3E7">on your site.</text>
+	</g>
+</svg>
