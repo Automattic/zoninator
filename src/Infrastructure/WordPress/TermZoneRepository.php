@@ -28,8 +28,9 @@ use WP_Term;
  * which then no longer unserialise. Text with only those three characters
  * encoded, and its quotes left alone, is the one form the filters pass as it
  * is. Encoding it here, not where a request comes in, covers every way a zone
- * is saved. The filters also take out control characters and carriage
- * returns, so the details lose those before they're counted.
+ * is saved. The filters also take out control characters, and carriage
+ * returns by WordPress 7.3 though not in 7.1, so the details go through them
+ * before they're counted.
  *
  * @since 1.0.0
  * @internal Use Automattic\Zoninator\Application\ZoneManager instead.
@@ -230,11 +231,12 @@ final class TermZoneRepository implements ZoneRepositoryInterface {
 	/**
 	 * Encodes a zone's details for storage, and leaves WordPress nothing to change in them.
 	 *
-	 * When WordPress saves a description it also takes out control characters
-	 * and carriage returns, which encode() leaves in. The details are counted
-	 * when they're serialised, so each string goes through WordPress's own
-	 * filters first: the second pass, on the whole description, then changes
-	 * nothing, and the lengths stay right.
+	 * When WordPress saves a description it also takes out control characters,
+	 * and carriage returns by WordPress 7.3, which encode() leaves in. The
+	 * details are counted when they're serialised, so each string goes through
+	 * WordPress's own filters first, whatever they take out in this version:
+	 * the second pass, on the whole description, then changes nothing, and the
+	 * lengths stay right.
 	 *
 	 * @param mixed $value A string, or an array of details. Anything else is returned as it is.
 	 * @return mixed

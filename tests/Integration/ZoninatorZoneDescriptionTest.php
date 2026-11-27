@@ -107,9 +107,10 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 	}
 
 	/**
-	 * WordPress takes control characters and carriage returns out of a
-	 * description when it saves it. Details counted before that are stored
-	 * with lengths that are too long, and no longer unserialise.
+	 * WordPress takes control characters out of a description when it saves
+	 * it, and carriage returns too by WordPress 7.3, though not in 7.1. Details counted
+	 * before that are stored with lengths that are too long, and no longer
+	 * unserialise.
 	 *
 	 * @dataProvider data_text_core_shortens
 	 *
@@ -123,7 +124,9 @@ final class ZoninatorZoneDescriptionTest extends TestCase {
 		clean_term_cache( $zone_id, Taxonomy::NAME );
 		$stored = unserialize( get_term( $zone_id, Taxonomy::NAME )->description, array( 'allowed_classes' => false ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
 
-		$this->assertSame( array( 'description' => $kept ), $stored );
+		// Unserialising at all is the point. A carriage return is kept or dropped, by WordPress version.
+		$this->assertIsArray( $stored );
+		$this->assertSame( array( 'description' => $kept ), str_replace( "\r", '', $stored ) );
 	}
 
 	/**
