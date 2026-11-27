@@ -1,0 +1,37 @@
+name: Update WordPress.org readme and assets
+
+# Pushes README.md and .wordpress-org/ to WordPress.org without a release:
+# the readme goes to SVN trunk and to the stable tag's folder (which is where
+# the plugin page reads it from), and the assets to SVN assets/. Run it by
+# hand from develop or main, only when README.md still describes the stable
+# release. deploy.yml does the same on every tagged release.
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  update:
+    name: Push readme and assets to WordPress.org SVN
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Push to WordPress.org
+        uses: 10up/action-wordpress-plugin-asset-update@2480306f6f693672726d08b5917ea114cb2825f7 # 2.2.0
+        env:
+          SLUG: zoninator
+          README_NAME: README.md
+          # Copy only the readme into trunk. Without this, the action copies the
+          # whole plugin and stops if anything else differs, which it always
+          # would while trunk still holds the .wordpress-org/ that 1.0.0 shipped.
+          IGNORE_OTHER_FILES: true
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}

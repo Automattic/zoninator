@@ -94,7 +94,7 @@ zoninator/
 ├── languages/                       # Translation files
 ├── .wordpress-org/                  # WP.org assets: icon, banners, screenshots
 ├── tools/wporg-assets/              # Sources and scripts that make those assets
-├── .github/workflows/               # CI: cs-lint, integration, e2e, release, deploy
+├── .github/workflows/               # CI: cs-lint, integration, e2e, release, deploy, wporg-assets
 ├── .phpcs.xml.dist                  # PHPCS configuration
 └── playwright.config.js             # Playwright config (extends @wordpress/scripts)
 ```
