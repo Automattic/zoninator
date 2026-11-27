@@ -31,8 +31,10 @@
 		},
 		// The zone sets the posts and their order, so only paging controls make sense.
 		allowedControls: [ 'postCount', 'offset', 'pages' ],
+		// A zone is a list of posts to read, so each title links to its post, as in the Zone Posts
+		// widget. The title starts as a heading, as in core's Query Loop, and can be a paragraph.
 		innerBlocks: [
-			[ 'core/post-template', {}, [ [ 'core/post-title' ] ] ],
+			[ 'core/post-template', {}, [ [ 'core/post-title', { isLink: true, levelOptions: [ 0, 1, 2, 3, 4, 5, 6 ] } ] ] ],
 		],
 	} );
 
