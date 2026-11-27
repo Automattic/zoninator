@@ -3,7 +3,7 @@
 Plugin Name: Zone Manager (Zoninator)
 Description: Create zones of selected posts in a set order, and display them on your site.
 Author: Mohammad Jangda, Automattic
-Version: 0.12.0
+Version: 1.0.0
 Author URI: https://wpvip.com
 Requires at least: 6.9
 Requires PHP: 8.2
@@ -35,7 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 use Automattic\Zoninator\Infrastructure\DI\Container;
 use Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper;
 
-define( 'ZONINATOR_VERSION', '0.12.0' );
+define( 'ZONINATOR_VERSION', '1.0.0' );
 define( 'ZONINATOR_FILE', __FILE__ );
 
 require_once __DIR__ . '/functions.php';
