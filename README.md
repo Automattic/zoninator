@@ -156,11 +156,13 @@ Developers: the bundled Mixtape REST library is gone, and `Zoninator()`'s public
 
 ## Screenshots
 
-1. Create and manage your zones and content through a fairly intuitive and familiar interface.
-   ![Overview of a homepage slideshow zone showing the name and description, and two posts assigned to that zone](.wordpress-org/screenshot-1.png)
-2. Zone editing  
-   ![Editing a food zone in Zoninator](.wordpress-org/screenshot-2.png)
-3. Use the Zone Posts widget in the widgets area.  
-   ![A sidebar widget area with a couple of Zone Posts widgets](.wordpress-org/screenshot-3.png)
-4. Output of the zone posts widgets.  
-   ![Sidebar front end with the links to posts showing](.wordpress-org/screenshot-4.png)
+1. Create zones and find them all on the Zones screen.
+   ![The Zones screen, with a list of five zones and the form to add a new one](.wordpress-org/screenshot-1.png)
+2. Search for posts to add to a zone, then drag them into order.
+   ![The Homepage zone being edited, with search results for "new" open under the Add content field above the zone's numbered posts](.wordpress-org/screenshot-2.png)
+3. Add the Zone Posts block and pick a zone in its settings.
+   ![The block editor with a Zone Posts block selected, showing six post titles in a grid, and its Zone panel set to Top Stories](.wordpress-org/screenshot-3.png)
+4. The block shows the zone's posts in their set order.
+   ![A page with a "Top stories" grid of six post titles and dates](.wordpress-org/screenshot-4.png)
+5. The Zone Posts widget lists a zone's posts in a classic theme's sidebar.
+   ![A post in the Twenty Seventeen theme with Top Stories and Culture Picks widgets in the sidebar](.wordpress-org/screenshot-5.png)
