@@ -108,7 +108,7 @@ Yes. Call `add_post_type_support( 'your_post_type', 'zoninator_zones' )`, or add
 
 ### 1.0.0
 
-Breaking release. The template tags are renamed from `z_` to `zoninator_` (`z_get_posts_in_zone()` is now `zoninator_get_posts_in_zone()`), and `Zoninator()` is removed. Update your theme first, or it will stop with a fatal error. Requires WordPress 6.9 and PHP 8.2. See the [upgrade guide](https://github.com/Automattic/zoninator/blob/main/docs/upgrades.md).
+Breaking release: needs WordPress 6.9 and PHP 8.2. Template tags are renamed from `z_` to `zoninator_` and `Zoninator()` is removed, so update your theme first or it will stop with a fatal error. Read the upgrade guide before updating.
 
 ### 0.12.0
 
@@ -121,6 +121,18 @@ Fixes three security issues, so update soon. If you lower `zoninator_manage_zone
 ## Changelog
 
 The highlights of recent releases are below. Every change, including older releases, is listed in [CHANGELOG.md](https://github.com/Automattic/zoninator/blob/main/CHANGELOG.md).
+
+### 1.0.0
+
+Requires WordPress 6.9 and PHP 8.2. This is a breaking release for themes and code that use Zoninator: read the [upgrade guide](https://github.com/Automattic/zoninator/blob/main/docs/upgrading-to-1.0.md) before updating.
+
+- **Changed:** The template tags are renamed from `z_` to `zoninator_`, such as `zoninator_get_posts_in_zone()`. Update your theme first.
+- **Removed:** The `Zoninator` class, `Zoninator()`, and the admin-ajax actions deprecated in 0.12.0.
+- **New:** The Zone Posts block shows a zone in block themes and the block editor, as a list of linked titles you can design like any Query Loop.
+- **New:** Agents and other tools can read and curate zones through the Abilities API.
+- **Changed:** A zone holds up to 100 posts by default, and a zone's lock now stops changes made over the REST API too.
+- **Fixed:** Zone names and descriptions keep quotes, ampersands and line breaks, and the JSON feed works straight after activation.
+- **Security:** The JSON feed no longer includes post content by default, and listing zones over the REST API needs a user who can edit posts.
 
 ### 0.12.0
 
@@ -141,15 +153,6 @@ Developers: the bundled Mixtape REST library is gone, and `Zoninator()`'s public
 - **Security:** The zone lock notice no longer reveals the locking user's email address.
 - **Changed:** The post search and Add Recent Content list on the Zones screen are faster on sites with many posts.
 - **Fixed:** A fatal error on PHP 8 when the `zoninator_admin_page_get_zones_args` filter asks for zone IDs or names.
-
-### 0.11.0
-
-Requires WordPress 6.4 or later.
-
-- **Changed:** The `GET /wp-json/zoninator/v1/zones` REST endpoint requires a logged-in user. The `zoninator_rest_get_zones_permissions_check` filter can allow anonymous access again.
-- **Security:** The post search on the Zones screen checks the user's permissions and nonce.
-- **Security:** Zone descriptions and the Zones screen are hardened against cross-site scripting.
-- **Fixed:** Small fixes to zone locks, AJAX responses and translations.
 
 ## Screenshots
 
