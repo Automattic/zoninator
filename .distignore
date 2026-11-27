@@ -2,6 +2,7 @@
 /.claude/
 /.git/
 /.github/
+/.wordpress-org/
 /artifacts/
 /docs/
 /node_modules/
