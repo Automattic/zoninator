@@ -107,7 +107,7 @@ The `zoninator_recent_posts_args` and `zoninator_search_args` filters in [hooks.
 
 ## The Zone Posts block
 
-Block themes and the block editor can show a zone with the **Zone Posts** block, a variation of core's Query Loop block. Insert it, pick the zone under **Zone** in the block settings, and design each item with the Post Template, Post Title, Post Featured Image and other blocks as you would for any Query Loop. Zoninator adds no markup of its own, so the theme styles it like any other query.
+Block themes and the block editor can show a zone with the **Zone Posts** block, a variation of core's Query Loop block. Insert it, pick the zone under **Zone** in the block settings, and design each item with the Post Template, Post Title, Post Featured Image and other blocks as you would for any Query Loop. Each title starts as a level 2 heading that links to its post. Its toolbar can change it to another heading level, or to a paragraph. Zoninator adds no markup of its own, so the theme styles it like any other query.
 
 The block uses the same query as `zoninator_get_zone_query()`: published posts in the zone, in zone order. The block's items per page, offset and max pages still apply. Until a zone is picked, it shows no posts.
 
