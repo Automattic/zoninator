@@ -1,0 +1,79 @@
+name: E2E tests
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - '**.php'
+      - '**.js'
+      - '**.css'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.wp-env.json'
+      - 'tests/e2e/**'
+      - '.github/workflows/e2e.yml'
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - '**.php'
+      - '**.js'
+      - '**.css'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.wp-env.json'
+      - 'tests/e2e/**'
+      - '.github/workflows/e2e.yml'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright on WP 7.1
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 'lts/*'
+          cache: npm
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Install Playwright's Chromium
+        run: npx --no playwright install --with-deps chromium
+
+      # The readme's "Tested up to" release, rather than trunk, so a change in trunk
+      # doesn't fail the screen's tests. The integration tests cover trunk.
+      - name: Setup wp-env
+        run: npx --no wp-env start
+        env:
+          WP_ENV_CORE: WordPress/WordPress#7.1
+          WP_ENV_PHP_VERSION: '8.5'
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            artifacts/test-results/
+          retention-days: 7

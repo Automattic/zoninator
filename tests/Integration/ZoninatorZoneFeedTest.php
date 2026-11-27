@@ -4,48 +4,96 @@ declare( strict_types = 1 );
 /**
  * Integration tests for the public JSON feed at /zones/{slug}/feed.json.
  *
- * do_zoninator_feeds() echoes the feed and exits, so these tests cover the
- * rewrite rule that routes the URL and get_zone_feed(), which builds the body.
+ * They cover the rewrite rule that routes the URL, Feed, which builds the
+ * body, and FeedEndpoint::serve(), which sends it.
  *
  * @package Automattic\Zoninator
  */
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint;
+use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use WPDieException;
+
 final class ZoninatorZoneFeedTest extends TestCase {
 
 	public function tearDown(): void {
 		// The rollback restores the option, but not the rewrite rules held in memory.
+		zoninator_container()->get( FeedEndpoint::class )->add_rewrite_rule();
 		$this->set_permalink_structure( '' );
 		parent::tearDown();
 	}
 
 	public function test_feed_url_sets_the_zone_query_var(): void {
 		$this->set_permalink_structure( '/%postname%/' );
-		\Zoninator()->add_zone_feed();
+		zoninator_container()->get( FeedEndpoint::class )->add_rewrite_rule();
 		flush_rewrite_rules();
 
 		$this->go_to( home_url( '/zones/homepage/feed.json' ) );
 
-		$this->assertSame( 'homepage', get_query_var( \Zoninator::ZONE_TAXONOMY ) );
+		$this->assertSame( 'homepage', get_query_var( Taxonomy::NAME ) );
+	}
+
+	/**
+	 * Activation runs after init, so the rule isn't in memory until activate() adds it.
+	 */
+	public function test_activation_routes_the_feed_url_without_a_flush_from_the_site(): void {
+		global $wp_rewrite;
+
+		$this->set_permalink_structure( '/%postname%/' );
+		unset( $wp_rewrite->extra_rules_top['^zones/([^/]+)/feed.json/?$'] );
+		flush_rewrite_rules( false );
+
+		do_action( 'activate_' . plugin_basename( ZONINATOR_FILE ), false );
+		$this->go_to( home_url( '/zones/homepage/feed.json' ) );
+
+		$this->assertSame( 'homepage', get_query_var( Taxonomy::NAME ) );
+	}
+
+	public function test_deactivation_removes_the_feed_url(): void {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		do_action( 'deactivate_' . plugin_basename( ZONINATOR_FILE ), false );
+
+		$this->assertArrayNotHasKey( '^zones/([^/]+)/feed.json/?$', get_option( 'rewrite_rules' ) );
 	}
 
 	public function test_feed_by_slug_lists_published_posts_in_zone_order(): void {
 		$zone_id  = $this->create_zone();
 		$post_ids = self::factory()->post->create_many( 2 );
 		$draft_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
-		\Zoninator()->add_zone_posts( $zone_id, array( $post_ids[1], $draft_id, $post_ids[0] ) );
+		self::add_zone_posts( $zone_id, array( $post_ids[1], $draft_id, $post_ids[0] ) );
 
-		$feed = \Zoninator()->get_zone_feed( 'feed-zone' );
+		$feed = self::feed()->get( 'feed-zone' );
 
 		$this->assertSame( array( $post_ids[1], $post_ids[0] ), array_map( 'intval', wp_list_pluck( $feed, 'ID' ) ) );
 		$this->assertSame(
-			array( 'ID', 'post_date', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'guid' ),
+			array( 'ID', 'post_date', 'post_title', 'post_excerpt', 'post_status', 'guid' ),
 			array_keys( (array) $feed[0] )
 		);
 	}
 
+	/**
+	 * The feed is public, and it gives a post's fields as they're stored. A
+	 * post's stored content hasn't been through the site's content filters,
+	 * which is where a paywall or a membership plugin holds it back, so the
+	 * feed leaves it out unless a site asks for it.
+	 */
+	public function test_feed_has_a_posts_content_only_when_a_site_asks_for_it(): void {
+		$zone_id = $this->create_zone();
+		self::add_zone_posts( $zone_id, array( self::factory()->post->create( array( 'post_content' => 'The whole story' ) ) ) );
+
+		$by_default = self::feed()->get( 'feed-zone' );
+		add_filter( 'zoninator_zone_feed_fields', static fn( $fields ) => array_merge( $fields, array( 'post_content' ) ) );
+		$asked_for = self::feed()->get( 'feed-zone' );
+
+		$this->assertStringNotContainsString( 'The whole story', wp_json_encode( $by_default ) );
+		$this->assertSame( 'The whole story', $asked_for[0]->post_content );
+	}
+
 	public function test_feed_hides_content_of_password_protected_posts(): void {
+		add_filter( 'zoninator_zone_feed_fields', static fn( $fields ) => array_merge( $fields, array( 'post_content' ) ) );
 		$zone_id = $this->create_zone();
 		$post_id = self::factory()->post->create(
 			array(
@@ -54,9 +102,9 @@ final class ZoninatorZoneFeedTest extends TestCase {
 				'post_password' => 'secret',
 			)
 		);
-		\Zoninator()->add_zone_posts( $zone_id, array( $post_id ) );
+		self::add_zone_posts( $zone_id, array( $post_id ) );
 
-		$feed = \Zoninator()->get_zone_feed( 'feed-zone' );
+		$feed = self::feed()->get( 'feed-zone' );
 
 		$this->assertSame( '', $feed[0]->post_content );
 		$this->assertSame( '', $feed[0]->post_excerpt );
@@ -64,7 +112,7 @@ final class ZoninatorZoneFeedTest extends TestCase {
 
 	public function test_feed_fields_filter_limits_the_fields(): void {
 		$zone_id = $this->create_zone();
-		\Zoninator()->add_zone_posts( $zone_id, array( self::factory()->post->create() ) );
+		self::add_zone_posts( $zone_id, array( self::factory()->post->create() ) );
 		add_filter(
 			'zoninator_zone_feed_fields',
 			static function () {
@@ -72,21 +120,28 @@ final class ZoninatorZoneFeedTest extends TestCase {
 			}
 		);
 
-		$feed = \Zoninator()->get_zone_feed( 'feed-zone' );
+		$feed = self::feed()->get( 'feed-zone' );
 
 		$this->assertSame( array( 'ID', 'post_title' ), array_keys( (array) $feed[0] ) );
 	}
 
-	public function test_feed_for_a_missing_zone_is_an_error(): void {
-		$feed = \Zoninator()->get_zone_feed( 'no-such-zone' );
+	public function test_there_is_no_feed_for_a_missing_zone(): void {
+		$this->assertNull( self::feed()->get( 'no-such-zone' ) );
+	}
 
-		$this->assertWPError( $feed );
-		$this->assertSame( 'invalid-zone-supplied', $feed->get_error_code() );
+	/**
+	 * An empty zone is still a zone. Its feed is an empty list, not nothing.
+	 */
+	public function test_feed_for_an_empty_zone_is_an_empty_list(): void {
+		$zone_id = self::insert_zone( 'empty-feed-zone' );
+
+		$this->assertSame( array(), self::feed()->get( 'empty-feed-zone' ) );
+		$this->assertSame( array(), self::feed()->get( $zone_id ) );
 	}
 
 	public function test_feed_filters_get_the_zone_they_were_asked_for(): void {
 		$zone_id = $this->create_zone();
-		\Zoninator()->add_zone_posts( $zone_id, array( self::factory()->post->create() ) );
+		self::add_zone_posts( $zone_id, array( self::factory()->post->create() ) );
 		$seen    = array();
 		$args    = static function ( $args, $zone ) use ( &$seen ) {
 			$seen[] = array( 'args', $args, $zone );
@@ -99,7 +154,7 @@ final class ZoninatorZoneFeedTest extends TestCase {
 		add_filter( 'zoninator_json_feed_fields', $args, 10, 2 );
 		add_filter( 'zoninator_json_feed_results', $results, 10, 2 );
 
-		$feed = \Zoninator()->get_zone_feed( 'feed-zone' );
+		$feed = self::feed()->get( 'feed-zone' );
 
 		$this->assertSame( array( 'replaced' ), $feed );
 		$this->assertSame(
@@ -113,34 +168,70 @@ final class ZoninatorZoneFeedTest extends TestCase {
 
 	public function test_a_request_without_the_feed_query_var_is_left_alone(): void {
 		ob_start();
-		\Zoninator()->do_zoninator_feeds();
+		zoninator_container()->get( FeedEndpoint::class )->serve();
 
 		$this->assertSame( '', ob_get_clean() );
 	}
 
-	/**
-	 * @dataProvider data_feed_hooks
-	 *
-	 * @param string $hook   Hook name.
-	 * @param string $method Zoninator method.
-	 */
-	public function test_feed_hooks_are_registered_on_the_facade( string $hook, string $method ): void {
-		$this->assertSame( 10, has_action( $hook, array( \Zoninator(), $method ) ) );
+	public function test_serve_sends_the_zone_feed_as_json(): void {
+		$post_id = self::factory()->post->create( array( 'post_title' => 'In the feed' ) );
+		self::add_zone_posts( $this->create_zone(), array( $post_id ) );
+
+		list( $body, $status ) = $this->serve( 'feed-zone' );
+
+		$this->assertSame( 200, $status );
+		$this->assertSame( array( $post_id ), array_column( json_decode( $body, true ), 'ID' ) );
+		$this->assertSame( 'In the feed', json_decode( $body, true )[0]['post_title'] );
+	}
+
+	public function test_serve_refuses_a_zone_that_does_not_exist(): void {
+		list( $body, $status ) = $this->serve( 'no-such-zone' );
+
+		$this->assertSame( 406, $status );
+		$this->assertSame( 'null', $body );
 	}
 
 	/**
-	 * @return array<string, array{string, string}>
+	 * Serves the feed for a zone, as a request for /zones/{slug}/feed.json would.
+	 *
+	 * wp_send_json() ends the request, through wp_die() when it's an Ajax
+	 * request, so make it one and have wp_die() throw.
+	 *
+	 * @param string $slug Zone slug.
+	 * @return array{string, int} The body and the status sent.
 	 */
-	public function data_feed_hooks(): array {
-		return array(
-			'rewrite rule' => array( 'init', 'add_zone_feed' ),
-			'feed request' => array( 'template_redirect', 'do_zoninator_feeds' ),
+	private function serve( string $slug ): array {
+		set_query_var( Taxonomy::NAME, $slug );
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static fn() => static function (): void {
+				throw new WPDieException();
+			}
 		);
+		$status = 200;
+		add_filter(
+			'status_header',
+			static function ( $header, $code ) use ( &$status ) {
+				$status = $code;
+				return $header;
+			},
+			10,
+			2
+		);
+
+		ob_start();
+		try {
+			zoninator_container()->get( FeedEndpoint::class )->serve();
+		} catch ( WPDieException $exception ) {
+			return array( (string) ob_get_clean(), $status );
+		}
+		ob_end_clean();
+
+		$this->fail( 'Expected the feed to end the request.' );
 	}
 
 	private function create_zone(): int {
-		$zone = \Zoninator()->insert_zone( 'feed-zone', 'Feed zone' );
-
-		return (int) $zone['term_id'];
+		return self::insert_zone( 'feed-zone', 'Feed zone' );
 	}
 }

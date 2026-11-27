@@ -9,6 +9,7 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+
 class ZoninatorZoneLockNoticeTest extends TestCase {
 
 	public function test_lock_notice_names_the_user_without_their_email(): void {
@@ -21,12 +22,10 @@ class ZoninatorZoneLockNoticeTest extends TestCase {
 		);
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 
-		$zone = Zoninator()->insert_zone( 'locked-zone', 'Locked zone' );
-		Zoninator()->lock_zone( (int) $zone['term_id'], $locker_id );
+		$zone_id = self::insert_zone( 'locked-zone', 'Locked zone' );
+		self::locker()->lock( $zone_id, $locker_id );
 
-		ob_start();
-		Zoninator()->admin_page_zone_edit( Zoninator()->get_zone( (int) $zone['term_id'] ) );
-		$output = ob_get_clean();
+		$output = self::render_zone_editor( $zone_id );
 
 		$this->assertStringContainsString( 'Zone Locker', $output );
 		$this->assertStringNotContainsString( 'zoninator-locker@example.com', $output );

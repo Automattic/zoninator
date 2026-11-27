@@ -30,11 +30,10 @@ class ZoninatorZonePostsCacheTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$zone          = \Zoninator()->insert_zone( 'cache-zone', 'Cache Zone' );
-		$this->zone_id = $zone['term_id'];
+		$this->zone_id = self::insert_zone( 'cache-zone', 'Cache Zone' );
 
 		$this->post_ids = self::factory()->post->create_many( 3 );
-		\Zoninator()->add_zone_posts( $this->zone_id, array( $this->post_ids[0], $this->post_ids[1] ) );
+		self::add_zone_posts( $this->zone_id, array( $this->post_ids[0], $this->post_ids[1] ) );
 	}
 
 	/**
@@ -43,7 +42,7 @@ class ZoninatorZonePostsCacheTest extends TestCase {
 	 * @return int[]
 	 */
 	private function get_zone_post_ids() {
-		return wp_list_pluck( \Zoninator()->get_zone_posts( $this->zone_id ), 'ID' );
+		return wp_list_pluck( self::zones()->get_posts( $this->zone_id ), 'ID' );
 	}
 
 	public function test_repeat_call_runs_no_new_queries() {
@@ -61,7 +60,7 @@ class ZoninatorZonePostsCacheTest extends TestCase {
 	public function test_added_post_shows_right_away() {
 		$this->get_zone_post_ids();
 
-		\Zoninator()->add_zone_posts( $this->zone_id, array( $this->post_ids[2] ), true );
+		self::add_zone_posts( $this->zone_id, array( $this->post_ids[2] ), true );
 
 		$this->assertSame( $this->post_ids, $this->get_zone_post_ids() );
 	}
@@ -69,7 +68,7 @@ class ZoninatorZonePostsCacheTest extends TestCase {
 	public function test_removed_post_is_gone_right_away() {
 		$this->get_zone_post_ids();
 
-		\Zoninator()->remove_zone_posts( $this->zone_id, array( $this->post_ids[0] ) );
+		self::remove_zone_posts( $this->zone_id, array( $this->post_ids[0] ) );
 
 		$this->assertSame( array( $this->post_ids[1] ), $this->get_zone_post_ids() );
 	}
@@ -77,7 +76,7 @@ class ZoninatorZonePostsCacheTest extends TestCase {
 	public function test_new_order_shows_right_away() {
 		$this->get_zone_post_ids();
 
-		\Zoninator()->add_zone_posts( $this->zone_id, array( $this->post_ids[1], $this->post_ids[0] ) );
+		self::add_zone_posts( $this->zone_id, array( $this->post_ids[1], $this->post_ids[0] ) );
 
 		$this->assertSame( array( $this->post_ids[1], $this->post_ids[0] ), $this->get_zone_post_ids() );
 	}

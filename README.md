@@ -1,9 +1,9 @@
 # Zone Manager (Zoninator)
 
-Stable tag: 0.12.0  
-Requires at least: 6.4  
+Stable tag: 1.0.0  
+Requires at least: 6.9  
 Tested up to: 7.1  
-Requires PHP: 7.4  
+Requires PHP: 8.2  
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 Tags: zones, post order, post list, posts, order, zonination, content curation, curation, content management  
@@ -20,7 +20,7 @@ This plugin was originally built by [Mohammad Jangda](http://digitalize.ca) in c
 ### Features
 
 * Add, edit, and delete zones.
-* Add and remove posts (or any custom post type) to or from zones.
+* Add and remove posts (or any post type that supports zones) to or from zones.
 * Order posts in any given zone, by drag and drop or with the keyboard (Move up and Move down).
 * Limit capabilities on who can add, edit, and delete zones vs add content to zones.
 * Locking mechanism, so only one user can edit a zone at a time (to avoid conflicts).
@@ -31,7 +31,7 @@ This plugin was originally built by [Mohammad Jangda](http://digitalize.ca) in c
 1. Unzip contents and upload to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Go to Zones in the admin menu to create and manage your zones, and easily search for and add existing posts.
-4. Use the plugin's handy API functions to add zones to your theme that retrieve and display your content. Or, for those who are a bit code-averse, go to Appearance-Widgets and add Zone Posts widgets to display your zone posts in your sidebar or footer. The widget will pull the posts from the chosen zone.
+4. Use the plugin's handy API functions to add zones to your theme that retrieve and display your content. Or, for those who are a bit code-averse, go to Appearance → Widgets and add Zone Posts widgets to display your zone posts in your sidebar or footer. The widget will pull the posts from the chosen zone. On a block theme, add the Zone Posts block to a page or template and pick the zone in its settings.
 
 ### Usage examples
 
@@ -40,7 +40,7 @@ You can work with a zone's posts either as a `WP_Query` object or as a plain arr
 **WP_Query**
 
 ~~~php
-$zone_query = z_get_zone_query( 'homepage' );
+$zone_query = zoninator_get_zone_query( 'homepage' );
 if ( $zone_query->have_posts() ) :
 	while ( $zone_query->have_posts() ) : $zone_query->the_post();
 		echo '<li>' . esc_html( get_the_title() ) . '</li>';
@@ -52,7 +52,7 @@ endif;
 **Posts Array**
 
 ~~~php
-$zone_posts = z_get_posts_in_zone( 'homepage' );
+$zone_posts = zoninator_get_posts_in_zone( 'homepage' );
 foreach ( $zone_posts as $zone_post ) :
 	echo '<li>' . esc_html( get_the_title( $zone_post->ID ) ) . '</li>';
 endforeach;
@@ -66,7 +66,9 @@ Audience-targeted documentation lives in the GitHub repository:
 
 * [Theme developer guide](https://github.com/Automattic/zoninator/blob/main/docs/theme-developers.md) — using zones in your theme.
 * [Hooks reference](https://github.com/Automattic/zoninator/blob/main/docs/hooks.md) — every filter and action the plugin exposes.
+* [Changing zones from PHP](https://github.com/Automattic/zoninator/blob/main/docs/php-api.md) — creating zones and changing their posts in code.
 * [REST API](https://github.com/Automattic/zoninator/blob/main/docs/rest-api.md) — endpoints under the `zoninator/v1` namespace, for headless integrations.
+* [Abilities](https://github.com/Automattic/zoninator/blob/main/docs/abilities.md) — for AI agents and other tools.
 * [Upgrading](https://github.com/Automattic/zoninator/blob/main/docs/upgrades.md) — what to check when you update, release by release.
 * [Contributing](https://github.com/Automattic/zoninator/blob/main/CONTRIBUTING.md) — local setup, tests, and PR conventions.
 * [Security](https://github.com/Automattic/zoninator/security/policy) — responsible disclosure.
@@ -78,19 +80,19 @@ Audience-targeted documentation lives in the GitHub repository:
 You can use a filter:
 
 ~~~php
-add_filter( 'zoninator_zone_max_lock_period', 'z_disable_zoninator_locks' );
+add_filter( 'zoninator_zone_max_lock_period', 'zoninator_disable_locks' );
 ~~~
 
 ### How do I change the locking feature settings?
 
 Filter the following and change according to your needs:
 
-* Number of seconds a lock is valid for, default `30`: `zoninator_zone_lock_period`
-* Max idle time in seconds: `zoninator_zone_max_lock_period`
+* How often, in seconds, the Zones screen renews a zone's lock, default `30`: `zoninator_zone_lock_period`
+* How long, in seconds, an editor can leave a zone unchanged before the screen asks whether they're still working, default `600`: `zoninator_zone_max_lock_period`
 
-### Can anonymous users still read zones over the REST API?
+### Can anonymous users read zones over the REST API?
 
-Not by default since version 0.11.0. The `GET /wp-json/zoninator/v1/zones` endpoint now requires an authenticated user. If your integration relied on anonymous access, you can restore the previous behavior with the `zoninator_rest_get_zones_permissions_check` filter:
+Not by default. The `GET /wp-json/zoninator/v1/zones` endpoint needs a user who can edit posts or curate zones. To let anyone list the zones, use the `zoninator_rest_get_zones_permissions_check` filter:
 
 ~~~php
 add_filter( 'zoninator_rest_get_zones_permissions_check', '__return_true' );
@@ -100,9 +102,13 @@ See the [REST API documentation](https://github.com/Automattic/zoninator/blob/ma
 
 ### Can I use Zoninator with custom post types?
 
-Yes. Call `Zoninator()->register_zone_post_type( 'your_post_type' )` after `init` to add zone support to a custom post type.
+Yes. Call `add_post_type_support( 'your_post_type', 'zoninator_zones' )`, or add `zoninator_zones` to the `supports` list when you register the post type.
 
 ## Upgrade Notice
+
+### 1.0.0
+
+Breaking release: needs WordPress 6.9 and PHP 8.2. Template tags are renamed from `z_` to `zoninator_` and `Zoninator()` is removed, so update your theme first or it will stop with a fatal error. Read the upgrade guide before updating.
 
 ### 0.12.0
 
@@ -115,6 +121,18 @@ Fixes three security issues, so update soon. If you lower `zoninator_manage_zone
 ## Changelog
 
 The highlights of recent releases are below. Every change, including older releases, is listed in [CHANGELOG.md](https://github.com/Automattic/zoninator/blob/main/CHANGELOG.md).
+
+### 1.0.0
+
+Requires WordPress 6.9 and PHP 8.2. This is a breaking release for themes and code that use Zoninator: read the [upgrade guide](https://github.com/Automattic/zoninator/blob/main/docs/upgrading-to-1.0.md) before updating.
+
+- **Changed:** The template tags are renamed from `z_` to `zoninator_`, such as `zoninator_get_posts_in_zone()`. Update your theme first.
+- **Removed:** The `Zoninator` class, `Zoninator()`, and the admin-ajax actions deprecated in 0.12.0.
+- **New:** The Zone Posts block shows a zone in block themes and the block editor, as a list of linked titles you can design like any Query Loop.
+- **New:** Agents and other tools can read and curate zones through the Abilities API.
+- **Changed:** A zone holds up to 100 posts by default, and a zone's lock now stops changes made over the REST API too.
+- **Fixed:** Zone names and descriptions keep quotes, ampersands and line breaks, and the JSON feed works straight after activation.
+- **Security:** The JSON feed no longer includes post content by default, and listing zones over the REST API needs a user who can edit posts.
 
 ### 0.12.0
 
@@ -135,15 +153,6 @@ Developers: the bundled Mixtape REST library is gone, and `Zoninator()`'s public
 - **Security:** The zone lock notice no longer reveals the locking user's email address.
 - **Changed:** The post search and Add Recent Content list on the Zones screen are faster on sites with many posts.
 - **Fixed:** A fatal error on PHP 8 when the `zoninator_admin_page_get_zones_args` filter asks for zone IDs or names.
-
-### 0.11.0
-
-Requires WordPress 6.4 or later.
-
-- **Changed:** The `GET /wp-json/zoninator/v1/zones` REST endpoint requires a logged-in user. The `zoninator_rest_get_zones_permissions_check` filter can allow anonymous access again.
-- **Security:** The post search on the Zones screen checks the user's permissions and nonce.
-- **Security:** Zone descriptions and the Zones screen are hardened against cross-site scripting.
-- **Fixed:** Small fixes to zone locks, AJAX responses and translations.
 
 ## Screenshots
 

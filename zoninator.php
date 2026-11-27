@@ -3,10 +3,10 @@
 Plugin Name: Zone Manager (Zoninator)
 Description: Create zones of selected posts in a set order, and display them on your site.
 Author: Mohammad Jangda, Automattic
-Version: 0.12.0
+Version: 1.0.0
 Author URI: https://wpvip.com
-Requires at least: 6.4
-Requires PHP: 7.4
+Requires at least: 6.9
+Requires PHP: 8.2
 Text Domain: zoninator
 Domain Path: /languages/
 
@@ -32,29 +32,57 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 */
 
-define( 'ZONINATOR_VERSION', '0.12.0' );
+use Automattic\Zoninator\Infrastructure\DI\Container;
+use Automattic\Zoninator\Infrastructure\WordPress\PluginBootstrapper;
+
+define( 'ZONINATOR_VERSION', '1.0.0' );
 define( 'ZONINATOR_FILE', __FILE__ );
 
 require_once __DIR__ . '/functions.php';
-require_once __DIR__ . '/src/class-zoninator-zoneposts-widget.php';
-require_once __DIR__ . '/src/class-settings.php';
-require_once __DIR__ . '/src/class-taxonomy.php';
-require_once __DIR__ . '/src/class-capabilities.php';
-require_once __DIR__ . '/src/class-request.php';
-require_once __DIR__ . '/src/class-zones.php';
-require_once __DIR__ . '/src/class-locks.php';
-require_once __DIR__ . '/src/class-feed.php';
-require_once __DIR__ . '/src/admin/class-screen.php';
-require_once __DIR__ . '/src/admin/class-ajax.php';
-require_once __DIR__ . '/src/class-zoninator.php';
 
-function Zoninator() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid, Universal.Files.SeparateFunctionsFromOO.Mixed -- Windows is case-sensitive, so changing this is a breaking change.
-	global $zoninator;
-	if ( ! isset( $zoninator ) || null === $zoninator ) {
-		$zoninator = new Zoninator();
+// Loads the classes under Automattic\Zoninator\ from src/, by PSR-4, when they're first used.
+spl_autoload_register(
+	static function ( $class_name ) {
+		$prefix = 'Automattic\\Zoninator\\';
+
+		if ( 0 !== strpos( $class_name, $prefix ) ) {
+			return;
+		}
+
+		$file = __DIR__ . '/src/' . str_replace( '\\', '/', substr( $class_name, strlen( $prefix ) ) ) . '.php';
+
+		if ( is_readable( $file ) ) {
+			require_once $file;
+		}
+	}
+);
+
+/**
+ * Boots Zoninator the first time it's called, and returns its container.
+ *
+ * Use the container's get() to reach the object that handles one of
+ * Zoninator's hooks, to unhook it, for example on plugins_loaded at priority 20:
+ * remove_action( 'template_redirect', array( zoninator_container()->get( \Automattic\Zoninator\Infrastructure\WordPress\FeedEndpoint::class ), 'serve' ) ).
+ *
+ * @since 1.0.0
+ *
+ * @return Container
+ */
+function zoninator_container() {
+	static $container = null;
+
+	if ( null === $container ) {
+		$container = new Container();
+
+		( new PluginBootstrapper( $container ) )->boot();
 	}
 
-	return $zoninator;
+	return $container;
 }
 
-Zoninator();
+// Some themes load plugins from functions.php, after plugins_loaded has fired.
+if ( did_action( 'plugins_loaded' ) ) {
+	zoninator_container();
+} else {
+	add_action( 'plugins_loaded', 'zoninator_container' );
+}

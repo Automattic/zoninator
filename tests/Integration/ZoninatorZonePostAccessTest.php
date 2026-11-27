@@ -9,15 +9,10 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Tests\Integration;
 
-use WP_Ajax_UnitTestCase;
+use Generator;
 use WP_REST_Request;
-use WPAjaxDieContinueException;
-use WPAjaxDieStopException;
 
-/**
- * @group ajax
- */
-class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
+class ZoninatorZonePostAccessTest extends TestCase {
 
 	/**
 	 * @var int
@@ -40,8 +35,7 @@ class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 		parent::setUp();
 
 		$this->editor_id  = self::factory()->user->create( array( 'role' => 'editor' ) );
-		$zone             = Zoninator()->insert_zone( 'access-zone', 'Access zone' );
-		$this->zone_id    = (int) $zone['term_id'];
+		$this->zone_id    = self::insert_zone( 'access-zone', 'Access zone' );
 		$this->secret_id  = self::factory()->post->create( array( 'post_title' => 'zoninator-canary@example.com' ) );
 
 		// A supported, published post that only the read_post check stops the editor using.
@@ -53,114 +47,32 @@ class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 			10,
 			4
 		);
-
-		$_REQUEST = array();
-		$_POST    = array();
-		$_GET     = array();
 	}
 
-	public function tearDown(): void {
-		$_REQUEST = array();
-		$_POST    = array();
-		$_GET     = array();
-		parent::tearDown();
-	}
-
-	public function test_add_post_rejects_a_post_the_user_cannot_read(): void {
-		$response = $this->ajax( 'zoninator_add_post', array( 'post_id' => $this->secret_id ) );
-
-		$this->assertSame( 0, $response['status'] );
-		$this->assertStringNotContainsString( 'zoninator-canary@example.com', $this->_last_response );
-		$this->assertSame( '', $this->zone_order( $this->secret_id ) );
-	}
-
-	public function test_add_post_accepts_a_supported_post(): void {
-		$post_id  = self::factory()->post->create();
-		$response = $this->ajax( 'zoninator_add_post', array( 'post_id' => $post_id ) );
-
-		$this->assertSame( 1, $response['status'] );
-		$this->assertSame( '1', $this->zone_order( $post_id ) );
-	}
-
-	public function test_reorder_rejects_a_post_the_user_cannot_read(): void {
-		$post_id  = self::factory()->post->create();
-		$response = $this->ajax( 'zoninator_reorder_posts', array( 'posts' => array( $post_id, $this->secret_id ) ) );
-
-		$this->assertSame( 0, $response['status'] );
-		$this->assertSame( '', $this->zone_order( $this->secret_id ) );
-	}
-
-	/**
-	 * An author lacks the default zone management capability, so each zone
-	 * handler must stop them even when they send a valid nonce.
-	 *
-	 * @dataProvider data_zone_ajax_actions
-	 *
-	 * @param string $action AJAX action.
-	 */
-	public function test_zone_action_refuses_a_user_who_cannot_manage_zones( string $action ): void {
-		$post_id = self::factory()->post->create();
-		Zoninator()->add_zone_posts( $this->zone_id, array( $post_id ) );
-
-		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
-
-		try {
-			$this->ajax(
-				$action,
-				array(
-					'post_id' => $post_id,
-					'posts'   => array( $post_id ),
-				),
-				$author_id
-			);
-			$this->fail( 'Expected the handler to stop the request.' );
-		} catch ( WPAjaxDieStopException $e ) {
-			$this->assertSame( esc_html( "Sorry, you're not supposed to do that..." ), $e->getMessage() );
-		}
-
-		$this->assertSame( '', $this->_last_response );
-		$this->assertSame( '1', $this->zone_order( $post_id ) );
-		$this->assertFalse( Zoninator()->is_zone_locked( $this->zone_id ) );
-	}
-
-	/**
-	 * @return array<string, array{string}>
-	 */
-	public function data_zone_ajax_actions(): array {
-		return array(
-			'add post'      => array( 'zoninator_add_post' ),
-			'remove post'   => array( 'zoninator_remove_post' ),
-			'reorder posts' => array( 'zoninator_reorder_posts' ),
-			'update lock'   => array( 'zoninator_update_lock' ),
-			'search posts'  => array( 'zoninator_search_posts' ),
-			'recent posts'  => array( 'zoninator_update_recent' ),
-		);
-	}
-
-	/**
-	 * @dataProvider data_rest_zone_post_methods
-	 *
-	 * @param string $method HTTP method.
-	 */
-	public function test_rest_zone_post_route_rejects_a_post_the_user_cannot_read( string $method ): void {
+	public function test_rest_add_rejects_a_post_the_user_cannot_read(): void {
 		wp_set_current_user( $this->editor_id );
-		Zoninator()->add_zone_posts( $this->zone_id, array( $this->secret_id ) );
 
-		$response = rest_do_request( new WP_REST_Request( $method, '/zoninator/v1/zones/' . $this->zone_id . '/posts/' . $this->secret_id ) );
+		$response = rest_do_request( new WP_REST_Request( 'POST', '/zoninator/v1/zones/' . $this->zone_id . '/posts/' . $this->secret_id ) );
 
 		$this->assertSame( 400, $response->get_status() );
 		$this->assertStringNotContainsString( 'zoninator-canary@example.com', wp_json_encode( $response->get_data() ) );
-		$this->assertSame( '1', $this->zone_order( $this->secret_id ) );
+		$this->assertSame( '', $this->zone_order( $this->secret_id ) );
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * Curating a zone is deciding what's in it. A post already there can be
+	 * taken out whether or not the user may read it, and the response says
+	 * nothing about it.
 	 */
-	public function data_rest_zone_post_methods(): array {
-		return array(
-			'add'    => array( 'POST' ),
-			'remove' => array( 'DELETE' ),
-		);
+	public function test_rest_remove_takes_out_a_post_the_user_cannot_read(): void {
+		wp_set_current_user( $this->editor_id );
+		self::add_zone_posts( $this->zone_id, array( $this->secret_id ) );
+
+		$response = rest_do_request( new WP_REST_Request( 'DELETE', '/zoninator/v1/zones/' . $this->zone_id . '/posts/' . $this->secret_id ) );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( 'success' => true ), $response->get_data() );
+		$this->assertSame( '', $this->zone_order( $this->secret_id ) );
 	}
 
 	/**
@@ -186,31 +98,11 @@ class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_search_terms(): array {
-		return array(
-			'text search'    => array( 'zoninator-canary' ),
-			'latest content' => array( '' ),
-		);
-	}
-
-	public function test_ajax_search_leaves_out_posts_the_user_cannot_read(): void {
-		$readable_id = self::factory()->post->create( array( 'post_title' => 'zoninator-canary readable' ) );
-
-		$response = $this->ajax( 'zoninator_search_posts', array( 'term' => 'zoninator-canary' ) );
-
-		$this->assertSame( array( $readable_id ), array_map( 'intval', wp_list_pluck( $response, 'post_id' ) ) );
-	}
-
-	public function test_ajax_recent_posts_leave_out_posts_the_user_cannot_read(): void {
-		$readable_id = self::factory()->post->create( array( 'post_title' => 'zoninator-canary readable' ) );
-
-		$response = $this->ajax( 'zoninator_update_recent', array() );
-
-		$this->assertSame( 1, $response['status'] );
-		$this->assertStringContainsString( 'value="' . $readable_id . '"', $response['content'] );
-		$this->assertStringNotContainsString( 'zoninator-canary@example.com', $response['content'] );
+	public static function data_search_terms(): Generator {
+		yield 'text search' => array( 'zoninator-canary' );
+		yield 'latest content' => array( '' );
 	}
 
 	public function test_rest_update_rejects_a_post_the_user_cannot_read(): void {
@@ -225,37 +117,54 @@ class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Run a Zoninator AJAX action with a valid nonce and decode the response.
-	 *
-	 * @param string   $action  AJAX action.
-	 * @param array    $data    Request data.
-	 * @param int|null $user_id User to run as. Defaults to the editor.
-	 * @return array|null
+	 * Saving the zone's order sends every post in it. One the user may not
+	 * read is already there, so it isn't being added, and the order is saved.
 	 */
-	private function ajax( $action, $data, $user_id = null ) {
-		wp_set_current_user( $user_id ?? $this->editor_id );
+	public function test_rest_update_reorders_a_zone_that_holds_a_post_the_user_cannot_read(): void {
+		wp_set_current_user( $this->editor_id );
+		$readable_id = self::factory()->post->create();
+		self::add_zone_posts( $this->zone_id, array( $this->secret_id, $readable_id ) );
 
-		$zoninator = Zoninator();
-		$_POST     = array_merge(
-			array(
-				'action'   => $action,
-				'zone_id'  => $this->zone_id,
-				'_wpnonce' => wp_create_nonce( $zoninator->_get_nonce_key( \Automattic\Zoninator\Admin\Ajax::NONCE_ACTION ) ),
-			),
-			$data
+		$request = new WP_REST_Request( 'PUT', '/zoninator/v1/zones/' . $this->zone_id . '/posts' );
+		$request->set_param( 'post_ids', array( $readable_id, $this->secret_id ) );
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '1', $this->zone_order( $readable_id ) );
+		$this->assertSame( '2', $this->zone_order( $this->secret_id ) );
+	}
+
+	/**
+	 * The screen lists every post in the zone, or saving the zone's order
+	 * would drop the ones left out. A post the user may not read keeps its
+	 * row, which says nothing about it.
+	 */
+	public function test_the_zones_screen_lists_a_post_the_user_cannot_read_without_saying_what_it_is(): void {
+		wp_set_current_user( $this->editor_id );
+		$readable_id = self::factory()->post->create( array( 'post_title' => 'Readable story' ) );
+		self::add_zone_posts( $this->zone_id, array( $this->secret_id, $readable_id ) );
+		$seen = array();
+		add_filter(
+			'zoninator_zone_post_columns',
+			static function ( $columns, $post ) use ( &$seen ) {
+				$seen[] = $post->ID;
+
+				return $columns;
+			},
+			10,
+			2
 		);
 
-		// The action is deprecated, but still has to work until 1.0.0.
-		$method = 'zoninator_update_recent' === $action ? 'recent_posts' : substr( $action, strlen( 'zoninator_' ) );
-		$this->setExpectedDeprecated( 'Zoninator::ajax_' . $method );
+		$html = self::render_zone_editor( $this->zone_id );
 
-		try {
-			$this->_handleAjax( $action );
-		} catch ( WPAjaxDieContinueException $e ) {
-			// Expected. wp_send_json() dies after echoing JSON.
-		}
-
-		return json_decode( $this->_last_response, true );
+		$this->assertStringContainsString( 'id="zone-post-' . $this->secret_id . '"', $html );
+		$this->assertStringContainsString( 'Readable story', $html );
+		$this->assertStringNotContainsString( 'zoninator-canary@example.com', $html );
+		$this->assertStringNotContainsString( get_permalink( $this->secret_id ), $html );
+		// Each row has a Remove button, so the post can still be taken out.
+		$this->assertSame( 2, substr_count( $html, 'button-link-delete delete' ) );
+		// A site's columns aren't asked to print a post the user may not read.
+		$this->assertSame( array( $readable_id ), $seen );
 	}
 
 	/**
@@ -263,6 +172,6 @@ class ZoninatorZonePostAccessTest extends WP_Ajax_UnitTestCase {
 	 * @return string The post's order in the zone, or '' if it isn't in it.
 	 */
 	private function zone_order( $post_id ) {
-		return (string) get_post_meta( $post_id, Zoninator()->get_zone_meta_key( $this->zone_id ), true );
+		return (string) get_post_meta( $post_id, self::zones()->get_meta_key( $this->zone_id ), true );
 	}
 }

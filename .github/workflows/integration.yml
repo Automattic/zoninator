@@ -27,14 +27,14 @@ jobs:
       matrix:
         include:
           # Check lowest supported WP version, with the lowest supported PHP.
-          - wordpress: '6.4'
-            php: '7.4'
+          - wordpress: '6.9'
+            php: '8.2'
           # Check the WP version in the readme's "Tested up to", with the latest PHP.
           - wordpress: '7.1'
             php: '8.5'
           # Check the next WP version, with the latest PHP.
           - wordpress: 'master'
-            php: '8.5'
+            php: '8.6'
       fail-fast: false
 
     steps:
@@ -73,6 +73,9 @@ jobs:
         run: echo "::add-matcher::${RUNNER_TOOL_CACHE}/phpunit.json"
         env:
           RUNNER_TOOL_CACHE: ${{ runner.tool_cache }}
+
+      - name: Run unit tests
+        run: composer test:unit
 
       - name: Setup wp-env
         run: npx --no wp-env start

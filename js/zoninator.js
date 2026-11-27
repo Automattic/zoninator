@@ -129,9 +129,9 @@ var zoninator = {};
 					status = item.post_status_label || item.post_status,
 					$anchor = $('<div></div>')
 						.append($('<span class="title"></span>').text(item.title))
-						.append($('<span class="meta"></span>').text([type, item.date, status].join(' · ')));
+						.append($('<span class="meta"></span>').text([type, item.date, status].join(zoninatorOptions.metaSeparator)));
 				return $('<li></li>')
-					.attr('aria-label', [item.title, type, item.date, status].join(', '))
+					.attr('aria-label', [item.title, type, item.date, status].join(zoninatorOptions.listSeparator))
 					.data('item.autocomplete', item)
 					.append($anchor)
 					.appendTo(ul)
@@ -161,7 +161,13 @@ var zoninator = {};
 		zoninator.rest('add_post', 'POST', zoninator.zonePostPath(postId), {
 			zone_id  : zoninator.getZoneId()
 			, post_id: postId
-		}, zoninator.addPostSuccessCallback);
+		}, function() {
+			// The post is in the zone. The REST API returns data only, so the row to show for it comes
+			// from the screen's own route, which runs the columns sites add in PHP.
+			wp.apiFetch({ path: zoninator.zonePostPath(postId) + '/row' }).then(zoninator.addPostSuccessCallback, function(error) {
+				zoninator.ajaxErrorCallback({ status: 0, content: error && error.message }, { action: zoninator.getAjaxAction('add_post') });
+			});
+		});
 
 	}
 
@@ -324,7 +330,7 @@ var zoninator = {};
 		return '/zoninator/v1/zones/' + zoninator.getZoneId() + '/posts/' + postId;
 	}
 
-	// Sends a request to the zoninator/v1 REST API, and handles the response as zoninator.ajax() does.
+	// Sends a request to the zoninator/v1 REST API, and handles the response.
 	zoninator.rest = function(action, method, path, values, successCallback, body, errorCallback) {
 		var data = $.extend({ action: zoninator.getAjaxAction(action) }, values);
 
@@ -336,33 +342,6 @@ var zoninator = {};
 		}, function(error) {
 			zoninator.ajaxErrorCallback({ status: 0, content: error && error.message }, data, successCallback, errorCallback);
 		});
-	}
-
-	zoninator.ajax = function(action, values, successCallback, errorCallback, params) {
-		var data = {
-			action    : zoninator.getAjaxAction(action)
-			, _wpnonce: zoninator.getAjaxNonce()
-		}
-		data = $.extend({}, data, values);
-
-		// Allow developers to filter the ajax parameters
-		zoninator.$zonePostSearch.trigger('zoninator.ajax', [action, data]);
-
-		var defaultParams = {
-			url       : ajaxurl
-			, data    : data
-			, dataType: 'json'
-			, type    : 'POST'
-			, success : function(returnData) {
-				zoninator.ajaxSuccessCallback(returnData, data, successCallback, errorCallback);
-			}
-			, error   : function(returnData) {
-				zoninator.ajaxErrorCallback(returnData, data, successCallback, errorCallback);
-			}
-		}
-		params = $.extend({}, defaultParams, params);
-
-		$.ajax(params);
 	}
 
 	zoninator.ajaxSuccessCallback = function(returnData, originalData, successCallback, errorCallback) {
@@ -377,9 +356,6 @@ var zoninator = {};
 			$('#zone-posts-notices').empty();
 			zoninator.$zonePostsSaveInfo.text(zoninatorOptions.savedAt.replace('%s', new Date().toLocaleTimeString()));
 		}
-
-		if (returnData.nonce)
-			zoninator.updateAjaxNonce(returnData.nonce);
 
 		if (typeof(successCallback) === 'function') {
 			return successCallback(returnData, originalData);
@@ -425,25 +401,12 @@ var zoninator = {};
 		wp.a11y.speak(message, 'assertive');
 	}
 
-	zoninator.updateAjaxNonce = function(action, nonce) {
-		zoninator.getAjaxNonceField(action).val(nonce);
-	}
-
 	zoninator.getAdvancedCat = function() {
 		return $('#zone_advanced_filter_taxonomy').length ? zoninator.$zoneAdvancedCat.val() : 0;
 	}
 
 	zoninator.getAdvancedDate = function() {
 		return $('#zone_advanced_filter_date').length ? zoninator.$zoneAdvancedDate.val() : 0;
-	}
-
-	zoninator.getAjaxNonce = function(action) {
-		return zoninator.getAjaxNonceField(action).val();
-	}
-
-	zoninator.getAjaxNonceField = function(action) {
-		action = action || zoninatorOptions.ajaxNonceAction;
-		return $('#' + action);
 	}
 
 	zoninator.getZoneId = function() {

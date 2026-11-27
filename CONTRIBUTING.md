@@ -28,7 +28,7 @@ Before opening an issue, please check the [existing issues](https://github.com/A
 - Use a descriptive branch name: `fix/zone-lock-race`, `feature/zone-post-search`, etc.
 - Keep the change focused. If you spot a separate issue while working on a fix, open a separate PR.
 - Include tests for behavior changes. See [tests/README.md](tests/README.md) for how to run them.
-- Make sure `composer cs` and `composer test:integration` pass locally before pushing.
+- Make sure `composer cs`, `composer test:unit` and `composer test:integration` pass locally before pushing. If you change the Zones screen, run `npm run test:e2e` too.
 - Write a clear commit message — the "why" matters more than the "what". The first line is a summary; details go below.
 - **Sign your commits.** `develop` and `main` only accept commits with a verified signature, so a pull request with an unsigned commit cannot be merged until it is re-signed and force-pushed. See GitHub's guide to [signing commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits).
 
@@ -49,7 +49,14 @@ npx --no wp-env start
 To work on another WordPress or PHP version, set `WP_ENV_CORE` and `WP_ENV_PHP_VERSION` when you start it, as CI does:
 
 ```bash
-WP_ENV_CORE=WordPress/WordPress#6.4 WP_ENV_PHP_VERSION=7.4 npx --no wp-env start
+WP_ENV_CORE=WordPress/WordPress#6.9 WP_ENV_PHP_VERSION=8.2 npx --no wp-env start
+```
+
+To run the end-to-end tests against it in a browser (see [tests/README.md](tests/README.md#end-to-end-tests)):
+
+```bash
+npx --no playwright install chromium
+npm run test:e2e
 ```
 
 To stop the environment:
@@ -68,15 +75,19 @@ npx --no wp-env stop
 
 ## Public API
 
-Treat anything in the table below as a public contract. Renaming, removing, or changing the signature of these surfaces is a breaking change and requires a deprecation cycle.
+Treat anything in the table below as a public contract. Renaming, removing, or changing the signature of these surfaces is a breaking change: make it only in a major release, and add it to the upgrade guide for that release in `docs/`.
 
 | Surface | Where |
 |---|---|
-| Template tag functions (`z_*`) | `functions.php` |
+| Template tag functions (`zoninator_*`) and `zoninator_container()` | `functions.php`, `zoninator.php` |
+| PHP API: the classes under `Automattic\Zoninator\Application\` and `Automattic\Zoninator\Domain\` | See [docs/php-api.md](docs/php-api.md) |
 | Hooks (`zoninator_*` filters and actions) | See [docs/hooks.md](docs/hooks.md) |
 | REST namespace `zoninator/v1` | See [docs/rest-api.md](docs/rest-api.md) |
-| JSON feed at `/zones/{slug}/feed.json` | `src/class-feed.php` |
-| Zone Posts widget | `src/class-zoninator-zoneposts-widget.php` |
+| Abilities in the `zoninator` category | See [docs/abilities.md](docs/abilities.md) |
+| JSON feed at `/zones/{slug}/feed.json` | `src/Infrastructure/WordPress/FeedEndpoint.php` |
+| Zone Posts block: the `zoninator/zone-posts` variation and its `zoninatorZone` query key, saved in post content | `src/Infrastructure/WordPress/Block.php` |
+| Zone Posts widget, its class and its ID base | `src/Infrastructure/WordPress/ZonePostsWidget.php` |
+| Storage: the `zoninator_zones` taxonomy and the `_zoninator_order_` post meta prefix | See [docs/php-api.md](docs/php-api.md#how-zones-are-stored) |
 
 ## Repository layout and architecture
 

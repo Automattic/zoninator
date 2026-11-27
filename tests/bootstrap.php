@@ -50,4 +50,28 @@ if ( $is_integration ) {
 
 	// Add custom test case.
 	require __DIR__ . '/Integration/TestCase.php';
+} else {
+	// The unit tests run without WordPress, so load the plugin's classes and the tests' own by PSR-4.
+	require_once dirname( __DIR__ ) . '/vendor/autoload.php';
+
+	spl_autoload_register(
+		static function ( $class_name ) {
+			foreach (
+				array(
+					'Automattic\\Zoninator\\Tests\\' => __DIR__ . '/',
+					'Automattic\\Zoninator\\'        => dirname( __DIR__ ) . '/src/',
+				) as $prefix => $directory
+			) {
+				if ( 0 === strpos( $class_name, $prefix ) ) {
+					$file = $directory . str_replace( '\\', '/', substr( $class_name, strlen( $prefix ) ) ) . '.php';
+
+					if ( is_readable( $file ) ) {
+						require_once $file;
+					}
+
+					return;
+				}
+			}
+		}
+	);
 }

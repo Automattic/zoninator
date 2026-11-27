@@ -9,6 +9,10 @@ declare( strict_types = 1 );
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ScreenLocation;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZoneForm;
+use Automattic\Zoninator\Infrastructure\WordPress\Taxonomy;
+use Generator;
 use RuntimeException;
 use WPDieException;
 
@@ -22,8 +26,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$zone          = \Zoninator()->insert_zone( 'form-zone', 'Form zone', array( 'description' => 'Before' ) );
-		$this->zone_id = (int) $zone['term_id'];
+		$this->zone_id = self::insert_zone( 'form-zone', 'Form zone', array( 'description' => 'Before' ) );
 
 		// The handler redirects and exits on success, so stop it at the redirect.
 		add_filter(
@@ -50,7 +53,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			)
 		);
 
-		$zone = \Zoninator()->get_zone( 'new-zone' );
+		$zone = self::zones()->get( 'new-zone' );
 		$this->assertSame( 'New zone', $zone->name );
 		$this->assertSame( 'Fresh', $zone->description );
 		$this->assertStringContainsString( 'zone_id=' . $zone->term_id, $location );
@@ -67,10 +70,39 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			)
 		);
 
-		$zone = \Zoninator()->get_zone( $this->zone_id );
+		$zone = self::zones()->get( $this->zone_id );
 		$this->assertSame( 'Renamed zone', $zone->name );
 		$this->assertSame( 'After', $zone->description );
 		$this->assertStringContainsString( 'message=update-success', $location );
+	}
+
+	/**
+	 * A failure used to come back as message=error-general, which the screen
+	 * prints in its green "updated" box. It belongs in the red one.
+	 */
+	public function test_a_failed_insert_comes_back_as_an_error(): void {
+		$location = $this->submit( 'insert', array( 'name' => '' ) );
+
+		$this->assertStringContainsString( 'error=general', $location );
+		$this->assertStringNotContainsString( 'message=', $location );
+	}
+
+	public function test_a_failed_update_comes_back_to_the_zone_as_an_error(): void {
+		self::insert_zone( 'taken', 'Taken' );
+
+		$location = $this->submit(
+			'update',
+			array(
+				'zone_id' => $this->zone_id,
+				'name'    => 'Form zone',
+				'slug'    => 'taken',
+			)
+		);
+
+		$this->assertStringContainsString( 'zone_id=' . $this->zone_id, $location );
+		$this->assertStringContainsString( 'error=general', $location );
+		$this->assertStringNotContainsString( 'message=', $location );
+		$this->assertSame( 'form-zone', self::zones()->get( $this->zone_id )->slug );
 	}
 
 	public function test_insert_and_update_keep_backslashes(): void {
@@ -86,7 +118,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			)
 		);
 
-		$zone = \Zoninator()->get_zone( 'backslash' );
+		$zone = self::zones()->get( 'backslash' );
 		$this->assertSame( 'Back\\slash', $zone->name );
 		$this->assertSame( 'C:\\path', $zone->description );
 
@@ -101,9 +133,35 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			)
 		);
 
-		$zone = \Zoninator()->get_zone( (int) $zone->term_id );
+		$zone = self::zones()->get( (int) $zone->term_id );
 		$this->assertSame( 'Two\\back\\slashes', $zone->name );
 		$this->assertSame( 'D:\\path', $zone->description );
+	}
+
+	/**
+	 * WordPress decodes an encoded quote when it saves a term, which used to
+	 * leave the stored length wrong; with a semicolon after the quote, the
+	 * description could not be repaired and read as empty.
+	 */
+	public function test_insert_keeps_a_quote_followed_by_a_semicolon(): void {
+		$this->submit(
+			'insert',
+			wp_slash(
+				array(
+					'name'        => 'The "Daily"; late',
+					'slug'        => 'quoted',
+					'description' => 'He said "hi"; she didn\'t',
+				)
+			)
+		);
+
+		$zone = self::zones()->get( 'quoted' );
+		$this->assertSame( 'The "Daily"; late', $zone->name );
+		$this->assertSame( 'He said "hi"; she didn\'t', $zone->description );
+		$this->assertSame(
+			array( 'description' => 'He said "hi"; she didn\'t' ),
+			unserialize( get_term_field( 'description', $zone->term_id, Taxonomy::NAME, 'raw' ), array( 'allowed_classes' => false ) ) // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
+		);
 	}
 
 	public function test_insert_keeps_non_ascii_text_in_the_description(): void {
@@ -116,32 +174,102 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			)
 		);
 
-		$zone = \Zoninator()->get_zone( 'creme' );
+		$zone = self::zones()->get( 'creme' );
 		$this->assertSame( 'Crème', $zone->name );
 		$this->assertSame( 'Crème &lt;b&gt;brûlée&lt;/b&gt; — “à la carte”', $zone->description );
 		// The zone reader repairs damaged descriptions, so check what was stored is valid as it is.
 		$this->assertSame(
 			array( 'description' => 'Crème &lt;b&gt;brûlée&lt;/b&gt; — “à la carte”' ),
-			unserialize( get_term_field( 'description', $zone->term_id, \Zoninator::ZONE_TAXONOMY, 'raw' ), array( 'allowed_classes' => false ) ) // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
+			unserialize( get_term_field( 'description', $zone->term_id, Taxonomy::NAME, 'raw' ), array( 'allowed_classes' => false ) ) // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
 		);
+	}
+
+	/**
+	 * A browser sends each field as text. Anything else, such as an array, isn't the form's.
+	 */
+	public function test_a_field_that_is_not_text_is_read_as_empty(): void {
+		$location = $this->submit(
+			'update',
+			array(
+				'zone_id'     => $this->zone_id,
+				'name'        => array( 'Changed zone' ),
+				'slug'        => array( 'changed-zone' ),
+				'description' => array( 'Changed' ),
+			)
+		);
+
+		$zone = self::zones()->get( $this->zone_id );
+		$this->assertStringContainsString( 'message=update-success', $location );
+		$this->assertSame( 'Form zone', $zone->name );
+		$this->assertSame( 'form-zone', $zone->slug );
+		$this->assertSame( '', $zone->description );
+	}
+
+	/**
+	 * A nonce lets its holder change the zone it was made for, and no other.
+	 *
+	 * @dataProvider data_zone_actions
+	 *
+	 * @param string $action Form action.
+	 */
+	public function test_a_nonce_for_one_zone_does_not_work_for_another( string $action ): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		$other_id = self::insert_zone( 'other-zone', 'Other zone' );
+		$this->set_request(
+			$action,
+			array(
+				'zone_id' => $this->zone_id,
+				'name'    => 'Changed zone',
+			),
+			false
+		);
+		$_POST[ ScreenLocation::NONCE_NAME ]    = $this->create_nonce( $action, $other_id );
+		$_REQUEST[ ScreenLocation::NONCE_NAME ] = $_POST[ ScreenLocation::NONCE_NAME ];
+
+		try {
+			zoninator_container()->get( ZoneForm::class )->handle_request();
+			$this->fail( 'Expected the handler to stop the request.' );
+		} catch ( WPDieException $e ) {
+			$this->assertSame( 'The link you followed has expired.', $e->getMessage() );
+		}
+
+		$this->assertSame( 'Form zone', self::zones()->get( $this->zone_id )->name );
+	}
+
+	/**
+	 * Other forms send _wpnonce too, so the zone form has a field of its own.
+	 */
+	public function test_the_nonce_is_read_from_the_forms_own_field(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		$this->set_request( 'delete', array( 'zone_id' => $this->zone_id ), false );
+		$_REQUEST['_wpnonce'] = $this->create_nonce( 'delete', $this->zone_id );
+
+		try {
+			zoninator_container()->get( ZoneForm::class )->handle_request();
+			$this->fail( 'Expected the handler to stop the request.' );
+		} catch ( WPDieException $e ) {
+			$this->assertSame( 'The link you followed has expired.', $e->getMessage() );
+		}
+
+		$this->assertNotFalse( self::zones()->get( $this->zone_id ) );
 	}
 
 	public function test_delete_removes_the_zone_and_its_posts(): void {
 		$post_id = self::factory()->post->create();
-		\Zoninator()->add_zone_posts( $this->zone_id, array( $post_id ) );
-		$meta_key = \Zoninator()->get_zone_meta_key( $this->zone_id );
+		self::add_zone_posts( $this->zone_id, array( $post_id ) );
+		$meta_key = self::zones()->get_meta_key( $this->zone_id );
 
 		$location = $this->submit( 'delete', array( 'zone_id' => $this->zone_id ) );
 
-		$this->assertFalse( \Zoninator()->get_zone( $this->zone_id ) );
+		$this->assertFalse( self::zones()->get( $this->zone_id ) );
 		$this->assertSame( '', get_post_meta( $post_id, $meta_key, true ) );
 		$this->assertStringContainsString( 'message=delete-success', $location );
 	}
 
+	/**
+	 * The user may add zones, so only the action keeps this from adding one.
+	 */
 	public function test_update_without_a_zone_does_not_add_one(): void {
-		// The user may edit zones, but not add them.
-		add_filter( 'zoninator_add_zone_cap', static fn() => 'manage_options' );
-
 		$this->attempt(
 			'update',
 			array(
@@ -150,19 +278,13 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			)
 		);
 
-		$this->assertFalse( \Zoninator()->get_zone( 'added-zone' ) );
+		$this->assertFalse( self::zones()->get( 'added-zone' ) );
 	}
 
+	/**
+	 * The user may edit this zone, so only the action keeps this from changing it.
+	 */
 	public function test_insert_with_a_zone_does_not_change_it(): void {
-		// The user may add zones, but not edit this one.
-		$zone_id = $this->zone_id;
-		add_filter(
-			'zoninator_current_user_can_edit_zone',
-			static fn( $can, $id ) => (int) $id === $zone_id ? false : $can,
-			10,
-			2
-		);
-
 		$this->attempt(
 			'insert',
 			array(
@@ -172,9 +294,49 @@ final class ZoninatorAdminControllerTest extends TestCase {
 			)
 		);
 
-		$zone = \Zoninator()->get_zone( $this->zone_id );
+		$zone = self::zones()->get( $this->zone_id );
 		$this->assertSame( 'Form zone', $zone->name );
 		$this->assertSame( 'Before', $zone->description );
+		$this->assertSame( 'Changed', self::zones()->get( 'changed-zone' )->description );
+	}
+
+	/**
+	 * Someone else editing the zone keeps the form from changing or deleting
+	 * it, and the zone's page says who.
+	 *
+	 * @dataProvider data_zone_actions
+	 *
+	 * @param string $action Form action.
+	 */
+	public function test_a_zone_someone_else_has_locked_is_left_alone( string $action ): void {
+		self::locker()->lock( $this->zone_id, self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
+		$location = $this->submit(
+			$action,
+			array(
+				'zone_id' => $this->zone_id,
+				'name'    => 'Changed zone',
+			)
+		);
+
+		$this->assertSame( 'Form zone', self::zones()->get( $this->zone_id )->name );
+		$this->assertSame(
+			zoninator_container()->get( ScreenLocation::class )->get_url(
+				array(
+					'action'  => 'edit',
+					'zone_id' => $this->zone_id,
+				)
+			),
+			$location
+		);
+	}
+
+	/**
+	 * @return Generator<string, array{string}>
+	 */
+	public static function data_zone_actions(): Generator {
+		yield 'update' => array( 'update' );
+		yield 'delete' => array( 'delete' );
 	}
 
 	/**
@@ -200,14 +362,12 @@ final class ZoninatorAdminControllerTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{string}>
+	 * @return Generator<string, array{string}>
 	 */
-	public function data_actions(): array {
-		return array(
-			'insert' => array( 'insert' ),
-			'update' => array( 'update' ),
-			'delete' => array( 'delete' ),
-		);
+	public static function data_actions(): Generator {
+		yield 'insert' => array( 'insert' );
+		yield 'update' => array( 'update' );
+		yield 'delete' => array( 'delete' );
 	}
 
 	/**
@@ -222,7 +382,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->set_request( $action, $fields, true );
 
 		try {
-			\Zoninator()->admin_controller();
+			zoninator_container()->get( ZoneForm::class )->handle_request();
 		} catch ( RuntimeException $e ) {
 			return $e->getMessage();
 		}
@@ -241,7 +401,7 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		$this->set_request( $action, $fields, true );
 
 		try {
-			\Zoninator()->admin_controller();
+			zoninator_container()->get( ZoneForm::class )->handle_request();
 		} catch ( RuntimeException | WPDieException $e ) {
 			return;
 		}
@@ -265,14 +425,24 @@ final class ZoninatorAdminControllerTest extends TestCase {
 		);
 
 		try {
-			\Zoninator()->admin_controller();
+			zoninator_container()->get( ZoneForm::class )->handle_request();
 			$this->fail( 'Expected the handler to stop the request.' );
 		} catch ( WPDieException $e ) {
-			$this->assertSame( esc_html( "Sorry, you're not supposed to do that..." ), $e->getMessage() );
+			// A request without a nonce gets WordPress's own refusal; a user who may not gets Zoninator's.
+			$this->assertSame( $with_nonce ? "Sorry, you're not supposed to do that..." : 'The link you followed has expired.', $e->getMessage() );
 		}
 
-		$this->assertSame( 'Form zone', \Zoninator()->get_zone( $this->zone_id )->name );
-		$this->assertFalse( \Zoninator()->get_zone( 'changed-zone' ) );
+		$this->assertSame( 'Form zone', self::zones()->get( $this->zone_id )->name );
+		$this->assertFalse( self::zones()->get( 'changed-zone' ) );
+	}
+
+	/**
+	 * @param string $action  Form action.
+	 * @param int    $zone_id The zone the nonce is for, or 0 for a new zone.
+	 * @return string A nonce for the current user.
+	 */
+	private function create_nonce( string $action, int $zone_id ): string {
+		return wp_create_nonce( zoninator_container()->get( ScreenLocation::class )->get_nonce_action( $action, $zone_id ) );
 	}
 
 	/**
@@ -281,17 +451,15 @@ final class ZoninatorAdminControllerTest extends TestCase {
 	 * @param bool   $with_nonce Whether to send a valid nonce.
 	 */
 	private function set_request( string $action, array $fields, bool $with_nonce ): void {
-		$zoninator = \Zoninator();
-
 		$_POST = $fields;
 		if ( $with_nonce ) {
-			$_POST['_wpnonce'] = wp_create_nonce( $zoninator->_get_nonce_key( $action ) );
+			$_POST[ ScreenLocation::NONCE_NAME ] = $this->create_nonce( $action, 'insert' === $action ? 0 : (int) ( $fields['zone_id'] ?? 0 ) );
 		}
 
 		$_REQUEST = array_merge(
 			$_POST,
 			array(
-				'page'   => \Automattic\Zoninator\Admin\Screen::PAGE_SLUG,
+				'page'   => ScreenLocation::SLUG,
 				'action' => $action,
 			)
 		);

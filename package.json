@@ -1,6 +1,6 @@
 {
 	"name": "zoninator",
-	"version": "0.12.0",
+	"version": "1.0.0",
 	"description": "Create zones of selected posts in a set order, and display them on your site.",
 	"license": "GPL-2.0-or-later",
 	"private": true,
@@ -8,10 +8,15 @@
 	"scripts": {
 		"bump:patch": "bump patch package.json package-lock.json zoninator.php README.md",
 		"bump:minor": "bump minor package.json package-lock.json zoninator.php README.md",
-		"bump:major": "bump major package.json package-lock.json zoninator.php README.md"
+		"bump:major": "bump major package.json package-lock.json zoninator.php README.md",
+		"test:e2e": "playwright test"
 	},
 	"devDependencies": {
+		"@axe-core/playwright": "^4.14.1",
+		"@playwright/test": "^1.65.1",
+		"@wordpress/e2e-test-utils-playwright": "^3.3.0",
 		"@wordpress/env": "^12.2.0",
+		"@wordpress/scripts": "^37.2.0",
 		"version-bump-prompt": "^6.1.0"
 	},
 	"overrides": {

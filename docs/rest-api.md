@@ -1,6 +1,6 @@
 # REST API
 
-Zoninator registers a single namespace, `zoninator/v1`, in `src/rest/class-zones-controller.php`. All endpoints sit under `/wp-json/zoninator/v1/`.
+Zoninator registers a single namespace, `zoninator/v1`, from the controllers in `src/Infrastructure/WordPress/Rest/`. All endpoints sit under `/wp-json/zoninator/v1/`.
 
 There is also a non-REST JSON feed at `/zones/{slug}/feed.json` — see the [theme developer guide](theme-developers.md) for that.
 
@@ -10,7 +10,7 @@ Every endpoint except `GET /zones/{zone_id}/posts` needs an authenticated reques
 
 `GET /zones/{zone_id}/posts` is public. It lists only published posts, the same as the [JSON feed](theme-developers.md#the-json-feed).
 
-The `GET /zones` index endpoint requires a logged-in user as of 0.11.0. Sites that depend on the previous anonymous behavior can opt back in with the `zoninator_rest_get_zones_permissions_check` filter — see [hooks.md](hooks.md#zoninator_rest_get_zones_permissions_check-filter).
+`GET /zones` needs a user who can edit posts (`edit_posts`) or curate zones. To let anyone list the zones, use the [`zoninator_rest_get_zones_permissions_check`](hooks.md#zoninator_rest_get_zones_permissions_check-filter) filter.
 
 The other endpoints check a capability, `edit_others_posts` by default; see [hooks.md](hooks.md#capabilities) for the filters that govern them.
 
@@ -20,7 +20,7 @@ The other endpoints check a capability, `edit_others_posts` by default; see [hoo
 
 Returns every zone on the site.
 
-**Permission:** logged-in by default; filter via `zoninator_rest_get_zones_permissions_check`.
+**Permission:** `edit_posts`, or the capability to curate zones, by default; filter via `zoninator_rest_get_zones_permissions_check`.
 
 **Response:** an array of zone objects.
 
@@ -59,7 +59,7 @@ Updates a zone.
 
 **Permission:** `zoninator_edit_zone_cap`, plus the per-zone `zoninator_current_user_can_edit_zone` filter.
 
-**Body** — same fields as `POST /zones`. Only the fields you send are updated. Send an empty `description` to clear it; since 0.12.0, before which an empty value was ignored. An empty `name` or `slug` is ignored, as a zone needs both.
+**Body** — same fields as `POST /zones`. Only the fields you send are updated. Send an empty `description` to clear it. An empty `name` or `slug` is ignored, as a zone needs both.
 
 **Response:** `{ "success": true }` on success, `404` if the zone does not exist.
 
@@ -77,41 +77,39 @@ Returns the posts assigned to a zone, in zone order.
 
 **Permission:** publicly accessible.
 
-**Response:** array of the zone's published post objects, with the fields allowed by the `zoninator_zone_feed_fields` filter (by default: `ID`, `post_date`, `post_title`, `post_content`, `post_excerpt`, `post_status`, `guid`). Content and excerpt are blanked for password-protected posts.
+**Response:** array of the zone's published post objects, with the fields allowed by the `zoninator_zone_feed_fields` filter (by default: `ID`, `post_date`, `post_title`, `post_excerpt`, `post_status`, `guid`). The excerpt is blanked for password-protected posts. For a post's content, use core's `GET /wp/v2/posts/{id}`, which applies the site's content filters and access rules.
 
 ### `PUT /zoninator/v1/zones/{zone_id}/posts`
 
 Replaces the post list for a zone with the supplied IDs. The Zones screen saves the order this way.
 
-**Permission:** `zoninator_manage_zone_cap`. Before 0.12.0 it was `zoninator_edit_zone_cap`, with the `zoninator_current_user_can_edit_zone` filter.
+**Permission:** `zoninator_manage_zone_cap`.
 
 **Body**
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `post_ids` | int[] | yes | Ordered list of post IDs to assign to the zone. |
+| `post_ids` | int[] | yes | Ordered list of post IDs to assign to the zone. An empty list empties the zone. |
 
 **Response:** `{ "success": true }` on success, `400` if any ID is not a post of a zone post type that the user can read, `404` if the zone does not exist.
 
 ### `POST /zoninator/v1/zones/{zone_id}/posts/{post_id}`
 
-Adds a post to the end of a zone. Since 0.12.0.
+Adds a post to the end of a zone. A post already in the zone keeps its place, and the response is the same.
 
 **Permission:** `zoninator_manage_zone_cap`.
 
-**Response:** `201` with the post's row for the Zones screen, rendered by the [`zoninator_zone_post_columns`](hooks.md) callbacks:
+**Response:** `201`:
 
 ```json
-{
-  "html": "<div id=\"zone-post-42\" class=\"zone-post\" …>…</div>"
-}
+{ "success": true }
 ```
 
 `400` if the post isn't of a zone post type that the user can read, `404` if the zone does not exist.
 
 ### `DELETE /zoninator/v1/zones/{zone_id}/posts/{post_id}`
 
-Removes a post from a zone. Since 0.12.0.
+Removes a post from a zone.
 
 **Permission:** `zoninator_manage_zone_cap`.
 
@@ -119,7 +117,7 @@ Removes a post from a zone. Since 0.12.0.
 
 ### `GET /zoninator/v1/search`
 
-Finds posts to add to a zone. With no `term`, lists the latest content. Since 0.12.0.
+Finds posts to add to a zone. With no `term`, lists the latest content.
 
 **Permission:** `zoninator_manage_zone_cap`.
 
@@ -132,13 +130,13 @@ Finds posts to add to a zone. With no `term`, lists the latest content. Since 0.
 | `date` | string | no | Date to filter by, as `Y-m-d`. |
 | `exclude` | int[] | no | Post IDs to leave out, usually those already in the zone. |
 | `limit` | int | no | Number of search results, from 1 to 100. Defaults to the `zoninator_posts_per_page` value. The latest content ignores it. |
-| `zone_id` | int | no | The zone being edited, passed to the query args filters. Since 0.12.0. |
+| `zone_id` | int | no | The zone being edited, passed to the query args filters. |
 
 The search applies the [content search filters](hooks.md#content-search). Published and scheduled posts are included.
 
 Results only include posts the user can read, so a page can hold fewer than `limit` when an access plugin hides some.
 
-Since 0.12.0, a `term` made only of digits looks that post up by ID, which skips the slow text search. The lookup uses the same arguments as the text search, after `zoninator_search_args`, so it only finds a post the text search could offer. If it finds that post, the response is just that post. Otherwise the term is searched as text, so a number in a title, such as "1984", still matches.
+A `term` made only of digits looks that post up by ID, which skips the slow text search. The lookup uses the same arguments as the text search, after `zoninator_search_args`, so it only finds a post the text search could offer. If it finds that post, the response is just that post. Otherwise the term is searched as text, so a number in a title, such as "1984", still matches.
 
 **Response:** an array of results.
 
@@ -158,9 +156,9 @@ Since 0.12.0, a `term` made only of digits looks that post up by ID, which skips
 
 ### `PUT /zoninator/v1/zones/{zone_id}/lock`
 
-Acquires (or extends) the editing lock for a zone. The Zones screen calls it every `zoninator_zone_lock_period` seconds, so two people can't curate the same zone at once.
+Acquires (or extends) the editing lock for a zone. The Zones screen calls it every `zoninator_zone_lock_period` seconds, so two people can't curate the same zone at once. While someone else holds the lock, every route that changes the zone or its posts is refused with `zone-locked`.
 
-**Permission:** `zoninator_manage_zone_cap`. Before 0.12.0 it was `zoninator_edit_zone_cap`, with the `zoninator_current_user_can_edit_zone` filter.
+**Permission:** `zoninator_manage_zone_cap`.
 
 **Response on success:** `200`
 
@@ -174,15 +172,13 @@ Acquires (or extends) the editing lock for a zone. The Zones screen calls it eve
 
 `timeout` and `max_lock_period` are filterable via [`zoninator_zone_lock_period`](hooks.md#zoninator_zone_lock_period-filter) and [`zoninator_zone_max_lock_period`](hooks.md#zoninator_zone_max_lock_period-filter).
 
-**Response when the zone is already locked:** `400`, in core's REST error shape with the code `zone-locked`. The message names the user holding the lock. `zone_id` and `blocked` stay from earlier versions, which sent only those.
+**Response when the zone is already locked:** `400`, in core's REST error shape with the code `zone-locked`. The message names the user holding the lock.
 
 ```json
 {
   "code": "zone-locked",
   "message": "Sorry, this zone is in use by Jane Doe and is currently locked. Please try again later.",
-  "data": { "status": 400 },
-  "zone_id": 12,
-  "blocked": true
+  "data": { "status": 400, "zone_id": 12, "blocked": true }
 }
 ```
 
@@ -200,24 +196,26 @@ Errors use core's REST error shape, with a `code`, a `message` in the site's lan
 
 | Status | Code | When |
 |---|---|---|
-| `400` | `invalid-post-id` | A post isn't of a zone post type that the user can read. |
+| `400` | `invalid-post-id` | A post isn't of a zone post type that the user can read. A post already in the zone is never refused, so a zone that holds such a post can still be reordered, and the post can be removed. |
 | `400` | `rest_invalid_param` | A parameter fails validation, such as a non-numeric `post_ids` entry. |
-| `400` | from WordPress, such as `term_exists` | A zone couldn't be created, updated or deleted. Creating a zone with neither `name` nor `slug` gives `zone-empty-slug`. |
+| `400` | from WordPress, such as `term_exists` | A zone couldn't be created or updated. Creating a zone with neither `name` nor `slug` gives `zone-empty-slug`, and a zone that couldn't be deleted gives `delete-zone`. |
 | `400` | `zone-id-required` | `PUT /zones/0/lock`: the lock endpoint needs a zone ID. |
-| `400` | `zone-locked` | `PUT /zones/{zone_id}/lock`: another user holds the zone's lock. |
+| `400` | `zone-full` | The change would take the zone past its post limit; see [`zoninator_post_count_limit`](hooks.md#zoninator_post_count_limit-filter). |
+| `400` | `zone-locked` | Another user holds the zone's lock. Every route that changes a zone or its posts gives this. The lock holder's own requests go through. |
 | `400` | `zones-read-error` | `GET /zones` couldn't read the zones. |
-| `400` | `zone-feed-error` | `GET /zones/{zone_id}/posts` couldn't assemble the zone's posts. |
+| `400` | `zone-feed-error` | A [`zoninator_json_feed_results`](hooks.md#zoninator_json_feed_results-filter) callback refused `GET /zones/{zone_id}/posts`. |
 | `401` / `403` | `permission-denied` | The capability check failed: `401` when logged out, `403` when logged in. |
+| `401` / `403` | `rest_forbidden` | `GET /zones` was refused by [`zoninator_rest_get_zones_permissions_check`](hooks.md#zoninator_rest_get_zones_permissions_check-filter). |
 | `404` | `zone-not-found` | The zone in the path doesn't exist. |
 
-The codes are constants on `Automattic\Zoninator\REST\Zones_Controller`, such as `Zones_Controller::ZONE_NOT_FOUND`. Since 0.12.0 every error has a code; before, the `400` and `404` responses had only a `message`, and refused requests got `500`.
+The codes are constants on `Automattic\Zoninator\Infrastructure\WordPress\Rest\ErrorCodes`, such as `ErrorCodes::ZONE_NOT_FOUND`.
 
 ## Implementation notes
 
-- The endpoints are registered by `Automattic\Zoninator\REST\Zones_Controller` (`src/rest/class-zones-controller.php`), which extends core's `WP_REST_Controller`. The file loads only on `rest_api_init`.
+- The endpoints are registered by four controllers under `Automattic\Zoninator\Infrastructure\WordPress\Rest\`, one for each resource: `ZonesController`, `ZonePostsController`, `SearchController` and `LockController`. Each extends core's `WP_REST_Controller`, and registers its routes on `rest_api_init`. A fifth, `Admin\ZonePostRowController`, registers a route the Zones screen uses to show each post's row; it isn't part of this API.
 - The update routes (`/zones/{zone_id}`, `/zones/{zone_id}/posts` and `/zones/{zone_id}/lock`) accept `POST`, `PUT` and `PATCH`.
-- The Zones screen uses these routes through `wp.apiFetch()`. Its `zoninator_add_post`, `zoninator_remove_post`, `zoninator_reorder_posts`, `zoninator_search_posts`, `zoninator_update_lock` and `zoninator_update_recent` admin-ajax actions are deprecated since 0.12.0, and go in 1.0.0.
-- A lock is a transient keyed against the zone, holding the locking user's ID. It survives page reloads, and expires when `zoninator_zone_lock_period` lapses without a renewal.
+- The Zones screen uses these routes through `wp.apiFetch()`.
+- A lock is a transient keyed against the zone, holding the locking user's ID. It survives page reloads, and expires a second after `zoninator_zone_lock_period` lapses without a renewal.
 
 ## See also
 

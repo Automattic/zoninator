@@ -2,8 +2,10 @@
 /.claude/
 /.git/
 /.github/
+/artifacts/
 /docs/
 /node_modules/
+/playwright-report/
 /tests/
 /vendor/
 
@@ -23,4 +25,5 @@ composer.lock
 package.json
 package-lock.json
 phpunit.xml.dist
+playwright.config.js
 rector.php

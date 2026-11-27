@@ -32,7 +32,7 @@
 	<rule ref="PHPCompatibilityWP"/>
 	<!-- For help in understanding this testVersion:
 		https://github.com/PHPCompatibility/PHPCompatibility#sniffing-your-code-for-compatibility-with-specific-php-versions -->
-	<config name="testVersion" value="7.4-"/>
+	<config name="testVersion" value="8.2-"/>
 
 	<!-- Rules: WordPress Coding Standards - see
 		https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards -->
@@ -40,17 +40,20 @@
 	<rule ref="WordPress-Extra">
 		<exclude name="Universal.Operators.DisallowShortTernary.Found"/>
 	</rule>
+	<!-- The classes under src/Domain, src/Application and src/Infrastructure are named for PSR-4 autoloading. -->
 	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
 		<exclude-pattern>widget.zone-posts.php</exclude-pattern>
 		<exclude-pattern>zoninator.php</exclude-pattern>
+		<exclude-pattern>src/(Domain|Application|Infrastructure)/</exclude-pattern>
 	</rule>
 	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
 		<exclude-pattern>widget.zone-posts.php</exclude-pattern>
+		<exclude-pattern>src/(Domain|Application|Infrastructure)/</exclude-pattern>
 	</rule>
 <!--	<rule ref="WordPress-Docs"/>-->
 	<!-- For help in understanding these custom sniff properties:
 		https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/wiki/Customizable-sniff-properties -->
-	<config name="minimum_supported_wp_version" value="6.4"/>
+	<config name="minimum_supported_wp_version" value="6.9"/>
 
 	<!-- Rules: WordPress VIP - see
 		https://github.com/Automattic/VIP-Coding-Standards -->
@@ -69,7 +72,6 @@
 		<properties>
 			<property name="text_domain" type="array">
 				<element value="zoninator"/>
-				<element value="Automattic\Zoninator"/>
 			</property>
 		</properties>
 	</rule>

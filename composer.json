@@ -15,7 +15,7 @@
 		"source": "https://github.com/Automattic/zoninator"
 	},
 	"require": {
-		"php": ">=7.4",
+		"php": ">=8.2",
 		"composer/installers": "^1.0 || ^2.0"
 	},
 	"require-dev": {
@@ -55,6 +55,7 @@
 		"lint-ci": [
 			"@php ./vendor/php-parallel-lint/php-parallel-lint/parallel-lint . -e php --exclude vendor --exclude .git --checkstyle"
 		],
+		"test:unit": "@php ./vendor/bin/phpunit --testsuite unit",
 		"test:integration": "npx --no wp-env run cli \"--env-cwd=wp-content/plugins/$(basename \"$(pwd)\")\" ./vendor/bin/phpunit --testsuite integration",
 		"test:integration-ms": "npx --no wp-env run cli \"--env-cwd=wp-content/plugins/$(basename \"$(pwd)\")\" /bin/bash -c 'WP_MULTISITE=1 ./vendor/bin/phpunit --testsuite integration'"
 	},
@@ -66,6 +67,7 @@
 		"i18n": "Generate a POT file for translation",
 		"lint": "Run PHP linting",
 		"lint-ci": "Run PHP linting and send results to stdout",
+		"test:unit": "Run unit tests, which need no WordPress",
 		"test:integration": "Run integration tests",
 		"test:integration-ms": "Run integration tests in multisite mode"
 	}

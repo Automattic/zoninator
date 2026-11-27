@@ -7,6 +7,10 @@
 
 namespace Automattic\Zoninator\Tests\Integration;
 
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\Screen;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\SearchForm;
+use Automattic\Zoninator\Infrastructure\WordPress\Admin\ZonePostRow;
+
 class ZoninatorAdminAccessibilityTest extends TestCase {
 
 	public function tearDown(): void {
@@ -24,10 +28,9 @@ class ZoninatorAdminAccessibilityTest extends TestCase {
 	private function create_zone_with_post(): array {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 
-		$zone    = Zoninator()->insert_zone( 'a11y-zone', 'Accessibility zone' );
-		$zone    = Zoninator()->get_zone( (int) $zone['term_id'] );
+		$zone    = self::zones()->get( self::insert_zone( 'a11y-zone', 'Accessibility zone' ) );
 		$post_id = self::factory()->post->create( array( 'post_title' => 'Zoned story' ) );
-		Zoninator()->add_zone_posts( $zone, $post_id );
+		self::add_zone_posts( $zone, $post_id );
 
 		return array( $zone, get_post( $post_id ) );
 	}
@@ -37,7 +40,7 @@ class ZoninatorAdminAccessibilityTest extends TestCase {
 
 		return $this->capture(
 			static function () use ( $post, $zone ) {
-				Zoninator()->admin_page_zone_post( $post, $zone );
+				zoninator_container()->get( ZonePostRow::class )->render( $post, $zone );
 			}
 		);
 	}
@@ -45,11 +48,7 @@ class ZoninatorAdminAccessibilityTest extends TestCase {
 	private function render_zone_edit(): string {
 		list( $zone ) = $this->create_zone_with_post();
 
-		return $this->capture(
-			static function () use ( $zone ) {
-				Zoninator()->admin_page_zone_edit( $zone );
-			}
-		);
+		return self::render_zone_editor( (int) $zone->term_id );
 	}
 
 	public function test_zone_items_have_keyboard_move_and_remove_buttons(): void {
@@ -76,8 +75,8 @@ class ZoninatorAdminAccessibilityTest extends TestCase {
 	}
 
 	public function test_zone_content_controls_are_labelled(): void {
-		add_action( 'zoninator_advanced_search_fields', array( Zoninator(), 'zone_advanced_search_cat_filter' ) );
-		add_action( 'zoninator_advanced_search_fields', array( Zoninator(), 'zone_advanced_search_date_filter' ) );
+		add_action( 'zoninator_advanced_search_fields', array( zoninator_container()->get( SearchForm::class ), 'render_category_filter' ) );
+		add_action( 'zoninator_advanced_search_fields', array( zoninator_container()->get( SearchForm::class ), 'render_date_filter' ) );
 
 		$output = $this->render_zone_edit();
 
@@ -92,7 +91,7 @@ class ZoninatorAdminAccessibilityTest extends TestCase {
 	public function test_filter_toggle_is_a_button_that_reports_its_state(): void {
 		$output = $this->capture(
 			static function () {
-				Zoninator()->zone_advanced_search_filters();
+				zoninator_container()->get( SearchForm::class )->render_filters();
 			}
 		);
 
@@ -130,7 +129,7 @@ class ZoninatorAdminAccessibilityTest extends TestCase {
 
 		$output = $this->capture(
 			static function () {
-				Zoninator()->admin_page();
+				zoninator_container()->get( Screen::class )->render();
 			}
 		);
 
