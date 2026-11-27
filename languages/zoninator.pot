@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the Zone Manager (Zoninator) plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Zone Manager (Zoninator) 0.12.0\n"
+"Project-Id-Version: Zone Manager (Zoninator) 1.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/zoninator\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-24T20:10:34+00:00\n"
+"POT-Creation-Date: 2026-11-27T13:14:49+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: zoninator\n"
@@ -34,341 +34,418 @@ msgstr ""
 msgid "https://wpvip.com"
 msgstr ""
 
-#: src/admin/class-ajax.php:244
-msgid "No results found"
-msgstr ""
-
-#. translators: %s: category name.
-#: src/admin/class-ajax.php:247
-#, php-format
-msgid "Choose post from %s"
-msgstr ""
-
-#: src/admin/class-ajax.php:249
-#: src/admin/class-ajax.php:265
-msgid "Choose a post"
-msgstr ""
-
-#: src/admin/class-ajax.php:263
-msgid "Add Recent Content"
-msgstr ""
-
-#: src/admin/class-screen.php:113
-#: src/admin/class-screen.php:230
-#: src/admin/class-screen.php:304
-#: src/class-taxonomy.php:51
+#: src/Infrastructure/WordPress/Abilities.php:63
+#: src/Infrastructure/WordPress/Admin/Screen.php:55
+#: src/Infrastructure/WordPress/Admin/ScreenView.php:56
+#: src/Infrastructure/WordPress/Admin/ScreenView.php:118
+#: src/Infrastructure/WordPress/Taxonomy.php:53
 msgid "Zones"
 msgstr ""
 
-#: src/admin/class-screen.php:125
-#: src/rest/class-zones-controller.php:638
+#: src/Infrastructure/WordPress/Abilities.php:64
+msgid "Read zones, and curate the posts in them."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Abilities.php:87
+msgid "List zones"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Abilities.php:88
+msgid "Lists every zone with its ID, slug, name and description."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Abilities.php:103
+msgid "Get zone posts"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Abilities.php:104
+msgid "Gets the published and scheduled posts in a zone, in their zone order, with their ID, title, date and status."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Abilities.php:111
+#: src/Infrastructure/WordPress/CurationAbilities.php:155
+msgid "The zone ID."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Abilities.php:140
+msgid "Search posts for a zone"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Abilities.php:141
+msgid "Searches published and scheduled posts that can be added to a zone. A post ID as the term finds that post. With no term, lists the latest posts."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Abilities.php:150
+msgid "Text or post ID to search for. Leave empty for the latest posts."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Abilities.php:155
+msgid "Category ID to filter by, or 0 for all."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Abilities.php:161
+msgid "Date to filter by, as YYYY-MM-DD."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Abilities.php:167
+msgid "Post IDs to leave out, such as the posts already in the zone."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Abilities.php:173
+msgid "Number of search results, up to 100. 0 for the default. The latest posts list ignores it."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Abilities.php:180
+msgid "The zone being edited, or 0. Passed to the search filters."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/Assets.php:61
+#: src/Infrastructure/WordPress/Admin/ScreenView.php:163
+#: src/Infrastructure/WordPress/Errors.php:51
 msgid "another user"
 msgstr ""
 
-#: src/admin/class-screen.php:126
+#: src/Infrastructure/WordPress/Admin/Assets.php:62
 msgid "The order of the zone could not be saved."
 msgstr ""
 
-#: src/admin/class-screen.php:127
+#: src/Infrastructure/WordPress/Admin/Assets.php:63
 msgid "Try again"
 msgstr ""
 
 #. translators: %s: time of day.
-#: src/admin/class-screen.php:129
+#: src/Infrastructure/WordPress/Admin/Assets.php:65
 #, php-format
 msgid "Saved at %s"
 msgstr ""
 
-#: src/admin/class-screen.php:130
+#: src/Infrastructure/WordPress/Admin/Assets.php:66
 msgid "You have had this zone open for a while. Select OK to keep editing it, or Cancel to unlock it and go to the Dashboard."
 msgstr ""
 
-#: src/admin/class-screen.php:133
+#: src/Infrastructure/WordPress/Admin/Assets.php:69
 msgid "Item added to the zone."
 msgstr ""
 
-#: src/admin/class-screen.php:134
+#: src/Infrastructure/WordPress/Admin/Assets.php:70
 msgid "Item removed from the zone."
 msgstr ""
 
 #. translators: 1: new position of the item in the zone, 2: number of items in the zone.
-#: src/admin/class-screen.php:136
+#: src/Infrastructure/WordPress/Admin/Assets.php:72
 #, php-format
 msgid "Item moved to position %1$d of %2$d."
 msgstr ""
 
-#: src/admin/class-screen.php:242
+#. translators: Shown between a search result's post type, date and status. Keep the spaces your language needs.
+#: src/Infrastructure/WordPress/Admin/Assets.php:74
+msgctxt "search result details separator"
+msgid " · "
+msgstr ""
+
+#. translators: Read out by screen readers between a search result's title, post type, date and status. Keep the spaces your language needs.
+#: src/Infrastructure/WordPress/Admin/Assets.php:76
+msgctxt "search result accessible name separator"
+msgid ", "
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/Messages.php:28
+msgid "The zone was successfully created."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/Messages.php:29
+msgid "The zone was successfully updated."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/Messages.php:30
+msgid "The zone was successfully deleted."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/Messages.php:31
+msgid "Sorry, something went wrong! Please try again?"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/Messages.php:32
+#: src/Infrastructure/WordPress/TermZoneRepository.php:135
+msgid "Sorry, we couldn't delete the zone."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/Messages.php:33
+msgid "Sorry, that zone doesn't exist."
+msgstr ""
+
+#. translators: %s: the locking user's display name, or "another user".
+#: src/Infrastructure/WordPress/Admin/Messages.php:35
+#: src/Infrastructure/WordPress/Errors.php:50
+#, php-format
+msgid "Sorry, this zone is in use by %s and is currently locked. Please try again later."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/Messages.php:36
+msgid "Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/ScreenView.php:52
 msgid "Edit Zone"
 msgstr ""
 
-#: src/admin/class-screen.php:244
-#: src/admin/class-screen.php:446
+#: src/Infrastructure/WordPress/Admin/ScreenView.php:54
+#: src/Infrastructure/WordPress/Admin/ZoneDetailsView.php:103
 msgid "Add New Zone"
 msgstr ""
 
-#: src/admin/class-screen.php:262
+#: src/Infrastructure/WordPress/Admin/ScreenView.php:71
 msgctxt "zone"
 msgid "Add New"
 msgstr ""
 
-#: src/admin/class-screen.php:310
+#: src/Infrastructure/WordPress/Admin/ScreenView.php:124
 msgid "No zones found."
 msgstr ""
 
-#: src/admin/class-screen.php:372
+#: src/Infrastructure/WordPress/Admin/ScreenView.php:176
 msgid "Zone details"
 msgstr ""
 
-#: src/admin/class-screen.php:415
-#: src/admin/class-screen.php:463
-msgid "Name"
-msgstr ""
-
-#: src/admin/class-screen.php:421
-msgid "Slug"
-msgstr ""
-
-#: src/admin/class-screen.php:428
-#: src/admin/class-screen.php:468
-msgid "Description"
-msgstr ""
-
-#: src/admin/class-screen.php:443
-msgid "Update"
-msgstr ""
-
-#: src/admin/class-screen.php:444
-msgid "Are you sure you want to delete this zone?"
-msgstr ""
-
-#: src/admin/class-screen.php:444
-msgid "Delete"
-msgstr ""
-
-#: src/admin/class-screen.php:451
-msgid "Once the zone is added, you can add content to it."
-msgstr ""
-
-#: src/admin/class-screen.php:492
+#: src/Infrastructure/WordPress/Admin/ScreenView.php:208
 msgid "Zone content"
 msgstr ""
 
-#: src/admin/class-screen.php:548
+#: src/Infrastructure/WordPress/Admin/SearchForm.php:38
+msgid "Add content"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/SearchForm.php:40
+msgid "Type a title or post ID to search, or choose from the latest content."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/SearchForm.php:52
+msgid "Hide filters"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/SearchForm.php:52
+msgid "Show filters"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/SearchForm.php:74
+msgid "Filter by category"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/SearchForm.php:87
+msgid "All categories"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/SearchForm.php:121
+msgid "All dates"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/SearchForm.php:122
+msgid "Today"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/SearchForm.php:123
+msgid "Yesterday"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/SearchForm.php:126
+msgid "Filter by date"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/ZoneDetailsView.php:63
+#: src/Infrastructure/WordPress/Admin/ZoneDetailsView.php:130
+msgid "Name"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/ZoneDetailsView.php:69
+msgid "Slug"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/ZoneDetailsView.php:76
+#: src/Infrastructure/WordPress/Admin/ZoneDetailsView.php:135
+msgid "Description"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/ZoneDetailsView.php:100
+msgid "Update"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/ZoneDetailsView.php:101
+msgid "Are you sure you want to delete this zone?"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/ZoneDetailsView.php:101
+msgid "Delete"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/ZoneDetailsView.php:108
+msgid "Once the zone is added, you can add content to it."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/ZonePostRow.php:138
 msgid "Drag to change the position of this item, or use Move up and Move down."
 msgstr ""
 
+#: src/Infrastructure/WordPress/Admin/ZonePostRow.php:149
+msgid "An item you do not have access to."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/ZonePostRow.php:152
+msgid "Remove the item you do not have access to"
+msgstr ""
+
+#: src/Infrastructure/WordPress/Admin/ZonePostRow.php:152
+#: src/Infrastructure/WordPress/Admin/ZonePostRow.php:178
+msgid "Remove"
+msgstr ""
+
 #. translators: %s: post title.
-#: src/admin/class-screen.php:558
+#: src/Infrastructure/WordPress/Admin/ZonePostRow.php:161
 #, php-format
 msgid "Edit “%s” (opens in a new tab)"
 msgstr ""
 
 #. translators: %s: post title.
-#: src/admin/class-screen.php:560
+#: src/Infrastructure/WordPress/Admin/ZonePostRow.php:163
 #, php-format
 msgid "Move up “%s”"
 msgstr ""
 
 #. translators: %s: post title.
-#: src/admin/class-screen.php:562
+#: src/Infrastructure/WordPress/Admin/ZonePostRow.php:165
 #, php-format
 msgid "Move down “%s”"
 msgstr ""
 
 #. translators: %s: post title.
-#: src/admin/class-screen.php:564
+#: src/Infrastructure/WordPress/Admin/ZonePostRow.php:167
 #, php-format
 msgid "Remove “%s”"
 msgstr ""
 
 #. translators: %s: post title.
-#: src/admin/class-screen.php:566
+#: src/Infrastructure/WordPress/Admin/ZonePostRow.php:169
 #, php-format
 msgid "View “%s” (opens in a new tab)"
 msgstr ""
 
-#: src/admin/class-screen.php:573
+#: src/Infrastructure/WordPress/Admin/ZonePostRow.php:176
 msgid "Move up"
 msgstr ""
 
-#: src/admin/class-screen.php:574
+#: src/Infrastructure/WordPress/Admin/ZonePostRow.php:177
 msgid "Move down"
 msgstr ""
 
-#: src/admin/class-screen.php:575
-#: src/class-zoninator.php:854
-msgid "Remove"
-msgstr ""
-
-#: src/admin/class-screen.php:576
-#: src/class-zoninator.php:860
+#: src/Infrastructure/WordPress/Admin/ZonePostRow.php:179
 msgid "View"
 msgstr ""
 
-#: src/admin/class-screen.php:584
-#: src/class-zoninator.php:847
+#: src/Infrastructure/WordPress/Admin/ZonePostRow.php:187
 msgid "Edit"
 msgstr ""
 
-#: src/admin/class-screen.php:598
-msgid "Hide filters"
+#: src/Infrastructure/WordPress/CurationAbilities.php:59
+msgid "Add posts to a zone"
 msgstr ""
 
-#: src/admin/class-screen.php:598
-msgid "Show filters"
+#: src/Infrastructure/WordPress/CurationAbilities.php:60
+msgid "Adds posts to the end of a zone, in the order given. A post already in the zone keeps its place."
 msgstr ""
 
-#: src/admin/class-screen.php:609
-msgid "Filter by category"
+#: src/Infrastructure/WordPress/CurationAbilities.php:71
+msgid "Set the posts in a zone"
 msgstr ""
 
-#: src/admin/class-screen.php:615
-msgid "All categories"
+#: src/Infrastructure/WordPress/CurationAbilities.php:72
+msgid "Makes a zone hold these posts and no others, in the order given. Use it to reorder a zone: send every post that should stay. An empty list empties the zone."
 msgstr ""
 
-#: src/admin/class-screen.php:629
-msgid "All dates"
+#: src/Infrastructure/WordPress/CurationAbilities.php:83
+msgid "Remove posts from a zone"
 msgstr ""
 
-#: src/admin/class-screen.php:630
-msgid "Today"
+#: src/Infrastructure/WordPress/CurationAbilities.php:84
+msgid "Takes posts out of a zone. The posts themselves are not deleted."
 msgstr ""
 
-#: src/admin/class-screen.php:631
-msgid "Yesterday"
+#: src/Infrastructure/WordPress/CurationAbilities.php:160
+msgid "Post IDs, in order."
 msgstr ""
 
-#: src/admin/class-screen.php:634
-msgid "Filter by date"
+#: src/Infrastructure/WordPress/Errors.php:66
+msgid "Sorry, another item cannot be added to this zone."
 msgstr ""
 
-#: src/admin/class-screen.php:659
-msgid "Add content"
-msgstr ""
-
-#: src/admin/class-screen.php:661
-msgid "Type a title or post ID to search, or choose from the latest content."
-msgstr ""
-
-#: src/class-feed.php:67
-msgid "Invalid zone supplied"
-msgstr ""
-
-#: src/class-request.php:141
-#: src/rest/class-zones-controller.php:961
-msgid "Sorry, you're not supposed to do that..."
-msgstr ""
-
-#: src/class-settings.php:47
-msgid "The zone was successfully created."
-msgstr ""
-
-#: src/class-settings.php:48
-msgid "The zone was successfully updated."
-msgstr ""
-
-#: src/class-settings.php:49
-msgid "The zone was successfully deleted."
-msgstr ""
-
-#: src/class-settings.php:50
-msgid "Sorry, something went wrong! Please try again?"
-msgstr ""
-
-#: src/class-settings.php:51
-#: src/class-zones.php:147
-msgid "Sorry, we couldn't delete the zone."
-msgstr ""
-
-#: src/class-settings.php:52
-#: src/class-zones.php:133
-#: src/class-zones.php:154
-msgid "Sorry, that zone doesn't exist."
-msgstr ""
-
-#. translators: %s: the locking user's display name, or "another user".
-#: src/class-settings.php:54
-#, php-format
-msgid "Sorry, this zone is in use by %s and is currently locked. Please try again later."
-msgstr ""
-
-#: src/class-settings.php:55
-msgid "Sorry, you have reached the maximum idle limit and will now be redirected to the Dashboard."
-msgstr ""
-
-#: src/class-zones.php:84
+#: src/Infrastructure/WordPress/Errors.php:78
 msgid "Slug is a required field."
 msgstr ""
 
-#: src/class-zoninator-zoneposts-widget.php:12
-msgid "Use this widget to display a list of posts from any zone."
+#: src/Infrastructure/WordPress/Errors.php:95
+msgid "Sorry, you're not supposed to do that..."
 msgstr ""
 
-#: src/class-zoninator-zoneposts-widget.php:25
-msgid "Zone Posts"
-msgstr ""
-
-#: src/class-zoninator-zoneposts-widget.php:168
-msgid "You need to create at least one zone before you use this widget!"
-msgstr ""
-
-#: src/class-zoninator-zoneposts-widget.php:177
-msgid "Zone:"
-msgstr ""
-
-#: src/class-zoninator-zoneposts-widget.php:180
-msgid "-- Select a zone --"
-msgstr ""
-
-#: src/class-zoninator-zoneposts-widget.php:196
-msgid "Show zone description in widget"
-msgstr ""
-
-#. translators: %s: Replacement constant or method.
-#: src/class-zoninator.php:169
-#, php-format
-msgid "This property is no longer public. Use %s instead."
-msgstr ""
-
-#. translators: %s: Filter or method to use instead.
-#: src/class-zoninator.php:204
-#, php-format
-msgid "This property is no longer public. The new value is used for now, but will be ignored from 1.0.0. Use %s instead."
-msgstr ""
-
-#: src/class-zoninator.php:206
-msgid "This property is no longer public. The new value is used for now, but will be ignored from 1.0.0."
-msgstr ""
-
-#: src/class-zoninator.php:209
-msgid "This property is no longer public and the new value is ignored. This value can not be changed."
-msgstr ""
-
-#: src/class-zoninator.php:833
-msgid "Drag to change the position of this item."
-msgstr ""
-
-#: src/class-zoninator.php:846
-#: src/class-zoninator.php:859
-msgid "Opens in a new tab"
-msgstr ""
-
-#: src/rest/class-zones-controller.php:133
+#: src/Infrastructure/WordPress/Errors.php:104
 msgid "Zone not found."
 msgstr ""
 
-#: src/rest/class-zones-controller.php:134
+#: src/Infrastructure/WordPress/Errors.php:113
 msgid "Invalid post ID."
 msgstr ""
 
-#: src/rest/class-zones-controller.php:251
+#: src/Infrastructure/WordPress/Errors.php:122
+msgid "Zone ID is required."
+msgstr ""
+
+#: src/Infrastructure/WordPress/Errors.php:141
 msgid "Zones could not be read."
 msgstr ""
 
-#: src/rest/class-zones-controller.php:562
+#: src/Infrastructure/WordPress/Search.php:158
 msgid "(no title)"
 msgstr ""
 
-#: src/rest/class-zones-controller.php:620
-msgid "Zone ID is required."
+#: src/Infrastructure/WordPress/ZonePostsWidget.php:41
+#: js/zoninator-block.js:14
+msgid "Zone Posts"
+msgstr ""
+
+#: src/Infrastructure/WordPress/ZonePostsWidget.php:44
+msgid "Use this widget to display a list of posts from any zone."
+msgstr ""
+
+#: src/Infrastructure/WordPress/ZonePostsWidget.php:157
+msgid "You need to create at least one zone before you use this widget!"
+msgstr ""
+
+#: src/Infrastructure/WordPress/ZonePostsWidget.php:166
+msgid "Zone:"
+msgstr ""
+
+#: src/Infrastructure/WordPress/ZonePostsWidget.php:169
+msgid "-- Select a zone --"
+msgstr ""
+
+#: src/Infrastructure/WordPress/ZonePostsWidget.php:185
+msgid "Show zone description in widget"
+msgstr ""
+
+#: js/zoninator-block.js:15
+msgid "Show the posts in a zone, in the zone's order."
+msgstr ""
+
+#: js/zoninator-block.js:57
+msgid "Zones could not be loaded."
+msgstr ""
+
+#: js/zoninator-block.js:65
+msgid "Loading zones…"
+msgstr ""
+
+#: js/zoninator-block.js:70
+#: js/zoninator-block.js:99
+msgid "Zone"
+msgstr ""
+
+#: js/zoninator-block.js:72
+msgid "Select a zone"
 msgstr ""
