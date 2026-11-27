@@ -92,7 +92,8 @@ zoninator/
 │   └── e2e/                         # Playwright tests of the Zones screen, with axe checks
 ├── docs/                            # Audience-targeted documentation
 ├── languages/                       # Translation files
-├── .wordpress-org/                  # WP.org assets (screenshots)
+├── .wordpress-org/                  # WP.org assets: icon, banners, screenshots
+├── tools/wporg-assets/              # Sources and scripts that make those assets
 ├── .github/workflows/               # CI: cs-lint, integration, e2e, release, deploy
 ├── .phpcs.xml.dist                  # PHPCS configuration
 └── playwright.config.js             # Playwright config (extends @wordpress/scripts)

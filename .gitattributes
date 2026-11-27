@@ -9,6 +9,7 @@
 /node_modules/     export-ignore
 /docs/             export-ignore
 /tests/            export-ignore
+/tools/            export-ignore
 
 /.distignore       export-ignore
 /.editorconfig     export-ignore
